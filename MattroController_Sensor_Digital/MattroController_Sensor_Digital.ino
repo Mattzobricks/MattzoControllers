@@ -1,18 +1,19 @@
-#include <EEPROM.h>  // Library for storing and retrieving data in flash memory
+#include <EEPROM.h>  // EEPROM library
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library
 
-String eepromIDString = "MattzoController";
-const int eepromIDStringLength = 16;
-unsigned int controllerNo;
+String eepromIDString = "MattzoController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
+const int eepromIDStringLength = 16;  // length of the ID String. Needs to be updated if the ID String is changed.
+unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
+const int MAX_CONTROLLER_ID = 65000;
 
 const char* SSID = "TBW13";
 const char* PSK = "tbw13iscool";
 const char* MQTT_BROKER = "192.168.1.19";
 String mqttClientName;
-char mqttClientName_char[eepromIDStringLength + 5 + 1];
+char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-const int NUM_SENSORS = 4;
+const int NUM_SENSORS = 4; // Number of connectable sensors
 uint8_t SENSOR_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
 uint8_t LED_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
 
@@ -25,8 +26,6 @@ int ticksBetweenPingsCounter = 0;   // number of ticks after which the sensor wi
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-
-
 
 
 
@@ -52,6 +51,7 @@ void setup() {
     sensorReleaseCounter[i] = 1;  // set to 1 -> report immediately as open to central after start-up
   }
 
+  // a short blink to say "hello, I have power supply and booting up"
   for (int j = 0; j < 3; j++) {
     allBlink(true, 0);
     delay(200);
@@ -87,6 +87,8 @@ void loadPreferences() {
     }
   }
 
+  // TODO: also write / read SSID, Wifi-Password and MQTT Server from EEPROM
+
   int paramsStartingPosition = eepromIDString.length();
   if (idStringCheck) {
     // load controller number from preferences
@@ -94,6 +96,7 @@ void loadPreferences() {
     controllerNoLowByte = EEPROM.read(paramsStartingPosition + 1);
     controllerNo = controllerNoHiByte * 256 + controllerNoLowByte;
     Serial.println("Loaded controllerNo from EEPROM: " + String(controllerNo));
+
   } else {
     // preferences not initialized yet -> initialize controller
     // this runs only a single time when starting the controller for the first time
@@ -107,7 +110,7 @@ void loadPreferences() {
     }
 
     // assign random controller number between 1 and 65000 and store in EEPROM
-    controllerNo = random(1, 65000);
+    controllerNo = random(1, MAX_CONTROLLER_ID);
     controllerNoHiByte = controllerNo / 256;
     controllerNoLowByte = controllerNo % 256;
     EEPROM.write(paramsStartingPosition, controllerNoHiByte);
@@ -138,6 +141,8 @@ void setup_wifi() {
     allBlink(false, 0);
     delay(400);
     Serial.print(".");
+
+    // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
   }
 
   Serial.println("");
@@ -195,12 +200,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   msg[length] = '\0';
   // Serial.println(msg);
+
+  // TODO: subscribe to roc2bricks topic and react to controller id change requests, or other commands like resetting factory defaults etc.
 }
 
 void reconnect() {
   while (!client.connected()) {
     allBlink(true, 1);
-    Serial.println("Reconnecting MQTT...");
+    Serial.println("Reconnecting to MQTT...");
     if (!client.connect(mqttClientName_char)) {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -212,6 +219,8 @@ void reconnect() {
         delay(500);
       }
     }
+
+    // TODO: use MQTT from EEPROM; if not found, auto-try other hosts in subnet (192.168.1.1, 192.168.1.2, 192.168.1.3 etc.) and store IP in EEPROM if found
   }
 
   allBlink(false, 0);
