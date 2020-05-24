@@ -20,6 +20,9 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 const int NUM_SWITCHPORTS = 8; // Number of switch ports
 uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS];  // Digital PINs for output
 
+const int TICKS_BETWEEN_PINGS = 500;  // 500 = 5 seconds.
+int ticksBetweenPingsCounter = 0;   // number of ticks after which the sensor will send a ping via MQTT
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -268,12 +271,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("Turning double slip switch servos on port " + String(servoPort1) + " and " + String(servoPort2) + " to angle " + String(servoAngle));
     servo[servoPort1-1].write(servoAngle);
     delay(SWITCH_DELAY);
+    ticksBetweenPingsCounter += SWITCH_DELAY / 10;
     servo[servoPort2-1].write(servoAngle);
     delay(SWITCH_DELAY);
+    ticksBetweenPingsCounter += SWITCH_DELAY / 10;
   } else {
     Serial.println("Turning servo on port " + String(rr_port1) + " to angle " + String(servoAngle));
     servo[rr_port1 - 1].write(servoAngle);
     delay(SWITCH_DELAY);
+    ticksBetweenPingsCounter += SWITCH_DELAY / 10;
   }
 }
 
@@ -292,8 +298,17 @@ void reconnect() {
 }
 
 void loop() {
-    if (!client.connected()) {
-        reconnect();
-    }
-    client.loop();
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  // Send ping?
+  if (++ticksBetweenPingsCounter > TICKS_BETWEEN_PINGS) {
+    ticksBetweenPingsCounter = 0;
+    Serial.println("Sending PING!");
+    client.publish("roc2bricks/ping", mqttClientName_char);
+  }
+
+  delay(10);
 }
