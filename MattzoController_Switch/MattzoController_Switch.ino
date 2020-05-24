@@ -28,6 +28,7 @@ Servo servo[NUM_SWITCHPORTS];
 
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
 const int SERVO_MIN = 70;
+const int SERVO_START = 78;  // position after boot-up
 const int SERVO_MAX = 85;
 
 // delay between to switch operations
@@ -49,6 +50,11 @@ void setup() {
     servo[5].attach(D6);
     servo[6].attach(D7);
     servo[7].attach(D8);
+
+    for (int i = 0; i < NUM_SWITCHPORTS; i++) {
+      servo[i].write(SERVO_START);
+      delay(SWITCH_DELAY);
+    }
 
     loadPreferences();
     setup_wifi();
@@ -159,39 +165,114 @@ void callback(char* topic, byte* payload, unsigned int length) {
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS){
     Serial.println("Error parsing");
-  } else {
-    Serial.println("Parsing successful");
-    XMLElement * element = xmlDocument.FirstChildElement("sw");
-    if (element != NULL) {
-      Serial.println("sw node found");
-      const XMLAttribute * attribute_addr1 = element->FindAttribute("addr1");
-      if (attribute_addr1) {
-        int rr_addr1 = attribute_addr1->Value();
-        Serial.print("addr1 attribute found, value ");
-        Serial.println(attribute_addr1->Value());
-        const XMLAttribute * attribute_port1 = element->FindAttribute("port1");
-        if (attribute_port1) {
-          Serial.print("port1 attribute found, value ");
-          Serial.println(attribute_port1->Value());
-        } else {
-          Serial.println("port1 attribute not found");
-        }
-      } else {
-        Serial.println("attribute addr1 not found");
-      }
-    } else {
-      Serial.println("no sw node found");
-    }
+    return;
   }
 
-  if(strcmp(msg, "T|Switch 2|s")==0) {
-    Serial.println("Switch 2 straight");
-    servo[1].write(SERVO_MAX);
-    delay(SWITCH_DELAY);
+  Serial.println("Parsing XML successful");
+  XMLElement * element = xmlDocument.FirstChildElement("sw");
+  if (element == NULL) {
+    Serial.println("<sw> node not found. Message disregarded.");
+    return;
   }
-  else if(strcmp(msg, "T|Switch 2|t")==0) {
-    Serial.println("Switch 2 turn");
-    servo[1].write(SERVO_MIN);
+
+  Serial.println("<sw> node found.");
+
+  // query addr1 attribute. This is the MattzoController id.
+  // If this does not equal the ControllerNo of this controller, the message is disregarded.
+  int rr_addr1 = 0;
+  if (element->QueryIntAttribute("addr1", &rr_addr1) != XML_SUCCESS) {
+    Serial.println("addr1 attribute not found or wrong type. Message disregarded.");
+    return;
+  }
+  Serial.println("addr1: " + String(rr_addr1));
+  if (rr_addr1 != controllerNo) {
+    Serial.println("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
+    return;
+  }
+
+  // query port1 attribute. This is port id of the port to which the switch is connected.
+  // If the controller does not have such a port, the message is disregarded.
+  int rr_port1 = 0;
+  if (element->QueryIntAttribute("port1", &rr_port1) != XML_SUCCESS) {
+    Serial.println("port1 attribute not found or wrong type. Message disregarded.");
+    return;
+  }
+  Serial.println("port1: " + String(rr_port1));
+  if ((rr_port1 < 1 || rr_port1 > NUM_SWITCHPORTS) && (rr_port1 < 1001 || rr_port1 > 1004)) {
+    Serial.println("Message disgarded, as this controller does not have such a port.");
+    return;
+  }
+
+  // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
+  const char * rr_cmd = "-unknown-";
+  if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
+    Serial.println("cmd attribute not found or wrong type.");
+    return;
+  }
+  Serial.println("cmd: " + String(rr_cmd));
+
+  // query param1 attribute. This is the "straight" position of the switch servo motor.
+  // defaults to SERVO_MIN
+  int rr_param1 = SERVO_MIN;
+  if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
+    Serial.println("param1 attribute not found or wrong type. Using default value.");
+  }
+  Serial.println("param1: " + String(rr_param1));
+
+  // query value1 attribute. This is the "turnout" position of the switch servo motor.
+  // defaults to SERVO_MAX
+  int rr_value1 = SERVO_MAX;
+  if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
+    Serial.println("value1 attribute not found or wrong type. Using default value.");
+  }
+  Serial.println("value1: " + String(rr_value1));
+
+  // check command string and prepare servo angle
+  // servo angle will only be used to flip a standard or one side of a triple switch - not for double slip switches!
+  int switchCommand;
+  int servoAngle;
+  if (strcmp(rr_cmd, "straight")==0) {
+    switchCommand = 1;
+    servoAngle = rr_param1;
+  } else if (strcmp(rr_cmd, "turnout")==0) {
+    switchCommand = 0;
+    servoAngle = rr_value1;
+  } else {
+    Serial.println("Switch command unknown - message disregarded.");
+    return;
+  }
+
+  // Check if port is between 1001 and 1004 -> special rules for trixbrix double slip switches apply!
+  if (rr_port1 >= 1001 && rr_port1 <= 1004) {
+    int servoPort1;
+    int servoPort2;
+
+    // port 1001 -> double slip switch 1 / side A / ports 1 and 2
+    if (rr_port1 == 1001) {
+      servoPort1 = 1;
+      servoPort2 = 2;
+    // port 1002 -> double slip switch 1 / side B / ports 3 and 4
+    } else if (rr_port1 == 1002) {
+      servoPort1 = 3;
+      servoPort2 = 4;
+    // port 1003 -> double slip switch 2 / side A / ports 5 and 6
+    } else if (rr_port1 == 1003) {
+      servoPort1 = 5;
+      servoPort2 = 6;
+    // port 1004 -> double slip switch 2 / side B / ports 7 and 8
+    } else if (rr_port1 == 1004) {
+      servoPort1 = 7;
+      servoPort2 = 8;
+    }
+
+    Serial.println("Turning double slip switch servos on port " + String(servoPort1) + " and " + String(servoPort2) + " to angle " + String(servoAngle));
+    servo[servoPort1-1].write(servoAngle);
+    delay(SWITCH_DELAY);
+    servo[servoPort2-1].write(servoAngle);
+    delay(SWITCH_DELAY);
+  } else {
+    Serial.println("Turning servo on port " + String(rr_port1) + " to angle " + String(servoAngle));
+    servo[rr_port1 - 1].write(servoAngle);
     delay(SWITCH_DELAY);
   }
 }
