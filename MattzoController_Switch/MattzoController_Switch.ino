@@ -20,8 +20,8 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 const int NUM_SWITCHPORTS = 8; // Number of switch ports
 uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS];  // Digital PINs for output
 
-const int TICKS_BETWEEN_PINGS = 500;  // 500 = 5 seconds.
-int ticksBetweenPingsCounter = 0;   // number of ticks after which the sensor will send a ping via MQTT
+const int TICKS_BETWEEN_PINGS = 500;  // number of ticks after which the sensor will send a ping via MQTT. 500 = 5 seconds.
+int ticksBetweenPingsCounter = 0;     // tick counter
 
 WiFiClient espClient;
 PubSubClient client(espClient);

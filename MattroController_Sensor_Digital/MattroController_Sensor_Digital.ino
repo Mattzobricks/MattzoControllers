@@ -21,8 +21,8 @@ const int SENSOR_RELEASE_TICKS = 100;  // 100 = 1 second. Increase to 200 for 2 
 bool sensorState[NUM_SENSORS];
 int sensorReleaseCounter[NUM_SENSORS];
 
-const int TICKS_BETWEEN_PINGS = 500;  // 500 = 5 seconds.
-int ticksBetweenPingsCounter = 0;   // number of ticks after which the sensor will send a ping via MQTT
+const int TICKS_BETWEEN_PINGS = 500;  // number of ticks after which the sensor will send a ping via MQTT. 500 = 5 seconds.
+int ticksBetweenPingsCounter = 0;     // tick counter
 
 WiFiClient espClient;
 PubSubClient client(espClient);
