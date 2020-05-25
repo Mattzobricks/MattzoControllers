@@ -30,14 +30,27 @@ PubSubClient client(espClient);
 
 
 void setup() {
-    Serial.begin(115200);
-    randomSeed(ESP.getCycleCount());
-    Serial.println("");
-    Serial.println("MattzoController booting...");
+  Serial.begin(115200);
+  randomSeed(ESP.getCycleCount());
+  Serial.println("");
+  Serial.println("MattzoController booting...");
 
-    loadPreferences();
-    setup_wifi();
-    setup_mqtt();
+  SIGNALPORT_PIN[0] = D1;
+  SIGNALPORT_PIN[1] = D2;
+  SIGNALPORT_PIN[2] = D3;
+  SIGNALPORT_PIN[3] = D4;
+  SIGNALPORT_PIN[4] = D5;
+  SIGNALPORT_PIN[5] = D6;
+  SIGNALPORT_PIN[6] = D7;
+  SIGNALPORT_PIN[7] = D8;
+
+  for (int i = 0; i < NUM_SIGNALPORTS; i++) {
+    pinMode(SIGNALPORT_PIN[i], OUTPUT);
+  }
+
+  loadPreferences();
+  setup_wifi();
+  setup_mqtt();
 }
 
 void loadPreferences() {
@@ -169,7 +182,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  // query port1 attribute. This is port id of the port to which the switch is connected.
+  // query port attribute. This is port id of the port to which the switch is connected.
   // If the controller does not have such a port, the message is disregarded.
   int rr_port = 0;
   if (element->QueryIntAttribute("port", &rr_port) != XML_SUCCESS) {
@@ -180,6 +193,32 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (rr_port < 1 || rr_port > NUM_SIGNALPORTS) {
     Serial.println("Message disgarded, as this controller does not have such a port.");
     return;
+  }
+
+  // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
+  const char * rr_cmd = "-unknown-";
+  if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
+    Serial.println("cmd attribute not found or wrong type.");
+    return;
+  }
+  Serial.println("cmd: " + String(rr_cmd));
+
+  // set signal LED for the port on/off
+  if (strcmp(rr_cmd, "on")==0) {
+    setLED(rr_port - 1, true);
+  } else if (strcmp(rr_cmd, "off")==0) {
+    setLED(rr_port - 1, false);
+  } else {
+    Serial.println("Signal port command unknown - message disregarded.");
+    return;
+  }
+}
+
+void setLED(int index, bool ledState) {
+  if (ledState) {
+    digitalWrite(SIGNALPORT_PIN[index], LOW);
+  } else {
+    digitalWrite(SIGNALPORT_PIN[index], HIGH);
   }
 }
 
