@@ -1,7 +1,6 @@
 #include <EEPROM.h>  // EEPROM library
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library
-#include <Servo.h>  // servo library
 #include <tinyxml2.h>  // tiny xml 2 library
 
 using namespace tinyxml2;
@@ -17,7 +16,7 @@ const char* MQTT_BROKER = "192.168.1.19";
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-const int NUM_SIGNALPORTS = 8; // Number of signal ports
+const int NUM_SIGNALPORTS = 8; // Number of signal ports. Each port corresponds to one light of a signal. E.g., a light with one red and one green light consumes two ports.
 uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS];  // Digital PINs for output
 
 const int TICKS_BETWEEN_PINGS = 500;  // number of ticks after which the sensor will send a ping via MQTT. 500 = 5 seconds.
@@ -27,17 +26,32 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 
-
-
 void setup() {
-    Serial.begin(115200);
-    randomSeed(ESP.getCycleCount());
-    Serial.println("");
-    Serial.println("MattzoController booting...");
+  SIGNALPORT_PIN[0] = D1;
+  SIGNALPORT_PIN[1] = D2;
+  SIGNALPORT_PIN[2] = D3;
+  SIGNALPORT_PIN[3] = D4;
+  SIGNALPORT_PIN[4] = D5;
+  SIGNALPORT_PIN[5] = D6;
+  SIGNALPORT_PIN[6] = D7;
+  SIGNALPORT_PIN[7] = D8;
 
-    loadPreferences();
-    setup_wifi();
-    setup_mqtt();
+  pinMode(LED_BUILTIN, OUTPUT);
+  for (int i = 0; i < NUM_SIGNALPORTS; i++) {
+	  pinMode(i, OUTPUT);
+  }
+
+  // a short blink to say "hello, I have power supply and booting up"
+  for (int j = 0; j < 3; j++) {
+    allBlink(true, 0);
+    delay(200);
+    allBlink(false, 0);
+    delay(400);
+  }
+
+  loadPreferences();
+  setup_wifi();
+  setup_mqtt();
 }
 
 void loadPreferences() {
@@ -101,30 +115,79 @@ void loadPreferences() {
 }
 
 void setup_wifi() {
-    delay(10);
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(SSID);
- 
-    WiFi.begin(SSID, PSK);
- 
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(1000);
-      Serial.print(".");
+  delay(10);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(SSID);
 
-      // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
-    }
- 
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+  WiFi.begin(SSID, PSK);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    allBlink(true, 0);
+    delay(500);
+    allBlink(false, 0);
+    delay(500);
+    Serial.print(".");
+
+    // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 }
- 
+
 void setup_mqtt() {
     client.setServer(MQTT_BROKER, 1883);
     client.setCallback(callback);
     client.setBufferSize(2048);
+}
+
+void allBlink(boolean onOff, int blinkType) {
+  if (blinkType == 0) {
+    setLED(0, onOff);
+    setLED(1, onOff);
+    setLED(2, onOff);
+    setLED(3, onOff);
+    setLED(4, onOff);
+    setLED(5, onOff);
+    setLED(6, onOff);
+    setLED(7, onOff);
+  } else if (blinkType == 1) {
+    setLED(0, onOff);
+    setLED(1, !onOff);
+    setLED(2, onOff);
+    setLED(3, !onOff);
+    setLED(4, onOff);
+    setLED(5, !onOff);
+    setLED(6, onOff);
+    setLED(7, !onOff);
+  }
+  
+  return;
+
+  // TODO: Checken, wieso das folgende nicht funktioniert!
+  
+  if (onOff) {
+    for (int i=0; i < NUM_SIGNALPORTS; i++) {
+      if (blinkType == 0) {
+        // all flash
+        setLED(i, onOff);
+      } else {
+        // flash alternatively
+        setLED(i, onOff ^ (i % 2 == 0));
+      }
+    }
+  }
+}
+
+void setLED(int index, bool ledState) {
+  if (ledState) {
+    digitalWrite(SIGNALPORT_PIN[index], LOW);
+  } else {
+    digitalWrite(SIGNALPORT_PIN[index], HIGH);
+  }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -156,31 +219,33 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
   Serial.println("<co> node found.");
 
-  // query addr attribute. This is the MattzoController id.
+  // query addr1 attribute. This is the MattzoController id.
   // If this does not equal the ControllerNo of this controller, the message is disregarded.
-  int rr_addr = 0;
-  if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-    Serial.println("addr attribute not found or wrong type. Message disregarded.");
+  int rr_addr1 = 0;
+  if (element->QueryIntAttribute("addr1", &rr_addr1) != XML_SUCCESS) {
+    Serial.println("addr1 attribute not found or wrong type. Message disregarded.");
     return;
   }
-  Serial.println("addr: " + String(rr_addr));
-  if (rr_addr != controllerNo) {
+  Serial.println("addr1: " + String(rr_addr1));
+  if (rr_addr1 != controllerNo) {
     Serial.println("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
     return;
   }
 
   // query port1 attribute. This is port id of the port to which the switch is connected.
   // If the controller does not have such a port, the message is disregarded.
-  int rr_port = 0;
-  if (element->QueryIntAttribute("port", &rr_port) != XML_SUCCESS) {
-    Serial.println("port attribute not found or wrong type. Message disregarded.");
+  int rr_port1 = 0;
+  if (element->QueryIntAttribute("port1", &rr_port1) != XML_SUCCESS) {
+    Serial.println("port1 attribute not found or wrong type. Message disregarded.");
     return;
   }
-  Serial.println("port: " + String(rr_port));
-  if (rr_port < 1 || rr_port > NUM_SIGNALPORTS) {
+  Serial.println("port1: " + String(rr_port1));
+  if (rr_port1 < 1 || rr_port1 > NUM_SIGNALPORTS) {
     Serial.println("Message disgarded, as this controller does not have such a port.");
     return;
   }
+
+  Serial.println("Port: " + String(rr_port1));
 }
 
 void reconnect() {
