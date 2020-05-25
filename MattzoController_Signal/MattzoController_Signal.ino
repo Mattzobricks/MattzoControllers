@@ -25,19 +25,6 @@ int ticksBetweenPingsCounter = 0;     // tick counter
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// signals
-const int signal1greenLED = D0;
-const int signal1redLED = D1;
-int signal1State = 2;
-const int signal2greenLED = D2;
-const int signal2redLED = D3;
-int signal2State = 2;
-const int signal3greenLED = D4;
-const int signal3redLED = D5;
-int signal3State = 2;
-const int signal4greenLED = D6;
-const int signal4redLED = D7;
-int signal4State = 2;
 
 void setup() {
   SIGNALPORT_PIN[0] = D1;
@@ -183,7 +170,7 @@ void allBlink(boolean onOff, int blinkType) {
   // TODO: Checken, wieso das folgende nicht funktioniert!
   
   if (onOff) {
-    for (int i=0; i < NUM_SENSORS; i++) {
+    for (int i=0; i < NUM_SIGNALPORTS; i++) {
       if (blinkType == 0) {
         // all flash
         setLED(i, onOff);
