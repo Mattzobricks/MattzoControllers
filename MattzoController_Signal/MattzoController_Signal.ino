@@ -1,3 +1,9 @@
+// MattzoSwitchController Firmware V0.1
+// Author: Dr. Matthias Runte
+// No liability - use on your own risk. Author will may not be held responsible for any damages that result from using this software.
+// Libraries can be mainly downloaded easily from within the Arduino IDE using the library manager.
+// TinyXML2 must be downloaded from https://github.com/leethomason/tinyxml2 (required files: tinyxml2.cpp, tinyxml2.h)
+
 #include <EEPROM.h>  // EEPROM library
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library

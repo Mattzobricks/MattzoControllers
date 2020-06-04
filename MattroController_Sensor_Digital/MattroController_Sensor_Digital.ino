@@ -1,3 +1,8 @@
+// MattzoSwitchController Firmware V0.1
+// Author: Dr. Matthias Runte
+// No liability - use on your own risk. Author will may not be held responsible for any damages that result from using this software.
+// Libraries can be downloaded easily from within the Arduino IDE using the library manager.
+
 #include <EEPROM.h>  // EEPROM library
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library
