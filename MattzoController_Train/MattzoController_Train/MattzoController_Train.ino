@@ -24,8 +24,8 @@ unsigned int controllerID;                        // controller id. Read from me
 
 
 /* WLAN settings */
-const char* WIFI_SSID = "MWE2";                   // SSID of your WLAN
-const char* WIFI_PASSWORD = "Oomph$4Oomph$4";     // password of your WLAN
+const char* WIFI_SSID = "mySSID";                   // SSID of your WLAN
+const char* WIFI_PASSWORD = "nyPassword";     // password of your WLAN
 
 
 /* MQTT settings */
