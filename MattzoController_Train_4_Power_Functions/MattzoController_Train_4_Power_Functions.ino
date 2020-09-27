@@ -1,0 +1,302 @@
+// MattzoSwitchController Firmware V0.1
+// Author: Dr. Matthias Runte
+// Libraries can be downloaded easily from within the Arduino IDE using the library manager.
+// TinyXML2 must be downloaded from https://github.com/leethomason/tinyxml2 (required files: tinyxml2.cpp, tinyxml2.h)
+
+// Copyright 2020 by Dr. Matthias Runte
+// License:
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+#include <EEPROM.h>  // EEPROM library
+#include <ESP8266WiFi.h>  // WiFi library
+#include <PubSubClient.h>  // MQTT library
+#include <tinyxml2.h>  // tiny xml 2 library
+
+using namespace tinyxml2;
+
+String eepromIDString = "MattzoTrainController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
+const int eepromIDStringLength = 21;  // length of the ID String. Needs to be updated if the ID String is changed.
+unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
+const int MAX_CONTROLLER_ID = 65000;
+
+const char* SSID = "TBW13";
+const char* PSK = "tbw13iscool";
+const char* MQTT_BROKER = "192.168.178.20";
+String mqttClientName;
+char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
+
+#define fn1 D0  // Output PIN for Rocrail Function 1 (e.g. train headlights)
+#define fn2 D4  // Output PIN for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
+
+#define enA D1  // PWM signal for motor A
+#define in1 D2  // motor A direction control (forward if pin is HIGH)
+#define in2 D3  // motor A direction control (backward if pin is HIGH)
+#define enB D5  // PWM signal for motor B
+#define in3 D6  // motor B direction control (forward if pin is HIGH)
+#define in4 D7  // motor B direction control (forward if pin is HIGH)
+
+const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
+const boolean REVERSE_B = true;  // if set to true, motor B is reversed
+
+const int TICKS_BETWEEN_PINGS = 500;  // number of ticks after which the sensor will send a ping via MQTT. 500 = 5 seconds.
+int ticksBetweenPingsCounter = 0;     // tick counter
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+
+
+
+void setup() {
+    Serial.begin(115200);
+    randomSeed(ESP.getCycleCount());
+    Serial.println("");
+    Serial.println("MattzoController booting...");
+
+    // initialize function pins
+    pinMode(fn1, OUTPUT);
+    pinMode(fn2, OUTPUT);
+
+    // initialize motor pins
+    pinMode(enA, OUTPUT);
+    pinMode(in1, OUTPUT);
+    pinMode(in2, OUTPUT);
+    pinMode(enB, OUTPUT);
+    pinMode(in3, OUTPUT);
+    pinMode(in4, OUTPUT);
+
+    // stop motors
+    setMotor(true, 0);
+
+    loadPreferences();
+    setup_wifi();
+    setup_mqtt();
+}
+
+void loadPreferences() {
+  int i;
+  int controllerNoHiByte;
+  int controllerNoLowByte;
+
+  // set-up EEPROM read/write operations
+  EEPROM.begin(512);
+
+  // Check if the first part of the memory is filled with the MattzoController ID string.
+  // This is the case if the controller has booted before with a MattzoController firmware.
+  bool idStringCheck = true;
+  for (i = 0; i < eepromIDString.length(); i++) {
+    char charEeprom = EEPROM.read(i);
+    char charIDString = eepromIDString.charAt(i);
+    if (charEeprom != charIDString) {
+      idStringCheck = false;
+      break;
+    }
+  }
+
+  // TODO: also write / read SSID, Wifi-Password and MQTT Server from EEPROM
+
+  int paramsStartingPosition = eepromIDString.length();
+  if (idStringCheck) {
+    // load controller number from preferences
+    controllerNoHiByte = EEPROM.read(paramsStartingPosition);
+    controllerNoLowByte = EEPROM.read(paramsStartingPosition + 1);
+    controllerNo = controllerNoHiByte * 256 + controllerNoLowByte;
+    Serial.println("Loaded controllerNo from EEPROM: " + String(controllerNo));
+
+  } else {
+    // preferences not initialized yet -> initialize controller
+    // this runs only a single time when starting the controller for the first time
+
+    // Wait a bit to give the user some time to open the serial console...
+    delay (5000);
+    
+    Serial.println("Initializing controller preferences on first start-up...");
+    for (i = 0; i < eepromIDString.length(); i++) {
+      EEPROM.write(i, eepromIDString.charAt(i));
+    }
+
+    // assign random controller number between 1 and 65000 and store in EEPROM
+    controllerNo = random(1, MAX_CONTROLLER_ID);
+    controllerNoHiByte = controllerNo / 256;
+    controllerNoLowByte = controllerNo % 256;
+    EEPROM.write(paramsStartingPosition, controllerNoHiByte);
+    EEPROM.write(paramsStartingPosition + 1, controllerNoLowByte);
+
+    // Commit EEPROM write operation
+    EEPROM.commit();
+
+    Serial.println("Assigned random controller no " + String(controllerNo) + " and stored to EEPROM");
+  }
+
+  // set MQTT client name
+  mqttClientName = eepromIDString + String(controllerNo);
+  mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
+}
+
+void setup_wifi() {
+    delay(10);
+    Serial.println();
+    Serial.print("Connecting to ");
+    Serial.println(SSID);
+ 
+    WiFi.begin(SSID, PSK);
+ 
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(1000);
+      Serial.print(".");
+
+      // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
+    }
+ 
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+}
+ 
+void setup_mqtt() {
+    client.setServer(MQTT_BROKER, 1883);
+    client.setCallback(callback);
+    client.setBufferSize(2048);
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Received message [");
+  Serial.print(topic);
+  Serial.print("] ");
+  char msg[length+1];
+  for (int i = 0; i < length; i++) {
+      // Serial.print((char)payload[i]);
+      msg[i] = (char)payload[i];
+  }
+  // Serial.println();
+
+  msg[length] = '\0';
+  Serial.println(msg);
+
+  XMLDocument xmlDocument;
+  if(xmlDocument.Parse(msg)!= XML_SUCCESS){
+    Serial.println("Error parsing");
+    return;
+  }
+
+  Serial.println("Parsing XML successful");
+  XMLElement * element = xmlDocument.FirstChildElement("lc");
+  if (element == NULL) {
+    Serial.println("<lc> node not found. Message disregarded.");
+    return;
+  }
+
+  Serial.println("<lc> node found.");
+
+  // query id attribute. This is the loco id.
+  // The id is a mandatory field. If not found, the message is discarded.
+  // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
+  const char * rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
+  if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
+    Serial.println("id attribute not found or wrong type.");
+    return;
+  }
+  Serial.println("loco id: " + String(rr_id));
+
+  // query addr attribute. This is the MattzoController id.
+  // If this does not equal the ControllerNo of this controller, the message is disregarded.
+  int rr_addr = 0;
+  if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
+    Serial.println("addr attribute not found or wrong type. Message disregarded.");
+    return;
+  }
+  Serial.println("addr: " + String(rr_addr));
+  if (rr_addr != controllerNo) {
+    Serial.println("Message disgarded, as it is not for me, but for " + String(controllerNo));
+    return;
+  }
+
+  // query dir attribute. This is direction information for the loco (forward, backward)
+  const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
+  boolean dir;
+  if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
+    Serial.println("dir attribute not found or wrong type.");
+    return;
+  }
+  Serial.println("dir (raw): " + String(rr_dir));
+  if (strcmp(rr_dir, "true")==0) {
+    Serial.println("direction: forward");
+    dir = true;
+    digitalWrite(fn1, LOW);
+    digitalWrite(fn2, HIGH);
+  }
+  else if (strcmp(rr_dir, "false")==0) {
+    Serial.println("direction: backward");
+    dir = false;
+    digitalWrite(fn1, HIGH);
+    digitalWrite(fn2, LOW);
+  }
+  else {
+    Serial.println("unknown dir value - disregarding message.");
+    return;
+  }
+
+  // query V attribute. This is speed information for the loco and ranges from 0 to 1023.
+  int rr_speed = 0;
+  if (element->QueryIntAttribute("V", &rr_speed) != XML_SUCCESS) {
+    Serial.println("V (speed) attribute not found or wrong type. Message disregarded.");
+    return;
+  }
+  Serial.println("speed: " + String(rr_speed));
+
+  // set motor direction and power on L298N motor shield
+  setMotor(dir, rr_speed);
+}
+
+void setMotor(boolean dir, int power) {
+  if (dir ^ REVERSE_A) {
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+  } else {
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+  }
+  if (dir ^ REVERSE_B) {
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+  } else {
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+  }
+
+  analogWrite(enA, power);
+  analogWrite(enB, power);
+}
+
+void reconnect() {
+    while (!client.connected()) {
+        Serial.println("Reconnecting MQTT...");
+        if (!client.connect(mqttClientName_char)) {
+          Serial.print("Failed, rc=");
+          Serial.print(client.state());
+          Serial.println(". Retrying in 5 seconds...");
+          delay(5000);
+        }
+    }
+    client.subscribe("roc2bricks/command");
+    Serial.println("MQTT connected, listening on topic [roc2bricks/command].");
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  // Send ping?
+  if (++ticksBetweenPingsCounter > TICKS_BETWEEN_PINGS) {
+    ticksBetweenPingsCounter = 0;
+    Serial.println("Sending PING!");
+    client.publish("roc2bricks/ping", mqttClientName_char);
+  }
+
+  delay(10);
+}
