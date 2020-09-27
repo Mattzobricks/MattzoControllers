@@ -19,7 +19,7 @@ using namespace tinyxml2;
 String eepromIDString = "MattzoTrainController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
 const int eepromIDStringLength = 21;  // length of the ID String. Needs to be updated if the ID String is changed.
 unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
-const int MAX_CONTROLLER_ID = 65000;
+const int MAX_CONTROLLER_ID = 16383;
 
 const char* SSID = "TBW13";
 const char* PSK = "tbw13iscool";
@@ -27,15 +27,16 @@ const char* MQTT_BROKER = "192.168.178.20";
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
+const int NUM_FUNCTIONS = 2;  // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
 #define fn1 D0  // Output PIN for Rocrail Function 1 (e.g. train headlights)
-#define fn2 D4  // Output PIN for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
+#define fn2 D8  // Output PIN for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
 
 #define enA D1  // PWM signal for motor A
-#define in1 D2  // motor A direction control (forward if pin is HIGH)
-#define in2 D3  // motor A direction control (backward if pin is HIGH)
+#define in1 D2  // motor A direction control (forward)
+#define in2 D3  // motor A direction control (reverse)
 #define enB D5  // PWM signal for motor B
-#define in3 D6  // motor B direction control (forward if pin is HIGH)
-#define in4 D7  // motor B direction control (forward if pin is HIGH)
+#define in3 D6  // motor B direction control (forward)
+#define in4 D7  // motor B direction control (reverse)
 
 const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
 const boolean REVERSE_B = true;  // if set to true, motor B is reversed
@@ -183,72 +184,149 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 
   Serial.println("Parsing XML successful");
-  XMLElement * element = xmlDocument.FirstChildElement("lc");
-  if (element == NULL) {
-    Serial.println("<lc> node not found. Message disregarded.");
-    return;
-  }
 
-  Serial.println("<lc> node found.");
-
-  // query id attribute. This is the loco id.
-  // The id is a mandatory field. If not found, the message is discarded.
-  // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
   const char * rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
-  if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
-    Serial.println("id attribute not found or wrong type.");
-    return;
-  }
-  Serial.println("loco id: " + String(rr_id));
-
-  // query addr attribute. This is the MattzoController id.
-  // If this does not equal the ControllerNo of this controller, the message is disregarded.
   int rr_addr = 0;
-  if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-    Serial.println("addr attribute not found or wrong type. Message disregarded.");
-    return;
-  }
-  Serial.println("addr: " + String(rr_addr));
-  if (rr_addr != controllerNo) {
-    Serial.println("Message disgarded, as it is not for me, but for " + String(controllerNo));
-    return;
-  }
 
-  // query dir attribute. This is direction information for the loco (forward, backward)
-  const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
-  boolean dir;
-  if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
-    Serial.println("dir attribute not found or wrong type.");
-    return;
-  }
-  Serial.println("dir (raw): " + String(rr_dir));
-  if (strcmp(rr_dir, "true")==0) {
-    Serial.println("direction: forward");
-    dir = true;
-    digitalWrite(fn1, LOW);
-    digitalWrite(fn2, HIGH);
-  }
-  else if (strcmp(rr_dir, "false")==0) {
-    Serial.println("direction: backward");
-    dir = false;
-    digitalWrite(fn1, HIGH);
-    digitalWrite(fn2, LOW);
-  }
-  else {
-    Serial.println("unknown dir value - disregarding message.");
-    return;
-  }
+  // check for lc message
+  XMLElement * element = xmlDocument.FirstChildElement("lc");
+  if (element != NULL) {
+    Serial.println("<lc> node found. Processing loco message...");
 
-  // query V attribute. This is speed information for the loco and ranges from 0 to 1023.
-  int rr_speed = 0;
-  if (element->QueryIntAttribute("V", &rr_speed) != XML_SUCCESS) {
-    Serial.println("V (speed) attribute not found or wrong type. Message disregarded.");
-    return;
-  }
-  Serial.println("speed: " + String(rr_speed));
+    // -> process lc (loco) message
 
-  // set motor direction and power on L298N motor shield
-  setMotor(dir, rr_speed);
+    // query id attribute. This is the loco id.
+    // The id is a mandatory field. If not found, the message is discarded.
+    // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
+    if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
+      Serial.println("id attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("loco id: " + String(rr_id));
+  
+    // query addr attribute. This is the MattzoController id.
+    // If this does not equal the ControllerNo of this controller, the message is disregarded.
+    if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
+      Serial.println("addr attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("addr: " + String(rr_addr));
+    if (rr_addr != controllerNo) {
+      Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+      return;
+    }
+  
+    // query dir attribute. This is direction information for the loco (forward, backward)
+    const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
+    boolean dir;
+    if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
+      Serial.println("dir attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("dir (raw): " + String(rr_dir));
+    if (strcmp(rr_dir, "true")==0) {
+      Serial.println("direction: forward");
+      dir = true;
+    }
+    else if (strcmp(rr_dir, "false")==0) {
+      Serial.println("direction: backward");
+      dir = false;
+    }
+    else {
+      Serial.println("unknown dir value - disregarding message.");
+      return;
+    }
+  
+    // query V attribute. This is speed information for the loco and ranges from 0 to 1023.
+    int rr_speed = 0;
+    if (element->QueryIntAttribute("V", &rr_speed) != XML_SUCCESS) {
+      Serial.println("V (speed) attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("speed: " + String(rr_speed));
+  
+    // set motor direction and power on L298N motor shield
+    setMotor(dir, rr_speed);
+  } else {
+    // check for fn message
+    element = xmlDocument.FirstChildElement("fn");
+    if (element == NULL) {
+      Serial.println("<fn> node not found. Disregarding message...");
+    }
+
+    // -> process fn (function) message
+
+    // query id attribute. This is the loco id.
+    // The id is a mandatory field. If not found, the message is discarded.
+    // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
+    if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
+      Serial.println("id attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("function id: " + String(rr_id));
+  
+    // query addr attribute. This is the MattzoController id.
+    // If this does not equal the ControllerNo of this controller, the message is disregarded.
+    if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
+      Serial.println("addr attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("addr: " + String(rr_addr));
+    if (rr_addr != controllerNo) {
+      Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+      return;
+    }
+
+    // query fnchanged attribute. This is information which function shall be set.
+    int rr_functionNo;
+    if (element->QueryIntAttribute("fnchanged", &rr_functionNo) != XML_SUCCESS) {
+      Serial.println("fnchanged attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("fnchanged: " + String(rr_functionNo));
+
+    int functionPin;
+    switch (rr_functionNo) {
+      case 1:
+        functionPin = fn1;
+        break;
+      case 2:
+        functionPin = fn2;
+        break;
+      default:
+        Serial.println("fnchanged out of range. Message disregarded.");
+        return;
+    }
+    Serial.println("Function PIN: " + functionPin);
+
+    // query fnchangedstate attribute. This is value if the function shall be set on or off
+    const char * rr_state = "xxxxxx";  // expected values are "true" or "false"
+    boolean functionState;
+    if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
+      Serial.println("fnchangedstate attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("fnchangedstate (raw): " + String(rr_state));
+    if (strcmp(rr_state, "true")==0) {
+      Serial.println("fnchangedstate: true");
+      functionState = true;
+    }
+    else if (strcmp(rr_state, "false")==0) {
+      Serial.println("fnchangedstate: false");
+      functionState = false;
+    }
+    else {
+      Serial.println("unknown fnchangedstate value - disregarding message.");
+      return;
+    }
+
+    // set function pin
+    if (functionState) {
+      digitalWrite(functionPin, HIGH);
+    } else {
+      digitalWrite(functionPin, LOW);
+    }
+  }
 }
 
 void setMotor(boolean dir, int power) {
