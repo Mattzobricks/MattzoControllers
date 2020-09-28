@@ -31,8 +31,17 @@ const int SENSOR_RELEASE_TICKS = 100;  // 100 = 1 second. Increase to 200 for 2 
 bool sensorState[NUM_SENSORS];
 int sensorReleaseCounter[NUM_SENSORS];
 
-const int TICKS_BETWEEN_PINGS = 500;  // number of ticks after which the sensor will send a ping via MQTT. 500 = 5 seconds.
-int ticksBetweenPingsCounter = 0;     // tick counter
+/* Timing */
+
+/* Current time for event timing */
+unsigned long currentMillis = millis();
+
+
+
+/* Send a ping to announce that you are still alive */
+const int SEND_PING_INTERVAL = 1000; // interval for sending pings in milliseconds
+unsigned long lastPing = millis();    // time of the last sent ping
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -235,6 +244,14 @@ void reconnect() {
   Serial.println("MQTT Connected.");
 }
 
+
+void sendMQTTPing(){
+  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
+    lastPing = millis();
+    client.publish("roc2bricks/ping", mqttClientName_char);
+  }
+}
+
 void loop() {
   int sensorValue;
   
@@ -243,16 +260,19 @@ void loop() {
   }
   client.loop();
 
+  currentMillis = millis();
+
   for (int i = 0; i < NUM_SENSORS; i++) {
     sensorValue = digitalRead(SENSOR_PIN[i]);
 
+/*
     if (ticksBetweenPingsCounter % 100 == 0) {
       Serial.print("Sensor ");
       Serial.print(i);
       Serial.print(": ");
       Serial.println(sensorValue);
    } 
-
+*/
     if (sensorValue == LOW) {
       // Contact -> report contact immediately
       if (!sensorState[i]) {
@@ -276,14 +296,7 @@ void loop() {
     }
   }
 
-  // Send ping?
-  if (++ticksBetweenPingsCounter > TICKS_BETWEEN_PINGS) {
-    ticksBetweenPingsCounter = 0;
-    Serial.println("Sending PING!");
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
-
-  delay(10); // 10 msec
+  sendMQTTPing();
 }
 
 void sendMQTTSensorEvent(int sensorPort, int sensorState) {

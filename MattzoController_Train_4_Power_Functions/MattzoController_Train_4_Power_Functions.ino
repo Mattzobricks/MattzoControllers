@@ -42,8 +42,16 @@ const int MOTORSHIELD_TYPE = 1; // motor shield type. 1 = L298N, 2 = L9110
 const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
 const boolean REVERSE_B = true;  // if set to true, motor B is reversed
 
-const int TICKS_BETWEEN_PINGS = 500;  // number of ticks after which the sensor will send a ping via MQTT. 500 = 5 seconds.
-int ticksBetweenPingsCounter = 0;     // tick counter
+/* Timing */
+
+/* Current time for event timing */
+unsigned long currentMillis = millis();
+
+
+
+/* Send a ping to announce that you are still alive */
+const int SEND_PING_INTERVAL = 1000; // interval for sending pings in milliseconds
+unsigned long lastPing = millis();    // time of the last sent ping
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -162,6 +170,13 @@ void setup_mqtt() {
     client.setServer(MQTT_BROKER, 1883);
     client.setCallback(callback);
     client.setBufferSize(2048);
+}
+
+void sendMQTTPing(){
+  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
+    lastPing = millis();
+    client.publish("roc2bricks/ping", mqttClientName_char);
+  }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -388,12 +403,7 @@ void loop() {
   }
   client.loop();
 
-  // Send ping?
-  if (++ticksBetweenPingsCounter > TICKS_BETWEEN_PINGS) {
-    ticksBetweenPingsCounter = 0;
-    Serial.println("Sending PING!");
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
-
-  delay(10);
+  currentMillis = millis();
+  
+  sendMQTTPing();
 }
