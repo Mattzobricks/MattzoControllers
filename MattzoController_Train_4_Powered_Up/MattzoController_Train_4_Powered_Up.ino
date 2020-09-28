@@ -24,8 +24,8 @@ unsigned int controllerID;                        // controller id. Read from me
 
 
 /* WLAN settings */
-const char* WIFI_SSID = "mySSID";                   // SSID of your WLAN
-const char* WIFI_PASSWORD = "myPassword";     // password of your WLAN
+const char* WIFI_SSID = "mySSID";                 // SSID of your WLAN
+const char* WIFI_PASSWORD = "myPassword";         // password of your WLAN
 
 
 /* MQTT settings */
@@ -209,7 +209,13 @@ void initMQTT() {
 void reconnectMQTT() {
   Serial.println("MQTT connecting ...");
   while (!client.connected()) {
-      if (!client.connect(mqttClientName_char)) {
+
+      char message_char[100];
+      String message = String(mqttClientName_char) + " " + "last will and testament";
+      message.toCharArray(message_char, message.length() + 1);
+
+      if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, message_char)) {
+      //if (!client.connect(mqttClientName_char)) {
         Serial.print("Failed, rc=");
         Serial.println(client.state());
         delay(500);
@@ -229,9 +235,12 @@ void sendMQTTPing(){
 void sendMQTTMessage(String messageType, String message){
 
   char messageType_char[50];
-  messageType.toCharArray(messageType_char, message.length() + 1);
+  //char messageType_char[mqttClientName_char.length + messageType.length() + 1];
+  messageType.toCharArray(messageType_char, messageType.length() + 1);
   
   char message_char[100];
+  //char message_char[message.length() + 1];
+  message = String(mqttClientName_char) + " " + message;
   message.toCharArray(message_char, message.length() + 1);
   
   Serial.println("send " + messageType + ": " + message);
@@ -476,7 +485,7 @@ void loop() {
   //}
 
   // Send ping?
-  //sendMQTTPing();
+  sendMQTTPing();
   sendMQTTBatteryLevel();
 
 }
