@@ -21,8 +21,8 @@ const int eepromIDStringLength = 21;  // length of the ID String. Needs to be up
 unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 const int MAX_CONTROLLER_ID = 16383;
 
-const char* SSID = "TBW13";
-const char* PSK = "tbw13iscool";
+const char* SSID = "railnet";
+const char* PSK = "born2rail";
 const char* MQTT_BROKER = "192.168.178.20";
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
@@ -31,10 +31,11 @@ const int NUM_FUNCTIONS = 2;  // if increased, the fn1, fn2... defintions must b
 #define fn1 D0  // Output PIN for Rocrail Function 1 (e.g. train headlights)
 #define fn2 D8  // Output PIN for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
 
-#define enA D1  // PWM signal for motor A
+const int MOTORSHIELD_TYPE = 1; // motor shield type. 1 = L298N, 2 = L9110
+#define enA D1  // PWM signal for motor A. Relevant for L298N only.
 #define in1 D2  // motor A direction control (forward)
 #define in2 D3  // motor A direction control (reverse)
-#define enB D5  // PWM signal for motor B
+#define enB D5  // PWM signal for motor B. Relevant for L298N only.
 #define in3 D6  // motor B direction control (forward)
 #define in4 D7  // motor B direction control (reverse)
 
@@ -330,23 +331,41 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void setMotor(boolean dir, int power) {
-  if (dir ^ REVERSE_A) {
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
+  if (MOTORSHIELD_TYPE == 1) {
+    // motor shield type L298N
+    if (dir ^ REVERSE_A) {
+      digitalWrite(in1, LOW);
+      digitalWrite(in2, HIGH);
+    } else {
+      digitalWrite(in1, HIGH);
+      digitalWrite(in2, LOW);
+    }
+    if (dir ^ REVERSE_B) {
+      digitalWrite(in3, LOW);
+      digitalWrite(in4, HIGH);
+    } else {
+      digitalWrite(in3, HIGH);
+      digitalWrite(in4, LOW);
+    }
+    analogWrite(enA, power);
+    analogWrite(enB, power);
   } else {
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
+    // motor shield type L9110
+    if (dir ^ REVERSE_A) {
+      analogWrite(in1, 0);
+      analogWrite(in2, power);
+    } else {
+      analogWrite(in1, power);
+      analogWrite(in2, 0);
+    }
+    if (dir ^ REVERSE_B) {
+      analogWrite(in3, 0);
+      analogWrite(in4, power);
+    } else {
+      analogWrite(in3, power);
+      analogWrite(in4, 0);
+    }
   }
-  if (dir ^ REVERSE_B) {
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
-  } else {
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
-  }
-
-  analogWrite(enA, power);
-  analogWrite(enB, power);
 }
 
 void reconnect() {
