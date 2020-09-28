@@ -31,13 +31,20 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 const int NUM_SIGNALPORTS = 8; // Number of signal ports
 uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS];  // Digital PINs for output
 
-const int TICKS_BETWEEN_PINGS = 500;  // number of ticks after which the sensor will send a ping via MQTT. 500 = 5 seconds.
-int ticksBetweenPingsCounter = 0;     // tick counter
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 
+/* Timing */
+
+/* Current time for event timing */
+unsigned long currentMillis = millis();
+
+
+
+/* Send a ping to announce that you are still alive */
+const int SEND_PING_INTERVAL = 1000; // interval for sending pings in milliseconds
+unsigned long lastPing = millis();    // time of the last sent ping
 
 
 void setup() {
@@ -151,6 +158,13 @@ void setup_mqtt() {
     client.setBufferSize(2048);
 }
 
+void sendMQTTPing(){
+  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
+    lastPing = millis();
+    client.publish("roc2bricks/ping", mqttClientName_char);
+  }
+}
+
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Received message [");
   Serial.print(topic);
@@ -253,12 +267,7 @@ void loop() {
   }
   client.loop();
 
-  // Send ping?
-  if (++ticksBetweenPingsCounter > TICKS_BETWEEN_PINGS) {
-    ticksBetweenPingsCounter = 0;
-    Serial.println("Sending PING!");
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
+  currentMillis = millis();
 
-  delay(10);
+  sendMQTTPing();
 }
