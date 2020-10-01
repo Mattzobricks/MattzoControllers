@@ -13,24 +13,24 @@
 #include <WiFi.h>          // WiFi library
 #include <PubSubClient.h>  // MQTT library
 #include <tinyxml2.h>      // https://github.com/adafruit/TinyXML
-#include "PoweredUpHub.h"  // https://github.com/corneliusmunz/legoino
-#include "PoweredUpRemote.h"
+#include <PoweredUpHub.h>  // https://github.com/corneliusmunz/legoino
+#include <PoweredUpRemote.h>
 
 using namespace tinyxml2;
 
 /* Mattzo Controller spezific */
-String eepromIDString = "MattzoTrainController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
-const int eepromIDStringLength = 22;              // length of the ID String. Needs to be updated if the ID String is changed.
-unsigned int controllerID;                        // controller id. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
+String eepromIDString = "MattzoControllerPUFinder";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
+const int eepromIDStringLength = 24;                 // length of the ID String. Needs to be updated if the ID String is changed.
+unsigned int controllerID;                           // controller id. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 
 
 /* WLAN settings */
-const char* WIFI_SSID = "SSID";                   // SSID of your WLAN
-const char* WIFI_PASSWORD = "Password";     // password of your WLAN
+const char* WIFI_SSID = "railnet";               // WiFi SSID
+const char* WIFI_PASSWORD = "born2rail";     // WiFi passphrase
 
 
 /* MQTT settings */
-const char* MQTT_BROKER_IP = "192.168.1.106";            // IP address of the server on which the MQTT is installed
+const char* MQTT_BROKER_IP = "192.168.178.20";            // IP address of the server on which the MQTT is installed
 const int MQTT_BROKER_PORT = 1883;                       // Port of the MQTT broker
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
@@ -250,6 +250,4 @@ void loop() {
       Serial.println("Failed to connect to HUB");
     }
   }
-  
-
 }
