@@ -16,8 +16,8 @@
 
 using namespace tinyxml2;
 
-String eepromIDString = "MattzoTrainController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
-const int eepromIDStringLength = 21;  // length of the ID String. Needs to be updated if the ID String is changed.
+String eepromIDString = "MattzoTrainController4PF";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
+const int eepromIDStringLength = 24;  // length of the ID String. Needs to be updated if the ID String is changed.
 unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 const int MAX_CONTROLLER_ID = 16383;
 
