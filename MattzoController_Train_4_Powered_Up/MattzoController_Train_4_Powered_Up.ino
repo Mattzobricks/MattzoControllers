@@ -18,18 +18,19 @@
 using namespace tinyxml2;
 
 /* Mattzo Controller spezific */
-String eepromIDString = "MattzoTrainController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
-const int eepromIDStringLength = 22;              // length of the ID String. Needs to be updated if the ID String is changed.
+String eepromIDString = "MattzoTrainController4PU";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
+const int eepromIDStringLength = 24;              // length of the ID String. Needs to be updated if the ID String is changed.
 unsigned int controllerID;                        // controller id. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
+const int MAX_CONTROLLER_ID = 16383;
 
 
 /* WLAN settings */
-const char* WIFI_SSID = "mySSID";                 // SSID of your WLAN
-const char* WIFI_PASSWORD = "myPassword";         // password of your WLAN
+const char* WIFI_SSID = "railnet";                 // SSID of your WLAN
+const char* WIFI_PASSWORD = "born2rail";         // password of your WLAN
 
 
 /* MQTT settings */
-const char* MQTT_BROKER_IP = "192.168.1.106";            // IP address of the server on which the MQTT is installed
+const char* MQTT_BROKER_IP = "192.168.178.20";            // IP address of the server on which the MQTT is installed
 const int MQTT_BROKER_PORT = 1883;                       // Port of the MQTT broker
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
@@ -40,10 +41,8 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 /* Current time for event timing */
 unsigned long currentMillis = millis();
 
-
-
 /* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 10000; // interval for sending pings in milliseconds
+const int SEND_PING_INTERVAL = 5000;   // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
 /* Send the battery level  */
@@ -51,41 +50,42 @@ const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery le
 unsigned long lastBatteryLevel = millis();    // time of the last sent battery level
 
 
-
 /* LEGO Powered up */
+// Number of connected hubs
+const int NUM_HUBS = 1;
 
-PoweredUpHub myHubs[2];  // all the hubs (two in this case :)
+// Note: the controller will connect to hubs only - remotes are refused.
+PoweredUpHub myHubs[NUM_HUBS];  // Objects for the "hubs" (A and B)
 
-// the four different Values of the second dimension of the hub-Array (the first dimension is the hub itselfe
+// Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME         = 0; // name of the hub
 const int HUB_ADDRESS      = 1; // MAC address
 const int HUB_STATUS       = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected)
 const int HUB_MOTORPORT    = 3; // ports with motors (A, -A,  AB, -AB, -A-B, A-B, B, -B), a minus indicates an inverse rotation direction
-//const int HUB_SPEEDFACTOR  = 4; // multiplier for the speed of a motor in relation to the first motor (1 = same speed, same direction, -1 = same speed, inverted direction, -2 = double speed, inverted direction)
 
-// note: only hubs are allowed, remotes will be refused
-
+// Main hub array
 //              |-- number of Hubs
 //              |
-//              |  |-- { "Name", "Address", "connectionStatus", "port and direction"}
-//              |  |
-//              v  v
-char* myHubData[2][4]=
-{{"Hub 1", "90:84:2b:17:c5:b3", "false", "A"} //, "1"}
-,{"Hub 2", "00:81:f9:e9:d1:24", "false", "-A"} //, "-1"}
+//              |         |-- { "name", "address", "connectionStatus", "port"}
+//              |         |
+//              v         v
+char* myHubData[NUM_HUBS][5]=
+{
+  {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A"}
 };
 
 PoweredUpHub::Port hubPortA = PoweredUpHub::Port::A; // port A
 PoweredUpHub::Port hubPortB = PoweredUpHub::Port::B; // port B
 
-
-const int ACCELERATION_BREAK_INTERVAL = 1;   // pause between individual speed adjustments in milliseconds
-unsigned long lastAccelerate = millis();     // time of the last speed adjustment
-const int accelerateStep = 1;
+// Motor acceleration parameters (presently unused)
+const int ACCELERATION_INTERVAL = 1000;   // pause between individual speed adjustments in milliseconds
+const int ACCELERATE_STEP = 10;                 // acceleration increment for a single acceleration step
 int currentTrainSpeed = 0;                   // current speed of this train
 int targetTrainSpeed = 0;                    // Target speed Speed of this train
+unsigned long lastAccelerate = millis();     // time of the last speed adjustment
 
 
+// Wifi and MQTT objects
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -106,7 +106,6 @@ void initMattzoController() {
   int i;
   int controllerIDHiByte;
   int controllerIDLowByte;
-  int maxControllerId = 65000;              // The controller id is a number between 0 and 65000
 
   // set-up EEPROM read/write operations
   EEPROM.begin(512);
@@ -123,7 +122,6 @@ void initMattzoController() {
       idStringCheck = false;
       break;
     }
-
   }
 
   // TODO: also write / read SSID, Wifi-Password and MQTT Server from EEPROM
@@ -148,7 +146,7 @@ void initMattzoController() {
     }
 
     // assign random controllerID between 1 and 65000 and store in EEPROM
-    controllerID = random(1, maxControllerId);
+    controllerID = random(1, MAX_CONTROLLER_ID);
     controllerIDHiByte  = controllerID / 256;
     controllerIDLowByte = controllerID % 256;
     EEPROM.write(paramsStartingPosition, controllerIDHiByte);
@@ -158,20 +156,18 @@ void initMattzoController() {
     EEPROM.commit();
 
   }
-  Serial.println("controller ID " + String(controllerID));
-
+  Serial.println("New controller id " + String(controllerID) + " written to EEPROM.");
 }
 
 void initWIFI() {
-  Serial.println("MAC: " + WiFi.macAddress());
+  Serial.println("My MAC: " + WiFi.macAddress());
   //Serial.print("Connecting to SSID " + String(WIFI_SSID) + " ");
   //WiFi.setSleepMode(WIFI_NONE_SLEEP);
   reconnectWIFI();
 }
 
 void reconnectWIFI() {
-
-  Serial.print("Connecting to SSID " + String(WIFI_SSID) + " ");
+  Serial.print("Connecting to WiFi, SSID " + String(WIFI_SSID) + " ");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -192,7 +188,7 @@ void reconnectWIFI() {
   }
 
   Serial.println();
-  Serial.print("Connected to SSID " + String(WIFI_SSID) + " ");
+  Serial.print("Connected to WiFi, SSID " + String(WIFI_SSID) + ", as ");
   Serial.println(WiFi.localIP());
 }
 
@@ -228,30 +224,40 @@ void reconnectMQTT() {
 void sendMQTTPing(){
   if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
     lastPing = millis();
+    Serial.println("sending ping...");
     client.publish("roc2bricks/ping", mqttClientName_char);
   }
 }
 
-void sendMQTTMessage(String messageType, String message){
+void sendMQTTMessage(String topic, String message) {
+  const int MAX_MQTT_TOPIC_SIZE = 255;
+  const int MAX_MQTT_MESSAGE_SIZE = 255;
+  char topic_char[MAX_MQTT_TOPIC_SIZE];
+  char message_char[MAX_MQTT_MESSAGE_SIZE];
 
-  char messageType_char[50];
-  //char messageType_char[mqttClientName_char.length + messageType.length() + 1];
-  messageType.toCharArray(messageType_char, messageType.length() + 1);
-  
-  char message_char[100];
-  //char message_char[message.length() + 1];
+  if (topic.length() + 1 > MAX_MQTT_TOPIC_SIZE) {
+    Serial.println("ERROR: MQTT topic string too long - message not sent.");
+    return;
+  }
+
   message = String(mqttClientName_char) + " " + message;
+  if (message.length() + 1 > MAX_MQTT_MESSAGE_SIZE) {
+    Serial.println("ERROR: MQTT message string too long - message not sent.");
+    return;
+  }
+
+  topic.toCharArray(topic_char, topic.length() + 1);
   message.toCharArray(message_char, message.length() + 1);
   
-  Serial.println("send " + messageType + ": " + message);
-  client.publish(messageType_char, message_char);
+  Serial.println("sending mqtt: " + topic + " " + message);
+  client.publish(topic_char, message_char);
 }
 
 void sendMQTTBatteryLevel(){
   if (currentMillis - lastBatteryLevel >= SEND_BATTERYLEVEL_INTERVAL) {
     lastBatteryLevel = millis();
 
-    for (int i = 0; i < 2; i++){
+    for (int i = 0; i < NUM_HUBS; i++){
       if (myHubs[i].isConnected()) {
         sendMQTTMessage("roc2bricks/battery", String(myHubData[i][HUB_ADDRESS]) + " " + String(myHubs[i].getBatteryLevel()));
       }
@@ -265,13 +271,10 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   Serial.print("] ");
   char msg[length+1];
   for (int i = 0; i < length; i++) {
-      Serial.print((char)payload[i]);
       msg[i] = (char)payload[i];
   }
-   Serial.println();
-
   msg[length] = '\0';
-  Serial.println(msg);
+  Serial.print(msg);
 
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS){
@@ -283,19 +286,17 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   // check for system-events
   XMLElement * element = xmlDocument.FirstChildElement("sys");
   if (element != NULL) {
-
     const char * rr_cmd = "-unknown-";
     if (element->QueryStringAttribute("cmd", &rr_cmd) == XML_SUCCESS) {
-
-      if ((strcmp(rr_cmd, "stop")==0) || (strcmp(rr_cmd, "ebreak")==0)){
-        Serial.println("! NOTHALT ! " + String(rr_cmd));
-        SetTrainSpeed(0);
+      if ((strcmp(rr_cmd, "stop")==0) || (strcmp(rr_cmd, "ebreak")==0) || (strcmp(rr_cmd, "shutdown")==0)){
+        Serial.println("EMERGENCY BREAK - stopping all trains! " + String(rr_cmd));
+        targetTrainSpeed = 0;
+        setTrainSpeed(0);
         delay(1000);
         return;
       }
     }
   }
-
 
   //XMLElement * element = xmlDocument.FirstChildElement("lc");
   element = xmlDocument.FirstChildElement("lc");
@@ -304,46 +305,62 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  // query addr1 attribute. This is the MattzoController id.
+  // query addr attribute. This is the MattzoController id.
   // If this does not equal the controllerID of this controller, the message is disregarded.
-  int rr_oid = 0;
-  if (element->QueryIntAttribute("oid", &rr_oid) != XML_SUCCESS) {
-    Serial.println("oid attribute not found or wrong type. Message disregarded.");
+  int rr_addr = 0;
+  if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
+    Serial.println("addr attribute not found or wrong type. Message disregarded.");
     return;
   }
-  Serial.println("oid: " + String(rr_oid));
-  if (rr_oid != controllerID) {
+  Serial.println("addr: " + String(rr_addr));
+  if (rr_addr != controllerID) {
     Serial.println("Message disgarded, as it is not for me (" + String(controllerID) + ")");
     return;
   }
 
-  // query port1 attribute. This is port id of the port to which the switch is connected.
-  // If the controller does not have such a port, the message is disregarded.
+  // query dir attribute. This is direction information for the loco (forward, backward)
+  const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
+  int dir;
+  if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
+    Serial.println("dir attribute not found or wrong type.");
+    return;
+  }
+  Serial.println("dir (raw): " + String(rr_dir));
+  if (strcmp(rr_dir, "true")==0) {
+    Serial.println("direction: forward");
+    dir = 1;
+  }
+  else if (strcmp(rr_dir, "false")==0) {
+    Serial.println("direction: backward");
+    dir = -1;
+  }
+  else {
+    Serial.println("unknown dir value - disregarding message.");
+    return;
+  }
+
+  // query V attribute. This is speed information for the loco and ranges from 0 to 1023.
   int rr_speed = 0;
   if (element->QueryIntAttribute("V", &rr_speed) != XML_SUCCESS) {
-    Serial.println("V attribute not found or wrong type. Message disregarded.");
+    Serial.println("V (speed) attribute not found or wrong type. Message disregarded.");
     return;
   }
   Serial.println("speed: " + String(rr_speed));
-  if ((rr_speed < 0) || (rr_speed > 100)) {
-    Serial.println("Message disgarded, as this controller does not have such a port.");
-    return;
-  }
-  SetTrainSpeed(rr_speed);
-  //targetTrainSpeed = rr_speed;
 
+  // set target train speed
+  targetTrainSpeed = rr_speed * dir;
+  Serial.println("Target speed set to " + String(targetTrainSpeed));
 }
 
 
 void reconnectHUB(){
-
-  // init hubs from list and send "connection lost" information if lost
-  for (int i = 0; i < 2; i++){
+  // init hubs from list and send "disconnected" information if lost
+  for (int i = 0; i < NUM_HUBS; i++){
     if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()){
 
       // send "connection lost" message
       if (String(myHubData[i][HUB_STATUS]) == String("true")) {
-        sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connection lost");
+        sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
         myHubData[i][HUB_STATUS] = "false";
       }
 
@@ -352,7 +369,7 @@ void reconnectHUB(){
   }
 
   // connect to the hubs from the list and send "connected" information
-  for (int i = 0; i < 2; i++){
+  for (int i = 0; i < NUM_HUBS; i++){
     if (myHubs[i].isConnecting() && (myHubs[i].getHubType() == POWERED_UP_HUB)) {
       
       myHubs[i].connectHub();
@@ -367,22 +384,18 @@ void reconnectHUB(){
         myHubData[i][HUB_STATUS] = "false";
       }
     }
-  
   }
 }
 
 
-// set train speed
-void SetTrainSpeed(int newTrainSpeed){
-  Serial.println("set speed: " + String(newTrainSpeed));
+// set powered up motor speed
+void setTrainSpeed(int newTrainSpeed){
+  Serial.println("Setting motor speed: " + String(newTrainSpeed));
 
-  for (int i = 0; i < 2; i++){
+  currentTrainSpeed = newTrainSpeed;
 
+  for (int i = 0; i < NUM_HUBS; i++){
     if (myHubs[i].isConnected()) {
-
-      if (currentTrainSpeed != newTrainSpeed){
-        currentTrainSpeed = newTrainSpeed;
-      }
       
       switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("A")) {
          case 0: // "A"
@@ -395,9 +408,6 @@ void SetTrainSpeed(int newTrainSpeed){
             break;
       }
 
-      String bValue = String(myHubData[i][HUB_MOTORPORT]);
-      bValue = bValue.substring(bValue.indexOf("A") + 1);
-
       switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("B")) {
          case 0: // "B"
             myHubs[i].setMotorSpeed(hubPortB, currentTrainSpeed);
@@ -408,61 +418,42 @@ void SetTrainSpeed(int newTrainSpeed){
          default:
             break;
       }
-
-
     }
 
+    if (currentTrainSpeed != targetTrainSpeed) {
+      myHubs[i].setLedColor(YELLOW);
+    } else if (currentTrainSpeed == 0) {
+      myHubs[i].setLedColor(RED);
+    } else {
+      myHubs[i].setLedColor(GREEN);
+    }
   }
+
+  Serial.println("Motor speed set to: " + String(newTrainSpeed));
 }
 
 
 // set train speed (increase/decrease slowly)
-void accelerateTrainSpeed(int trainSpeed){
-
-    if (currentMillis - lastAccelerate >= ACCELERATION_BREAK_INTERVAL) {
+void accelerateTrainSpeed() {
+  if (currentTrainSpeed != targetTrainSpeed) {
+    if (targetTrainSpeed == 0){
+      // stop -> execute immediately
+      setTrainSpeed(0);
+    } else if (currentMillis - lastAccelerate >= ACCELERATION_INTERVAL) {
       lastAccelerate = millis();
 
-      if (currentTrainSpeed > trainSpeed){
-        SetTrainSpeed(currentTrainSpeed - accelerateStep);
-      } else if (currentTrainSpeed < trainSpeed) {
-        SetTrainSpeed(currentTrainSpeed + accelerateStep);
+      int nextSpeed;
+      // accelerate / brake gently
+      if (currentTrainSpeed < targetTrainSpeed) {
+        nextSpeed = min(currentTrainSpeed + ACCELERATE_STEP, targetTrainSpeed);
+      } else {
+        nextSpeed = max(currentTrainSpeed - ACCELERATE_STEP, targetTrainSpeed);
       }
-
+      setTrainSpeed(nextSpeed);
     }
-  
+  }
 }
 
-
-// testing, testing, testing ......
-void doTrainMotorThings(){
-//lastHubThing
-    //if (currentMillis - lastHubThing >= TICKS_BETWEEN_HUBTHINGS) {
-
-
-    //myTrain.getLedColor
-
-    //char hubName[] = "myTrainHub";
-    //trainHub1.setLedColor(GREEN);
-    //delay(500);
-    //trainHub1.setLedColor(RED);
-    //delay(500);
-    //trainHub1.setMotorSpeed(_portA, 35);
-    //delay(1000);
-    //trainHub1.stopMotor(_portA);
-    //delay(1000);
-    //trainHub1.setMotorSpeed(_portA, -35);
-    //delay(1000);
-    //trainHub1.stopMotor(_portA);
-    //delay(1000);
-
-/*
-    if (currentMillis - lastBatteryLevel >= SEND_BATTERYLEVEL_INTERVAL) {
-      Serial.println("BatteryLevel: " + String(myTrainHub.getBatteryLevel()));
-      //Serial.println("current speed: " + String(currentTrainSpeed));
-      lastBatteryLevel = millis();
-    }
-*/
-}
 
 void loop() {
   if (WiFi.status() != WL_CONNECTED){
@@ -476,16 +467,9 @@ void loop() {
 
   reconnectHUB();
 
-
   currentMillis = millis();
+  accelerateTrainSpeed();
 
-  //if (trainHub1.isConnected()) {
-  //  doTrainMotorThings();
-  //  //accelerateTrainSpeed(targetTrainSpeed);
-  //}
-
-  // Send ping?
   sendMQTTPing();
   sendMQTTBatteryLevel();
-
 }
