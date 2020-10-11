@@ -23,7 +23,7 @@ const int MAX_CONTROLLER_ID = 16383;
 
 const char* SSID = "railnet";
 const char* PSK = "born2rail";
-const char* MQTT_BROKER = "192.168.178.20";
+const char* MQTT_BROKER = "192.168.178.57";
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
@@ -31,7 +31,7 @@ const int NUM_FUNCTIONS = 2;  // if increased, the fn1, fn2... defintions must b
 #define fn1 D0  // Output PIN for Rocrail Function 1 (e.g. train headlights)
 #define fn2 D8  // Output PIN for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
 
-const int MOTORSHIELD_TYPE = 1; // motor shield type. 1 = L298N, 2 = L9110
+const int MOTORSHIELD_TYPE = 2; // motor shield type. 1 = L298N, 2 = L9110
 #define enA D1  // PWM signal for motor A. Relevant for L298N only.
 #define in1 D2  // motor A direction control (forward)
 #define in2 D3  // motor A direction control (reverse)
@@ -50,7 +50,7 @@ unsigned long currentMillis = millis();
 
 
 /* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 1000; // interval for sending pings in milliseconds
+const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
 WiFiClient espClient;
@@ -78,7 +78,7 @@ void setup() {
     pinMode(in4, OUTPUT);
 
     // stop motors
-    setMotor(true, 0);
+    setMotor(true, 0, 1);
 
     loadPreferences();
     setup_wifi();
@@ -253,21 +253,31 @@ void callback(char* topic, byte* payload, unsigned int length) {
       return;
     }
   
-    // query V attribute. This is speed information for the loco and ranges from 0 to 1023.
-    int rr_speed = 0;
-    if (element->QueryIntAttribute("V", &rr_speed) != XML_SUCCESS) {
-      Serial.println("V (speed) attribute not found or wrong type. Message disregarded.");
+    // query V attribute. This is speed information for the loco and ranges from 0 to V_max (see below).
+    int rr_v = 0;
+    if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
+      Serial.println("V attribute not found or wrong type. Message disregarded.");
       return;
     }
-    Serial.println("speed: " + String(rr_speed));
+    Serial.println("speed: " + String(rr_v));
   
-    // set motor direction and power on L298N motor shield
-    setMotor(dir, rr_speed);
+    // query V_max attribute. This is maximum speed of the loco. It must be set in the loco settings in Rocrail as percentage value.
+    // The V_max attribute is required to map to loco speed from rocrail to a power setting in the MattzoController.
+    int rr_vmax = 0;
+    if (element->QueryIntAttribute("V_max", &rr_vmax) != XML_SUCCESS) {
+      Serial.println("V_max attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("V_max: " + String(rr_vmax));
+  
+    // set motor direction and speed
+    setMotor(dir, rr_v, rr_vmax);
   } else {
     // check for fn message
     element = xmlDocument.FirstChildElement("fn");
     if (element == NULL) {
       Serial.println("<fn> node not found. Disregarding message...");
+      return;
     }
 
     // -> process fn (function) message
@@ -345,7 +355,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
-void setMotor(boolean dir, int power) {
+// setting the motor to a desired power.
+void setMotor(boolean dir, int rr_v, int rr_vmax) {
+  const int MAX_ARDUINO_POWER = 1023;
+
+  int power = map(rr_v, 0, rr_vmax, 0, MAX_ARDUINO_POWER * rr_vmax / 100);
+
+  Serial.println("Setting motor: " + String(dir) + ":" + String(power));
+
   if (MOTORSHIELD_TYPE == 1) {
     // motor shield type L298N
     if (dir ^ REVERSE_A) {
@@ -393,8 +410,8 @@ void reconnect() {
           delay(5000);
         }
     }
-    client.subscribe("roc2bricks/command");
-    Serial.println("MQTT connected, listening on topic [roc2bricks/command].");
+    client.subscribe("rocrail/service/command");
+    Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
 }
 
 void loop() {
