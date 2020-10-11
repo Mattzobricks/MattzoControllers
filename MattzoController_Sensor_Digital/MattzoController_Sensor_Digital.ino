@@ -11,15 +11,13 @@
 #include <EEPROM.h>  // EEPROM library
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library
+#include <MattzoController_Network_Configuration.h>  // this file needs to be placed in the Arduino library folder
 
 String eepromIDString = "MattzoSensorController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
 const int eepromIDStringLength = 22;  // length of the ID String. Needs to be updated if the ID String is changed.
 unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 const int MAX_CONTROLLER_ID = 65000;
 
-const char* SSID = "railnet";
-const char* PSK = "born2rail";
-const char* MQTT_BROKER = "192.168.1.19";
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
@@ -80,7 +78,7 @@ void setup() {
 
   loadPreferences();
   setup_wifi();
-  client.setServer(MQTT_BROKER, 1883);
+  client.setServer(MQTT_BROKER_IP, 1883);
   client.setCallback(callback);
 }
 
@@ -148,9 +146,9 @@ void setup_wifi() {
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
-  Serial.println(SSID);
+  Serial.println(WIFI_SSID);
 
-  WiFi.begin(SSID, PSK);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
     allBlink(true, 0);

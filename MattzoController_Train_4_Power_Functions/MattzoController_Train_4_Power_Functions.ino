@@ -13,6 +13,7 @@
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library
 #include <tinyxml2.h>  // tiny xml 2 library
+#include <MattzoController_Network_Configuration.h>
 
 using namespace tinyxml2;
 
@@ -21,9 +22,6 @@ const int eepromIDStringLength = 24;  // length of the ID String. Needs to be up
 unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 const int MAX_CONTROLLER_ID = 16383;
 
-const char* SSID = "railnet";
-const char* PSK = "born2rail";
-const char* MQTT_BROKER = "192.168.178.57";
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
@@ -149,9 +147,9 @@ void setup_wifi() {
     delay(10);
     Serial.println();
     Serial.print("Connecting to ");
-    Serial.println(SSID);
+    Serial.println(WIFI_SSID);
  
-    WiFi.begin(SSID, PSK);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
  
     while (WiFi.status() != WL_CONNECTED) {
       delay(1000);
@@ -167,7 +165,7 @@ void setup_wifi() {
 }
  
 void setup_mqtt() {
-    client.setServer(MQTT_BROKER, 1883);
+    client.setServer(MQTT_BROKER_IP, 1883);
     client.setCallback(callback);
     client.setBufferSize(2048);
 }

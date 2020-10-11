@@ -15,6 +15,7 @@
 #include <tinyxml2.h>      // https://github.com/adafruit/TinyXML
 #include <PoweredUpHub.h>  // https://github.com/corneliusmunz/legoino
 #include <PoweredUpRemote.h>
+#include <MattzoController_Network_Configuration.h>  // this file needs to be placed in the Arduino library folder
 
 using namespace tinyxml2;
 
@@ -23,15 +24,7 @@ String eepromIDString = "MattzoControllerPUFinder";  // ID String. If found in E
 const int eepromIDStringLength = 24;                 // length of the ID String. Needs to be updated if the ID String is changed.
 unsigned int controllerID;                           // controller id. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 
-
-/* WLAN settings */
-const char* WIFI_SSID = "railnet";               // WiFi SSID
-const char* WIFI_PASSWORD = "born2rail";     // WiFi passphrase
-
-
-/* MQTT settings */
-const char* MQTT_BROKER_IP = "192.168.178.20";            // IP address of the server on which the MQTT is installed
-const int MQTT_BROKER_PORT = 1883;                       // Port of the MQTT broker
+/* MQTT */
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
@@ -153,7 +146,7 @@ void initMQTT() {
   mqttClientName = eepromIDString + " " + String(controllerID);
   mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
 
-  client.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
+  client.setServer(MQTT_BROKER_IP, 1883);
   client.setCallback(callbackMQTT);
   client.setBufferSize(2048);
 }
