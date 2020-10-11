@@ -30,7 +30,7 @@ const char* WIFI_PASSWORD = "born2rail";         // password of your WLAN
 
 
 /* MQTT settings */
-const char* MQTT_BROKER_IP = "192.168.178.20";            // IP address of the server on which the MQTT is installed
+const char* MQTT_BROKER_IP = "192.168.178.57";            // IP address of the server on which the MQTT is installed
 const int MQTT_BROKER_PORT = 1883;                       // Port of the MQTT broker
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
@@ -69,10 +69,12 @@ const int HUB_MOTORPORT    = 3; // ports with motors (A, -A,  AB, -AB, -A-B, A-B
 //              |         |-- { "name", "address", "connectionStatus", "port"}
 //              |         |
 //              v         v
-char* myHubData[NUM_HUBS][5]=
+char* myHubData[NUM_HUBS][4]=
 {
-  {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A"}
+  {"Crocodile", "90:84:2b:0f:ac:c7", "false", "AB"}
 };
+//  {"ICE1", "90:84:2b:16:15:f8", "false", "B-"}
+
 
 PoweredUpHub::Port hubPortA = PoweredUpHub::Port::A; // port A
 PoweredUpHub::Port hubPortB = PoweredUpHub::Port::B; // port B
@@ -390,6 +392,8 @@ void reconnectHUB(){
 
 // set powered up motor speed
 void setTrainSpeed(int newTrainSpeed){
+  const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
+
   Serial.println("Setting motor speed: " + String(newTrainSpeed));
 
   currentTrainSpeed = newTrainSpeed;
@@ -400,9 +404,11 @@ void setTrainSpeed(int newTrainSpeed){
       switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("A")) {
          case 0: // "A"
             myHubs[i].setMotorSpeed(hubPortA, currentTrainSpeed);
+            delay(DELAY);
             break;
          case 1: // "-A"
             myHubs[i].setMotorSpeed(hubPortA, -currentTrainSpeed);
+            delay(DELAY);
             break;
          default:
             break;
@@ -411,9 +417,11 @@ void setTrainSpeed(int newTrainSpeed){
       switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("B")) {
          case 0: // "B"
             myHubs[i].setMotorSpeed(hubPortB, currentTrainSpeed);
+            delay(DELAY);
             break;
          case 1: // "-B"
             myHubs[i].setMotorSpeed(hubPortB, -currentTrainSpeed);
+            delay(DELAY);
             break;
          default:
             break;
