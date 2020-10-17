@@ -25,9 +25,9 @@ const int NUM_SENSORS = 4; // Number of connectable sensors
 uint8_t SENSOR_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
 uint8_t LED_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
 
-const int SENSOR_RELEASE_TICKS = 100;  // 100 = 1 second. Increase to 200 for 2 seconds etc.
+const int SENSOR_RELEASE_TICKS = 1000;  // time in milliseconds until sensor is reported to be released after it actually has lost contact
 bool sensorState[NUM_SENSORS];
-int sensorReleaseCounter[NUM_SENSORS];
+int lastSensorContactMillis[NUM_SENSORS];
 
 /* Timing */
 
@@ -37,7 +37,7 @@ unsigned long currentMillis = millis();
 
 
 /* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 1000; // interval for sending pings in milliseconds
+const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
 
@@ -65,7 +65,6 @@ void setup() {
     pinMode(SENSOR_PIN[i], INPUT);
     pinMode(LED_PIN[i], OUTPUT);
     sensorState[i] = false;
-    sensorReleaseCounter[i] = 1;  // set to 1 -> report immediately as open to central after start-up
   }
 
   // a short blink to say "hello, I have power supply and booting up"
@@ -279,17 +278,14 @@ void loop() {
         sensorState[i] = true;
         setLED(i, false);
       }
-      sensorReleaseCounter[i] = SENSOR_RELEASE_TICKS;
+      lastSensorContactMillis[i] = currentMillis;
     } else { 
-      // No contact for SENSOR_RELEASE_TICKS ticks -> report sensor has lost contact
-      if (sensorReleaseCounter[i] == 1) {
+      // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
+      if (sensorState[i] && (currentMillis > lastSensorContactMillis[i] + SENSOR_RELEASE_TICKS)) {
         Serial.println("Sensor " + String(i) + ": Released!");
         sendMQTTSensorEvent(i, false);
         sensorState[i] = false;
         setLED(i, true);
-      }
-      if (sensorReleaseCounter[i] > 0) {
-        sensorReleaseCounter[i]--;
       }
     }
   }
