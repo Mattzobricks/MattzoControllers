@@ -40,7 +40,7 @@ unsigned long lastPing = millis();    // time of the last sent ping
 
 /* Send the battery level  */
 const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
-unsigned long lastBatteryLevel = millis();    // time of the last sent battery level
+unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
 
 
 /* LEGO Powered up */
@@ -72,15 +72,14 @@ char* myHubData[NUM_HUBS][4]=
 PoweredUpHub::Port hubPortA = PoweredUpHub::Port::A; // port A
 PoweredUpHub::Port hubPortB = PoweredUpHub::Port::B; // port B
 
-// Motor acceleration parameters (presently unused)
-const int ACCELERATION_INTERVAL = 100;      // pause between individual speed adjustments in milliseconds
-const int ACCELERATE_STEP = 1;              // acceleration increment for a single acceleration step
-const int BRAKE_STEP = 2;                   // brake decrement for a single braking step
+// Motor acceleration parameters
+const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
+const int ACCELERATE_STEP = 1;               // acceleration increment for a single acceleration step
+const int BRAKE_STEP = 2;                    // brake decrement for a single braking step
 int currentTrainSpeed = 0;                   // current speed of this train
 int targetTrainSpeed = 0;                    // Target speed of this train
 int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
 unsigned long lastAccelerate = millis();     // time of the last speed adjustment
-
 
 // Wifi and MQTT objects
 WiFiClient espClient;
@@ -251,11 +250,12 @@ void sendMQTTMessage(String topic, String message) {
 }
 
 void sendMQTTBatteryLevel(){
-  if (currentMillis - lastBatteryLevel >= SEND_BATTERYLEVEL_INTERVAL) {
-    lastBatteryLevel = millis();
+  if (currentMillis - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL) {
+    lastBatteryLevelMsg = millis();
 
     for (int i = 0; i < NUM_HUBS; i++){
       if (myHubs[i].isConnected()) {
+        Serial.println("sending battery level for hub " + i);
         sendMQTTMessage("roc2bricks/battery", String(myHubData[i][HUB_ADDRESS]) + " " + String(myHubs[i].getBatteryLevel()));
       }
     }
@@ -398,22 +398,34 @@ void reconnectHUB(){
 // set powered up motor speed
 void setTrainSpeed(int newTrainSpeed){
   const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
-  const int MAX_PU_POWER = 255;
+  const int MAX_PU_POWER = 88;
 
   int power = map(newTrainSpeed, 0, maxTrainSpeed, 0, MAX_PU_POWER * maxTrainSpeed / 100);
   Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
 
   currentTrainSpeed = newTrainSpeed;
+  // Set integrated powered up hub light according to situation
+  Color ledColor;
+  if (currentTrainSpeed != targetTrainSpeed) {
+    // accelerating / braking
+    ledColor = YELLOW;
+  } else if (currentTrainSpeed == 0) {
+    // stopped
+    ledColor = RED;
+  } else {
+    // travelling at target speed
+    ledColor = GREEN;
+  }
 
   for (int i = 0; i < NUM_HUBS; i++){
     if (myHubs[i].isConnected()) {
       switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("A")) {
          case 0: // "A"
-            myHubs[i].setMotorSpeed(hubPortA, currentTrainSpeed);
+            myHubs[i].setMotorSpeed(hubPortA, power);
             delay(DELAY);
             break;
          case 1: // "-A"
-            myHubs[i].setMotorSpeed(hubPortA, -currentTrainSpeed);
+            myHubs[i].setMotorSpeed(hubPortA, -power);
             delay(DELAY);
             break;
          default:
@@ -422,27 +434,19 @@ void setTrainSpeed(int newTrainSpeed){
 
       switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("B")) {
          case 0: // "B"
-            myHubs[i].setMotorSpeed(hubPortB, currentTrainSpeed);
+            myHubs[i].setMotorSpeed(hubPortB, power);
             delay(DELAY);
             break;
          case 1: // "-B"
-            myHubs[i].setMotorSpeed(hubPortB, -currentTrainSpeed);
+            myHubs[i].setMotorSpeed(hubPortB, -power);
             delay(DELAY);
             break;
          default:
             break;
       }
-    }
 
-    if (currentTrainSpeed != targetTrainSpeed) {
-      // accelerating / braking
-      myHubs[i].setLedColor(YELLOW);
-    } else if (currentTrainSpeed == 0) {
-      // stopped
-      myHubs[i].setLedColor(RED);
-    } else {
-      // travelling at target speed
-      myHubs[i].setLedColor(GREEN);
+      // Set integrated powered up hub light
+      myHubs[i].setLedColor(ledColor);
     }
   }
 
@@ -450,7 +454,7 @@ void setTrainSpeed(int newTrainSpeed){
 }
 
 
-// set train speed (increase/decrease slowly)
+// gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed() {
   if (currentTrainSpeed != targetTrainSpeed) {
     if (targetTrainSpeed == 0){
