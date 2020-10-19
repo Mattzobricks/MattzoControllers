@@ -28,12 +28,6 @@ const int MAX_CONTROLLER_ID = 16383;
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-
-/* Timing */
-
-/* Current time for event timing */
-unsigned long currentMillis = millis();
-
 /* Send a ping to announce that you are still alive */
 const int SEND_PING_INTERVAL = 5000;   // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
@@ -218,7 +212,7 @@ void reconnectMQTT() {
 }
 
 void sendMQTTPing(){
-  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
+  if (millis() - lastPing >= SEND_PING_INTERVAL) {
     lastPing = millis();
     Serial.println("sending ping...");
     client.publish("roc2bricks/ping", mqttClientName_char);
@@ -250,7 +244,7 @@ void sendMQTTMessage(String topic, String message) {
 }
 
 void sendMQTTBatteryLevel(){
-  if (currentMillis - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL) {
+  if (millis() - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL) {
     lastBatteryLevelMsg = millis();
 
     for (int i = 0; i < NUM_HUBS; i++){
@@ -460,15 +454,19 @@ void accelerateTrainSpeed() {
     if (targetTrainSpeed == 0){
       // stop -> execute immediately
       setTrainSpeed(0);
-    } else if (currentMillis - lastAccelerate >= ACCELERATION_INTERVAL) {
+    } else if (millis() - lastAccelerate >= ACCELERATION_INTERVAL) {
       lastAccelerate = millis();
+
+      // determine if trains accelerates or brakes
+      boolean accelerateFlag = abs(currentTrainSpeed) < abs(targetTrainSpeed) && (currentTrainSpeed * targetTrainSpeed > 0);
+      int step = accelerateFlag ? ACCELERATE_STEP : BRAKE_STEP;
 
       int nextSpeed;
       // accelerate / brake gently
       if (currentTrainSpeed < targetTrainSpeed) {
-        nextSpeed = min(currentTrainSpeed + ACCELERATE_STEP, targetTrainSpeed);
+        nextSpeed = min(currentTrainSpeed + step, targetTrainSpeed);
       } else {
-        nextSpeed = max(currentTrainSpeed - BRAKE_STEP, targetTrainSpeed);
+        nextSpeed = max(currentTrainSpeed - step, targetTrainSpeed);
       }
       setTrainSpeed(nextSpeed);
     }
@@ -488,7 +486,6 @@ void loop() {
 
   reconnectHUB();
 
-  currentMillis = millis();
   accelerateTrainSpeed();
 
   sendMQTTPing();
