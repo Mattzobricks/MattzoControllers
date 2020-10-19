@@ -40,17 +40,20 @@ const int MOTORSHIELD_TYPE = 2; // motor shield type. 1 = L298N, 2 = L9110
 const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
 const boolean REVERSE_B = true;  // if set to true, motor B is reversed
 
-/* Timing */
-
-/* Current time for event timing */
-unsigned long currentMillis = millis();
-
-
-
 /* Send a ping to announce that you are still alive */
 const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
+// Motor acceleration parameters
+const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
+const int ACCELERATE_STEP = 1;               // acceleration increment for a single acceleration step
+const int BRAKE_STEP = 2;                    // brake decrement for a single braking step
+int currentTrainSpeed = 0;                   // current speed of this train
+int targetTrainSpeed = 0;                    // Target speed of this train
+int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
+unsigned long lastAccelerate = millis();     // time of the last speed adjustment
+
+// Wifi and MQTT objects
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -76,7 +79,7 @@ void setup() {
     pinMode(in4, OUTPUT);
 
     // stop motors
-    setMotor(true, 0, 1);
+    setTrainSpeed(0);
 
     loadPreferences();
     setup_wifi();
@@ -171,7 +174,7 @@ void setup_mqtt() {
 }
 
 void sendMQTTPing(){
-  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
+  if (millis() - lastPing >= SEND_PING_INTERVAL) {
     lastPing = millis();
     client.publish("roc2bricks/ping", mqttClientName_char);
   }
@@ -232,7 +235,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   
     // query dir attribute. This is direction information for the loco (forward, backward)
     const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
-    boolean dir;
+    int dir;
     if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
       Serial.println("dir attribute not found or wrong type.");
       return;
@@ -240,11 +243,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("dir (raw): " + String(rr_dir));
     if (strcmp(rr_dir, "true")==0) {
       Serial.println("direction: forward");
-      dir = true;
+      dir = 1;
     }
     else if (strcmp(rr_dir, "false")==0) {
       Serial.println("direction: backward");
-      dir = false;
+      dir = -1;
     }
     else {
       Serial.println("unknown dir value - disregarding message.");
@@ -268,8 +271,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     Serial.println("V_max: " + String(rr_vmax));
   
-    // set motor direction and speed
-    setMotor(dir, rr_v, rr_vmax);
+    // set target train speed
+    targetTrainSpeed = rr_v * dir;
+    maxTrainSpeed = rr_vmax;
+    Serial.println("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
   } else {
     // check for fn message
     element = xmlDocument.FirstChildElement("fn");
@@ -354,12 +359,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 // setting the motor to a desired power.
-void setMotor(boolean dir, int rr_v, int rr_vmax) {
+void setTrainSpeed(int newTrainSpeed) {
   const int MAX_ARDUINO_POWER = 1023;
 
-  int power = map(rr_v, 0, rr_vmax, 0, MAX_ARDUINO_POWER * rr_vmax / 100);
+  int power = abs(map(newTrainSpeed, 0, maxTrainSpeed, 0, MAX_ARDUINO_POWER * maxTrainSpeed / 100));
+  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
 
-  Serial.println("Setting motor: " + String(dir) + ":" + String(power));
+  currentTrainSpeed = newTrainSpeed;
+  int dir = currentTrainSpeed >= 0;
 
   if (MOTORSHIELD_TYPE == 1) {
     // motor shield type L298N
@@ -412,13 +419,40 @@ void reconnect() {
     Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
 }
 
+
+// gently adapt train speed (increase/decrease slowly)
+void accelerateTrainSpeed() {
+  if (currentTrainSpeed != targetTrainSpeed) {
+    if (targetTrainSpeed == 0){
+      // stop -> execute immediately
+      setTrainSpeed(0);
+    } else if (millis() - lastAccelerate >= ACCELERATION_INTERVAL) {
+      lastAccelerate = millis();
+
+      // determine if trains accelerates or brakes
+      boolean accelerateFlag = abs(currentTrainSpeed) < abs(targetTrainSpeed);
+      int step = accelerateFlag ? ACCELERATE_STEP : BRAKE_STEP;
+
+      int nextSpeed;
+      // accelerate / brake gently
+      if (currentTrainSpeed < targetTrainSpeed) {
+        nextSpeed = min(currentTrainSpeed + step, targetTrainSpeed);
+      } else {
+        nextSpeed = max(currentTrainSpeed - step, targetTrainSpeed);
+      }
+      setTrainSpeed(nextSpeed);
+    }
+  }
+}
+
+
 void loop() {
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
 
-  currentMillis = millis();
-  
+  accelerateTrainSpeed();
+
   sendMQTTPing();
 }
