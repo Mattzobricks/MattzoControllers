@@ -34,7 +34,7 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 /* Current time for event timing */
 unsigned long currentMillis = millis();
 
-/* Send a ping to anounce that you are still alive */
+/* Send a ping to announce that you are still alive */
 const int SEND_PING_INTERVAL = 5000;   // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
@@ -64,7 +64,7 @@ const int HUB_MOTORPORT    = 3; // ports with motors (A, -A,  AB, -AB, -A-B, A-B
 //              v         v
 char* myHubData[NUM_HUBS][4]=
 {
-  {"Crocodile", "90:84:2b:0f:ac:c7", "false", "AB"}
+  {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A"}
 };
 //  {"ICE1", "90:84:2b:16:15:f8", "false", "B-"}
 
@@ -73,9 +73,9 @@ PoweredUpHub::Port hubPortA = PoweredUpHub::Port::A; // port A
 PoweredUpHub::Port hubPortB = PoweredUpHub::Port::B; // port B
 
 // Motor acceleration parameters (presently unused)
-const int ACCELERATION_INTERVAL = 1000;      // pause between individual speed adjustments in milliseconds
-const int ACCELERATE_STEP = 10;              // acceleration increment for a single acceleration step
-const int BRAKE_STEP = 10;                   // brake decrement for a single braking step
+const int ACCELERATION_INTERVAL = 100;      // pause between individual speed adjustments in milliseconds
+const int ACCELERATE_STEP = 1;              // acceleration increment for a single acceleration step
+const int BRAKE_STEP = 2;                   // brake decrement for a single braking step
 int currentTrainSpeed = 0;                   // current speed of this train
 int targetTrainSpeed = 0;                    // Target speed of this train
 int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
@@ -356,7 +356,7 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   // set target train speed
   targetTrainSpeed = rr_v * dir;
   maxTrainSpeed = rr_vmax;
-  Serial.println("Target speed set to " + String(targetTrainSpeed) + " (max: " + String(maxTrainSpeed) + ")");
+  Serial.println("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
 }
 
 
@@ -401,7 +401,9 @@ void setTrainSpeed(int newTrainSpeed){
   const int MAX_PU_POWER = 255;
 
   int power = map(newTrainSpeed, 0, maxTrainSpeed, 0, MAX_PU_POWER * maxTrainSpeed / 100);
-  Serial.println("Setting motor speed: " + String(newTrainSpeed));
+  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
+
+  currentTrainSpeed = newTrainSpeed;
 
   for (int i = 0; i < NUM_HUBS; i++){
     if (myHubs[i].isConnected()) {
@@ -432,13 +434,14 @@ void setTrainSpeed(int newTrainSpeed){
       }
     }
 
-    currentTrainSpeed = newTrainSpeed;
-
     if (currentTrainSpeed != targetTrainSpeed) {
+      // accelerating / braking
       myHubs[i].setLedColor(YELLOW);
     } else if (currentTrainSpeed == 0) {
+      // stopped
       myHubs[i].setLedColor(RED);
     } else {
+      // travelling at target speed
       myHubs[i].setLedColor(GREEN);
     }
   }

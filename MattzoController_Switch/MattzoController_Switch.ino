@@ -37,7 +37,7 @@ unsigned long currentMillis = millis();
 
 
 /* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 1000; // interval for sending pings in milliseconds
+const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
 WiFiClient espClient;
