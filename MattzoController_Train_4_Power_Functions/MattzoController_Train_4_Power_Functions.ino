@@ -44,6 +44,13 @@ const boolean REVERSE_B = true;  // if set to true, motor B is reversed
 const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
+/* Send the battery level  */
+const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
+unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
+const int BATTERY_PIN = A0;
+const int VOLTAGE_MULTIPLIER = 20000/5000 - 1;   // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
+const int MAX_AI_VOLTAGE = 5100;  // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
+
 // Motor acceleration parameters
 const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
 const int ACCELERATE_STEP = 1;               // acceleration increment for a single acceleration step
@@ -176,7 +183,24 @@ void setup_mqtt() {
 void sendMQTTPing(){
   if (millis() - lastPing >= SEND_PING_INTERVAL) {
     lastPing = millis();
+    Serial.println("sending ping...");
     client.publish("roc2bricks/ping", mqttClientName_char);
+  }
+}
+
+void sendMQTTBatteryLevel(){
+  if (millis() - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL) {
+    lastBatteryLevelMsg = millis();
+    int a0Value = analogRead(BATTERY_PIN);
+    int voltage = map(a0Value, 0, 1023, 0, MAX_AI_VOLTAGE * VOLTAGE_MULTIPLIER);  // Battery Voltage in mV (Millivolt)
+    if (voltage > 99999) voltage = 99999;
+
+    Serial.println("sending battery level raw=" + String(a0Value) + ", mv=" + String(voltage));
+    String batteryMessage = mqttClientName + " raw=" + String(a0Value) + ", mv=" + String(voltage);
+    char batteryMessage_char[batteryMessage.length() + 1];  // client name + 5 digits for voltage in mV plus terminating char
+    batteryMessage.toCharArray(batteryMessage_char, batteryMessage.length() + 1);
+
+    client.publish("roc2bricks/battery", batteryMessage_char);
   }
 }
 
@@ -455,4 +479,5 @@ void loop() {
   accelerateTrainSpeed();
 
   sendMQTTPing();
+  sendMQTTBatteryLevel();
 }
