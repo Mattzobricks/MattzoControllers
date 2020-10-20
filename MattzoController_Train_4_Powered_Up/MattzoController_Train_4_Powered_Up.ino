@@ -21,15 +21,16 @@ using namespace tinyxml2;
 /* MattzoController specifics */
 String eepromIDString = "MattzoTrainController4PU";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
 const int eepromIDStringLength = 24;              // length of the ID String. Needs to be updated if the ID String is changed.
-unsigned int controllerID;                        // controller id. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
+unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 const int MAX_CONTROLLER_ID = 16383;
 
 /* MQTT */
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
+const int MQTT_KEEP_ALIVE_INTERVAL = 5;   // mqtt keep alive interval (in seconds)
 
 /* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 5000;   // interval for sending pings in milliseconds
+const int SEND_PING_INTERVAL = 500000;   // interval for sending pings in milliseconds
 unsigned long lastPing = millis();    // time of the last sent ping
 
 /* Send the battery level  */
@@ -118,10 +119,10 @@ void initMattzoController() {
 
   int paramsStartingPosition = eepromIDString.length();
   if (idStringCheck) {
-    // load controllerID from preferences
+    // load controllerNo from preferences
     controllerIDHiByte  = EEPROM.read(paramsStartingPosition);
     controllerIDLowByte = EEPROM.read(paramsStartingPosition + 1);
-    controllerID = controllerIDHiByte * 256 + controllerIDLowByte;
+    controllerNo = controllerIDHiByte * 256 + controllerIDLowByte;
 
   } else {
     // preferences not initialized yet -> initialize controller
@@ -135,10 +136,10 @@ void initMattzoController() {
       EEPROM.write(i, eepromIDString.charAt(i));
     }
 
-    // assign random controllerID between 1 and 65000 and store in EEPROM
-    controllerID = random(1, MAX_CONTROLLER_ID);
-    controllerIDHiByte  = controllerID / 256;
-    controllerIDLowByte = controllerID % 256;
+    // assign random controllerNo between 1 and 65000 and store in EEPROM
+    controllerNo = random(1, MAX_CONTROLLER_ID);
+    controllerIDHiByte  = controllerNo / 256;
+    controllerIDLowByte = controllerNo % 256;
     EEPROM.write(paramsStartingPosition, controllerIDHiByte);
     EEPROM.write(paramsStartingPosition + 1, controllerIDLowByte);
 
@@ -146,7 +147,11 @@ void initMattzoController() {
     EEPROM.commit();
 
   }
-  Serial.println("New controller id " + String(controllerID) + " written to EEPROM.");
+  Serial.println("New controller id " + String(controllerNo) + " written to EEPROM.");
+
+  // set MQTT client name
+  mqttClientName = eepromIDString + String(controllerNo);
+  mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
 }
 
 void initWIFI() {
@@ -183,32 +188,29 @@ void reconnectWIFI() {
 }
 
 void initMQTT() {
-  // set MQTT client name
-  mqttClientName = eepromIDString + " " + String(controllerID);
-  mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
-
   client.setServer(MQTT_BROKER_IP, 1883);
   client.setCallback(callbackMQTT);
   client.setBufferSize(2048);
+  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
 void reconnectMQTT() {
-  Serial.println("MQTT connecting ...");
   while (!client.connected()) {
+      Serial.println("Reconnecting MQTT...");
 
-      char message_char[100];
-      String message = String(mqttClientName_char) + " " + "last will and testament";
-      message.toCharArray(message_char, message.length() + 1);
+      String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+      char lastWillMessage_char[lastWillMessage.length() + 1];
+      lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-      if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, message_char)) {
-      //if (!client.connect(mqttClientName_char)) {
+      if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
         Serial.print("Failed, rc=");
-        Serial.println(client.state());
-        delay(500);
+        Serial.print(client.state());
+        Serial.println(". Retrying in 5 seconds...");
+        delay(5000);
       }
   }
   client.subscribe("rocrail/service/command");
-  Serial.println("MQTT connected");
+  Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
 }
 
 void sendMQTTPing(){
@@ -297,15 +299,15 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   }
 
   // query addr attribute. This is the MattzoController id.
-  // If this does not equal the controllerID of this controller, the message is disregarded.
+  // If this does not equal the controllerNo of this controller, the message is disregarded.
   int rr_addr = 0;
   if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
     Serial.println("addr attribute not found or wrong type. Message disregarded.");
     return;
   }
   Serial.println("addr: " + String(rr_addr));
-  if (rr_addr != controllerID) {
-    Serial.println("Message disgarded, as it is not for me (" + String(controllerID) + ")");
+  if (rr_addr != controllerNo) {
+    Serial.println("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
     return;
   }
 
