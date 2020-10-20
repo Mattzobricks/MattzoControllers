@@ -29,17 +29,6 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 const int NUM_SWITCHPORTS = 8; // Number of switch ports
 uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS];  // Digital PINs for output
 
-/* Timing */
-
-/* Current time for event timing */
-unsigned long currentMillis = millis();
-
-
-
-/* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
-unsigned long lastPing = millis();    // time of the last sent ping
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -163,16 +152,10 @@ void setup_wifi() {
 }
  
 void setup_mqtt() {
-    client.setServer(MQTT_BROKER_IP, 1883);
-    client.setCallback(callback);
-    client.setBufferSize(2048);
-}
-
-void sendMQTTPing(){
-  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
-    lastPing = millis();
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
+  client.setServer(MQTT_BROKER_IP, 1883);
+  client.setCallback(callback);
+  client.setBufferSize(2048);
+  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -327,8 +310,5 @@ void loop() {
   }
   client.loop();
 
-  currentMillis = millis();
-
-  sendMQTTPing();
-
+  sendMQTTPing(&client, mqttClientName_char);
 }

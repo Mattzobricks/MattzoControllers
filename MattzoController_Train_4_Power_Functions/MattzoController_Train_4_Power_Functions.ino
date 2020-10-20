@@ -40,10 +40,6 @@ const int MOTORSHIELD_TYPE = 2; // motor shield type. 1 = L298N, 2 = L9110
 const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
 const boolean REVERSE_B = true;  // if set to true, motor B is reversed
 
-/* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
-unsigned long lastPing = millis();    // time of the last sent ping
-
 /* Send the battery level  */
 const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
 unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
@@ -175,17 +171,10 @@ void setup_wifi() {
 }
  
 void setup_mqtt() {
-    client.setServer(MQTT_BROKER_IP, 1883);
-    client.setCallback(callback);
-    client.setBufferSize(2048);
-}
-
-void sendMQTTPing(){
-  if (millis() - lastPing >= SEND_PING_INTERVAL) {
-    lastPing = millis();
-    Serial.println("sending ping...");
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
+  client.setServer(MQTT_BROKER_IP, 1883);
+  client.setCallback(callback);
+  client.setBufferSize(2048);
+  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
 void sendMQTTBatteryLevel(){
@@ -478,6 +467,6 @@ void loop() {
 
   accelerateTrainSpeed();
 
-  sendMQTTPing();
+  sendMQTTPing(&client, mqttClientName_char);
   sendMQTTBatteryLevel();
 }

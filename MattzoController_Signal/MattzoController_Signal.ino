@@ -33,16 +33,6 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 
-/* Timing */
-
-/* Current time for event timing */
-unsigned long currentMillis = millis();
-
-
-
-/* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 1000; // interval for sending pings in milliseconds
-unsigned long lastPing = millis();    // time of the last sent ping
 
 
 void setup() {
@@ -150,19 +140,6 @@ void setup_wifi() {
     Serial.println(WiFi.localIP());
 }
  
-void setup_mqtt() {
-    client.setServer(MQTT_BROKER_IP, 1883);
-    client.setCallback(callback);
-    client.setBufferSize(2048);
-}
-
-void sendMQTTPing(){
-  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
-    lastPing = millis();
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
-}
-
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Received message [");
   Serial.print(topic);
@@ -265,7 +242,5 @@ void loop() {
   }
   client.loop();
 
-  currentMillis = millis();
-
-  sendMQTTPing();
+  sendMQTTPing(&client, mqttClientName_char);
 }

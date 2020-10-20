@@ -29,18 +29,6 @@ const int SENSOR_RELEASE_TICKS = 1000;  // time in milliseconds until sensor is 
 bool sensorState[NUM_SENSORS];
 int lastSensorContactMillis[NUM_SENSORS];
 
-/* Timing */
-
-/* Current time for event timing */
-unsigned long currentMillis = millis();
-
-
-
-/* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 5000; // interval for sending pings in milliseconds
-unsigned long lastPing = millis();    // time of the last sent ping
-
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -79,6 +67,7 @@ void setup() {
   setup_wifi();
   client.setServer(MQTT_BROKER_IP, 1883);
   client.setCallback(callback);
+  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
 void loadPreferences() {
@@ -242,13 +231,6 @@ void reconnect() {
 }
 
 
-void sendMQTTPing(){
-  if (currentMillis - lastPing >= SEND_PING_INTERVAL) {
-    lastPing = millis();
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
-}
-
 void loop() {
   int sensorValue;
   
@@ -256,8 +238,6 @@ void loop() {
       reconnect();
   }
   client.loop();
-
-  currentMillis = millis();
 
   for (int i = 0; i < NUM_SENSORS; i++) {
     sensorValue = digitalRead(SENSOR_PIN[i]);
@@ -278,10 +258,10 @@ void loop() {
         sensorState[i] = true;
         setLED(i, false);
       }
-      lastSensorContactMillis[i] = currentMillis;
+      lastSensorContactMillis[i] = millis();
     } else { 
       // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
-      if (sensorState[i] && (currentMillis > lastSensorContactMillis[i] + SENSOR_RELEASE_TICKS)) {
+      if (sensorState[i] && (millis() > lastSensorContactMillis[i] + SENSOR_RELEASE_TICKS)) {
         Serial.println("Sensor " + String(i) + ": Released!");
         sendMQTTSensorEvent(i, false);
         sensorState[i] = false;
@@ -290,7 +270,7 @@ void loop() {
     }
   }
 
-  sendMQTTPing();
+  sendMQTTPing(&client, mqttClientName_char);
 }
 
 void sendMQTTSensorEvent(int sensorPort, int sensorState) {

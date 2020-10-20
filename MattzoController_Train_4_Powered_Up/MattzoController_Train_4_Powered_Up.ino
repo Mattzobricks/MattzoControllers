@@ -27,16 +27,10 @@ const int MAX_CONTROLLER_ID = 16383;
 /* MQTT */
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
-const int MQTT_KEEP_ALIVE_INTERVAL = 5;   // mqtt keep alive interval (in seconds)
-
-/* Send a ping to announce that you are still alive */
-const int SEND_PING_INTERVAL = 500000;   // interval for sending pings in milliseconds
-unsigned long lastPing = millis();    // time of the last sent ping
 
 /* Send the battery level  */
 const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
 unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
-
 
 /* LEGO Powered up */
 // Number of connected hubs
@@ -211,14 +205,6 @@ void reconnectMQTT() {
   }
   client.subscribe("rocrail/service/command");
   Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
-}
-
-void sendMQTTPing(){
-  if (millis() - lastPing >= SEND_PING_INTERVAL) {
-    lastPing = millis();
-    Serial.println("sending ping...");
-    client.publish("roc2bricks/ping", mqttClientName_char);
-  }
 }
 
 void sendMQTTMessage(String topic, String message) {
@@ -490,6 +476,6 @@ void loop() {
 
   accelerateTrainSpeed();
 
-  sendMQTTPing();
+  sendMQTTPing(&client, mqttClientName_char);
   sendMQTTBatteryLevel();
 }

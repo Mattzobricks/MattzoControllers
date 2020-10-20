@@ -8,7 +8,7 @@
 
 // This file needs to be copied into the Arduino library folder
 // This location of this folder depends on your system. Usually it is located in the Documents folder of the current user
-// Example: C:\Users\Mattze\Documents\Arduino\libraries\MattzoBricks
+// Example: C:\Users\matth\Documents\Arduino\libraries\MattzoBricks
 
 // Best practice:
 // 1. Navigate to Documents
@@ -25,3 +25,19 @@ const char* WIFI_PASSWORD = "born2rail";
 
 // The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
 const char* MQTT_BROKER_IP = "192.168.178.57";
+
+
+// MQTT parameters, variables and functions
+// Attention: pings were deprecated with issue #9 and replaced by mqtt last will messages
+const boolean SEND_PING = false;          // set to true if pings should be sent
+const int SEND_PING_INTERVAL = 5000;      // interval for sending pings in milliseconds
+unsigned long lastPing = millis();        // time of the last sent ping
+const int MQTT_KEEP_ALIVE_INTERVAL = 5;   // mqtt keep alive interval (in seconds)
+
+void sendMQTTPing(PubSubClient* mqttClient, char* pingMsg_char) {
+  if (SEND_PING && (millis() - lastPing >= SEND_PING_INTERVAL)) {
+    lastPing = millis();
+    Serial.println("sending ping...");
+    mqttClient->publish("roc2bricks/ping", pingMsg_char);
+  }
+}
