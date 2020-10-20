@@ -207,14 +207,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // TODO: subscribe to roc2bricks topic and react to controller id change requests, or other commands like resetting factory defaults etc.
 }
 
-void reconnect() {
+void reconnectMQTT() {
   while (!client.connected()) {
     allBlink(true, 1);
-    Serial.println("Reconnecting to MQTT...");
-    if (!client.connect(mqttClientName_char)) {
-      Serial.print("failed, rc=");
+    Serial.println("Reconnecting MQTT...");
+
+    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+    char lastWillMessage_char[lastWillMessage.length() + 1];
+    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
+
+    if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+      Serial.print("Failed, rc=");
       Serial.print(client.state());
-      Serial.println(" retrying in 5 seconds");
+      Serial.println(". Retrying in 5 seconds...");
       for (int i=0; i < 5; i++) {
         allBlink(false, 1);
         delay(500);
@@ -222,10 +227,7 @@ void reconnect() {
         delay(500);
       }
     }
-
-    // TODO: use MQTT from EEPROM; if not found, auto-try other hosts in subnet (192.168.1.1, 192.168.1.2, 192.168.1.3 etc.) and store IP in EEPROM if found
   }
-
   allBlink(false, 0);
   Serial.println("MQTT Connected.");
 }
@@ -235,7 +237,7 @@ void loop() {
   int sensorValue;
   
   if (!client.connected()) {
-      reconnect();
+      reconnectMQTT();
   }
   client.loop();
 

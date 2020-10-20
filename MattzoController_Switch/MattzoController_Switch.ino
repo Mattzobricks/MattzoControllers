@@ -290,23 +290,28 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
-void reconnect() {
-    while (!client.connected()) {
-        Serial.println("Reconnecting MQTT...");
-        if (!client.connect(mqttClientName_char)) {
-          Serial.print("Failed, rc=");
-          Serial.print(client.state());
-          Serial.println(". Retrying in 5 seconds...");
-          delay(5000);
-        }
-    }
-    client.subscribe("rocrail/service/command");
-    Serial.println("MQTT Connected.");
+void reconnectMQTT() {
+  while (!client.connected()) {
+      Serial.println("Reconnecting MQTT...");
+
+      String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+      char lastWillMessage_char[lastWillMessage.length() + 1];
+      lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
+
+      if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+        Serial.print("Failed, rc=");
+        Serial.print(client.state());
+        Serial.println(". Retrying in 5 seconds...");
+        delay(5000);
+      }
+  }
+  client.subscribe("rocrail/service/command");
+  Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
 }
 
 void loop() {
   if (!client.connected()) {
-    reconnect();
+    reconnectMQTT();
   }
   client.loop();
 
