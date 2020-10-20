@@ -448,7 +448,7 @@ void accelerateTrainSpeed() {
       lastAccelerate = millis();
 
       // determine if trains accelerates or brakes
-      boolean accelerateFlag = abs(currentTrainSpeed) < abs(targetTrainSpeed);
+      boolean accelerateFlag = abs(currentTrainSpeed) < abs(targetTrainSpeed) && (currentTrainSpeed * targetTrainSpeed > 0);
       int step = accelerateFlag ? ACCELERATE_STEP : BRAKE_STEP;
 
       int nextSpeed;
