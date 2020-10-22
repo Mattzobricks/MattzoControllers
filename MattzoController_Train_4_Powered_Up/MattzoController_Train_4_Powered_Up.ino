@@ -43,7 +43,8 @@ PoweredUpHub myHubs[NUM_HUBS];  // Objects for the "hubs" (A and B)
 const int HUB_NAME         = 0; // name of the hub
 const int HUB_ADDRESS      = 1; // MAC address
 const int HUB_STATUS       = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected)
-const int HUB_MOTORPORT    = 3; // ports with motors (A, -A,  AB, -AB, -A-B, A-B, B, -B), a minus indicates an inverse rotation direction
+const int HUB_MOTORPORT    = 3; // indicates which ports have motors attached including turning direction (small letter -> reverse)
+                                // Allowed options: A, a, B, b, AB, Ab, aB, ab (BA also works and equals AB etc.)
 
 // Main hub array
 //              |-- number of Hubs
@@ -55,7 +56,7 @@ char* myHubData[NUM_HUBS][4]=
 {
   {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A"}
 };
-//  {"ICE1", "90:84:2b:16:15:f8", "false", "B-"}
+//  {"ICE1", "90:84:2b:16:15:f8", "false", "b"}
 
 
 PoweredUpHub::Port hubPortA = PoweredUpHub::Port::A; // port A
@@ -344,7 +345,7 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
 
 void reconnectHUB(){
   // init hubs from list and send "disconnected" information if lost
-  for (int i = 0; i < NUM_HUBS; i++){
+  for (int i = 0; i < NUM_HUBS; i++) {
     if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()){
 
       // send "connection lost" message
@@ -378,7 +379,7 @@ void reconnectHUB(){
 
 
 // set powered up motor speed
-void setTrainSpeed(int newTrainSpeed){
+void setTrainSpeed(int newTrainSpeed) {
   const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
   const int MAX_PU_POWER = 88;
 
@@ -401,30 +402,20 @@ void setTrainSpeed(int newTrainSpeed){
 
   for (int i = 0; i < NUM_HUBS; i++){
     if (myHubs[i].isConnected()) {
-      switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("A")) {
-         case 0: // "A"
-            myHubs[i].setMotorSpeed(hubPortA, power);
-            delay(DELAY);
-            break;
-         case 1: // "-A"
-            myHubs[i].setMotorSpeed(hubPortA, -power);
-            delay(DELAY);
-            break;
-         default:
-            break;
+      if (String(myHubData[i][HUB_MOTORPORT]).indexOf("A") >= 0) {
+        myHubs[i].setMotorSpeed(hubPortA, power);
+        delay(DELAY);
+      } else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("a") >= 0) {
+        myHubs[i].setMotorSpeed(hubPortA, -power);
+        delay(DELAY);
       }
 
-      switch (String(myHubData[i][HUB_MOTORPORT]).indexOf("B")) {
-         case 0: // "B"
-            myHubs[i].setMotorSpeed(hubPortB, power);
-            delay(DELAY);
-            break;
-         case 1: // "-B"
-            myHubs[i].setMotorSpeed(hubPortB, -power);
-            delay(DELAY);
-            break;
-         default:
-            break;
+      if (String(myHubData[i][HUB_MOTORPORT]).indexOf("B") >= 0) {
+        myHubs[i].setMotorSpeed(hubPortB, power);
+        delay(DELAY);
+      } else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("b") >= 0) {
+        myHubs[i].setMotorSpeed(hubPortB, -power);
+        delay(DELAY);
       }
 
       // Set integrated powered up hub light
