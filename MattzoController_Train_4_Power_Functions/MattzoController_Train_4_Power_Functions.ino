@@ -25,9 +25,9 @@ const int MAX_CONTROLLER_ID = 16383;
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-const int NUM_FUNCTIONS = 2;  // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
-#define fn1 D0  // Output PIN for Rocrail Function 1 (e.g. train headlights)
-#define fn2 D8  // Output PIN for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
+const int NUM_FUNCTIONS = 2;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
+bool functionState[NUM_FUNCTIONS];    // State of a function
 
 const int MOTORSHIELD_TYPE = 2; // motor shield type. 1 = L298N, 2 = L9110
 #define enA D1  // PWM signal for motor A. Relevant for L298N only.
@@ -56,6 +56,9 @@ int targetTrainSpeed = 0;                    // Target speed of this train
 int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
 unsigned long lastAccelerate = millis();     // time of the last speed adjustment
 
+// ebreak
+boolean ebreak = false;   // Global emergency break flag.
+
 // Wifi and MQTT objects
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -70,8 +73,13 @@ void setup() {
     Serial.println("MattzoController booting...");
 
     // initialize function pins
-    pinMode(fn1, OUTPUT);
-    pinMode(fn2, OUTPUT);
+    FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 1 (e.g. train headlights)
+    FUNCTION_PIN[1] = D8;    // Output pin for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
+
+    for (int i = 0; i < NUM_FUNCTIONS; i++) {
+      pinMode(FUNCTION_PIN[i], OUTPUT);
+      functionState[i] = false;
+    }
 
     // initialize motor pins
     pinMode(enA, OUTPUT);
@@ -215,8 +223,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   const char * rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
   int rr_addr = 0;
 
+  XMLElement *element;
+  
   // check for lc message
-  XMLElement * element = xmlDocument.FirstChildElement("lc");
+  element = xmlDocument.FirstChildElement("lc");
   if (element != NULL) {
     Serial.println("<lc> node found. Processing loco message...");
 
@@ -285,13 +295,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
     targetTrainSpeed = rr_v * dir;
     maxTrainSpeed = rr_vmax;
     Serial.println("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
-  } else {
-    // check for fn message
-    element = xmlDocument.FirstChildElement("fn");
-    if (element == NULL) {
-      Serial.println("<fn> node not found. Disregarding message...");
-      return;
-    }
+
+    return;
+  }
+
+  // Check for fn message
+  element = xmlDocument.FirstChildElement("fn");
+  if (element != NULL) {
+    Serial.println("<fn> node found. Processing fn message...");
 
     // -> process fn (function) message
 
@@ -324,23 +335,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     Serial.println("fnchanged: " + String(rr_functionNo));
 
-    int functionPin;
-    switch (rr_functionNo) {
-      case 1:
-        functionPin = fn1;
-        break;
-      case 2:
-        functionPin = fn2;
-        break;
-      default:
-        Serial.println("fnchanged out of range. Message disregarded.");
-        return;
+    if (rr_functionNo < 1 || rr_functionNo > NUM_FUNCTIONS) {
+      Serial.println("fnchanged out of range. Message disregarded.");
+      return;
     }
-    Serial.println("Function PIN: " + functionPin);
+    int functionPinId = rr_functionNo - 1;
+    Serial.println("Function PIN Id: " + String(functionPinId));
 
     // query fnchangedstate attribute. This is value if the function shall be set on or off
     const char * rr_state = "xxxxxx";  // expected values are "true" or "false"
-    boolean functionState;
     if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
       Serial.println("fnchangedstate attribute not found or wrong type.");
       return;
@@ -348,32 +351,64 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("fnchangedstate (raw): " + String(rr_state));
     if (strcmp(rr_state, "true")==0) {
       Serial.println("fnchangedstate: true");
-      functionState = true;
+      functionState[functionPinId] = true;
     }
     else if (strcmp(rr_state, "false")==0) {
       Serial.println("fnchangedstate: false");
-      functionState = false;
+      functionState[functionPinId] = false;
     }
     else {
       Serial.println("unknown fnchangedstate value - disregarding message.");
       return;
     }
 
-    // set function pin
-    if (functionState) {
-      digitalWrite(functionPin, HIGH);
-    } else {
-      digitalWrite(functionPin, LOW);
-    }
+    return;
   }
+
+  // Check for sys message
+  element = xmlDocument.FirstChildElement("sys");
+  if (element != NULL) {
+    Serial.println("<sys> node found. Processing sys message...");
+
+    const char * rr_cmd = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
+
+    // query cmd attribute. This is the system message type.
+    if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
+      Serial.println("cmd attribute not found or wrong type.");
+      return;
+    }
+
+    String rr_cmd_s = String(rr_cmd);
+    Serial.println("rocrail system command: " + String(rr_cmd_s));
+
+    // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
+    // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
+
+    if (rr_cmd_s == "ebreak" || rr_cmd_s == "stop" || rr_cmd_s == "shutdown") {
+      Serial.println("received ebreak, stop or shutdown command. Stopping train.");
+      ebreak = true;
+    } else if (rr_cmd_s == "go") {
+      Serial.println("received go command. Releasing emergency break.");
+      ebreak = false;
+    } else {
+      Serial.println("received other system command, disregarded.");
+    }
+    return;
+  }
+
+  Serial.println("Unknown message, disregarded.");
 }
 
 // set the motor to a desired power.
 void setTrainSpeed(int newTrainSpeed) {
-  const int MAX_ARDUINO_POWER = 1023;
+  const int MIN_ARDUINO_POWER = 400;   // minimum useful arduino power
+  const int MAX_ARDUINO_POWER = 1023;  // maximum arduino power
 
-  int power = abs(map(newTrainSpeed, 0, maxTrainSpeed, 0, MAX_ARDUINO_POWER * maxTrainSpeed / 100));
-  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
+  int power = 0;
+  if (newTrainSpeed != 0) {
+    power = abs(map(newTrainSpeed, 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100));
+  }
+  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
 
   currentTrainSpeed = newTrainSpeed;
   int dir = currentTrainSpeed >= 0;
@@ -437,9 +472,14 @@ void reconnectMQTT() {
 
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed() {
-  if (currentTrainSpeed != targetTrainSpeed) {
+  if (ebreak) {
+    // emergency break pulled and train moving -> stop train immediately
+    if (currentTrainSpeed != 0) {
+      setTrainSpeed(0);
+    }
+  } else if (currentTrainSpeed != targetTrainSpeed) {
     if (targetTrainSpeed == 0){
-      // stop -> execute immediately
+      // stop train -> execute immediately
       setTrainSpeed(0);
     } else if (millis() - lastAccelerate >= ACCELERATION_INTERVAL) {
       lastAccelerate = millis();
@@ -461,6 +501,24 @@ void accelerateTrainSpeed() {
 }
 
 
+// switch a function pin on or off
+void setFunctionPins() {
+  for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    bool onOff = functionState[i];
+    if (ebreak) {
+      // override function state on ebreak (alternate lights on/off every 500ms)
+      long phase = (millis() / 500) % 2;
+      onOff = (phase + i) % 2 == 0;
+    }
+    if (onOff) {
+      digitalWrite(FUNCTION_PIN[i], HIGH);
+    } else {
+      digitalWrite(FUNCTION_PIN[i], LOW);
+    }
+  }
+}
+
+
 void loop() {
   if (!client.connected()) {
     reconnectMQTT();
@@ -468,6 +526,7 @@ void loop() {
   client.loop();
 
   accelerateTrainSpeed();
+  setFunctionPins();
 
   sendMQTTPing(&client, mqttClientName_char);
   sendMQTTBatteryLevel();
