@@ -28,9 +28,10 @@ const int MAX_CONTROLLER_ID = 16383;
 String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-/* Send the battery level  */
-const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
-unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
+/* Functions */
+const int NUM_FUNCTIONS = 2;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
+bool functionState[NUM_FUNCTIONS];    // State of a function
 
 /* LEGO Powered up */
 // Number of connected hubs
@@ -62,6 +63,10 @@ char* myHubData[NUM_HUBS][4]=
 PoweredUpHub::Port hubPortA = PoweredUpHub::Port::A; // port A
 PoweredUpHub::Port hubPortB = PoweredUpHub::Port::B; // port B
 
+/* Send battery level  */
+const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
+unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
+
 // Motor acceleration parameters
 const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
 const int ACCELERATE_STEP = 1;               // acceleration increment for a single acceleration step
@@ -70,6 +75,9 @@ int currentTrainSpeed = 0;                   // current speed of this train
 int targetTrainSpeed = 0;                    // Target speed of this train
 int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
 unsigned long lastAccelerate = millis();     // time of the last speed adjustment
+
+// ebreak
+boolean ebreak = false;   // Global emergency break flag.
 
 // Wifi and MQTT objects
 WiFiClient espClient;
@@ -337,13 +345,13 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   targetTrainSpeed = rr_v * dir;
   maxTrainSpeed = rr_vmax;
   Serial.println("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
-  } else {
-    // check for fn message
-    element = xmlDocument.FirstChildElement("fn");
-    if (element == NULL) {
-      Serial.println("<fn> node not found. Disregarding message...");
-      return;
-    }
+    return;
+  }
+
+  // Check for fn message
+  element = xmlDocument.FirstChildElement("fn");
+  if (element != NULL) {
+    Serial.println("<fn> node found. Processing fn message...");
 
     // -> process fn (function) message
 
@@ -376,23 +384,15 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     }
     Serial.println("fnchanged: " + String(rr_functionNo));
 
-    int functionPin;
-    switch (rr_functionNo) {
-      case 1:
-        functionPin = fn1;
-        break;
-      case 2:
-        functionPin = fn2;
-        break;
-      default:
-        Serial.println("fnchanged out of range. Message disregarded.");
-        return;
+    if (rr_functionNo < 1 || rr_functionNo > NUM_FUNCTIONS) {
+      Serial.println("fnchanged out of range. Message disregarded.");
+      return;
     }
-    Serial.println("Function PIN: " + functionPin);
+    int functionPinId = rr_functionNo - 1;
+    Serial.println("Function PIN Id: " + String(functionPinId));
 
     // query fnchangedstate attribute. This is value if the function shall be set on or off
     const char * rr_state = "xxxxxx";  // expected values are "true" or "false"
-    boolean functionState;
     if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
       Serial.println("fnchangedstate attribute not found or wrong type.");
       return;
@@ -400,24 +400,52 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     Serial.println("fnchangedstate (raw): " + String(rr_state));
     if (strcmp(rr_state, "true")==0) {
       Serial.println("fnchangedstate: true");
-      functionState = true;
+      functionState[functionPinId] = true;
     }
     else if (strcmp(rr_state, "false")==0) {
       Serial.println("fnchangedstate: false");
-      functionState = false;
+      functionState[functionPinId] = false;
     }
     else {
       Serial.println("unknown fnchangedstate value - disregarding message.");
       return;
     }
 
-    // set function pin
-    if (functionState) {
-      digitalWrite(functionPin, HIGH);
-    } else {
-      digitalWrite(functionPin, LOW);
-    }
+    return;
   }
+
+  // Check for sys message
+  element = xmlDocument.FirstChildElement("sys");
+  if (element != NULL) {
+    Serial.println("<sys> node found. Processing sys message...");
+
+    const char * rr_cmd = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
+
+    // query cmd attribute. This is the system message type.
+    if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
+      Serial.println("cmd attribute not found or wrong type.");
+      return;
+    }
+
+    String rr_cmd_s = String(rr_cmd);
+    Serial.println("rocrail system command: " + String(rr_cmd_s));
+
+    // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
+    // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
+
+    if (rr_cmd_s == "ebreak" || rr_cmd_s == "stop" || rr_cmd_s == "shutdown") {
+      Serial.println("received ebreak, stop or shutdown command. Stopping train.");
+      ebreak = true;
+    } else if (rr_cmd_s == "go") {
+      Serial.println("received go command. Releasing emergency break.");
+      ebreak = false;
+    } else {
+      Serial.println("received other system command, disregarded.");
+    }
+    return;
+  }
+
+  Serial.println("Unknown message, disregarded.");
 }
 
 
@@ -507,7 +535,12 @@ void setTrainSpeed(int newTrainSpeed) {
 
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed() {
-  if (currentTrainSpeed != targetTrainSpeed) {
+  if (ebreak) {
+    // emergency break pulled and train moving -> stop train immediately
+    if (currentTrainSpeed != 0) {
+      setTrainSpeed(0);
+    }
+  } else if (currentTrainSpeed != targetTrainSpeed) {
     if (targetTrainSpeed == 0){
       // stop -> execute immediately
       setTrainSpeed(0);

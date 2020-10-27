@@ -17,14 +17,17 @@
 
 using namespace tinyxml2;
 
+/* MattzoController specifics */
 String eepromIDString = "MattzoTrainController4PF";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
 const int eepromIDStringLength = 24;  // length of the ID String. Needs to be updated if the ID String is changed.
 unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
 const int MAX_CONTROLLER_ID = 16383;
 
+/* MQTT */
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
+/* Functions */
 const int NUM_FUNCTIONS = 2;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
 bool functionState[NUM_FUNCTIONS];    // State of a function
@@ -40,7 +43,7 @@ const int MOTORSHIELD_TYPE = 2; // motor shield type. 1 = L298N, 2 = L9110
 const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
 const boolean REVERSE_B = true;  // if set to true, motor B is reversed
 
-/* Send the battery level  */
+/* Send battery level  */
 const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
 unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
 const int BATTERY_PIN = A0;
