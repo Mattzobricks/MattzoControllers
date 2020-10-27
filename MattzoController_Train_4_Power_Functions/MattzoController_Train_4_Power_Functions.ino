@@ -49,8 +49,8 @@ const int MAX_AI_VOLTAGE = 5100;  // maximum analog input voltage on pin A0. Usu
 
 // Motor acceleration parameters
 const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
-const int ACCELERATE_STEP = 1;               // acceleration increment for a single acceleration step
-const int BRAKE_STEP = 2;                    // brake decrement for a single braking step
+const int ACCELERATE_STEP = 2;               // acceleration increment for a single acceleration step
+const int BRAKE_STEP = 3;                    // brake decrement for a single braking step
 int currentTrainSpeed = 0;                   // current speed of this train
 int targetTrainSpeed = 0;                    // Target speed of this train
 int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
