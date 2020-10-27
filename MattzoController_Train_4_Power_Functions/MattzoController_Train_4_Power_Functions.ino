@@ -404,10 +404,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 // setting the motor to a desired power.
 void setTrainSpeed(int newTrainSpeed) {
-  const int MAX_ARDUINO_POWER = 1023;
+  const int MIN_ARDUINO_POWER = 400;   // minimum useful arduino power
+  const int MAX_ARDUINO_POWER = 1023;  // maximum arduino power
 
-  int power = abs(map(newTrainSpeed, 0, maxTrainSpeed, 0, MAX_ARDUINO_POWER * maxTrainSpeed / 100));
-  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
+  int power = 0;
+  if (newTrainSpeed != 0) {
+    power = abs(map(newTrainSpeed, 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100));
+  }
+  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
 
   currentTrainSpeed = newTrainSpeed;
   int dir = currentTrainSpeed >= 0;
