@@ -261,71 +261,68 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     Serial.println("Error parsing");
     return;
   }
+
   Serial.println("Parsing XML successful");
 
-  // check for system-events
-  XMLElement * element = xmlDocument.FirstChildElement("sys");
-  if (element != NULL) {
-    const char * rr_cmd = "-unknown-";
-    if (element->QueryStringAttribute("cmd", &rr_cmd) == XML_SUCCESS) {
-      if ((strcmp(rr_cmd, "stop")==0) || (strcmp(rr_cmd, "ebreak")==0) || (strcmp(rr_cmd, "shutdown")==0)){
-        Serial.println("EMERGENCY BREAK - stopping all trains! " + String(rr_cmd));
-        targetTrainSpeed = 0;
-        setTrainSpeed(0);
-        delay(1000);
-        return;
-      }
-    }
-  }
-
-  //XMLElement * element = xmlDocument.FirstChildElement("lc");
-  element = xmlDocument.FirstChildElement("lc");
-  if (element == NULL) {
-    Serial.println("<lc> node not found. Message disregarded.");
-    return;
-  }
-
-  // query addr attribute. This is the MattzoController id.
-  // If this does not equal the controllerNo of this controller, the message is disregarded.
+  const char * rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
   int rr_addr = 0;
-  if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-    Serial.println("addr attribute not found or wrong type. Message disregarded.");
-    return;
-  }
-  Serial.println("addr: " + String(rr_addr));
-  if (rr_addr != controllerNo) {
-    Serial.println("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
-    return;
-  }
 
-  // query dir attribute. This is direction information for the loco (forward, backward)
-  const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
-  int dir;
-  if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
-    Serial.println("dir attribute not found or wrong type.");
-    return;
-  }
-  Serial.println("dir (raw): " + String(rr_dir));
-  if (strcmp(rr_dir, "true")==0) {
-    Serial.println("direction: forward");
-    dir = 1;
-  }
-  else if (strcmp(rr_dir, "false")==0) {
-    Serial.println("direction: backward");
-    dir = -1;
-  }
-  else {
-    Serial.println("unknown dir value - disregarding message.");
-    return;
-  }
+  // check for lc message
+  XMLElement * element = xmlDocument.FirstChildElement("lc");
+  if (element != NULL) {
+    Serial.println("<lc> node found. Processing loco message...");
 
-  // query V attribute. This is speed information for the loco and ranges from 0 to 1023.
-  int rr_v = 0;
-  if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
-    Serial.println("V attribute not found or wrong type. Message disregarded.");
-    return;
-  }
-  Serial.println("V: " + String(rr_v));
+    // -> process lc (loco) message
+
+    // query id attribute. This is the loco id.
+    // The id is a mandatory field. If not found, the message is discarded.
+
+    if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
+      Serial.println("id attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("loco id: " + String(rr_id));
+  
+    // query addr attribute. This is the MattzoController id.
+    // If this does not equal the controllerNo of this controller, the message is disregarded.
+    if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
+      Serial.println("addr attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("addr: " + String(rr_addr));
+    if (rr_addr != controllerNo) {
+      Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+      return;
+    }
+
+    // query dir attribute. This is direction information for the loco (forward, backward)
+    const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
+    int dir;
+    if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
+      Serial.println("dir attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("dir (raw): " + String(rr_dir));
+    if (strcmp(rr_dir, "true")==0) {
+      Serial.println("direction: forward");
+      dir = 1;
+    }
+    else if (strcmp(rr_dir, "false")==0) {
+      Serial.println("direction: backward");
+      dir = -1;
+    }
+    else {
+      Serial.println("unknown dir value - disregarding message.");
+      return;
+    }
+
+    // query V attribute. This is the speed information for the loco and ranges from 0 to V_max (see below).
+    int rr_v = 0;
+    if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
+      Serial.println("V attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("V: " + String(rr_v));
 
   // query V_max attribute. This is maximum speed of the loco. It must be set in the loco settings in Rocrail as percentage value.
   // The V_max attribute is required to map to loco speed from rocrail to a power setting in the MattzoController.
@@ -340,6 +337,87 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   targetTrainSpeed = rr_v * dir;
   maxTrainSpeed = rr_vmax;
   Serial.println("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
+  } else {
+    // check for fn message
+    element = xmlDocument.FirstChildElement("fn");
+    if (element == NULL) {
+      Serial.println("<fn> node not found. Disregarding message...");
+      return;
+    }
+
+    // -> process fn (function) message
+
+    // query id attribute. This is the loco id.
+    // The id is a mandatory field. If not found, the message is discarded.
+    // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
+    if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
+      Serial.println("id attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("function id: " + String(rr_id));
+  
+    // query addr attribute. This is the MattzoController id.
+    // If this does not equal the ControllerNo of this controller, the message is disregarded.
+    if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
+      Serial.println("addr attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("addr: " + String(rr_addr));
+    if (rr_addr != controllerNo) {
+      Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+      return;
+    }
+
+    // query fnchanged attribute. This is information which function shall be set.
+    int rr_functionNo;
+    if (element->QueryIntAttribute("fnchanged", &rr_functionNo) != XML_SUCCESS) {
+      Serial.println("fnchanged attribute not found or wrong type. Message disregarded.");
+      return;
+    }
+    Serial.println("fnchanged: " + String(rr_functionNo));
+
+    int functionPin;
+    switch (rr_functionNo) {
+      case 1:
+        functionPin = fn1;
+        break;
+      case 2:
+        functionPin = fn2;
+        break;
+      default:
+        Serial.println("fnchanged out of range. Message disregarded.");
+        return;
+    }
+    Serial.println("Function PIN: " + functionPin);
+
+    // query fnchangedstate attribute. This is value if the function shall be set on or off
+    const char * rr_state = "xxxxxx";  // expected values are "true" or "false"
+    boolean functionState;
+    if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
+      Serial.println("fnchangedstate attribute not found or wrong type.");
+      return;
+    }
+    Serial.println("fnchangedstate (raw): " + String(rr_state));
+    if (strcmp(rr_state, "true")==0) {
+      Serial.println("fnchangedstate: true");
+      functionState = true;
+    }
+    else if (strcmp(rr_state, "false")==0) {
+      Serial.println("fnchangedstate: false");
+      functionState = false;
+    }
+    else {
+      Serial.println("unknown fnchangedstate value - disregarding message.");
+      return;
+    }
+
+    // set function pin
+    if (functionState) {
+      digitalWrite(functionPin, HIGH);
+    } else {
+      digitalWrite(functionPin, LOW);
+    }
+  }
 }
 
 

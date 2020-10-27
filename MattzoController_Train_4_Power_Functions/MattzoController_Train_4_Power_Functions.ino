@@ -199,11 +199,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("] ");
   char msg[length+1];
   for (int i = 0; i < length; i++) {
-      // Serial.print((char)payload[i]);
       msg[i] = (char)payload[i];
   }
-  // Serial.println();
-
   msg[length] = '\0';
   Serial.println(msg);
 
@@ -267,13 +264,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
       return;
     }
   
-    // query V attribute. This is speed information for the loco and ranges from 0 to V_max (see below).
+    // query V attribute. This is the speed information for the loco and ranges from 0 to V_max (see below).
     int rr_v = 0;
     if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
       Serial.println("V attribute not found or wrong type. Message disregarded.");
       return;
     }
-    Serial.println("speed: " + String(rr_v));
+    Serial.println("V: " + String(rr_v));
   
     // query V_max attribute. This is maximum speed of the loco. It must be set in the loco settings in Rocrail as percentage value.
     // The V_max attribute is required to map to loco speed from rocrail to a power setting in the MattzoController.
@@ -371,7 +368,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
 }
 
-// setting the motor to a desired power.
+// set the motor to a desired power.
 void setTrainSpeed(int newTrainSpeed) {
   const int MAX_ARDUINO_POWER = 1023;
 
