@@ -1,4 +1,4 @@
-// MattzoSensorController Firmware V0.1
+// MattzoSensorController Firmware
 // Author: Dr. Matthias Runte
 // Libraries can be downloaded easily from within the Arduino IDE using the library manager.
 

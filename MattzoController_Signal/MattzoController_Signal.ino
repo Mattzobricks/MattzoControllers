@@ -1,4 +1,4 @@
-// MattzoSignalController Firmware V0.1
+// MattzoSignalController Firmware
 // Author: Dr. Matthias Runte
 // Libraries can be downloaded easily from within the Arduino IDE using the library manager.
 // TinyXML2 must be downloaded from https://github.com/leethomason/tinyxml2 (required files: tinyxml2.cpp, tinyxml2.h)
