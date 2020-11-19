@@ -409,7 +409,7 @@ void setTrainSpeed(int newTrainSpeed) {
 
   int power = 0;
   if (newTrainSpeed != 0) {
-    power = map(abs(absTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
+    power = map(abs(newTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
   }
   Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
 
