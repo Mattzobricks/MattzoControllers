@@ -409,12 +409,12 @@ void setTrainSpeed(int newTrainSpeed) {
 
   int power = 0;
   if (newTrainSpeed != 0) {
-    power = abs(map(newTrainSpeed, 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100));
+    power = map(abs(absTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
   }
   Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
 
   currentTrainSpeed = newTrainSpeed;
-  int dir = currentTrainSpeed >= 0;
+  int dir = currentTrainSpeed >= 0;  // true = forward, false = reverse
 
   if (MOTORSHIELD_TYPE == 1) {
     // motor shield type L298N
@@ -455,7 +455,7 @@ void setTrainSpeed(int newTrainSpeed) {
 
 void reconnectMQTT() {
   while (!client.connected()) {
-      Serial.println("Reconnecting MQTT...");
+      Serial.println("Reconnecting MQTT (" + String(MQTT_BROKER_IP) + ")...");
 
       String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
       char lastWillMessage_char[lastWillMessage.length() + 1];
