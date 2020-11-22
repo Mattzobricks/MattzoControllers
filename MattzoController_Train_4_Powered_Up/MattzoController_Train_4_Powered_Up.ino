@@ -65,20 +65,23 @@ Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino librar
 //              v         v
 char* myHubData[NUM_HUBS][5]=
 {
-  {"ICE1", "90:84:2b:16:15:f8", "false", "", "B"}
+  {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
 };
-// {"ICE1", "90:84:2b:16:15:f8", "false", "b"}
-// {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A"}
+// {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
+// {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A", ""}
 
 // Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME         = 0; // name of the hub
 const int HUB_ADDRESS      = 1; // MAC address
-const int HUB_STATUS       = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected)
+const int HUB_STATUS       = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected). Must be "false" in the configuration (start-up value).
 const int HUB_MOTORPORT    = 3; // indicates which ports have motors attached including turning direction (small letter -> reverse)
                                 // Allowed options: "", "A", "a", "B", "b", "AB", "Ab", "aB", "ab" (BA also works and equals AB etc.)
 const int HUB_LIGHTPORT    = 4; // indicates which ports have lights attached
                                 // Allowed options: "", "A", "B", "AB""
 
+// Legoino Constants (god knows why we have to do this in the script USING the library...)
+byte hubPortA = (byte)PoweredUpHubPort::A;
+byte hubPortB = (byte)PoweredUpHubPort::B;
 
 
 /* Send battery level  */
@@ -111,7 +114,7 @@ void setup() {
   initWIFI();
   initMQTT();
 
-  //initPoweredUpHubs();
+  // initPoweredUpHubs();
 }
 
 void initMattzoController() {
@@ -167,8 +170,8 @@ void initMattzoController() {
     // Commit EEPROM write operation
     EEPROM.commit();
 
+    Serial.println("New controller id " + String(controllerNo) + " written to EEPROM.");
   }
-  Serial.println("New controller id " + String(controllerNo) + " written to EEPROM.");
 
   // set MQTT client name
   mqttClientName = eepromIDString + String(controllerNo);
@@ -264,8 +267,7 @@ void sendMQTTBatteryLevel(){
 
     for (int i = 0; i < NUM_HUBS; i++){
       if (myHubs[i].isConnected()) {
-        Serial.println("sending battery level for hub " + i);
-        sendMQTTMessage("roc2bricks/battery", String(myHubData[i][HUB_ADDRESS]) + " " + String(myHubs[i].getBatteryLevel()));
+        Serial.println("(deparecated) requesting battery level for hub " + i);
       }
     }
   }
@@ -467,13 +469,26 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
 }
 
 
-void reconnectHUB(){
-  // init hubs from list and send "disconnected" information if lost
+void initPoweredUpHubs() {
+  // initialize all Powered Up hubs that are expected to connect to this controller
   for (int i = 0; i < NUM_HUBS; i++) {
-    if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()){
+    myHubs[i].init(myHubData[i][HUB_ADDRESS]);
+    delay(100);
+    myHubs[i].activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
+    delay(100);
+    myHubs[i].activateHubPropertyUpdate(HubPropertyReference::BUTTON, hubPropertyChangeCallback);
+    delay(100);
+  }
+}
 
-      // send "connection lost" message
+void reconnectHUB(){
+  int i;
+
+  // init disconnected hubs from list and send "disconnected" information if lost
+  for (i = 0; i < NUM_HUBS; i++) {
+    if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()) {
       if (String(myHubData[i][HUB_STATUS]) == String("true")) {
+        // Send "connection lost" message
         sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
         myHubData[i][HUB_STATUS] = "false";
       }
@@ -483,23 +498,49 @@ void reconnectHUB(){
   }
 
   // connect to the hubs from the list and send "connected" information
-  for (int i = 0; i < NUM_HUBS; i++){
-    if (myHubs[i].isConnecting() && (myHubs[i].getHubType() == POWERED_UP_HUB)) {
-      
+  for (i = 0; i < NUM_HUBS; i++) {
+    if (myHubs[i].isConnecting() && !myHubs[i].isConnected()) {
+      // Connect to hub
       myHubs[i].connectHub();
 
       if (myHubs[i].isConnected()) {
-
-      // send "connected" message
+        // Send "connected" message
         sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connected");
         myHubData[i][HUB_STATUS] = "true";
-
       } else {
         myHubData[i][HUB_STATUS] = "false";
       }
     }
   }
 }
+
+void hubPropertyChangeCallback(void *hub, HubPropertyReference hubProperty, uint8_t *pData)
+{
+  Lpf2Hub *myHub = (Lpf2Hub *)hub;
+  String hubAddress = myHub->getHubAddress().toString().c_str();
+  Serial.print("HubAddress: ");
+  Serial.println(hubAddress);
+
+  Serial.print("HubProperty: ");
+  Serial.println((byte)hubProperty, HEX);
+  
+  if (hubProperty == HubPropertyReference::BATTERY_VOLTAGE)
+  {
+    Serial.print("BatteryLevel: ");
+    Serial.println(myHub->parseBatteryLevel(pData), DEC);
+    sendMQTTMessage("roc2bricks/battery", hubAddress + " " + myHub->parseBatteryLevel(pData));
+    return;
+  }
+
+  if (hubProperty == HubPropertyReference::BUTTON)
+  {
+    Serial.print("Button: ");
+    Serial.println((byte)myHub->parseHubButton(pData), HEX);
+    sendMQTTMessage("roc2bricks/button", hubAddress + " button pressed.");
+    return;
+  }
+}
+
 
 
 // set powered up motor speed
@@ -527,18 +568,18 @@ void setTrainSpeed(int newTrainSpeed) {
   for (int i = 0; i < NUM_HUBS; i++){
     if (myHubs[i].isConnected()) {
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("A") >= 0) {
-        myHubs[i].setMotorSpeed(hubPortA, power);
+        myHubs[i].setBasicMotorSpeed(hubPortA, power);
         delay(DELAY);
       } else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("a") >= 0) {
-        myHubs[i].setMotorSpeed(hubPortA, -power);
+        myHubs[i].setBasicMotorSpeed(hubPortA, -power);
         delay(DELAY);
       }
 
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("B") >= 0) {
-        myHubs[i].setMotorSpeed(hubPortB, power);
+        myHubs[i].setBasicMotorSpeed(hubPortB, power);
         delay(DELAY);
       } else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("b") >= 0) {
-        myHubs[i].setMotorSpeed(hubPortB, -power);
+        myHubs[i].setBasicMotorSpeed(hubPortB, -power);
         delay(DELAY);
       }
 
@@ -596,6 +637,7 @@ void loop() {
 
   accelerateTrainSpeed();
 
-  sendMQTTPing(&client, mqttClientName_char);
-  sendMQTTBatteryLevel();
+  // TODO: clean up
+  // sendMQTTPing(&client, mqttClientName_char);
+  // sendMQTTBatteryLevel();
 }
