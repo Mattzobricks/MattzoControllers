@@ -30,7 +30,8 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 /* Functions */
 const int NUM_FUNCTIONS = 2;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
-bool functionState[NUM_FUNCTIONS];    // State of a function
+bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
+// bool functionState[NUM_FUNCTIONS];    // Actual state of a function (not required for this controller as pin states are continuously updated by the loop function)
 
 const int MOTORSHIELD_TYPE = 2; // motor shield type. 1 = L298N, 2 = L9110
 #define enA D1  // PWM signal for motor A. Relevant for L298N only.
@@ -81,7 +82,7 @@ void setup() {
 
     for (int i = 0; i < NUM_FUNCTIONS; i++) {
       pinMode(FUNCTION_PIN[i], OUTPUT);
-      functionState[i] = false;
+      functionCommand[i] = false;
     }
 
     // initialize motor pins
@@ -354,11 +355,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("fnchangedstate (raw): " + String(rr_state));
     if (strcmp(rr_state, "true")==0) {
       Serial.println("fnchangedstate: true");
-      functionState[functionPinId] = true;
+      functionCommand[functionPinId] = true;
     }
     else if (strcmp(rr_state, "false")==0) {
       Serial.println("fnchangedstate: false");
-      functionState[functionPinId] = false;
+      functionCommand[functionPinId] = false;
     }
     else {
       Serial.println("unknown fnchangedstate value - disregarding message.");
@@ -507,7 +508,7 @@ void accelerateTrainSpeed() {
 // switch a function pin on or off
 void setFunctionPins() {
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
-    bool onOff = functionState[i];
+    bool onOff = functionCommand[i];
     if (ebreak) {
       // override function state on ebreak (alternate lights on/off every 500ms)
       long phase = (millis() / 500) % 2;
