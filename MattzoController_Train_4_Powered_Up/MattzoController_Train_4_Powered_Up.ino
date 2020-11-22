@@ -9,12 +9,32 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+// Built-in libraries of the Arduino IDE
 #include <EEPROM.h>        // EEPROM library
 #include <WiFi.h>          // WiFi library
-#include <PubSubClient.h>  // MQTT library
-#include <tinyxml2.h>      // https://github.com/adafruit/TinyXML
-#include <PoweredUpHub.h>  // https://github.com/corneliusmunz/legoino
-#include <MattzoController_Network_Configuration.h>  // this file needs to be placed in the Arduino library folder
+
+// PubSubClient library by Nick O'Leary
+// Install via the built-in Library Manager of the Arduino IDE
+// Tested with Version V2.8.0
+#include <PubSubClient.h>
+
+// TinyXML2
+// Download from https://github.com/leethomason/tinyxml2
+// These files need to be placed in the Arduino library folder:
+//   "tinyxml2.cpp"
+//   "tinyxml2.h".
+// Tested with version of date 2020-11-21.
+#include <tinyxml2.h>
+
+// Legoino library by Cornelius Munz
+// Install via the built-in Library Manager of the Arduino IDE
+// Tested with:
+//   Version V1.0.2 of the "Legoino" library
+//   Version V1.0.2 of the required dependent library "NimBLE-Arduino"
+#include "Lpf2Hub.h"
+
+// This file is supplied with the MattzoBricks Firmware package and needs to be placed in the Arduino library folder
+#include <MattzoController_Network_Configuration.h>
 
 using namespace tinyxml2;
 
@@ -33,35 +53,33 @@ const int NUM_FUNCTIONS = 2;          // if increased, the fn1, fn2... defintion
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
 bool functionState[NUM_FUNCTIONS];    // State of a function
 
-/* LEGO Powered up */
-// Number of connected hubs
-const int NUM_HUBS = 1;
+/* Legoino Library */
+const int NUM_HUBS = 1;  // Number of connected hubs
+Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
 
-// Note: the controller will connect to hubs only - remotes are refused.
-PoweredUpHub myHubs[NUM_HUBS];  // Objects for the "hubs" (A and B)
+// Main hub array
+//              |-- number of Hubs
+//              |
+//              |         |-- { "name", "address", "connectionStatus", "motorPorts", "lightPorts"}
+//              |         |
+//              v         v
+char* myHubData[NUM_HUBS][5]=
+{
+  {"ICE1", "90:84:2b:16:15:f8", "false", "", "B"}
+};
+// {"ICE1", "90:84:2b:16:15:f8", "false", "b"}
+// {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A"}
 
 // Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME         = 0; // name of the hub
 const int HUB_ADDRESS      = 1; // MAC address
 const int HUB_STATUS       = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected)
 const int HUB_MOTORPORT    = 3; // indicates which ports have motors attached including turning direction (small letter -> reverse)
-                                // Allowed options: A, a, B, b, AB, Ab, aB, ab (BA also works and equals AB etc.)
-
-// Main hub array
-//              |-- number of Hubs
-//              |
-//              |         |-- { "name", "address", "connectionStatus", "port"}
-//              |         |
-//              v         v
-char* myHubData[NUM_HUBS][4]=
-{
-  {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A"}
-};
-//  {"ICE1", "90:84:2b:16:15:f8", "false", "b"}
+                                // Allowed options: "", "A", "a", "B", "b", "AB", "Ab", "aB", "ab" (BA also works and equals AB etc.)
+const int HUB_LIGHTPORT    = 4; // indicates which ports have lights attached
+                                // Allowed options: "", "A", "B", "AB""
 
 
-PoweredUpHub::Port hubPortA = PoweredUpHub::Port::A; // port A
-PoweredUpHub::Port hubPortB = PoweredUpHub::Port::B; // port B
 
 /* Send battery level  */
 const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
