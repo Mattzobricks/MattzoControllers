@@ -49,12 +49,11 @@ String mqttClientName;                                   // Name of the MQTT cli
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
 /* Functions */
-const int NUM_FUNCTIONS = 2;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
+const int NUM_FUNCTIONS = 1;          // While theoretically possible to switch two lights on a Powered Up hub independently, this is not supported. So the number of "functions" is one.
 bool functionState[NUM_FUNCTIONS];    // State of a function
 
 /* Legoino Library */
-const int NUM_HUBS = 1;  // Number of connected hubs
+const int NUM_HUBS = 2;  // Number of connected hubs
 Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
 
 // Main hub array
@@ -65,9 +64,11 @@ Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino librar
 //              v         v
 char* myHubData[NUM_HUBS][5]=
 {
-  {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
+  {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"},
+  {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
 };
 // {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
+// {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
 // {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A", ""}
 
 // Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
@@ -109,6 +110,10 @@ void setup() {
   Serial.begin(115200);
   randomSeed(ESP.getCycleCount());
   Serial.println("MattzoController booting...");
+
+  for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    functionState[i] = false;
+  }
 
   initMattzoController();
   initWIFI();
@@ -585,6 +590,7 @@ void setTrainSpeed(int newTrainSpeed) {
 
       // Set integrated powered up hub light
       myHubs[i].setLedColor(ledColor);
+      delay(DELAY);
     }
   }
 
@@ -623,6 +629,36 @@ void accelerateTrainSpeed() {
 }
 
 
+// switch lights on or off
+void setLights() {
+  const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
+
+  for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    bool onOff = functionState[i];
+
+    if (ebreak) {
+      // override function state on ebreak (alternate lights on/off every 500ms)
+      long phase = (millis() / 500) % 2;
+      onOff = (phase + i) % 2 == 0;
+    }
+
+    int lightPower = onOff ? 100 : 0;
+
+    for (int h = 0; h < NUM_HUBS; h++) {
+      if (myHubs[h].isConnected()) {
+        if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("A") >= 0) {
+          myHubs[i].setBasicMotorSpeed(hubPortA, lightPower);
+          delay(DELAY);
+        } else if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("B") >= 0) {
+          myHubs[i].setBasicMotorSpeed(hubPortB, lightPower);
+          delay(DELAY);
+        }
+      }
+    }
+  }
+}
+
+
 void loop() {
   if (WiFi.status() != WL_CONNECTED){
     reconnectWIFI();
@@ -636,6 +672,7 @@ void loop() {
   reconnectHUB();
 
   accelerateTrainSpeed();
+  setLights();
 
   // TODO: clean up
   // sendMQTTPing(&client, mqttClientName_char);
