@@ -50,7 +50,8 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 
 /* Functions */
 const int NUM_FUNCTIONS = 1;          // While theoretically possible to switch two lights on a Powered Up hub independently, this is not supported. So the number of "functions" is one.
-bool functionState[NUM_FUNCTIONS];    // State of a function
+bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
+bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
 /* Legoino Library */
 const int NUM_HUBS = 2;  // Number of connected hubs
@@ -112,7 +113,7 @@ void setup() {
   Serial.println("MattzoController booting...");
 
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
-    functionState[i] = false;
+    functionCommand[i] = false;
   }
 
   initMattzoController();
@@ -425,11 +426,11 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     Serial.println("fnchangedstate (raw): " + String(rr_state));
     if (strcmp(rr_state, "true")==0) {
       Serial.println("fnchangedstate: true");
-      functionState[functionPinId] = true;
+      functionCommand[functionPinId] = true;
     }
     else if (strcmp(rr_state, "false")==0) {
       Serial.println("fnchangedstate: false");
-      functionState[functionPinId] = false;
+      functionCommand[functionPinId] = false;
     }
     else {
       Serial.println("unknown fnchangedstate value - disregarding message.");
@@ -634,7 +635,7 @@ void setLights() {
   const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
 
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
-    bool onOff = functionState[i];
+    bool onOff = functionCommand[i];
 
     if (ebreak) {
       // override function state on ebreak (alternate lights on/off every 500ms)
@@ -642,16 +643,21 @@ void setLights() {
       onOff = (phase + i) % 2 == 0;
     }
 
-    int lightPower = onOff ? 100 : 0;
+    if (functionState[i] != onOff) {
+      functionState[i] = onOff;
+      Serial.println("Flipping function " + String(i+1));
 
-    for (int h = 0; h < NUM_HUBS; h++) {
-      if (myHubs[h].isConnected()) {
-        if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("A") >= 0) {
-          myHubs[i].setBasicMotorSpeed(hubPortA, lightPower);
-          delay(DELAY);
-        } else if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("B") >= 0) {
-          myHubs[i].setBasicMotorSpeed(hubPortB, lightPower);
-          delay(DELAY);
+      int lightPower = onOff ? 100 : 0;
+
+      for (int h = 0; h < NUM_HUBS; h++) {
+        if (myHubs[h].isConnected()) {
+          if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("A") >= 0) {
+            myHubs[i].setBasicMotorSpeed(hubPortA, lightPower);
+            delay(DELAY);
+          } else if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("B") >= 0) {
+            myHubs[i].setBasicMotorSpeed(hubPortB, lightPower);
+            delay(DELAY);
+          }
         }
       }
     }
