@@ -24,7 +24,7 @@ const char* WIFI_SSID = "railnet";
 const char* WIFI_PASSWORD = "born2rail";
 
 // The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
-const char* MQTT_BROKER_IP = "192.168.178.57";
+const char* MQTT_BROKER_IP = "192.168.1.15";
 
 
 // MQTT parameters, variables and functions

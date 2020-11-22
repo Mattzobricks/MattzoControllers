@@ -9,12 +9,32 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+// Built-in libraries of the Arduino IDE
 #include <EEPROM.h>        // EEPROM library
 #include <WiFi.h>          // WiFi library
-#include <PubSubClient.h>  // MQTT library
-#include <tinyxml2.h>      // https://github.com/adafruit/TinyXML
-#include <PoweredUpHub.h>  // https://github.com/corneliusmunz/legoino
-#include <MattzoController_Network_Configuration.h>  // this file needs to be placed in the Arduino library folder
+
+// PubSubClient library by Nick O'Leary
+// Install via the built-in Library Manager of the Arduino IDE
+// Tested with Version V2.8.0
+#include <PubSubClient.h>
+
+// TinyXML2
+// Download from https://github.com/leethomason/tinyxml2
+// These files need to be placed in the Arduino library folder:
+//   "tinyxml2.cpp"
+//   "tinyxml2.h".
+// Tested with version of date 2020-11-21.
+#include <tinyxml2.h>
+
+// Legoino library by Cornelius Munz
+// Install via the built-in Library Manager of the Arduino IDE
+// Tested with:
+//   Version V1.0.2 of the "Legoino" library
+//   Version V1.0.2 of the required dependent library "NimBLE-Arduino"
+#include <PoweredUpHub.h>
+
+// This file is supplied with the MattzoBricks Firmware package and needs to be placed in the Arduino library folder
+#include <MattzoController_Network_Configuration.h>
 
 using namespace tinyxml2;
 
