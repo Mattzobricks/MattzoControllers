@@ -25,7 +25,7 @@ const int NUM_SENSORS = 4; // Number of connectable sensors
 uint8_t SENSOR_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
 uint8_t LED_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
 
-const int SENSOR_RELEASE_TICKS = 1000;  // time in milliseconds until sensor is reported to be released after it actually has lost contact
+const int SENSOR_RELEASE_TICKS = 500;  // time in milliseconds until sensor is reported to be released after it actually has lost contact
 bool sensorState[NUM_SENSORS];
 int lastSensorContactMillis[NUM_SENSORS];
 
@@ -55,13 +55,8 @@ void setup() {
     sensorState[i] = false;
   }
 
-  // a short blink to say "hello, I have power supply and booting up"
-  for (int j = 0; j < 3; j++) {
-    allBlink(true, 0);
-    delay(200);
-    allBlink(false, 0);
-    delay(400);
-  }
+  // all LEDs off
+  allBlink(false, 0);
 
   loadPreferences();
   setup_wifi();
@@ -165,6 +160,30 @@ void allBlink(boolean onOff, int blinkType) {
     setLED(1, !onOff);
     setLED(2, onOff);
     setLED(3, !onOff);
+  } else if (blinkType == 2) {
+    // Knight Rider
+    const int KNIGHT_RIDER_DELAY = 100;
+    setLED(0, true);
+    delay(KNIGHT_RIDER_DELAY);
+    setLED(0, false);
+    setLED(1, true);
+    delay(KNIGHT_RIDER_DELAY);
+    setLED(1, false);
+    setLED(2, true);
+    delay(KNIGHT_RIDER_DELAY);
+    setLED(2, false);
+    setLED(3, true);
+    delay(KNIGHT_RIDER_DELAY);
+    setLED(3, false);
+    setLED(2, true);
+    delay(KNIGHT_RIDER_DELAY);
+    setLED(2, false);
+    setLED(1, true);
+    delay(KNIGHT_RIDER_DELAY);
+    setLED(1, false);
+    setLED(0, true);
+    delay(KNIGHT_RIDER_DELAY);
+    setLED(0, false);
   }
   
   return;
@@ -184,9 +203,9 @@ void allBlink(boolean onOff, int blinkType) {
 
 void setLED(int index, bool ledState) {
   if (ledState) {
-    digitalWrite(LED_PIN[index], HIGH);
-  } else {
     digitalWrite(LED_PIN[index], LOW);
+  } else {
+    digitalWrite(LED_PIN[index], HIGH);
   }
 }
 
@@ -228,7 +247,7 @@ void reconnectMQTT() {
       }
     }
   }
-  allBlink(false, 0);
+  allBlink(false, 2);
   Serial.println("MQTT Connected.");
 }
 
@@ -258,7 +277,7 @@ void loop() {
         Serial.println("Sensor " + String(i) + ": Contact!");
         sendMQTTSensorEvent(i, true);
         sensorState[i] = true;
-        setLED(i, false);
+        setLED(i, true);
       }
       lastSensorContactMillis[i] = millis();
     } else { 
@@ -267,7 +286,7 @@ void loop() {
         Serial.println("Sensor " + String(i) + ": Released!");
         sendMQTTSensorEvent(i, false);
         sensorState[i] = false;
-        setLED(i, true);
+        setLED(i, false);
       }
     }
   }
