@@ -154,6 +154,7 @@ void initMattzoController() {
     controllerIDLowByte = EEPROM.read(paramsStartingPosition + 1);
     controllerNo = controllerIDHiByte * 256 + controllerIDLowByte;
 
+    Serial.println("MattzoControlerId " + String(controllerNo) + " loaded from to EEPROM.");
   } else {
     // preferences not initialized yet -> initialize controller
     // this runs only a single time when starting the controller for the first time
@@ -176,7 +177,7 @@ void initMattzoController() {
     // Commit EEPROM write operation
     EEPROM.commit();
 
-    Serial.println("New controller id " + String(controllerNo) + " written to EEPROM.");
+    Serial.println("New MattzoControlerId " + String(controllerNo) + " written to EEPROM.");
   }
 
   // set MQTT client name
