@@ -31,6 +31,12 @@
 // Tested with:
 //   Version V1.0.2 of the "Legoino" library
 //   Version V1.0.2 of the required dependent library "NimBLE-Arduino"
+// To connect more than 3 Powered Up units to the ESP-32, the constant CONFIG_BT_NIMBLE_MAX_CONNECTIONS
+//   needs to be changed in nimconfig.h in the NimBLE-Arduino/src directory of your libraries folder
+//   An ESP-32 can handle 9 BT connections concurrently.
+// Make this line: #define CONFIG_BT_NIMBLE_MAX_CONNECTIONS 3
+// Look like this: #define CONFIG_BT_NIMBLE_MAX_CONNECTIONS 9
+
 #include "Lpf2Hub.h"
 
 // This file is supplied with the MattzoBricks Firmware package and needs to be placed in the Arduino library folder
@@ -54,7 +60,8 @@ bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
 /* Legoino Library */
-const int NUM_HUBS = 2;  // Number of connected hubs
+String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT established.
+const int NUM_HUBS = 6;  // Number of connected hubs
 Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
 
 // Main hub array
@@ -66,11 +73,18 @@ Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino librar
 char* myHubData[NUM_HUBS][5]=
 {
   {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"},
-  {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
+  {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""},
+  {"Crocodile brown", "90:84:2b:0f:ac:c7", "false", "B", ""},
+  {"Crocodile green", "90:84:2b:21:71:46", "false", "A", ""},
+  {"EST1", "90:84:2b:18:f2:52", "false", "A", ""},
+  {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
 };
 // {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
 // {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
-// {"Crocodile", "90:84:2b:0f:ac:c7", "false", "A", ""}
+// {"Crocodile brown", "90:84:2b:0f:ac:c7", "false", "B", ""}
+// {"Crocodile green", "90:84:2b:21:71:46", "false", "A", ""}
+// {"EST1", "90:84:2b:18:f2:52", "false", "A", ""}
+// {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
 
 // Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME         = 0; // name of the hub
@@ -84,6 +98,7 @@ const int HUB_LIGHTPORT    = 4; // indicates which ports have lights attached
 // Legoino Constants (god knows why we have to do this in the script USING the library...)
 byte hubPortA = (byte)PoweredUpHubPort::A;
 byte hubPortB = (byte)PoweredUpHubPort::B;
+const int PU_SCAN_DURATION = 1000;  // time the controller tries to connect to a Hub (in ms)
 
 
 /* Send battery level  */
@@ -120,7 +135,8 @@ void setup() {
   initWIFI();
   initMQTT();
 
-  // initPoweredUpHubs();
+  // discover new Powered Up Hubs (just to display MAC address)
+  discoverPoweredUpHubs();
 }
 
 void initMattzoController() {
@@ -242,6 +258,12 @@ void reconnectMQTT() {
   }
   client.subscribe("rocrail/service/command");
   Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
+
+  // if a Powered Hub was discovered on start-up, transmit it after (first) MQTT connection.
+  if (discoveryHubAddress.length() > 0) {
+    sendMQTTMessage("roc2bricks/discovery", "Powered Up Hub discovered: " + discoveryHubAddress);
+    discoveryHubAddress = "";
+  }
 }
 
 void sendMQTTMessage(String topic, String message) {
@@ -476,10 +498,29 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
 }
 
 
+
+void discoverPoweredUpHubs() {
+  // Just after booting, the ESP-32 checks if there is a Powered Up hub that is ready to connect
+  // Purpose is just to read out its MAC address at publish it via MQTT.
+  // The MAC address is then known and can be used in the configuration of the MattzoController (recompiling the source code is required)
+
+  Lpf2Hub discoveryHub;  // Hub used for discovering new PU hubs
+
+  Serial.println("Discovering Powered Up Hubs...");
+  discoveryHub.init();
+  if (!discoveryHub.isConnected() && discoveryHub.isConnecting()) {
+    Serial.print("Powered Up Hub found. MAC Address: ");
+    discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
+    Serial.println(discoveryHubAddress);
+  } else {
+    Serial.println("No Powered Up Hub found. Starting loop...");
+  }
+}
+
 void initPoweredUpHubs() {
   // initialize all Powered Up hubs that are expected to connect to this controller
   for (int i = 0; i < NUM_HUBS; i++) {
-    myHubs[i].init(myHubData[i][HUB_ADDRESS]);
+    myHubs[i].init(myHubData[i][HUB_ADDRESS], PU_SCAN_DURATION);
     delay(100);
     myHubs[i].activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
     delay(100);
@@ -500,7 +541,7 @@ void reconnectHUB(){
         myHubData[i][HUB_STATUS] = "false";
       }
 
-      myHubs[i].init(myHubData[i][HUB_ADDRESS]);
+      myHubs[i].init(myHubData[i][HUB_ADDRESS], PU_SCAN_DURATION);
     }
   }
 
@@ -521,6 +562,7 @@ void reconnectHUB(){
   }
 }
 
+// TODO: call the callback does not work yet... needs investigation.
 void hubPropertyChangeCallback(void *hub, HubPropertyReference hubProperty, uint8_t *pData)
 {
   Lpf2Hub *myHub = (Lpf2Hub *)hub;
