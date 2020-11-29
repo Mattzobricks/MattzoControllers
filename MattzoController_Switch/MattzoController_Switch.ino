@@ -51,14 +51,14 @@ void setup() {
     Serial.println("");
     Serial.println("MattzoController booting...");
 
-    servo[0].attach(D1);
-    servo[1].attach(D2);
-    servo[2].attach(D3);
-    servo[3].attach(D4);
-    servo[4].attach(D5);
-    servo[5].attach(D6);
-    servo[6].attach(D7);
-    servo[7].attach(D8);
+    servo[0].attach(D0);
+    servo[1].attach(D1);
+    servo[2].attach(D2);
+    servo[3].attach(D3);
+    servo[4].attach(D4);
+    servo[5].attach(D5);
+    servo[6].attach(D6);
+    servo[7].attach(D7);
 
     for (int i = 0; i < NUM_SWITCHPORTS; i++) {
       servo[i].write(SERVO_START);
