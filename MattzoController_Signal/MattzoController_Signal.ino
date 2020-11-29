@@ -41,14 +41,14 @@ void setup() {
   Serial.println("");
   Serial.println("MattzoController booting...");
 
-  SIGNALPORT_PIN[0] = D1;
-  SIGNALPORT_PIN[1] = D2;
-  SIGNALPORT_PIN[2] = D3;
-  SIGNALPORT_PIN[3] = D4;
-  SIGNALPORT_PIN[4] = D5;
-  SIGNALPORT_PIN[5] = D6;
-  SIGNALPORT_PIN[6] = D7;
-  SIGNALPORT_PIN[7] = D8;
+  SIGNALPORT_PIN[0] = D0;
+  SIGNALPORT_PIN[1] = D1;
+  SIGNALPORT_PIN[2] = D2;
+  SIGNALPORT_PIN[3] = D3;
+  SIGNALPORT_PIN[4] = D4;
+  SIGNALPORT_PIN[5] = D5;
+  SIGNALPORT_PIN[6] = D6;
+  SIGNALPORT_PIN[7] = D7;
 
   for (int i = 0; i < NUM_SIGNALPORTS; i++) {
     pinMode(SIGNALPORT_PIN[i], OUTPUT);
