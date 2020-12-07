@@ -78,7 +78,7 @@ void setup() {
 
     // initialize function pins
     FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 1 (e.g. train headlights)
-    FUNCTION_PIN[1] = D8;    // Output pin for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
+    FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
 
     for (int i = 0; i < NUM_FUNCTIONS; i++) {
       pinMode(FUNCTION_PIN[i], OUTPUT);
