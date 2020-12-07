@@ -408,14 +408,13 @@ void setTrainSpeed(int newTrainSpeed) {
   const int MIN_ARDUINO_POWER = 400;   // minimum useful arduino power
   const int MAX_ARDUINO_POWER = 1023;  // maximum arduino power
 
+  int dir = currentTrainSpeed >= 0;  // true = forward, false = reverse
   int power = 0;
+
   if (newTrainSpeed != 0) {
     power = map(abs(newTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
   }
   Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
-
-  currentTrainSpeed = newTrainSpeed;
-  int dir = currentTrainSpeed >= 0;  // true = forward, false = reverse
 
   if (MOTORSHIELD_TYPE == 1) {
     // motor shield type L298N
@@ -452,6 +451,8 @@ void setTrainSpeed(int newTrainSpeed) {
       analogWrite(in4, 0);
     }
   }
+
+  currentTrainSpeed = newTrainSpeed;
 }
 
 void reconnectMQTT() {
