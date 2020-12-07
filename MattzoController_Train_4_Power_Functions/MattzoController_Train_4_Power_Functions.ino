@@ -33,13 +33,14 @@ uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 // bool functionState[NUM_FUNCTIONS];    // Actual state of a function (not required for this controller as pin states are continuously updated by the loop function)
 
-const int MOTORSHIELD_TYPE = 2; // motor shield type. 1 = L298N, 2 = L9110
+const int MOTORSHIELD_TYPE = 3; // motor shield type. 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
 #define enA D1  // PWM signal for motor A. Relevant for L298N only.
 #define in1 D2  // motor A direction control (forward)
 #define in2 D3  // motor A direction control (reverse)
 #define enB D5  // PWM signal for motor B. Relevant for L298N only.
 #define in3 D6  // motor B direction control (forward)
 #define in4 D7  // motor B direction control (reverse)
+#define IR_LED D1  // pin of the IR LED. Relevant for Lego IR Receiver 8884 only.
 
 const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
 const boolean REVERSE_B = true;  // if set to true, motor B is reversed
@@ -407,49 +408,84 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setTrainSpeed(int newTrainSpeed) {
   const int MIN_ARDUINO_POWER = 400;   // minimum useful arduino power
   const int MAX_ARDUINO_POWER = 1023;  // maximum arduino power
+  const int MIN_IR_POWER = 0;   // minimum infrared LED power
+  const int MAX_IR_POWER = 255;  // maximum infrared LED power
 
+  int minPower;
+  int maxPower;
   int dir = currentTrainSpeed >= 0;  // true = forward, false = reverse
   int power = 0;
 
-  if (newTrainSpeed != 0) {
-    power = map(abs(newTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
-  }
-  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
+  switch (MOTORSHIELD_TYPE) {
+    case 1:
+    case 2:
+      // motor shield types L298N and L9110
+      minPower = MIN_ARDUINO_POWER;
+      maxPower = MAX_ARDUINO_POWER;
+      break;
 
-  if (MOTORSHIELD_TYPE == 1) {
-    // motor shield type L298N
-    if (dir ^ REVERSE_A) {
-      digitalWrite(in1, LOW);
-      digitalWrite(in2, HIGH);
-    } else {
-      digitalWrite(in1, HIGH);
-      digitalWrite(in2, LOW);
-    }
-    if (dir ^ REVERSE_B) {
-      digitalWrite(in3, LOW);
-      digitalWrite(in4, HIGH);
-    } else {
-      digitalWrite(in3, HIGH);
-      digitalWrite(in4, LOW);
-    }
-    analogWrite(enA, power);
-    analogWrite(enB, power);
-  } else {
-    // motor shield type L9110
-    if (dir ^ REVERSE_A) {
-      analogWrite(in1, 0);
-      analogWrite(in2, power);
-    } else {
-      analogWrite(in1, power);
-      analogWrite(in2, 0);
-    }
-    if (dir ^ REVERSE_B) {
-      analogWrite(in3, 0);
-      analogWrite(in4, power);
-    } else {
-      analogWrite(in3, power);
-      analogWrite(in4, 0);
-    }
+    case 3:
+      // motor shield type Lego IR Receiver 8884
+      minPower = MIN_IR_POWER;
+      maxPower = MAX_IR_POWER;
+      break;
+    default:
+  }
+
+  if (newTrainSpeed != 0) {
+    power = map(abs(newTrainSpeed), 0, maxTrainSpeed, minPower, maxPower * maxTrainSpeed / 100);
+  }
+  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + maxPower + ")");
+
+  switch (MOTORSHIELD_TYPE) {
+    case 1:
+      // motor shield type L298N
+      if (dir ^ REVERSE_A) {
+        digitalWrite(in1, LOW);
+        digitalWrite(in2, HIGH);
+      }
+      else {
+        digitalWrite(in1, HIGH);
+        digitalWrite(in2, LOW);
+      }
+      if (dir ^ REVERSE_B) {
+        digitalWrite(in3, LOW);
+        digitalWrite(in4, HIGH);
+      }
+      else {
+        digitalWrite(in3, HIGH);
+        digitalWrite(in4, LOW);
+      }
+      analogWrite(enA, power);
+      analogWrite(enB, power);
+      break;
+
+    case 2:
+      // motor shield type L9110
+      if (dir ^ REVERSE_A) {
+        analogWrite(in1, 0);
+        analogWrite(in2, power);
+      }
+      else {
+        analogWrite(in1, power);
+        analogWrite(in2, 0);
+      }
+      if (dir ^ REVERSE_B) {
+        analogWrite(in3, 0);
+        analogWrite(in4, power);
+      }
+      else {
+        analogWrite(in3, power);
+        analogWrite(in4, 0);
+      }
+      break;
+
+    case 3:
+      // motor shield type Lego IR Receiver 8884
+      // Add IR stuff here
+      break;
+
+    default:
   }
 
   currentTrainSpeed = newTrainSpeed;
