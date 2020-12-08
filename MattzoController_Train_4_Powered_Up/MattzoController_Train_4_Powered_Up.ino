@@ -675,7 +675,7 @@ void accelerateTrainSpeed() {
 
 // switch lights on or off
 void setLights() {
-  const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
+  const int DELAY = 10;  // a small delay after setting the light intensity on the PU hub is required, else the call to the Legoino library will crash
 
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
     bool onOff = functionCommand[i];
