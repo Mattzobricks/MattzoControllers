@@ -28,11 +28,21 @@ const int MAX_CONTROLLER_ID = 16383;
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-/* Functions */
-const int NUM_FUNCTIONS = 2;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
+/* Functions (lights) */
+const int NUM_FUNCTIONS = 3;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
-// bool functionState[NUM_FUNCTIONS];    // Actual state of a function (not required for this controller as pin states are continuously updated by the loop function)
+bool functionState[NUM_FUNCTIONS];    // Actual state of a function
+const uint8_t IR_LIGHT_RED = 254;    // Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == 3.
+const uint8_t IR_LIGHT_BLUE = 255;
+enum struct LightEvent
+{
+  STOP = 0x0,
+  FORWARD = 0x1,
+  REVERSE = 0x2
+};
+
+
 
 const int MOTORSHIELD_TYPE = 3; // motor shield type. 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
 #define enA D1  // PWM signal for motor A. Relevant for L298N only.
@@ -83,16 +93,15 @@ void setup() {
     Serial.println("MattzoController booting...");
 
     // initialize function pins
-    Serial.println("Initializing function pins...");
-    FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 1 (e.g. train headlights)
-    FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 2 (e.g. train taillights, reverse headlights, interior lighting etc.)
+    FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 0 (e.g. train headlights)
+    FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 1 etc.
+    FUNCTION_PIN[2] = IR_LIGHT_BLUE;    // Virtual pin -> actually sets the light connected to the BLUE port on the Lego IR receiver 8884
 
-    for (int i = 0; i < NUM_FUNCTIONS; i++) {
+      for (int i = 0; i < NUM_FUNCTIONS; i++) {
       pinMode(FUNCTION_PIN[i], OUTPUT);
       functionCommand[i] = false;
     }
 
-    Serial.println("Initializing motor shields (if any)...");
     switch (MOTORSHIELD_TYPE) {
       case 1:
         // initialize motor pins for L298N
@@ -106,15 +115,13 @@ void setup() {
         pinMode(in4, OUTPUT);
         break;
       case 3:
-        // Power Functions instance is created in the global section
+        // Power Functions instance is declared and initialized in the global section
         ;
     }
 
     // stop motors
-    Serial.println("Stopping train motors...");
     setTrainSpeed(0);
 
-    Serial.println("Loading preferences...");
     loadPreferences();
     setup_wifi();
     setup_mqtt();
@@ -503,6 +510,15 @@ void setTrainSpeed(int newTrainSpeed) {
       }
   } // of outer switch
 
+  // Execute light events
+  if (newTrainSpeed == 0 && currentTrainSpeed != 0) {
+    lightEvent(LightEvent::STOP);
+  } else if (newTrainSpeed > 0 && currentTrainSpeed <= 0) {
+    lightEvent(LightEvent::FORWARD);
+  } else if (newTrainSpeed < 0 && currentTrainSpeed >= 0) {
+    lightEvent(LightEvent::REVERSE);
+  }
+
   currentTrainSpeed = newTrainSpeed;
 }
 
@@ -557,21 +573,58 @@ void accelerateTrainSpeed() {
 }
 
 
-// switch a function pin on or off
-void setFunctionPins() {
+// execute light event
+void lightEvent(LightEvent le) {
+  switch (le) {
+  case LightEvent::STOP:
+    functionCommand[0] = false;
+    functionCommand[1] = false;
+    break;
+  case LightEvent::FORWARD:
+    functionCommand[0] = true;
+    functionCommand[1] = true;
+    break;
+  case LightEvent::REVERSE:
+    functionCommand[0] = true;
+    functionCommand[1] = false;
+  }
+}
+
+// switch lights on or off
+void setLights() {
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
     bool onOff = functionCommand[i];
+
     if (ebreak) {
       // override function state on ebreak (alternate lights on/off every 500ms)
       long phase = (millis() / 500) % 2;
       onOff = (phase + i) % 2 == 0;
     }
-    if (onOff) {
-      digitalWrite(FUNCTION_PIN[i], HIGH);
-    } else {
-      digitalWrite(FUNCTION_PIN[i], LOW);
-    }
-  }
+
+    if (functionState[i] != onOff) {
+      functionState[i] = onOff;
+      Serial.println("Flipping function " + String(i + 1));
+
+      PowerFunctionsPwm irPwmLevel = onOff ? PowerFunctionsPwm::FORWARD7 : PowerFunctionsPwm::BRAKE;
+
+      switch (FUNCTION_PIN[i]) {
+      case IR_LIGHT_RED:
+        powerFunctions.single_pwm(PowerFunctionsPort::RED, irPwmLevel);
+        break;
+
+      case IR_LIGHT_BLUE:
+        powerFunctions.single_pwm(PowerFunctionsPort::BLUE, irPwmLevel);
+        break;
+
+      default:
+        if (onOff) {
+          digitalWrite(FUNCTION_PIN[i], HIGH);
+        } else {
+          digitalWrite(FUNCTION_PIN[i], LOW);
+        }
+      } // of switch
+    } // of if
+  } // of for
 }
 
 
@@ -582,7 +635,7 @@ void loop() {
   client.loop();
 
   accelerateTrainSpeed();
-  setFunctionPins();
+  setLights();
 
   sendMQTTPing(&client, mqttClientName_char);
   sendMQTTBatteryLevel();
