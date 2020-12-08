@@ -96,8 +96,8 @@ const int HUB_LIGHTPORT    = 4; // indicates which ports have lights attached
                                 // Allowed options: "", "A", "B", "AB""
 
 // Legoino Constants (god knows why we have to do this in the script USING the library...)
-byte hubPortA = (byte)PoweredUpHubPort::A;
-byte hubPortB = (byte)PoweredUpHubPort::B;
+const byte PUHubPortA = (byte)PoweredUpHubPort::A;
+const byte PUHubPortB = (byte)PoweredUpHubPort::B;
 const int PU_SCAN_DURATION = 1000;  // time the controller tries to connect to a Hub (in ms)
 
 
@@ -617,18 +617,18 @@ void setTrainSpeed(int newTrainSpeed) {
   for (int i = 0; i < NUM_HUBS; i++){
     if (myHubs[i].isConnected()) {
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("A") >= 0) {
-        myHubs[i].setBasicMotorSpeed(hubPortA, power);
+        myHubs[i].setBasicMotorSpeed(PUHubPortA, power);
         delay(DELAY);
       } else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("a") >= 0) {
-        myHubs[i].setBasicMotorSpeed(hubPortA, -power);
+        myHubs[i].setBasicMotorSpeed(PUHubPortA, -power);
         delay(DELAY);
       }
 
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("B") >= 0) {
-        myHubs[i].setBasicMotorSpeed(hubPortB, power);
+        myHubs[i].setBasicMotorSpeed(PUHubPortB, power);
         delay(DELAY);
       } else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("b") >= 0) {
-        myHubs[i].setBasicMotorSpeed(hubPortB, -power);
+        myHubs[i].setBasicMotorSpeed(PUHubPortB, -power);
         delay(DELAY);
       }
 
@@ -695,10 +695,10 @@ void setLights() {
       for (int h = 0; h < NUM_HUBS; h++) {
         if (myHubs[h].isConnected()) {
           if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("A") >= 0) {
-            myHubs[i].setBasicMotorSpeed(hubPortA, lightPower);
+            myHubs[i].setBasicMotorSpeed(PUHubPortA, lightPower);
             delay(DELAY);
           } else if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("B") >= 0) {
-            myHubs[i].setBasicMotorSpeed(hubPortB, lightPower);
+            myHubs[i].setBasicMotorSpeed(PUHubPortB, lightPower);
             delay(DELAY);
           }
         }
