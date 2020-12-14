@@ -33,9 +33,6 @@ char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the clie
 // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly! You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
 const int NUM_FUNCTIONS = 3;
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
-FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 1 (e.g. train headlights)
-FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
-FUNCTION_PIN[2] = IR_LIGHT_BLUE;    // Virtual pin -> actually sets the light connected to the BLUE port on the Lego IR receiver 8884
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 const uint8_t IR_LIGHT_RED = 254;     // Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == 3.
@@ -105,6 +102,11 @@ void setup() {
     Serial.println("");
     Serial.println("MattzoController booting...");
 
+    // define function pins
+    FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 1 (e.g. train headlights)
+    FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
+    FUNCTION_PIN[2] = IR_LIGHT_BLUE;    // Virtual pin -> actually sets the light connected to the BLUE port on the Lego IR receiver 8884
+        
     // initialize function pins
     for (int i = 0; i < NUM_FUNCTIONS; i++) {
       pinMode(FUNCTION_PIN[i], OUTPUT);
