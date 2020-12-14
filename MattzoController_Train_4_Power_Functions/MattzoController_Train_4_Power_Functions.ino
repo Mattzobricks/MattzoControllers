@@ -459,7 +459,6 @@ void setTrainSpeed(int newTrainSpeed) {
         power = map(abs(newTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
       }
       Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
-      break;
 
       if (MOTORSHIELD_TYPE == 1) {
         // motor shield type L298N
