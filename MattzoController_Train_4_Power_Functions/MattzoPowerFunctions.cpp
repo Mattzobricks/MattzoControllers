@@ -6,6 +6,9 @@
 * Based on SuperCow's code (http://forum.arduino.cc/index.php?topic=38142.0)
 *
 * Released under MIT License
+*
+* Library and some elements renamed by MattzoBricks to avoid conflicts with
+* the integrated PowerFunctions library within the Legoino library
 */
 
 #include <stdlib.h>
@@ -17,7 +20,7 @@
  * @param [in] speed value -100..100 which should be converted to a PWM value
  * @return pwm value 
  */
-PowerFunctionsPwm PowerFunctions::speedToPwm(byte speed)
+MattzoPowerFunctionsPwm MattzoPowerFunctions::speedToPwm(byte speed)
 {
   uint8_t pwm;
   if (speed == 0)
@@ -32,7 +35,7 @@ PowerFunctionsPwm PowerFunctions::speedToPwm(byte speed)
   {
     pwm = speed >> 4;
   }
-  return (PowerFunctionsPwm)pwm;
+  return (MattzoPowerFunctionsPwm)pwm;
 }
 
 /**
@@ -40,7 +43,7 @@ PowerFunctionsPwm PowerFunctions::speedToPwm(byte speed)
  * @param [in] pin Pin of the IR LED which should be used to send out power function IR signals
  * @param [in] channel IR channel 0..4 which should be used to send out signals
  */
-PowerFunctions::PowerFunctions(uint8_t pin, uint8_t channel)
+MattzoPowerFunctions::MattzoPowerFunctions(uint8_t pin, uint8_t channel)
 {
   _channel = channel;
   _toggle = 0;
@@ -53,7 +56,7 @@ PowerFunctions::PowerFunctions(uint8_t pin, uint8_t channel)
  * @brief Constructor to define the pin of the IR LED
  * @param [in] pin Pin of the IR LED which should be used to send out power function IR signals
   */
-PowerFunctions::PowerFunctions(uint8_t pin)
+MattzoPowerFunctions::MattzoPowerFunctions(uint8_t pin)
 {
   _channel = 0;
   _toggle = 0;
@@ -65,9 +68,9 @@ PowerFunctions::PowerFunctions(uint8_t pin)
 /**
  * @brief Set the pwm signal on a defined port (red/blue)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
- * @param [in] pwm PWM signal which is applied to the output port (Use enum values PowerFunctionsPwm)
+ * @param [in] pwm PWM signal which is applied to the output port (Use enum values MattzoPowerFunctionsPwm)
  */
-void PowerFunctions::single_pwm(PowerFunctionsPort port, PowerFunctionsPwm pwm)
+void MattzoPowerFunctions::single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm)
 {
   single_pwm(port, pwm, _channel);
 }
@@ -75,10 +78,10 @@ void PowerFunctions::single_pwm(PowerFunctionsPort port, PowerFunctionsPwm pwm)
 /**
  * @brief Set the pwm signal on a defined port (red/blue)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
- * @param [in] pwm PWM signal which is applied to the output port (Use enum values PowerFunctionsPwm)
+ * @param [in] pwm PWM signal which is applied to the output port (Use enum values MattzoPowerFunctionsPwm)
  * @param [in] channel IR channel 0..4 which should be used to send out signals
  */
-void PowerFunctions::single_pwm(PowerFunctionsPort port, PowerFunctionsPwm pwm, uint8_t channel)
+void MattzoPowerFunctions::single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm, uint8_t channel)
 {
   _nib1 = _toggle | channel;
   _nib2 = PF_SINGLE_OUTPUT | (uint8_t)port;
@@ -91,7 +94,7 @@ void PowerFunctions::single_pwm(PowerFunctionsPort port, PowerFunctionsPwm pwm, 
  * @brief increment pwm signal on a defined port (red/blue)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
   */
-void PowerFunctions::single_increment(PowerFunctionsPort port)
+void MattzoPowerFunctions::single_increment(MattzoPowerFunctionsPort port)
 {
   single_increment(port, _channel);
 }
@@ -101,7 +104,7 @@ void PowerFunctions::single_increment(PowerFunctionsPort port)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
  * @param [in] channel IR channel 0..4 which should be used to send out signals
   */
-void PowerFunctions::single_increment(PowerFunctionsPort port, uint8_t channel)
+void MattzoPowerFunctions::single_increment(MattzoPowerFunctionsPort port, uint8_t channel)
 {
   _nib1 = _toggle | channel;
   _nib2 = PF_SINGLE_EXT | (uint8_t)port;
@@ -114,7 +117,7 @@ void PowerFunctions::single_increment(PowerFunctionsPort port, uint8_t channel)
  * @brief decrement pwm signal on a defined port (red/blue)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
   */
-void PowerFunctions::single_decrement(PowerFunctionsPort port)
+void MattzoPowerFunctions::single_decrement(MattzoPowerFunctionsPort port)
 {
   single_decrement(port, _channel);
 }
@@ -124,7 +127,7 @@ void PowerFunctions::single_decrement(PowerFunctionsPort port)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
  * @param [in] channel IR channel 0..4 which should be used to send out signals
   */
-void PowerFunctions::single_decrement(PowerFunctionsPort port, uint8_t channel)
+void MattzoPowerFunctions::single_decrement(MattzoPowerFunctionsPort port, uint8_t channel)
 {
   _nib1 = _toggle | channel;
   _nib2 = PF_SINGLE_EXT | (uint8_t)port;
@@ -136,9 +139,9 @@ void PowerFunctions::single_decrement(PowerFunctionsPort port, uint8_t channel)
 /**
  * @brief Set the pwm signal on a defined port (red/blue)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
- * @param [in] pwm PWM signal which is applied to the output port (Use enum values PowerFunctionsPwm)
+ * @param [in] pwm PWM signal which is applied to the output port (Use enum values MattzoPowerFunctionsPwm)
  */
-void PowerFunctions::combo_pwm(PowerFunctionsPwm bluePwm, PowerFunctionsPwm redPwm)
+void MattzoPowerFunctions::combo_pwm(MattzoPowerFunctionsPwm bluePwm, MattzoPowerFunctionsPwm redPwm)
 {
   combo_pwm(bluePwm, redPwm, _channel);
 }
@@ -146,10 +149,10 @@ void PowerFunctions::combo_pwm(PowerFunctionsPwm bluePwm, PowerFunctionsPwm redP
 /**
  * @brief Set the pwm signal on a defined port (red/blue)
  * @param [in] port The output port to which the pwm signal is transmitted (Red=0x0, Blue=0x01)
- * @param [in] pwm PWM signal which is applied to the output port (Use enum values PowerFunctionsPwm)
+ * @param [in] pwm PWM signal which is applied to the output port (Use enum values MattzoPowerFunctionsPwm)
  * @param [in] channel IR channel 0..4 which should be used to send out signals
  */
-void PowerFunctions::combo_pwm(PowerFunctionsPwm bluePwm, PowerFunctionsPwm redPwm, uint8_t channel)
+void MattzoPowerFunctions::combo_pwm(MattzoPowerFunctionsPwm bluePwm, MattzoPowerFunctionsPwm redPwm, uint8_t channel)
 {
   _nib1 = PF_ESCAPE | channel;
   _nib2 = (uint8_t)bluePwm;
@@ -162,7 +165,7 @@ void PowerFunctions::combo_pwm(PowerFunctionsPwm bluePwm, PowerFunctionsPwm redP
 //
 
 // Pause function see "Transmitting Messages" in Power Functions PDF
-void PowerFunctions::pause(uint8_t count, uint8_t channel)
+void MattzoPowerFunctions::pause(uint8_t count, uint8_t channel)
 {
   uint8_t pause = 0;
 
@@ -182,14 +185,14 @@ void PowerFunctions::pause(uint8_t count, uint8_t channel)
 }
 
 // Send the start/stop bit
-void PowerFunctions::start_stop_bit()
+void MattzoPowerFunctions::start_stop_bit()
 {
   send_bit();
   delayMicroseconds(PF_START_STOP); // Extra pause for start_stop_bit
 }
 
 // Send a bit
-void PowerFunctions::send_bit()
+void MattzoPowerFunctions::send_bit()
 {
   for (uint8_t i = 0; i < 6; i++)
   {
@@ -200,7 +203,7 @@ void PowerFunctions::send_bit()
   }
 }
 
-void PowerFunctions::send(uint8_t channel)
+void MattzoPowerFunctions::send(uint8_t channel)
 {
   uint8_t i, j;
   uint16_t message = _nib1 << 12 | _nib2 << 8 | _nib3 << 4 | PF_CHECKSUM();
@@ -218,7 +221,7 @@ void PowerFunctions::send(uint8_t channel)
   } // for
 }
 
-inline void PowerFunctions::toggle()
+inline void MattzoPowerFunctions::toggle()
 {
   _toggle ^= 0x8;
 }

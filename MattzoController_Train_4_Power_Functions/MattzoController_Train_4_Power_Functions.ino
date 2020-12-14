@@ -13,7 +13,7 @@
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library
 #include <tinyxml2.h>  // tiny xml 2 library
-#include <MattzoPowerFunctions.h>  // Power Functions library
+#include "MattzoPowerFunctions.h"  // Power Functions library
 #include <MattzoController_Network_Configuration.h>
 
 using namespace tinyxml2;
@@ -29,11 +29,16 @@ String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
 /* Functions (lights) */
-const int NUM_FUNCTIONS = 3;          // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly!
+// NUM_FUNCTIONS represents the number of Rocrail functions that can be switched with this controller
+// if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly! You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
+const int NUM_FUNCTIONS = 3;
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
+FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 1 (e.g. train headlights)
+FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
+FUNCTION_PIN[2] = IR_LIGHT_BLUE;    // Virtual pin -> actually sets the light connected to the BLUE port on the Lego IR receiver 8884
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
-const uint8_t IR_LIGHT_RED = 254;    // Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == 3.
+const uint8_t IR_LIGHT_RED = 254;     // Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == 3.
 const uint8_t IR_LIGHT_BLUE = 255;
 enum struct LightEvent
 {
@@ -43,22 +48,30 @@ enum struct LightEvent
 };
 
 
+// MOTORSHIELD_TYPE repsents the type motor shield that this controller uses.
+// 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
+// Types 1 and 2 are motorshields that are physically connected to the controller
+// Commands to type 3 are transmitted via an infrared LED
+const int MOTORSHIELD_TYPE = 3;
 
-const int MOTORSHIELD_TYPE = 3; // motor shield type. 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
+// Constants for type 1 (L298N)
 #define enA D1  // PWM signal for motor A. Relevant for L298N only.
+#define enB D5  // PWM signal for motor B. Relevant for L298N only.
+
+// Constants for type 1 (L298N) and type 2 (L9110)
 #define in1 D2  // motor A direction control (forward). Relevant for L298N and L9110 only.
 #define in2 D3  // motor A direction control (reverse). Relevant for L298N and L9110 only.
-#define enB D5  // PWM signal for motor B. Relevant for L298N only.
 #define in3 D6  // motor B direction control (forward). Relevant for L298N and L9110 only.
 #define in4 D7  // motor B direction control (reverse). Relevant for L298N and L9110 only.
+const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
+const boolean REVERSE_B = true;   // if set to true, motor B is reversed
+
+// Constants for type 3 (Lego IR Receiver 8884)
 #define IR_LED_PIN D1  // pin of the IR LED. Relevant for Lego IR Receiver 8884 only.
 #define IR_CHANNEL 0   // channel number selected on the IR receiver. Relevant for Lego IR Receiver 8884 only.
 #define IR_PORT_RED 1     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, normal rotation; 0 = no motor; -1 = motor, reversed rotation
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, normal rotation; 0 = no motor; -1 = motor, reversed rotation
-PowerFunctions powerFunctions(IR_LED_PIN, IR_CHANNEL);
-
-const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
-const boolean REVERSE_B = true;  // if set to true, motor B is reversed
+MattzoPowerFunctions powerFunctions(IR_LED_PIN, IR_CHANNEL);
 
 /* Send battery level  */
 const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
@@ -93,11 +106,7 @@ void setup() {
     Serial.println("MattzoController booting...");
 
     // initialize function pins
-    FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 0 (e.g. train headlights)
-    FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 1 etc.
-    FUNCTION_PIN[2] = IR_LIGHT_BLUE;    // Virtual pin -> actually sets the light connected to the BLUE port on the Lego IR receiver 8884
-
-      for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    for (int i = 0; i < NUM_FUNCTIONS; i++) {
       pinMode(FUNCTION_PIN[i], OUTPUT);
       functionCommand[i] = false;
     }
@@ -115,7 +124,7 @@ void setup() {
         pinMode(in4, OUTPUT);
         break;
       case 3:
-        // Power Functions instance is declared and initialized in the global section
+        // Power Functions instance is declared and initialized in the global section at the beginning of the code
         ;
     }
 
@@ -498,15 +507,15 @@ void setTrainSpeed(int newTrainSpeed) {
       if (maxTrainSpeed > 0) {
         irSpeed = newTrainSpeed * MAX_IR_SPEED / maxTrainSpeed;
       }
-      PowerFunctionsPwm pfPWMRed = powerFunctions.speedToPwm(IR_PORT_RED * irSpeed);
-      PowerFunctionsPwm pfPWMBlue = powerFunctions.speedToPwm(IR_PORT_BLUE * irSpeed);
+      MattzoPowerFunctionsPwm pfPWMRed = powerFunctions.speedToPwm(IR_PORT_RED * irSpeed);
+      MattzoPowerFunctionsPwm pfPWMBlue = powerFunctions.speedToPwm(IR_PORT_BLUE * irSpeed);
       Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (IR speed: " + irSpeed + ")");
 
       if (IR_PORT_RED) {
-        powerFunctions.single_pwm(PowerFunctionsPort::RED, pfPWMRed);
+        powerFunctions.single_pwm(MattzoPowerFunctionsPort::RED, pfPWMRed);
       }
       if (IR_PORT_BLUE) {
-        powerFunctions.single_pwm(PowerFunctionsPort::BLUE, pfPWMBlue);
+        powerFunctions.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPWMBlue);
       }
   } // of outer switch
 
@@ -605,15 +614,15 @@ void setLights() {
       functionState[i] = onOff;
       Serial.println("Flipping function " + String(i + 1));
 
-      PowerFunctionsPwm irPwmLevel = onOff ? PowerFunctionsPwm::FORWARD7 : PowerFunctionsPwm::BRAKE;
+      MattzoPowerFunctionsPwm irPwmLevel = onOff ? MattzoPowerFunctionsPwm::FORWARD7 : MattzoPowerFunctionsPwm::BRAKE;
 
       switch (FUNCTION_PIN[i]) {
       case IR_LIGHT_RED:
-        powerFunctions.single_pwm(PowerFunctionsPort::RED, irPwmLevel);
+        powerFunctions.single_pwm(MattzoPowerFunctionsPort::RED, irPwmLevel);
         break;
 
       case IR_LIGHT_BLUE:
-        powerFunctions.single_pwm(PowerFunctionsPort::BLUE, irPwmLevel);
+        powerFunctions.single_pwm(MattzoPowerFunctionsPort::BLUE, irPwmLevel);
         break;
 
       default:

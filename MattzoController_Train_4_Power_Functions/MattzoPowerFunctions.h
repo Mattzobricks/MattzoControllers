@@ -6,10 +6,13 @@
 * Based on SuperCow's code (http://forum.arduino.cc/index.php?topic=38142.0)
 *
 * Released under MIT License
+* 
+* Library and some elements renamed by MattzoBricks to avoid conflicts with 
+* the integrated PowerFunctions library within the Legoino library
 */
 
-#ifndef PowerFunctions_h
-#define PowerFunctions_h
+#ifndef MattzoPowerFunctions_h
+#define MattzoPowerFunctions_h
 
 #include <stdio.h>
 #include "Arduino.h"
@@ -33,7 +36,7 @@
 #define PF_MAX_MESSAGE_LENGTH PF_IR_CYCLES(522) // 2 * 45 + 16 * 27
 
 //PWM speed steps
-enum struct PowerFunctionsPwm
+enum struct MattzoPowerFunctionsPwm
 {
   FLOAT = 0x0,
   FORWARD1 = 0x1,
@@ -53,26 +56,26 @@ enum struct PowerFunctionsPwm
   REVERSE1 = 0xF
 };
 
-enum struct PowerFunctionsPort
+enum struct MattzoPowerFunctionsPort
 {
   RED = 0x0,
   BLUE = 0x1
 };
 
-class PowerFunctions
+class MattzoPowerFunctions
 {
 public:
-  PowerFunctions(uint8_t pin, uint8_t channel);
-  PowerFunctions(uint8_t pin);
-  void single_pwm(PowerFunctionsPort port, PowerFunctionsPwm pwm);
-  void single_pwm(PowerFunctionsPort port, PowerFunctionsPwm pwm, uint8_t channel);
-  void single_increment(PowerFunctionsPort port);
-  void single_increment(PowerFunctionsPort port, uint8_t channel);
-  void single_decrement(PowerFunctionsPort port);
-  void single_decrement(PowerFunctionsPort port, uint8_t channel);
-  void combo_pwm(PowerFunctionsPwm redPwm, PowerFunctionsPwm bluePwm);
-  void combo_pwm(PowerFunctionsPwm redPwm, PowerFunctionsPwm bluePwm, uint8_t channel);
-  PowerFunctionsPwm speedToPwm(byte speed);
+  MattzoPowerFunctions(uint8_t pin, uint8_t channel);
+  MattzoPowerFunctions(uint8_t pin);
+  void single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm);
+  void single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm, uint8_t channel);
+  void single_increment(MattzoPowerFunctionsPort port);
+  void single_increment(MattzoPowerFunctionsPort port, uint8_t channel);
+  void single_decrement(MattzoPowerFunctionsPort port);
+  void single_decrement(MattzoPowerFunctionsPort port, uint8_t channel);
+  void combo_pwm(MattzoPowerFunctionsPwm redPwm, MattzoPowerFunctionsPwm bluePwm);
+  void combo_pwm(MattzoPowerFunctionsPwm redPwm, MattzoPowerFunctionsPwm bluePwm, uint8_t channel);
+  MattzoPowerFunctionsPwm speedToPwm(byte speed);
 
 private:
   void pause(uint8_t count, uint8_t channel);
