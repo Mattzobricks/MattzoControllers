@@ -49,17 +49,17 @@ enum struct LightEvent
 // 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
 // Types 1 and 2 are motorshields that are physically connected to the controller
 // Commands to type 3 are transmitted via an infrared LED
-const int MOTORSHIELD_TYPE = 3;
+const int MOTORSHIELD_TYPE = 0;
 
 // Constants for type 1 (L298N)
 #define enA D1  // PWM signal for motor A. Relevant for L298N only.
 #define enB D5  // PWM signal for motor B. Relevant for L298N only.
 
 // Constants for type 1 (L298N) and type 2 (L9110)
-#define in1 D2  // motor A direction control (forward). Relevant for L298N and L9110 only.
-#define in2 D3  // motor A direction control (reverse). Relevant for L298N and L9110 only.
-#define in3 D6  // motor B direction control (forward). Relevant for L298N and L9110 only.
-#define in4 D7  // motor B direction control (reverse). Relevant for L298N and L9110 only.
+#define in1 D3  // motor A direction control (forward). Relevant for L298N and L9110 only.
+#define in2 D4  // motor A direction control (reverse). Relevant for L298N and L9110 only.
+#define in3 D5  // motor B direction control (forward). Relevant for L298N and L9110 only.
+#define in4 D6  // motor B direction control (reverse). Relevant for L298N and L9110 only.
 const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
 const boolean REVERSE_B = true;   // if set to true, motor B is reversed
 
@@ -103,10 +103,10 @@ void setup() {
     Serial.println("MattzoController booting...");
 
     // define function pins
-    FUNCTION_PIN[0] = D0;    // Output pin for Rocrail Function 1 (e.g. train headlights)
-    FUNCTION_PIN[1] = D4;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
-    FUNCTION_PIN[2] = IR_LIGHT_BLUE;    // Virtual pin -> actually sets the light connected to the BLUE port on the Lego IR receiver 8884
-        
+    FUNCTION_PIN[0] = D5;    // Output pin for Rocrail Function 1 (e.g. train headlights)
+    FUNCTION_PIN[1] = D6;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
+    FUNCTION_PIN[2] = D7;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
+
     // initialize function pins
     for (int i = 0; i < NUM_FUNCTIONS; i++) {
       pinMode(FUNCTION_PIN[i], OUTPUT);
@@ -587,16 +587,19 @@ void accelerateTrainSpeed() {
 void lightEvent(LightEvent le) {
   switch (le) {
   case LightEvent::STOP:
-    functionCommand[0] = false;
-    functionCommand[1] = false;
+    // functionCommand[0] = false;
+    // functionCommand[1] = false;
+    // functionCommand[2] = false;
     break;
   case LightEvent::FORWARD:
     functionCommand[0] = true;
-    functionCommand[1] = true;
+    functionCommand[1] = false;
+    functionCommand[2] = false;
     break;
   case LightEvent::REVERSE:
     functionCommand[0] = true;
-    functionCommand[1] = false;
+    functionCommand[1] = true;
+    functionCommand[2] = true;
   }
 }
 
