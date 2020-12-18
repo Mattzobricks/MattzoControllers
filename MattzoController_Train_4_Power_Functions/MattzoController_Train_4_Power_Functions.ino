@@ -28,6 +28,9 @@ const int MAX_CONTROLLER_ID = 16383;
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
+/* Train address */
+const int TRAIN_ADDRESS = 13043;
+
 /* Functions (lights) */
 // NUM_FUNCTIONS represents the number of Rocrail functions that can be switched with this controller
 // if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly! You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
@@ -283,13 +286,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("loco id: " + String(rr_id));
   
     // query addr attribute. This is the MattzoController id.
-    // If this does not equal the ControllerNo of this controller, the message is disregarded.
+    // If this does not equal the TRAIN_ADDRESS of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       Serial.println("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     Serial.println("addr: " + String(rr_addr));
-    if (rr_addr != controllerNo) {
+    if (rr_addr != TRAIN_ADDRESS) {
       Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
@@ -357,13 +360,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("function id: " + String(rr_id));
   
     // query addr attribute. This is the MattzoController id.
-    // If this does not equal the ControllerNo of this controller, the message is disregarded.
+    // If this does not equal the TRAIN_ADDRESS of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       Serial.println("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     Serial.println("addr: " + String(rr_addr));
-    if (rr_addr != controllerNo) {
+    if (rr_addr != TRAIN_ADDRESS) {
       Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
