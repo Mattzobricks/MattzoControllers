@@ -26,9 +26,6 @@ const int MAX_CONTROLLER_ID = 65000;
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-const int NUM_SIGNALPORTS = 8; // Number of signal ports
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS];  // Digital PINs for output
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -41,15 +38,7 @@ void setup() {
   Serial.println("");
   Serial.println("MattzoController booting...");
 
-  SIGNALPORT_PIN[0] = D0;
-  SIGNALPORT_PIN[1] = D1;
-  SIGNALPORT_PIN[2] = D2;
-  SIGNALPORT_PIN[3] = D3;
-  SIGNALPORT_PIN[4] = D4;
-  SIGNALPORT_PIN[5] = D5;
-  SIGNALPORT_PIN[6] = D6;
-  SIGNALPORT_PIN[7] = D7;
-
+  // initialize pins
   for (int i = 0; i < NUM_SIGNALPORTS; i++) {
     pinMode(SIGNALPORT_PIN[i], OUTPUT);
   }
@@ -123,24 +112,20 @@ void loadPreferences() {
 }
 
 void setupWifi() {
-    delay(10);
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(WIFI_SSID);
+  delay(10);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
  
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
  
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(1000);
-      Serial.print(".");
-
-      // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
-    }
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
  
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+  Serial.println("");
+  mcLog("WiFi connected. My IP address is " + WiFi.localIP().toString() + ".");
 }
  
 void setupMQTT () {
@@ -151,44 +136,39 @@ void setupMQTT () {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Received message [");
-  Serial.print(topic);
-  Serial.print("] ");
   char msg[length+1];
   for (int i = 0; i < length; i++) {
-      // Serial.print((char)payload[i]);
       msg[i] = (char)payload[i];
   }
-  // Serial.println();
-
   msg[length] = '\0';
-  Serial.println(msg);
+
+  mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
 
   XMLDocument xmlDocument;
-  if(xmlDocument.Parse(msg)!= XML_SUCCESS){
-    Serial.println("Error parsing");
+  if(xmlDocument.Parse(msg)!= XML_SUCCESS) {
+    mcLog("Error parsing.");
     return;
   }
 
-  Serial.println("Parsing XML successful");
+  mcLog("Parsing XML successful.");
   XMLElement * element = xmlDocument.FirstChildElement("co");
   if (element == NULL) {
-    Serial.println("<co> node not found. Message disregarded.");
+    mcLog("<co> node not found. Message disregarded.");
     return;
   }
 
-  Serial.println("<co> node found.");
+  mcLog("<co> node found.");
 
   // query addr attribute. This is the MattzoController id.
   // If this does not equal the ControllerNo of this controller, the message is disregarded.
   int rr_addr = 0;
   if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-    Serial.println("addr attribute not found or wrong type. Message disregarded.");
+    mcLog("addr attribute not found or wrong type. Message disregarded.");
     return;
   }
-  Serial.println("addr: " + String(rr_addr));
+  mcLog("addr: " + String(rr_addr));
   if (rr_addr != controllerNo) {
-    Serial.println("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
+    mcLog("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
     return;
   }
 
@@ -196,22 +176,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // If the controller does not have such a port, the message is disregarded.
   int rr_port = 0;
   if (element->QueryIntAttribute("port", &rr_port) != XML_SUCCESS) {
-    Serial.println("port attribute not found or wrong type. Message disregarded.");
+    mcLog("port attribute not found or wrong type. Message disregarded.");
     return;
   }
-  Serial.println("port: " + String(rr_port));
+  mcLog("port: " + String(rr_port));
   if (rr_port < 1 || rr_port > NUM_SIGNALPORTS) {
-    Serial.println("Message disgarded, as this controller does not have such a port.");
+    mcLog("Message disgarded, as this controller does not have such a port.");
     return;
   }
 
   // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
   const char * rr_cmd = "-unknown-";
   if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-    Serial.println("cmd attribute not found or wrong type.");
+    mcLog("cmd attribute not found or wrong type.");
     return;
   }
-  Serial.println("cmd: " + String(rr_cmd));
+  mcLog("cmd: " + String(rr_cmd));
 
   // set signal LED for the port on/off
   if (strcmp(rr_cmd, "on")==0) {
@@ -219,7 +199,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   } else if (strcmp(rr_cmd, "off")==0) {
     setLED(rr_port - 1, false);
   } else {
-    Serial.println("Signal port command unknown - message disregarded.");
+    mcLog("Signal port command unknown - message disregarded.");
     return;
   }
 }
@@ -234,7 +214,7 @@ void setLED(int index, bool ledState) {
 
 void reconnectMQTT() {
   while (!client.connected()) {
-      Serial.println("Reconnecting MQTT...");
+      mcLog("Reconnecting MQTT...");
 
       String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
       char lastWillMessage_char[lastWillMessage.length() + 1];
@@ -248,7 +228,7 @@ void reconnectMQTT() {
       }
   }
   client.subscribe("rocrail/service/command");
-  Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
+  mcLog("MQTT connected, listening on topic [rocrail/service/command].");
 }
 
 void loop() {

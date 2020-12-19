@@ -19,6 +19,16 @@
 
 
 
+// ***************************
+// Controller wiring specifics
+// ***************************
+
+// Number of signal ports
+const int NUM_SIGNALPORTS = 8;
+// Digital pins for output
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {D0, D1, D2, D3, D4, D5, D6, D7};
+
+
 // ***************
 // Syslog settings
 // ***************
