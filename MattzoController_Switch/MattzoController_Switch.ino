@@ -61,6 +61,7 @@ void setup() {
     servo[6].attach(D6);
     servo[7].attach(D7);
 
+    // initialize pins
     for (int i = 0; i < NUM_SWITCHPORTS; i++) {
       servo[i].write(SERVO_START);
       delay(SWITCH_DELAY);
@@ -150,9 +151,7 @@ void setupWifi() {
     }
  
     Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
+    mcLog("WiFi connected. My IP address is " + WiFi.localIP().toString() + ".");
 }
  
 // Setup MQTT
@@ -164,25 +163,21 @@ void setupMQTT() {
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Received message [");
-  Serial.print(topic);
-  Serial.print("] ");
-  char msg[length+1];
+  char msg[length + 1];
   for (int i = 0; i < length; i++) {
-      // Serial.print((char)payload[i]);
-      msg[i] = (char)payload[i];
+    msg[i] = (char)payload[i];
   }
-
   msg[length] = '\0';
-  mcLog(msg);
+
+  mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
 
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS){
-    mcLog("Error parsing");
+    mcLog("Error parsing.");
     return;
   }
 
-  mcLog("Parsing XML successful");
+  mcLog("Parsing XML successful.");
   XMLElement * element = xmlDocument.FirstChildElement("sw");
   if (element == NULL) {
     mcLog("<sw> node not found. Message disregarded.");

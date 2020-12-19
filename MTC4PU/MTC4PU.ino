@@ -218,23 +218,10 @@ void reconnectWIFI() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
-
-    // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
-/*
-    // please see here: https://www.arduino.cc/en/Reference/WiFiStatus
-    if (WiFi.status() == WL_IDLE_STATUS)          {Serial.println("WL_IDLE_STATUS");}
-    else if (WiFi.status() == WL_CONNECTED)       {Serial.println("WL_CONNECTED ");}
-    else if (WiFi.status() == WL_NO_SSID_AVAIL)   {Serial.println("WL_NO_SSID_AVAIL");}
-    else if (WiFi.status() == WL_CONNECT_FAILED)  {Serial.println("WL_CONNECT_FAILED");}
-    else if (WiFi.status() == WL_CONNECTION_LOST) {Serial.println("WL_CONNECTION_LOST");}
-    else if (WiFi.status() == WL_DISCONNECTED)    {Serial.println("WL_DISCONNECTED");}
-    else {Serial.println("unknown status: " + String(WiFi.status()));}
-*/
   }
 
-  Serial.println();
-  Serial.print("Connected to WiFi, SSID " + String(WIFI_SSID) + ", as ");
-  Serial.println(WiFi.localIP());
+  Serial.println("");
+  mcLog("WiFi connected. My IP address is " + WiFi.localIP().toString() + ".");
 }
 
 void initMQTT() {
@@ -246,7 +233,7 @@ void initMQTT() {
 
 void reconnectMQTT() {
   while (!client.connected()) {
-    Serial.println("Reconnecting MQTT...");
+    mcLog("Reconnecting MQTT...");
 
     String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
     char lastWillMessage_char[lastWillMessage.length() + 1];
@@ -260,7 +247,7 @@ void reconnectMQTT() {
     }
   }
   client.subscribe("rocrail/service/command");
-  Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
+  mcLog("MQTT connected, listening on topic [rocrail/service/command].");
 
   // if a Powered Hub was discovered on start-up, transmit it after (first) MQTT connection.
   if (discoveryHubAddress.length() > 0) {
@@ -276,20 +263,20 @@ void sendMQTTMessage(String topic, String message) {
   char message_char[MAX_MQTT_MESSAGE_SIZE];
 
   if (topic.length() + 1 > MAX_MQTT_TOPIC_SIZE) {
-    Serial.println("ERROR: MQTT topic string too long - message not sent.");
+    mcLog("ERROR: MQTT topic string too long - message not sent.");
     return;
   }
 
   message = String(mqttClientName_char) + " " + message;
   if (message.length() + 1 > MAX_MQTT_MESSAGE_SIZE) {
-    Serial.println("ERROR: MQTT message string too long - message not sent.");
+    mcLog("ERROR: MQTT message string too long - message not sent.");
     return;
   }
 
   topic.toCharArray(topic_char, topic.length() + 1);
   message.toCharArray(message_char, message.length() + 1);
 
-  Serial.println("sending mqtt: " + topic + " " + message);
+  mcLog("sending mqtt: " + topic + " " + message);
   client.publish(topic_char, message_char);
 }
 
@@ -298,7 +285,7 @@ void sendMQTTBatteryLevel() {
     lastBatteryLevelMsg = millis();
 
     if (myHubs[nextBatteryLevelReportingHub].isConnected()) {
-      Serial.println("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
+      mcLog("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
       myHubs[nextBatteryLevelReportingHub].activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
       delay(10);
     }
@@ -308,23 +295,21 @@ void sendMQTTBatteryLevel() {
 }
 
 void callbackMQTT(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Received message [");
-  Serial.print(topic);
-  Serial.print("] ");
   char msg[length + 1];
   for (int i = 0; i < length; i++) {
     msg[i] = (char)payload[i];
   }
   msg[length] = '\0';
-  Serial.print(msg);
+
+  mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
 
   XMLDocument xmlDocument;
   if (xmlDocument.Parse(msg) != XML_SUCCESS) {
-    Serial.println("Error parsing");
+    mcLog("Error parsing.");
     return;
   }
 
-  Serial.println("Parsing XML successful");
+  mcLog("Parsing XML successful.");
 
   const char* rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
   int rr_addr = 0;
@@ -332,7 +317,7 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   // check for lc message
   XMLElement* element = xmlDocument.FirstChildElement("lc");
   if (element != NULL) {
-    Serial.println("<lc> node found. Processing loco message...");
+    mcLog("<lc> node found. Processing loco message...");
 
     // -> process lc (loco) message
 
@@ -340,20 +325,20 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     // The id is a mandatory field. If not found, the message is discarded.
 
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
-      Serial.println("id attribute not found or wrong type.");
+      mcLog("id attribute not found or wrong type.");
       return;
     }
-    Serial.println("loco id: " + String(rr_id));
+    mcLog("loco id: " + String(rr_id));
 
     // query addr attribute. This is the MattzoController id.
     // If this does not equal the controllerNo of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-      Serial.println("addr attribute not found or wrong type. Message disregarded.");
+      mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
-    Serial.println("addr: " + String(rr_addr));
+    mcLog("addr: " + String(rr_addr));
     if (rr_addr != controllerNo) {
-      Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+      mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
 
@@ -361,51 +346,51 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     const char* rr_dir = "xxxxxx";  // expected values are "true" or "false"
     int dir;
     if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
-      Serial.println("dir attribute not found or wrong type.");
+      mcLog("dir attribute not found or wrong type.");
       return;
     }
-    Serial.println("dir (raw): " + String(rr_dir));
+    mcLog("dir (raw): " + String(rr_dir));
     if (strcmp(rr_dir, "true") == 0) {
-      Serial.println("direction: forward");
+      mcLog("direction: forward");
       dir = 1;
     }
     else if (strcmp(rr_dir, "false") == 0) {
-      Serial.println("direction: backward");
+      mcLog("direction: backward");
       dir = -1;
     }
     else {
-      Serial.println("unknown dir value - disregarding message.");
+      mcLog("unknown dir value - disregarding message.");
       return;
     }
 
     // query V attribute. This is the speed information for the loco and ranges from 0 to V_max (see below).
     int rr_v = 0;
     if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
-      Serial.println("V attribute not found or wrong type. Message disregarded.");
+      mcLog("V attribute not found or wrong type. Message disregarded.");
       return;
     }
-    Serial.println("V: " + String(rr_v));
+    mcLog("V: " + String(rr_v));
 
     // query V_max attribute. This is maximum speed of the loco. It must be set in the loco settings in Rocrail as percentage value.
     // The V_max attribute is required to map to loco speed from rocrail to a power setting in the MattzoController.
     int rr_vmax = 0;
     if (element->QueryIntAttribute("V_max", &rr_vmax) != XML_SUCCESS) {
-      Serial.println("V_max attribute not found or wrong type. Message disregarded.");
+      mcLog("V_max attribute not found or wrong type. Message disregarded.");
       return;
     }
-    Serial.println("V_max: " + String(rr_vmax));
+    mcLog("V_max: " + String(rr_vmax));
 
     // set target train speed
     targetTrainSpeed = rr_v * dir;
     maxTrainSpeed = rr_vmax;
-    Serial.println("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
+    mcLog("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
     return;
   }
 
   // Check for fn message
   element = xmlDocument.FirstChildElement("fn");
   if (element != NULL) {
-    Serial.println("<fn> node found. Processing fn message...");
+    mcLog("<fn> node found. Processing fn message...");
 
     // -> process fn (function) message
 
@@ -413,55 +398,55 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     // The id is a mandatory field. If not found, the message is discarded.
     // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
-      Serial.println("id attribute not found or wrong type.");
+      mcLog("id attribute not found or wrong type.");
       return;
     }
-    Serial.println("function id: " + String(rr_id));
+    mcLog("function id: " + String(rr_id));
 
     // query addr attribute. This is the MattzoController id.
     // If this does not equal the ControllerNo of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-      Serial.println("addr attribute not found or wrong type. Message disregarded.");
+      mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
-    Serial.println("addr: " + String(rr_addr));
+    mcLog("addr: " + String(rr_addr));
     if (rr_addr != controllerNo) {
-      Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+      mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
 
     // query fnchanged attribute. This is information which function shall be set.
     int rr_functionNo;
     if (element->QueryIntAttribute("fnchanged", &rr_functionNo) != XML_SUCCESS) {
-      Serial.println("fnchanged attribute not found or wrong type. Message disregarded.");
+      mcLog("fnchanged attribute not found or wrong type. Message disregarded.");
       return;
     }
-    Serial.println("fnchanged: " + String(rr_functionNo));
+    mcLog("fnchanged: " + String(rr_functionNo));
 
     if (rr_functionNo < 1 || rr_functionNo > NUM_FUNCTIONS) {
-      Serial.println("fnchanged out of range. Message disregarded.");
+      mcLog("fnchanged out of range. Message disregarded.");
       return;
     }
     int functionPinId = rr_functionNo - 1;
-    Serial.println("Function PIN Id: " + String(functionPinId));
+    mcLog("Function PIN Id: " + String(functionPinId));
 
     // query fnchangedstate attribute. This is value if the function shall be set on or off
     const char* rr_state = "xxxxxx";  // expected values are "true" or "false"
     if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
-      Serial.println("fnchangedstate attribute not found or wrong type.");
+      mcLog("fnchangedstate attribute not found or wrong type.");
       return;
     }
-    Serial.println("fnchangedstate (raw): " + String(rr_state));
+    mcLog("fnchangedstate (raw): " + String(rr_state));
     if (strcmp(rr_state, "true") == 0) {
-      Serial.println("fnchangedstate: true");
+      mcLog("fnchangedstate: true");
       functionCommand[functionPinId] = true;
     }
     else if (strcmp(rr_state, "false") == 0) {
-      Serial.println("fnchangedstate: false");
+      mcLog("fnchangedstate: false");
       functionCommand[functionPinId] = false;
     }
     else {
-      Serial.println("unknown fnchangedstate value - disregarding message.");
+      mcLog("unknown fnchangedstate value - disregarding message.");
       return;
     }
 
@@ -471,37 +456,37 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   // Check for sys message
   element = xmlDocument.FirstChildElement("sys");
   if (element != NULL) {
-    Serial.println("<sys> node found. Processing sys message...");
+    mcLog("<sys> node found. Processing sys message...");
 
     const char* rr_cmd = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
 
     // query cmd attribute. This is the system message type.
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-      Serial.println("cmd attribute not found or wrong type.");
+      mcLog("cmd attribute not found or wrong type.");
       return;
     }
 
     String rr_cmd_s = String(rr_cmd);
-    Serial.println("rocrail system command: " + String(rr_cmd_s));
+    mcLog("rocrail system command: " + String(rr_cmd_s));
 
     // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
     // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
 
     if (rr_cmd_s == "ebreak" || rr_cmd_s == "stop" || rr_cmd_s == "shutdown") {
-      Serial.println("received ebreak, stop or shutdown command. Stopping train.");
+      mcLog("received ebreak, stop or shutdown command. Stopping train.");
       ebreak = true;
     }
     else if (rr_cmd_s == "go") {
-      Serial.println("received go command. Releasing emergency break.");
+      mcLog("received go command. Releasing emergency break.");
       ebreak = false;
     }
     else {
-      Serial.println("received other system command, disregarded.");
+      mcLog("received other system command, disregarded.");
     }
     return;
   }
 
-  Serial.println("Unknown message, disregarded.");
+  mcLog("Unknown message, disregarded.");
 }
 
 
@@ -513,15 +498,15 @@ void discoverPoweredUpHubs() {
 
   Lpf2Hub discoveryHub;  // Hub used for discovering new PU hubs
 
-  Serial.println("Discovering Powered Up Hubs...");
+  mcLog("Discovering Powered Up Hubs...");
   discoveryHub.init();
   if (!discoveryHub.isConnected() && discoveryHub.isConnecting()) {
     Serial.print("Powered Up Hub found. MAC Address: ");
     discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
-    Serial.println(discoveryHubAddress);
+    mcLog(discoveryHubAddress);
   }
   else {
-    Serial.println("No Powered Up Hub found. Starting loop...");
+    mcLog("No Powered Up Hub found. Starting loop...");
   }
 }
 
@@ -573,12 +558,12 @@ void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint
   Lpf2Hub* myHub = (Lpf2Hub*)hub;
   String hubAddress = myHub->getHubAddress().toString().c_str();
   Serial.print("PU Message received from " + hubAddress + ", hub property ");
-  Serial.println((byte)hubProperty, HEX);
+  mcLog((byte)hubProperty, HEX);
 
   if (hubProperty == HubPropertyReference::BATTERY_VOLTAGE)
   {
     Serial.print("BatteryLevel: ");
-    Serial.println(myHub->parseBatteryLevel(pData), DEC);
+    mcLog(myHub->parseBatteryLevel(pData), DEC);
     sendMQTTMessage("roc2bricks/battery", hubAddress + " " + myHub->parseBatteryLevel(pData));
     return;
   }
@@ -586,7 +571,7 @@ void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint
   if (hubProperty == HubPropertyReference::BUTTON)
   {
     Serial.print("Button: ");
-    Serial.println((byte)myHub->parseHubButton(pData), HEX);
+    mcLog((byte)myHub->parseHubButton(pData), HEX);
     sendMQTTMessage("roc2bricks/button", hubAddress + " button pressed.");
     return;
   }
@@ -600,7 +585,7 @@ void setTrainSpeed(int newTrainSpeed) {
   const int MAX_PU_POWER = 88;
 
   int power = map(newTrainSpeed, 0, maxTrainSpeed, 0, MAX_PU_POWER * maxTrainSpeed / 100);
-  Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
+  mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
 
   currentTrainSpeed = newTrainSpeed;
   // Set integrated powered up hub light according to situation
@@ -644,7 +629,7 @@ void setTrainSpeed(int newTrainSpeed) {
     }
   }
 
-  Serial.println("Motor speed set to: " + String(newTrainSpeed));
+  mcLog("Motor speed set to: " + String(newTrainSpeed));
 }
 
 
@@ -697,7 +682,7 @@ void setLights() {
 
     if (functionState[i] != onOff) {
       functionState[i] = onOff;
-      Serial.println("Flipping function " + String(i + 1));
+      mcLog("Flipping function " + String(i + 1));
 
       int lightPower = onOff ? 100 : 0;
 

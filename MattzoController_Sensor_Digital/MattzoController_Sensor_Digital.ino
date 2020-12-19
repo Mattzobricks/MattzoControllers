@@ -50,6 +50,7 @@ void setup() {
   LED_PIN[2] = D7;
   LED_PIN[3] = D8;
 
+  // initialize pins
   for (int i = 0; i < NUM_SENSORS; i++) {
     pinMode(SENSOR_PIN[i], INPUT);
     pinMode(LED_PIN[i], OUTPUT);
@@ -141,14 +142,10 @@ void setupWifi() {
     allBlink(false, 0);
     delay(400);
     Serial.print(".");
-
-    // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
   }
 
   Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  mcLog("WiFi connected. My IP address is " + WiFi.localIP().toString() + ".");
 }
 
 // Setup MQTT
@@ -236,7 +233,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void reconnectMQTT() {
   while (!client.connected()) {
     allBlink(true, 1);
-    Serial.println("Reconnecting MQTT...");
+    mcLog("Reconnecting MQTT...");
 
     String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
     char lastWillMessage_char[lastWillMessage.length() + 1];
@@ -255,7 +252,7 @@ void reconnectMQTT() {
     }
   }
   allBlink(false, 2);
-  Serial.println("MQTT Connected.");
+  mcLog("MQTT Connected.");
 }
 
 
@@ -281,7 +278,7 @@ void loop() {
     if (sensorValue == LOW) {
       // Contact -> report contact immediately
       if (!sensorState[i]) {
-        Serial.println("Sensor " + String(i) + ": Contact!");
+        mcLog("Sensor " + String(i) + ": Contact!");
         sendMQTTSensorEvent(i, true);
         sensorState[i] = true;
         setLED(i, true);
@@ -290,7 +287,7 @@ void loop() {
     } else { 
       // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
       if (sensorState[i] && (millis() > lastSensorContactMillis[i] + SENSOR_RELEASE_TICKS)) {
-        Serial.println("Sensor " + String(i) + ": Released!");
+        mcLog("Sensor " + String(i) + ": Released!");
         sendMQTTSensorEvent(i, false);
         sensorState[i] = false;
         setLED(i, false);
@@ -315,7 +312,7 @@ void sendMQTTSensorEvent(int sensorPort, int sensorState) {
   //   address: port number (internal port number plus 1)
   // both id or bus/address can be used in Rocrail. If id is used, it superseeds the combination of bus and address
   String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(controllerNo) + "\" addr=\"" + String(sensorPort + 1) + "\" state=\"" + stateString + "\"/>";
-  Serial.println("Sending MQTT message: " + mqttMessage);
+  mcLog("Sending MQTT message: " + mqttMessage);
   char mqttMessage_char[255];   // message is usually 61 chars, so 255 chars should be enough
   mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
   client.publish("rocrail/service/client", mqttMessage_char);
