@@ -19,6 +19,17 @@
 
 
 
+// ***************************
+// Controller wiring specifics
+// ***************************
+
+// Number of switch ports
+const int NUM_SWITCHPORTS = 8;
+
+// Digital output pins for servos
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3, D4, D5, D6, D7};
+
+
 // ***************
 // Syslog settings
 // ***************

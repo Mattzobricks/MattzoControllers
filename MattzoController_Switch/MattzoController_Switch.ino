@@ -27,9 +27,6 @@ const int MAX_CONTROLLER_ID = 65000;
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-const int NUM_SWITCHPORTS = 8; // Number of switch ports
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS];  // Digital PINs for output
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -52,17 +49,9 @@ void setup() {
     Serial.println("");
     Serial.println("MattzoController booting...");
 
-    servo[0].attach(D0);
-    servo[1].attach(D1);
-    servo[2].attach(D2);
-    servo[3].attach(D3);
-    servo[4].attach(D4);
-    servo[5].attach(D5);
-    servo[6].attach(D6);
-    servo[7].attach(D7);
-
     // initialize pins
     for (int i = 0; i < NUM_SWITCHPORTS; i++) {
+      servo[i].attach(SWITCHPORT_PIN[i]);
       servo[i].write(SERVO_START);
       delay(SWITCH_DELAY);
     }
