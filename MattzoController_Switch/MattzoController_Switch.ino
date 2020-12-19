@@ -155,14 +155,15 @@ void setupWifi() {
     Serial.println(WiFi.localIP());
 }
  
+// Setup MQTT
 void setupMQTT() {
   client.setServer(MQTT_BROKER_IP, 1883);
-  client.setCallback(callback);
+  client.setCallback(mqttCallback);
   client.setBufferSize(2048);
   client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Received message [");
   Serial.print(topic);
   Serial.print("] ");

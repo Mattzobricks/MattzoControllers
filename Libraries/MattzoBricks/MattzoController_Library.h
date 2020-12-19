@@ -27,11 +27,10 @@
 
 
 
-
 // **************
 // Ping functions
-// **************
 // Attention: pings were deprecated with issue #9 and replaced by mqtt last will messages
+// **************
 
 // Time of the last sent ping
 unsigned long lastPing = millis();
@@ -45,9 +44,11 @@ void sendMQTTPing(PubSubClient* mqttClient, char* pingMsg_char) {
   }
 }
 
+
 // ****************
 // Syslog functions
 // ****************
+
 // A UDP instance for sending and receiving packets over UDP
 WiFiUDP udpClient;
 // Create a new empty syslog instance

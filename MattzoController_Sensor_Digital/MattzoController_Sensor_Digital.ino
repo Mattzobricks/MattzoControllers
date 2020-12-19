@@ -11,7 +11,8 @@
 #include <EEPROM.h>  // EEPROM library
 #include <ESP8266WiFi.h>  // WiFi library
 #include <PubSubClient.h>  // MQTT library
-#include <MattzoController_Network_Configuration.h>  // this file needs to be placed in the Arduino library folder
+#include "MattzoSensorController_Configuration.h"  // this file should be placed in the same folder
+#include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
 
 String eepromIDString = "MattzoSensorController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
 const int eepromIDStringLength = 22;  // length of the ID String. Needs to be updated if the ID String is changed.
@@ -59,10 +60,11 @@ void setup() {
   allBlink(false, 0);
 
   loadPreferences();
-  setup_wifi();
-  client.setServer(MQTT_BROKER_IP, 1883);
-  client.setCallback(callback);
-  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
+  setupWifi();
+  setupSysLog(mqttClientName_char);
+  setupMQTT();
+
+  mcLog("MattzoController setup completed.");
 }
 
 void loadPreferences() {
@@ -125,7 +127,7 @@ void loadPreferences() {
   mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
 }
 
-void setup_wifi() {
+void setupWifi() {
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
@@ -147,6 +149,14 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+}
+
+// Setup MQTT
+void setupMQTT() {
+  client.setServer(MQTT_BROKER_IP, 1883);
+  client.setCallback(mqttCallback);
+  client.setBufferSize(2048);
+  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
 void allBlink(boolean onOff, int blinkType) {
@@ -209,7 +219,7 @@ void setLED(int index, bool ledState) {
   }
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Received message [");
   Serial.print(topic);
   Serial.print("] ");
@@ -221,9 +231,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println();
 
   msg[length] = '\0';
-  // Serial.println(msg);
-
-  // TODO: subscribe to roc2bricks topic and react to controller id change requests, or other commands like resetting factory defaults etc.
 }
 
 void reconnectMQTT() {

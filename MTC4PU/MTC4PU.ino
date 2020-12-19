@@ -25,6 +25,7 @@
 //   "tinyxml2.h".
 // Tested with version of date 2020-11-21.
 #include <tinyxml2.h>
+using namespace tinyxml2;
 
 // Legoino library by Cornelius Munz
 // Install via the built-in Library Manager of the Arduino IDE
@@ -39,10 +40,10 @@
 
 #include "Lpf2Hub.h"
 
-// This file is supplied with the MattzoBricks Firmware package and needs to be placed in the Arduino library folder
-#include <MattzoController_Network_Configuration.h>
+// MattzoBricks library files
+#include "MTC4PU_Configuration.h"  // this file should be placed in the same folder
+#include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
 
-using namespace tinyxml2;
 
 /* MattzoController specifics */
 String eepromIDString = "MattzoTrainController4PU";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
@@ -130,11 +131,14 @@ void setup() {
   }
 
   initMattzoController();
-  initWIFI();
+  initWiFi();
+  setupSysLog(mqttClientName_char);
   initMQTT();
 
   // discover new Powered Up Hubs (just to display MAC address)
   discoverPoweredUpHubs();
+
+  mcLog("MattzoController setup completed.");
 }
 
 void initMattzoController() {

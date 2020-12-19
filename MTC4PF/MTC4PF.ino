@@ -14,7 +14,8 @@
 #include <PubSubClient.h>  // MQTT library
 #include <tinyxml2.h>  // tiny xml 2 library
 #include "MattzoPowerFunctions.h"  // Power Functions library
-#include <MattzoController_Network_Configuration.h>
+#include "MTC4PF_Configuration.h"  // this file should be placed in the same folder
+#include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
 
 using namespace tinyxml2;
 
@@ -137,8 +138,11 @@ void setup() {
     setTrainSpeed(0);
 
     loadPreferences();
-    setup_wifi();
-    setup_mqtt();
+    setupWifi();
+    setupSysLog(mqttClientName_char);
+    setupMQTT();
+
+    mcLog("MattzoController setup completed.");
 }
 
 void loadPreferences() {
@@ -201,7 +205,7 @@ void loadPreferences() {
   mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
 }
 
-void setup_wifi() {
+void setupWifi() {
     delay(10);
     Serial.println();
     Serial.print("Connecting to ");
@@ -222,7 +226,7 @@ void setup_wifi() {
     Serial.println(WiFi.localIP());
 }
  
-void setup_mqtt() {
+void setupMQTT() {
   client.setServer(MQTT_BROKER_IP, 1883);
   client.setCallback(callback);
   client.setBufferSize(2048);

@@ -23,4 +23,4 @@
 // Syslog settings
 // ***************
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MattzoSwitchController";
+const char* SYSLOG_APP_NAME = "MattzoSensorController";
