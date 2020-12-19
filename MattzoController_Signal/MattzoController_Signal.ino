@@ -130,12 +130,12 @@ void setupWifi() {
  
 void setupMQTT () {
   client.setServer(MQTT_BROKER_IP, 1883);
-  client.setCallback(callback);
+  client.setCallback(mqttCallback);
   client.setBufferSize(2048);
   client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
-void callback(char* topic, byte* payload, unsigned int length) {
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length+1];
   for (int i = 0; i < length; i++) {
       msg[i] = (char)payload[i];
