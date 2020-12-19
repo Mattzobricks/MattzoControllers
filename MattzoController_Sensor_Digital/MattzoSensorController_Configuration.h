@@ -19,8 +19,23 @@
 
 
 
+// ***************************
+// Controller wiring specifics
+// ***************************
+
+// Number of sensors connected or connectable to the controller
+const int NUM_SENSORS = 4;
+
+// Digital input PINs for hall, reed or other digital sensors
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D1, D2, D5, D6 };
+
+// Digital output PINs to monitor sensor contact (typically LEDs)
+uint8_t LED_PIN[NUM_SENSORS] = { D0, D3, D4, D7 };
+
+
 // ***************
 // Syslog settings
 // ***************
+
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MSEC";

@@ -22,10 +22,6 @@ const int MAX_CONTROLLER_ID = 65000;
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-const int NUM_SENSORS = 4; // Number of connectable sensors
-uint8_t SENSOR_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
-uint8_t LED_PIN[NUM_SENSORS];  // Digital PINs for input of hall, reed or other digital signals
-
 const int SENSOR_RELEASE_TICKS = 500;  // time in milliseconds until sensor is reported to be released after it actually has lost contact
 bool sensorState[NUM_SENSORS];
 int lastSensorContactMillis[NUM_SENSORS];
@@ -40,15 +36,6 @@ void setup() {
   randomSeed(ESP.getCycleCount());
   Serial.println("");
   Serial.println("MattzoController booting...");
-
-  SENSOR_PIN[0] = D1;
-  SENSOR_PIN[1] = D2;
-  SENSOR_PIN[2] = D5;
-  SENSOR_PIN[3] = D6;
-  LED_PIN[0] = D3;
-  LED_PIN[1] = D4;
-  LED_PIN[2] = D7;
-  LED_PIN[3] = D8;
 
   // initialize pins
   for (int i = 0; i < NUM_SENSORS; i++) {
