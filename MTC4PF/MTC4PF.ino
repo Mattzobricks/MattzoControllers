@@ -14,6 +14,20 @@
 #include <PubSubClient.h>  // MQTT library
 #include <tinyxml2.h>  // tiny xml 2 library
 #include "MattzoPowerFunctions.h"  // Power Functions library
+
+// The following includes need some enum definitions before the compiler gets to them...
+// MOTORSHIELD_TYPE represents the type motor shield that this controller uses.
+// 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
+// Types 1 and 2 are motorshields that are physically connected to the controller
+// Commands to type 3 are transmitted via an infrared LED
+enum struct MotorShieldType
+{
+  NONE = 0x0,
+  L298N = 0x1,
+  L9110 = 0x2,
+  LEGO_IR_8884 = 0x3
+};
+
 #include "MTC4PF_Configuration.h"  // this file should be placed in the same folder
 #include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
 
@@ -23,25 +37,18 @@ using namespace tinyxml2;
 String eepromIDString = "MattzoTrainController4PF";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
 const int eepromIDStringLength = 24;  // length of the ID String. Needs to be updated if the ID String is changed.
 unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
-const int MAX_CONTROLLER_ID = 16383;
+const int MAX_CONTROLLER_ID = 65000;
 
 /* MQTT */
 String mqttClientName;
 char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
-/* Train address */
-const int TRAIN_ADDRESS = 13043;
-
 /* Functions (lights) */
-// NUM_FUNCTIONS represents the number of Rocrail functions that can be switched with this controller
-// if increased, the fn1, fn2... defintions must be enhanced as well. Also check for usage of those parameters and extend code accordingly! You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 3;
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS];  // Digital pins for function output
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
-const uint8_t IR_LIGHT_RED = 254;     // Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == 3.
+const uint8_t IR_LIGHT_RED = 254;     // Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
 const uint8_t IR_LIGHT_BLUE = 255;
-enum struct LightEvent
+enum struct LightEventType
 {
   STOP = 0x0,
   FORWARD = 0x1,
@@ -49,29 +56,7 @@ enum struct LightEvent
 };
 
 
-// MOTORSHIELD_TYPE repsents the type motor shield that this controller uses.
-// 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
-// Types 1 and 2 are motorshields that are physically connected to the controller
-// Commands to type 3 are transmitted via an infrared LED
-const int MOTORSHIELD_TYPE = 0;
-
-// Constants for type 1 (L298N)
-#define enA D1  // PWM signal for motor A. Relevant for L298N only.
-#define enB D5  // PWM signal for motor B. Relevant for L298N only.
-
-// Constants for type 1 (L298N) and type 2 (L9110)
-#define in1 D3  // motor A direction control (forward). Relevant for L298N and L9110 only.
-#define in2 D4  // motor A direction control (reverse). Relevant for L298N and L9110 only.
-#define in3 D5  // motor B direction control (forward). Relevant for L298N and L9110 only.
-#define in4 D6  // motor B direction control (reverse). Relevant for L298N and L9110 only.
-const boolean REVERSE_A = false;  // if set to true, motor A is reversed, i.e. forward is backward and vice versa.
-const boolean REVERSE_B = true;   // if set to true, motor B is reversed
-
-// Constants for type 3 (Lego IR Receiver 8884)
-#define IR_LED_PIN D1  // pin of the IR LED. Relevant for Lego IR Receiver 8884 only.
-#define IR_CHANNEL 0   // channel number selected on the IR receiver. Relevant for Lego IR Receiver 8884 only.
-#define IR_PORT_RED 1     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, normal rotation; 0 = no motor; -1 = motor, reversed rotation
-#define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, normal rotation; 0 = no motor; -1 = motor, reversed rotation
+// Power functions object for LEGO IR Receiver 8884
 MattzoPowerFunctions powerFunctions(IR_LED_PIN, IR_CHANNEL);
 
 /* Send battery level  */
@@ -106,11 +91,6 @@ void setup() {
     Serial.println("");
     Serial.println("MattzoController booting...");
 
-    // define function pins
-    FUNCTION_PIN[0] = D5;    // Output pin for Rocrail Function 1 (e.g. train headlights)
-    FUNCTION_PIN[1] = D6;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
-    FUNCTION_PIN[2] = D7;    // Output pin for Rocrail Function 2 (e.g. interior lighting)
-
     // initialize function pins
     for (int i = 0; i < NUM_FUNCTIONS; i++) {
       pinMode(FUNCTION_PIN[i], OUTPUT);
@@ -118,20 +98,20 @@ void setup() {
     }
 
     switch (MOTORSHIELD_TYPE) {
-      case 1:
+      case MotorShieldType::L298N:
         // initialize motor pins for L298N
         pinMode(enA, OUTPUT);
         pinMode(enB, OUTPUT);
-      case 2:
+      case MotorShieldType::L9110:
         // initialize motor pins for L298N (continued) and L9110
         pinMode(in1, OUTPUT);
         pinMode(in2, OUTPUT);
         pinMode(in3, OUTPUT);
         pinMode(in4, OUTPUT);
         break;
-      case 3:
+      case MotorShieldType::LEGO_IR_8884:
         // Power Functions instance is declared and initialized in the global section at the beginning of the code
-        ;
+        break;
     }
 
     // stop motors
@@ -290,13 +270,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("loco id: " + String(rr_id));
   
     // query addr attribute. This is the MattzoController id.
-    // If this does not equal the TRAIN_ADDRESS of this controller, the message is disregarded.
+    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       Serial.println("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     Serial.println("addr: " + String(rr_addr));
-    if (rr_addr != TRAIN_ADDRESS) {
+    if (rr_addr != LOCO_ADDRESS) {
       Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
@@ -364,13 +344,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
     Serial.println("function id: " + String(rr_id));
   
     // query addr attribute. This is the MattzoController id.
-    // If this does not equal the TRAIN_ADDRESS of this controller, the message is disregarded.
+    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       Serial.println("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     Serial.println("addr: " + String(rr_addr));
-    if (rr_addr != TRAIN_ADDRESS) {
+    if (rr_addr != LOCO_ADDRESS) {
       Serial.println("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
@@ -457,60 +437,70 @@ void setTrainSpeed(int newTrainSpeed) {
   int power = 0;
 
   switch (MOTORSHIELD_TYPE) {
-    // motor shield type L298N
-    case 1:
-      // motor shield type L9110
-    case 2:
+    case MotorShieldType::L298N:
+      ;
+    case MotorShieldType::L9110:
+      // motor shield types L298N and L9110
       if (newTrainSpeed != 0) {
         // TODO: needs review!
         power = map(abs(newTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
       }
       Serial.println("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
 
-      if (MOTORSHIELD_TYPE == 1) {
+      if (MOTORSHIELD_TYPE == MotorShieldType::L298N) {
         // motor shield type L298N
-        if (dir ^ REVERSE_A) {
-          digitalWrite(in1, LOW);
-          digitalWrite(in2, HIGH);
+        if (CONFIG_MOTOR_A != 0) {
+          if (dir ^ (CONFIG_MOTOR_A < 0)) {
+            digitalWrite(in1, LOW);
+            digitalWrite(in2, HIGH);
+          }
+          else {
+            digitalWrite(in1, HIGH);
+            digitalWrite(in2, LOW);
+          }
+          analogWrite(enA, power);
         }
-        else {
-          digitalWrite(in1, HIGH);
-          digitalWrite(in2, LOW);
+        if (CONFIG_MOTOR_B != 0) {
+          if (dir ^ (CONFIG_MOTOR_B < 0)) {
+            digitalWrite(in3, LOW);
+            digitalWrite(in4, HIGH);
+          }
+          else {
+            digitalWrite(in3, HIGH);
+            digitalWrite(in4, LOW);
+          }
+          analogWrite(enB, power);
         }
-        if (dir ^ REVERSE_B) {
-          digitalWrite(in3, LOW);
-          digitalWrite(in4, HIGH);
-        }
-        else {
-          digitalWrite(in3, HIGH);
-          digitalWrite(in4, LOW);
-        }
-        analogWrite(enA, power);
-        analogWrite(enB, power);
-      } else {
+      } else if (MOTORSHIELD_TYPE == MotorShieldType::L9110) {
         // motor shield type L9110
-        if (dir ^ REVERSE_A) {
-          analogWrite(in1, 0);
-          analogWrite(in2, power);
+        if (CONFIG_MOTOR_A != 0) {
+          if (dir ^ (CONFIG_MOTOR_A < 0)) {
+            analogWrite(in1, 0);
+            analogWrite(in2, power);
+          }
+          else {
+            analogWrite(in1, power);
+            analogWrite(in2, 0);
+          }
+          analogWrite(enA, power);
         }
-        else {
-          analogWrite(in1, power);
-          analogWrite(in2, 0);
-        }
-        if (dir ^ REVERSE_B) {
-          analogWrite(in3, 0);
-          analogWrite(in4, power);
-        }
-        else {
-          analogWrite(in3, power);
-          analogWrite(in4, 0);
+        if (CONFIG_MOTOR_B != 0) {
+          if (dir ^ (CONFIG_MOTOR_B < 0)) {
+            analogWrite(in3, 0);
+            analogWrite(in4, power);
+          }
+          else {
+            analogWrite(in3, power);
+            analogWrite(in4, 0);
+          }
+          analogWrite(enB, power);
         }
       }
 
       break;
 
     // motor shield type Lego IR Receiver 8884
-    case 3:
+    case MotorShieldType::LEGO_IR_8884:
       int irSpeed = 0;
       if (maxTrainSpeed > 0) {
         irSpeed = newTrainSpeed * MAX_IR_SPEED / maxTrainSpeed;
@@ -529,11 +519,11 @@ void setTrainSpeed(int newTrainSpeed) {
 
   // Execute light events
   if (newTrainSpeed == 0 && currentTrainSpeed != 0) {
-    lightEvent(LightEvent::STOP);
+    lightEvent(LightEventType::STOP);
   } else if (newTrainSpeed > 0 && currentTrainSpeed <= 0) {
-    lightEvent(LightEvent::FORWARD);
+    lightEvent(LightEventType::FORWARD);
   } else if (newTrainSpeed < 0 && currentTrainSpeed >= 0) {
-    lightEvent(LightEvent::REVERSE);
+    lightEvent(LightEventType::REVERSE);
   }
 
   currentTrainSpeed = newTrainSpeed;
@@ -591,19 +581,19 @@ void accelerateTrainSpeed() {
 
 
 // execute light event
-void lightEvent(LightEvent le) {
+void lightEvent(LightEventType le) {
   switch (le) {
-  case LightEvent::STOP:
+  case LightEventType::STOP:
     // functionCommand[0] = false;
     // functionCommand[1] = false;
     // functionCommand[2] = false;
     break;
-  case LightEvent::FORWARD:
+  case LightEventType::FORWARD:
     functionCommand[0] = true;
     functionCommand[1] = false;
     functionCommand[2] = false;
     break;
-  case LightEvent::REVERSE:
+  case LightEventType::REVERSE:
     functionCommand[0] = true;
     functionCommand[1] = true;
     functionCommand[2] = true;
