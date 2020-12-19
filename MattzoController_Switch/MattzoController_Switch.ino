@@ -67,9 +67,11 @@ void setup() {
     }
 
     loadPreferences();
-    setup_wifi();
-    setup_mqtt();
+    setupWifi();
     setupSysLog(mqttClientName_char);
+    setupMQTT();
+
+    mcLog("MattzoController setup completed.");
 }
 
 void loadPreferences() {
@@ -132,7 +134,7 @@ void loadPreferences() {
   mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
 }
 
-void setup_wifi() {
+void setupWifi() {
     delay(10);
     Serial.println();
     Serial.print("Connecting to ");
@@ -153,7 +155,7 @@ void setup_wifi() {
     Serial.println(WiFi.localIP());
 }
  
-void setup_mqtt() {
+void setupMQTT() {
   client.setServer(MQTT_BROKER_IP, 1883);
   client.setCallback(callback);
   client.setBufferSize(2048);
@@ -169,36 +171,35 @@ void callback(char* topic, byte* payload, unsigned int length) {
       // Serial.print((char)payload[i]);
       msg[i] = (char)payload[i];
   }
-  // Serial.println();
 
   msg[length] = '\0';
-  Serial.println(msg);
+  mcLog(msg);
 
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS){
-    Serial.println("Error parsing");
+    mcLog("Error parsing");
     return;
   }
 
-  Serial.println("Parsing XML successful");
+  mcLog("Parsing XML successful");
   XMLElement * element = xmlDocument.FirstChildElement("sw");
   if (element == NULL) {
-    Serial.println("<sw> node not found. Message disregarded.");
+    mcLog("<sw> node not found. Message disregarded.");
     return;
   }
 
-  Serial.println("<sw> node found.");
+  mcLog("<sw> node found.");
 
   // query addr1 attribute. This is the MattzoController id.
   // If this does not equal the ControllerNo of this controller, the message is disregarded.
   int rr_addr1 = 0;
   if (element->QueryIntAttribute("addr1", &rr_addr1) != XML_SUCCESS) {
-    Serial.println("addr1 attribute not found or wrong type. Message disregarded.");
+    mcLog("addr1 attribute not found or wrong type. Message disregarded.");
     return;
   }
-  Serial.println("addr1: " + String(rr_addr1));
+  mcLog("addr1: " + String(rr_addr1));
   if (rr_addr1 != controllerNo) {
-    Serial.println("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
+    mcLog("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
     return;
   }
 
@@ -206,38 +207,38 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // If the controller does not have such a port, the message is disregarded.
   int rr_port1 = 0;
   if (element->QueryIntAttribute("port1", &rr_port1) != XML_SUCCESS) {
-    Serial.println("port1 attribute not found or wrong type. Message disregarded.");
+    mcLog("port1 attribute not found or wrong type. Message disregarded.");
     return;
   }
-  Serial.println("port1: " + String(rr_port1));
+  mcLog("port1: " + String(rr_port1));
   if ((rr_port1 < 1 || rr_port1 > NUM_SWITCHPORTS) && (rr_port1 < 1001 || rr_port1 > 1004)) {
-    Serial.println("Message disgarded, as this controller does not have such a port.");
+    mcLog("Message disgarded, as this controller does not have such a port.");
     return;
   }
 
   // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
   const char * rr_cmd = "-unknown-";
   if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-    Serial.println("cmd attribute not found or wrong type.");
+    mcLog("cmd attribute not found or wrong type.");
     return;
   }
-  Serial.println("cmd: " + String(rr_cmd));
+  mcLog("cmd: " + String(rr_cmd));
 
   // query param1 attribute. This is the "straight" position of the switch servo motor.
   // defaults to SERVO_MIN
   int rr_param1 = SERVO_MIN;
   if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
-    Serial.println("param1 attribute not found or wrong type. Using default value.");
+    mcLog("param1 attribute not found or wrong type. Using default value.");
   }
-  Serial.println("param1: " + String(rr_param1));
+  mcLog("param1: " + String(rr_param1));
 
   // query value1 attribute. This is the "turnout" position of the switch servo motor.
   // defaults to SERVO_MAX
   int rr_value1 = SERVO_MAX;
   if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
-    Serial.println("value1 attribute not found or wrong type. Using default value.");
+    mcLog("value1 attribute not found or wrong type. Using default value.");
   }
-  Serial.println("value1: " + String(rr_value1));
+  mcLog("value1: " + String(rr_value1));
 
   // check command string and prepare servo angle
   // servo angle will only be used to flip a standard or one side of a triple switch - not for double slip switches!
@@ -250,7 +251,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     switchCommand = 0;
     servoAngle = rr_value1;
   } else {
-    Serial.println("Switch command unknown - message disregarded.");
+    mcLog("Switch command unknown - message disregarded.");
     return;
   }
 
@@ -277,7 +278,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
       servoPort2 = 8;
     }
 
-    Serial.println("Turning double slip switch servos on port " + String(servoPort1) + " and " + String(servoPort2) + " to angle " + String(servoAngle));
+    mcLog("Turning double slip switch servos on port " + String(servoPort1) + " and " + String(servoPort2) + " to angle " + String(servoAngle));
     servo[servoPort1-1].write(servoAngle);
     delay(SWITCH_DELAY);
 
@@ -285,7 +286,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     delay(SWITCH_DELAY);
 
   } else {
-    Serial.println("Turning servo on port " + String(rr_port1) + " to angle " + String(servoAngle));
+    mcLog("Turning servo on port " + String(rr_port1) + " to angle " + String(servoAngle));
 
     servo[rr_port1 - 1].write(servoAngle);
     delay(SWITCH_DELAY);
@@ -294,7 +295,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 void reconnectMQTT() {
   while (!client.connected()) {
-      Serial.println("Reconnecting MQTT...");
+      mcLog("Reconnecting MQTT...");
 
       String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
       char lastWillMessage_char[lastWillMessage.length() + 1];
@@ -303,12 +304,12 @@ void reconnectMQTT() {
       if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
         Serial.print("Failed, rc=");
         Serial.print(client.state());
-        Serial.println(". Retrying in 5 seconds...");
+        mcLog(". Retrying in 5 seconds...");
         delay(5000);
       }
   }
   client.subscribe("rocrail/service/command");
-  Serial.println("MQTT connected, listening on topic [rocrail/service/command].");
+  mcLog("MQTT connected, listening on topic [rocrail/service/command].");
 }
 
 void loop() {

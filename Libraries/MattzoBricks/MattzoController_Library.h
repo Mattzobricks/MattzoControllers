@@ -66,10 +66,10 @@ void setupSysLog(char *deviceHostname) {
 }
 
 // log a message
-void mcLog(int severity, String msg) {
+void mcLog(String msg) {
   Serial.println(msg);
   if (SYSLOG_ENABLED) {
-    syslog.log(severity, msg);
+    syslog.log(LOG_INFO, msg);
     delay(1);
     // delay a microsecond as udp packets get dropped on an esp8266 if they happen too close together
   }

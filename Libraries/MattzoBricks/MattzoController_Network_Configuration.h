@@ -51,7 +51,7 @@ const int SEND_PING_INTERVAL = 5000;
 // Syslog settings
 // ***************
 // Set to true if sys log shall be enabled
-const bool SYSLOG_ENABLED = false;
+const bool SYSLOG_ENABLED = true;
 // IP or hostname of the syslog server
 const char* SYSLOG_SERVER = MQTT_BROKER_IP;
 // Port of the syslog server
