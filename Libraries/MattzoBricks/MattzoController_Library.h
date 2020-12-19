@@ -17,27 +17,60 @@
 // 4. Copy this file into the MattzoBricks folder that you just created.
 
 
-// The SSID of your WiFi network
-const char* WIFI_SSID = "railnet";
+// Libraries for syslog
+#include <WiFiUdp.h>
+#include <Syslog.h>
 
-// The passphrase of your WiFi network
-const char* WIFI_PASSWORD = "born2rail";
-
-// The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
-const char* MQTT_BROKER_IP = "192.168.1.15";
+// MattzoController network configuration
+// (this following file be placed in the same folder as this file)
+#include <MattzoController_Network_Configuration.h>
 
 
-// MQTT parameters, variables and functions
+
+
+// **************
+// Ping functions
+// **************
 // Attention: pings were deprecated with issue #9 and replaced by mqtt last will messages
-const boolean SEND_PING = false;          // set to true if pings should be sent
-const int SEND_PING_INTERVAL = 5000;      // interval for sending pings in milliseconds
-unsigned long lastPing = millis();        // time of the last sent ping
-const int MQTT_KEEP_ALIVE_INTERVAL = 5;   // mqtt keep alive interval (in seconds)
 
+// Time of the last sent ping
+unsigned long lastPing = millis();
+
+// Send ping to MQTT
 void sendMQTTPing(PubSubClient* mqttClient, char* pingMsg_char) {
   if (SEND_PING && (millis() - lastPing >= SEND_PING_INTERVAL)) {
     lastPing = millis();
     Serial.println("sending ping...");
     mqttClient->publish("roc2bricks/ping", pingMsg_char);
+  }
+}
+
+// ****************
+// Syslog functions
+// ****************
+// A UDP instance for sending and receiving packets over UDP
+WiFiUDP udpClient;
+// Create a new empty syslog instance
+Syslog syslog(udpClient, SYSLOG_PROTO_IETF);
+
+// Setup syslog
+void setupSysLog(char *deviceHostname) {
+  if (SYSLOG_ENABLED) {
+    syslog.server(SYSLOG_SERVER, SYSLOG_PORT);
+    syslog.deviceHostname(deviceHostname);
+    syslog.appName(SYSLOG_APP_NAME);
+    syslog.defaultPriority(LOG_KERN);
+    syslog.logMask(LOG_UPTO(LOG_INFO));
+    syslog.log(LOG_INFO, "Syslog setup done.");
+  }
+}
+
+// log a message
+void mcLog(int severity, String msg) {
+  Serial.println(msg);
+  if (SYSLOG_ENABLED) {
+    syslog.log(severity, msg);
+    delay(1);
+    // delay a microsecond as udp packets get dropped on an esp8266 if they happen too close together
   }
 }
