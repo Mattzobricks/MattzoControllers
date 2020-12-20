@@ -42,6 +42,8 @@ void setup() {
   for (int i = 0; i < NUM_SIGNALPORTS; i++) {
     pinMode(SIGNALPORT_PIN[i], OUTPUT);
   }
+  pinMode(STATUS_LED_PIN, OUTPUT);
+  setStatusLED(true);  // LED on
 
   loadPreferences();
   setupWifi();
@@ -120,7 +122,10 @@ void setupWifi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
  
   while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+    setStatusLED(true);
+    delay(400);
+    setStatusLED(false);
+    delay(400);
     Serial.print(".");
   }
  
@@ -195,38 +200,44 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   // set signal LED for the port on/off
   if (strcmp(rr_cmd, "on")==0) {
-    setLED(rr_port - 1, true);
+    setSignalLED(rr_port - 1, true);
   } else if (strcmp(rr_cmd, "off")==0) {
-    setLED(rr_port - 1, false);
+    setSignalLED(rr_port - 1, false);
   } else {
     mcLog("Signal port command unknown - message disregarded.");
     return;
   }
 }
 
-void setLED(int index, bool ledState) {
-  if (ledState) {
-    digitalWrite(SIGNALPORT_PIN[index], LOW);
-  } else {
-    digitalWrite(SIGNALPORT_PIN[index], HIGH);
-  }
+void setSignalLED(int index, bool ledState) {
+  digitalWrite(SIGNALPORT_PIN[index], ledState ? LOW : HIGH);
+}
+
+void setStatusLED(bool ledState) {
+  digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
 }
 
 void reconnectMQTT() {
   while (!client.connected()) {
-      mcLog("Reconnecting MQTT...");
+    mcLog("Reconnecting MQTT...");
 
-      String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
-      char lastWillMessage_char[lastWillMessage.length() + 1];
-      lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
+    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+    char lastWillMessage_char[lastWillMessage.length() + 1];
+    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-      if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
-        Serial.print("Failed, rc=");
-        Serial.print(client.state());
-        Serial.println(". Retrying in 5 seconds...");
-        delay(5000);
+    if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+      Serial.print("Failed, rc=");
+      Serial.print(client.state());
+      Serial.println(". Retrying in 5 seconds...");
+      for (int i = 0; i < 5; i++) {
+        setStatusLED(false);
+        delay(500);
+        setStatusLED(true);
+        delay(500);
       }
+    }
   }
+  setStatusLED(false);
   client.subscribe("rocrail/service/command");
   mcLog("MQTT connected, listening on topic [rocrail/service/command].");
 }

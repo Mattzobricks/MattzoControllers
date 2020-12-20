@@ -283,23 +283,23 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 void reconnectMQTT() {
   while (!client.connected()) {
-      mcLog("Reconnecting MQTT...");
+    mcLog("Reconnecting MQTT...");
 
-      String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
-      char lastWillMessage_char[lastWillMessage.length() + 1];
-      lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
+    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+    char lastWillMessage_char[lastWillMessage.length() + 1];
+    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-      if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
-        Serial.print("Failed, rc=");
-        Serial.print(client.state());
-        mcLog(". Retrying in 5 seconds...");
-        for (int i = 0; i < 5; i++) {
-          setLED(false);
-          delay(500);
-          setLED(true);
-          delay(500);
-        }
+    if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+      Serial.print("Failed, rc=");
+      Serial.print(client.state());
+      mcLog(". Retrying in 5 seconds...");
+      for (int i = 0; i < 5; i++) {
+        setLED(false);
+        delay(500);
+        setLED(true);
+        delay(500);
       }
+    }
   }
   setLED(false);
   client.subscribe("rocrail/service/command");
