@@ -55,6 +55,8 @@ void setup() {
       servo[i].write(SERVO_START);
       delay(SWITCH_DELAY);
     }
+    pinMode(LED_PIN, OUTPUT);
+    setLED(true);  // LED on
 
     loadPreferences();
     setupWifi();
@@ -133,10 +135,11 @@ void setupWifi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
  
     while (WiFi.status() != WL_CONNECTED) {
-      delay(1000);
+      setLED(true);
+      delay(400);
+      setLED(false);
+      delay(400);
       Serial.print(".");
-
-      // TODO: Support WPS! Store found Wifi network found via WPS in EEPROM and use next time!
     }
  
     Serial.println("");
@@ -290,11 +293,21 @@ void reconnectMQTT() {
         Serial.print("Failed, rc=");
         Serial.print(client.state());
         mcLog(". Retrying in 5 seconds...");
-        delay(5000);
+        for (int i = 0; i < 5; i++) {
+          setLED(false);
+          delay(500);
+          setLED(true);
+          delay(500);
+        }
       }
   }
+  setLED(false);
   client.subscribe("rocrail/service/command");
   mcLog("MQTT connected, listening on topic [rocrail/service/command].");
+}
+
+void setLED(bool ledState) {
+  digitalWrite(LED_PIN, ledState ? HIGH : LOW);
 }
 
 void loop() {
