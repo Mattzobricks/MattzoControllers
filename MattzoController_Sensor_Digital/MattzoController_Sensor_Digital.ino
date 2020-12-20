@@ -40,12 +40,10 @@ void setup() {
   // initialize pins
   for (int i = 0; i < NUM_SENSORS; i++) {
     pinMode(SENSOR_PIN[i], INPUT);
-    pinMode(LED_PIN[i], OUTPUT);
     sensorState[i] = false;
   }
-
-  // all LEDs off
-  allBlink(false, 0);
+  pinMode(LED_PIN, OUTPUT);
+  setLED(true);  // LED on
 
   loadPreferences();
   setupWifi();
@@ -124,9 +122,9 @@ void setupWifi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
-    allBlink(true, 0);
+    setLED(true);
     delay(400);
-    allBlink(false, 0);
+    setLED(false);
     delay(400);
     Serial.print(".");
   }
@@ -143,64 +141,28 @@ void setupMQTT() {
   client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
-void allBlink(boolean onOff, int blinkType) {
-  if (blinkType == 0) {
-    setLED(0, onOff);
-    setLED(1, onOff);
-    setLED(2, onOff);
-    setLED(3, onOff);
-  } else if (blinkType == 1) {
-    setLED(0, onOff);
-    setLED(1, !onOff);
-    setLED(2, onOff);
-    setLED(3, !onOff);
-  } else if (blinkType == 2) {
-    // Knight Rider
-    const int KNIGHT_RIDER_DELAY = 100;
-    setLED(0, true);
-    delay(KNIGHT_RIDER_DELAY);
-    setLED(0, false);
-    setLED(1, true);
-    delay(KNIGHT_RIDER_DELAY);
-    setLED(1, false);
-    setLED(2, true);
-    delay(KNIGHT_RIDER_DELAY);
-    setLED(2, false);
-    setLED(3, true);
-    delay(KNIGHT_RIDER_DELAY);
-    setLED(3, false);
-    setLED(2, true);
-    delay(KNIGHT_RIDER_DELAY);
-    setLED(2, false);
-    setLED(1, true);
-    delay(KNIGHT_RIDER_DELAY);
-    setLED(1, false);
-    setLED(0, true);
-    delay(KNIGHT_RIDER_DELAY);
-    setLED(0, false);
-  }
-  
-  return;
-  
-  if (onOff) {
-    for (int i=0; i < NUM_SENSORS; i++) {
-      if (blinkType == 0) {
-        // all flash
-        setLED(i, onOff);
-      } else {
-        // flash alternatively
-        setLED(i, onOff ^ (i % 2 == 0));
+void reconnectMQTT() {
+  while (!client.connected()) {
+    mcLog("Reconnecting MQTT...");
+
+    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+    char lastWillMessage_char[lastWillMessage.length() + 1];
+    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
+
+    if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+      Serial.print("Failed, rc=");
+      Serial.print(client.state());
+      Serial.println(". Retrying in 5 seconds...");
+      for (int i = 0; i < 5; i++) {
+        setLED(false);
+        delay(500);
+        setLED(true);
+        delay(500);
       }
     }
   }
-}
-
-void setLED(int index, bool ledState) {
-  if (ledState) {
-    digitalWrite(LED_PIN[index], LOW);
-  } else {
-    digitalWrite(LED_PIN[index], HIGH);
-  }
+  setLED(false);
+  mcLog("MQTT Connected.");
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
@@ -217,31 +179,42 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   msg[length] = '\0';
 }
 
-void reconnectMQTT() {
-  while (!client.connected()) {
-    allBlink(true, 1);
-    mcLog("Reconnecting MQTT...");
+void sendMQTTSensorEvent(int sensorPort, int sensorState) {
+  String sensorRocId = eepromIDString + String(controllerNo) + "-" + String(sensorPort + 1);  // e.g. "MattzoController12345-3"
+  String stateString;
+  if (sensorState)
+    stateString = "true";
+  else
+    stateString = "false";
 
-    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
-    char lastWillMessage_char[lastWillMessage.length() + 1];
-    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
-
-    if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
-      Serial.print("Failed, rc=");
-      Serial.print(client.state());
-      Serial.println(". Retrying in 5 seconds...");
-      for (int i=0; i < 5; i++) {
-        allBlink(false, 1);
-        delay(500);
-        allBlink(true, 1);
-        delay(500);
-      }
-    }
-  }
-  allBlink(false, 2);
-  mcLog("MQTT Connected.");
+  // compile mqtt message. Parameters:
+  //   id: Combination of sensor name and port (e.g. MattzoController12345-3). The reported port (the "logic" port) is 1 count higher than the internal port number in the sensor, e.g. port 2 in the sensor equals 3 in Rocrail)
+  //   bus: controller number
+  //   address: port number (internal port number plus 1)
+  // both id or bus/address can be used in Rocrail. If id is used, it superseeds the combination of bus and address
+  String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(controllerNo) + "\" addr=\"" + String(sensorPort + 1) + "\" state=\"" + stateString + "\"/>";
+  mcLog("Sending MQTT message: " + mqttMessage);
+  char mqttMessage_char[255];   // message is usually 61 chars, so 255 chars should be enough
+  mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
+  client.publish("rocrail/service/client", mqttMessage_char);
 }
 
+void setLED(bool ledState) {
+  digitalWrite(LED_PIN, ledState ? HIGH : LOW);
+}
+
+// Switches LED on if one or more sensors has contact
+// Switches LED off if no sensor has contact
+void setLEDBySensorStates() {
+  bool ledOnOff = false;
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    if (sensorState[i]) {
+      setLED(true);
+      return;
+    }
+  }
+  setLED(false);
+}
 
 void loop() {
   int sensorValue;
@@ -268,7 +241,7 @@ void loop() {
         mcLog("Sensor " + String(i) + ": Contact!");
         sendMQTTSensorEvent(i, true);
         sensorState[i] = true;
-        setLED(i, true);
+        setLED(true);
       }
       lastSensorContactMillis[i] = millis();
     } else { 
@@ -277,30 +250,10 @@ void loop() {
         mcLog("Sensor " + String(i) + ": Released!");
         sendMQTTSensorEvent(i, false);
         sensorState[i] = false;
-        setLED(i, false);
+        setLEDBySensorStates();  // Switch off LED (if no other sensor has contact)
       }
     }
   }
 
   sendMQTTPing(&client, mqttClientName_char);
-}
-
-void sendMQTTSensorEvent(int sensorPort, int sensorState) {
-  String sensorRocId = eepromIDString + String(controllerNo) + "-" + String(sensorPort + 1);  // e.g. "MattzoController12345-3"
-  String stateString;
-  if (sensorState)
-    stateString = "true";
-  else
-    stateString = "false";
-
-  // compile mqtt message. Parameters:
-  //   id: Combination of sensor name and port (e.g. MattzoController12345-3). The reported port (the "logic" port) is 1 count higher than the internal port number in the sensor, e.g. port 2 in the sensor equals 3 in Rocrail)
-  //   bus: controller number
-  //   address: port number (internal port number plus 1)
-  // both id or bus/address can be used in Rocrail. If id is used, it superseeds the combination of bus and address
-  String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(controllerNo) + "\" addr=\"" + String(sensorPort + 1) + "\" state=\"" + stateString + "\"/>";
-  mcLog("Sending MQTT message: " + mqttMessage);
-  char mqttMessage_char[255];   // message is usually 61 chars, so 255 chars should be enough
-  mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
-  client.publish("rocrail/service/client", mqttMessage_char);
 }

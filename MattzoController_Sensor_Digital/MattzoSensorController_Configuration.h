@@ -24,13 +24,13 @@
 // ***************************
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 4;
+const int NUM_SENSORS = 8;
 
 // Digital input PINs for hall, reed or other digital sensors
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D1, D2, D5, D6 };
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D0, D1, D2, D3, D4, D5, D6, D7 };
 
-// Digital output PINs to monitor sensor contact (typically LEDs)
-uint8_t LED_PIN[NUM_SENSORS] = { D0, D3, D4, D7 };
+// Digital output PIN to monitor sensor contact (typically a LED)
+uint8_t LED_PIN = D8;
 
 
 // ***************
