@@ -29,8 +29,9 @@ const int NUM_SIGNALPORTS = 8;
 // Digital pins for signal LEDs
 uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {D0, D1, D2, D3, D4, D5, D6, D7};
 
-// Digital output PIN to monitor controller operation (typically a LED)
-uint8_t STATUS_LED_PIN = D8;
+// Digital output pin to monitor controller operation (typically a LED)
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+uint8_t STATUS_LED_PIN = D8;  // pin of the status LED (only relevant if installed)
 
 
 // ***************

@@ -17,21 +17,119 @@
 // 4. Copy this file into the MattzoBricks folder that you just created.
 
 
-// Libraries for syslog
-#include <WiFiUdp.h>
-#include <Syslog.h>
+// ******************
+// Included libraries
+// ******************
+
+// Built-in libraries of the Arduino IDE
+#include <EEPROM.h>        // EEPROM library
+#include <ESP8266WiFi.h>  // WiFi library
+
+// PubSubClient library by Nick O'Leary
+// Install via the built-in Library Manager of the Arduino IDE
+// Tested with Version V2.8.0
+#include <PubSubClient.h>
+
+// TinyXML2
+// Download from https://github.com/leethomason/tinyxml2
+// These files need to be placed in the Arduino library folder:
+//   "tinyxml2.cpp"
+//   "tinyxml2.h".
+// Tested with version of date 2020-11-21.
+#include <tinyxml2.h>
+using namespace tinyxml2;
+
+// Syslog library
+// Download from https://github.com/arcao/Syslog
+// Tested with version of Dec 15th, 2020
+// Unzip the Syslog folder into the Arduino library folder
+#include <WiFiUdp.h>  // Library required for syslog
+#include <Syslog.h>  // Syslog library
 
 // MattzoController network configuration
-// (this following file be placed in the same folder as this file)
+// the following file needs to be moved into the Arduino library folder
 #include <MattzoController_Network_Configuration.h>
 
 
-
-// ***************
-// Some declarions
-// ***************
+// ********************
+// Forward declarations
+// ********************
 
 void mcLog(String msg);
+
+
+// ****************
+// EEPROM functions
+// ****************
+
+// EEPROM ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
+String eepromIDString = "MattzoSignalController";
+// length of the ID String. Needs to be updated if the ID String is changed.
+const int eepromIDStringLength = 22;
+// mattzoControllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
+unsigned int mattzoControllerNo;
+#define MAX_CONTROLLER_ID 65000
+String mattzoControllerName;
+char mattzoControllerName_char[eepromIDStringLength + 5 + 1];  // the name of the mqttClient must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
+
+void loadPreferences() {
+  int i;
+  int controllerNoHiByte;
+  int controllerNoLowByte;
+
+  // set-up EEPROM read/write operations
+  EEPROM.begin(512);
+
+  // Check if the first part of the memory is filled with the MattzoController ID string.
+  // This is the case if the controller has booted before with a MattzoController firmware.
+  bool idStringCheck = true;
+  for (i = 0; i < eepromIDString.length(); i++) {
+    char charEeprom = EEPROM.read(i);
+    char charIDString = eepromIDString.charAt(i);
+    if (charEeprom != charIDString) {
+      idStringCheck = false;
+      break;
+    }
+  }
+
+  int paramsStartingPosition = eepromIDString.length();
+  if (idStringCheck) {
+    // load controller number from preferences
+    controllerNoHiByte = EEPROM.read(paramsStartingPosition);
+    controllerNoLowByte = EEPROM.read(paramsStartingPosition + 1);
+    mattzoControllerNo = controllerNoHiByte * 256 + controllerNoLowByte;
+    Serial.println("Loaded mattzoControllerNo from EEPROM: " + String(mattzoControllerNo));
+  }
+  else {
+    // preferences not initialized yet -> initialize controller
+    // this runs only a single time when starting the controller for the first time
+
+    // Wait a bit to give the user some time to open the serial console...
+    delay(5000);
+
+    Serial.println("Initializing controller preferences on first start-up...");
+    for (i = 0; i < eepromIDString.length(); i++) {
+      EEPROM.write(i, eepromIDString.charAt(i));
+    }
+
+    // assign random controller number between 1 and MAX_CONTROLLER_ID and store in EEPROM
+    mattzoControllerNo = random(1, MAX_CONTROLLER_ID);
+    controllerNoHiByte = mattzoControllerNo / 256;
+    controllerNoLowByte = mattzoControllerNo % 256;
+    EEPROM.write(paramsStartingPosition, controllerNoHiByte);
+    EEPROM.write(paramsStartingPosition + 1, controllerNoLowByte);
+
+    // Commit EEPROM write operation
+    EEPROM.commit();
+
+    Serial.println("Assigned random controller no " + String(mattzoControllerNo) + " and stored to EEPROM");
+  }
+
+  // set mattzoControllerName
+  mattzoControllerName = eepromIDString + String(mattzoControllerNo);
+  mattzoControllerName.toCharArray(mattzoControllerName_char, mattzoControllerName.length() + 1);
+}
+
 
 
 // ********************
@@ -47,7 +145,9 @@ enum struct MCConnectionStatus {
 MCConnectionStatus getConnectionStatus();
 
 void setStatusLED(bool ledState) {
-  digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
+  if (STATUS_LED_PIN_INSTALLED) {
+    digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
+  }
 }
 
 void updateStatusLED() {
@@ -116,16 +216,16 @@ void setupMQTT() {
 }
 
 // Check mqtt connection and initiate reconnection if required
-void reconnectMQTT(char *mqttClientName_char) {
+void reconnectMQTT() {
   if (!mqttClient.connected() && (millis() - lastMQTTConnectionAttempt >= MQTT_CONNECTION_INTERVAL)) {
     mcLog("(Re)connecting MQTT...");
 
-    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+    String lastWillMessage = String(mattzoControllerName_char) + " " + "last will and testament";
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
     setStatusLED(true);
-    if (mqttClient.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+    if (mqttClient.connect(mattzoControllerName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
       setStatusLED(false);
       mqttClient.subscribe("rocrail/service/command");
       mcLog("MQTT connected, listening on topic [rocrail/service/command].");
@@ -161,11 +261,11 @@ MCConnectionStatus getConnectionStatus() {
 unsigned long lastPing = millis();
 
 // Send ping to MQTT
-void sendMQTTPing(PubSubClient* mqttClient, char* pingMsg_char) {
+void sendMQTTPing() {
   if (SEND_PING && (millis() - lastPing >= SEND_PING_INTERVAL)) {
     lastPing = millis();
     Serial.println("sending ping...");
-    mqttClient->publish("roc2bricks/ping", pingMsg_char);
+    mqttClient.publish("roc2bricks/ping", mattzoControllerName_char);
   }
 }
 
@@ -204,4 +304,40 @@ void mcLog2(String msg, int severity) {
 // log a message with default severity
 void mcLog(String msg) {
   mcLog2(msg, LOG_INFO);
+}
+
+
+// ************************
+// setup and loop functions
+// ************************
+
+void setupMattzoController() {
+  Serial.begin(115200);
+  Serial.println("");
+  Serial.println("MattzoController booting...");
+
+  if (STATUS_LED_PIN_INSTALLED) {
+    pinMode(STATUS_LED_PIN, OUTPUT);
+  }
+  randomSeed(ESP.getCycleCount());
+  loadPreferences();
+  setupWifi();
+  setupSysLog(mattzoControllerName_char);
+  setupMQTT();
+
+  mcLog("MattzoController setup completed.");
+}
+
+void loopMattzoController() {
+  checkWifi();
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!mqttClient.connected()) {
+      reconnectMQTT();
+    }
+    if (mqttClient.connected()) {
+      mqttClient.loop();
+      sendMQTTPing();
+    }
+  }
+  updateStatusLED();
 }

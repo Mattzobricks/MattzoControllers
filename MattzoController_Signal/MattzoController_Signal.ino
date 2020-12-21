@@ -9,104 +9,21 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#include <EEPROM.h>  // EEPROM library
-#include <ESP8266WiFi.h>  // WiFi library
-#include <PubSubClient.h>  // MQTT library
-#include <tinyxml2.h>  // tiny xml 2 library
 #include "MattzoSignalController_Configuration.h"  // this file should be placed in the same folder
 #include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
 
-using namespace tinyxml2;
 
-String eepromIDString = "MattzoSignalController";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
-const int eepromIDStringLength = 22;  // length of the ID String. Needs to be updated if the ID String is changed.
-unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
-const int MAX_CONTROLLER_ID = 65000;
-
-String mqttClientName;
-char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the mqttClient must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
 
 
 
 void setup() {
-  Serial.begin(115200);
-  randomSeed(ESP.getCycleCount());
-  Serial.println("");
-  Serial.println("MattzoController booting...");
-
   // initialize pins
   for (int i = 0; i < NUM_SIGNALPORTS; i++) {
     pinMode(SIGNALPORT_PIN[i], OUTPUT);
   }
-  pinMode(STATUS_LED_PIN, OUTPUT);
 
-  loadPreferences();
-  setupWifi();
-  setupSysLog(mqttClientName_char);
-  setupMQTT();
-
-  mcLog("MattzoController setup completed.");
-}
-
-void loadPreferences() {
-  int i;
-  int controllerNoHiByte;
-  int controllerNoLowByte;
-
-  // set-up EEPROM read/write operations
-  EEPROM.begin(512);
-
-  // Check if the first part of the memory is filled with the MattzoController ID string.
-  // This is the case if the controller has booted before with a MattzoController firmware.
-  bool idStringCheck = true;
-  for (i = 0; i < eepromIDString.length(); i++) {
-    char charEeprom = EEPROM.read(i);
-    char charIDString = eepromIDString.charAt(i);
-    if (charEeprom != charIDString) {
-      idStringCheck = false;
-      break;
-    }
-  }
-
-  // TODO: also write / read SSID, Wifi-Password and MQTT Server from EEPROM
-
-  int paramsStartingPosition = eepromIDString.length();
-  if (idStringCheck) {
-    // load controller number from preferences
-    controllerNoHiByte = EEPROM.read(paramsStartingPosition);
-    controllerNoLowByte = EEPROM.read(paramsStartingPosition + 1);
-    controllerNo = controllerNoHiByte * 256 + controllerNoLowByte;
-    Serial.println("Loaded controllerNo from EEPROM: " + String(controllerNo));
-
-  } else {
-    // preferences not initialized yet -> initialize controller
-    // this runs only a single time when starting the controller for the first time
-
-    // Wait a bit to give the user some time to open the serial console...
-    delay (5000);
-    
-    Serial.println("Initializing controller preferences on first start-up...");
-    for (i = 0; i < eepromIDString.length(); i++) {
-      EEPROM.write(i, eepromIDString.charAt(i));
-    }
-
-    // assign random controller number between 1 and 65000 and store in EEPROM
-    controllerNo = random(1, MAX_CONTROLLER_ID);
-    controllerNoHiByte = controllerNo / 256;
-    controllerNoLowByte = controllerNo % 256;
-    EEPROM.write(paramsStartingPosition, controllerNoHiByte);
-    EEPROM.write(paramsStartingPosition + 1, controllerNoLowByte);
-
-    // Commit EEPROM write operation
-    EEPROM.commit();
-
-    Serial.println("Assigned random controller no " + String(controllerNo) + " and stored to EEPROM");
-  }
-
-  // set MQTT client name
-  mqttClientName = eepromIDString + String(controllerNo);
-  mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
+  setupMattzoController();
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
@@ -141,8 +58,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     return;
   }
   mcLog("addr: " + String(rr_addr));
-  if (rr_addr != controllerNo) {
-    mcLog("Message disgarded, as it is not for me (" + String(controllerNo) + ")");
+  if (rr_addr != mattzoControllerNo) {
+    mcLog("Message disgarded, as it is not for me (" + String(mattzoControllerNo) + ")");
     return;
   }
 
@@ -183,15 +100,5 @@ void setSignalLED(int index, bool ledState) {
 }
 
 void loop() {
-  checkWifi();
-  if (WiFi.status() == WL_CONNECTED) {
-    if (!mqttClient.connected()) {
-      reconnectMQTT(mqttClientName_char);
-    }
-    if (mqttClient.connected()) {
-      mqttClient.loop();
-      sendMQTTPing(&mqttClient, mqttClientName_char);
-    }
-  }
-  updateStatusLED();
+  loopMattzoController();
 }
