@@ -155,12 +155,15 @@ void updateStatusLED() {
 
   switch (getConnectionStatus()) {
   case MCConnectionStatus::CONNECTING_WIFI:
+    // flash
     setStatusLED((t % 1000) < 100);
     break;
   case MCConnectionStatus::CONNECTING_MQTT:
+    // blink
     setStatusLED((t % 1000) < 500);
     break;
   case MCConnectionStatus::CONNECTED:
+    // off
     setStatusLED(false);
     break;
   }
@@ -221,12 +224,17 @@ void reconnectMQTT() {
   if (!mqttClient.connected() && (millis() - lastMQTTConnectionAttempt >= MQTT_CONNECTION_INTERVAL)) {
     mcLog("(Re)connecting to MQTT " + String(MQTT_BROKER_IP) + "...");
 
-    String lastWillMessage = String(mattzoControllerName_char) + " " + "last will and testament";
+    String lastWillMessage;
+    if (TRIGGER_EBREAK_UPON_DISCONNECT) {
+      lastWillMessage = "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"" + mattzoControllerName + "\">";
+    } else {
+      lastWillMessage = "<info msg=\"mc_disconnected\" source=\"lastwill\" mc=\"" + mattzoControllerName + "\">";
+    }
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
     setStatusLED(true);
-    if (mqttClient.connect(mattzoControllerName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+    if (mqttClient.connect(mattzoControllerName_char, "rocrail/service/command", 0, false, lastWillMessage_char)) {
       setStatusLED(false);
       mqttClient.subscribe("rocrail/service/command");
       mcLog("MQTT connected, listening on topic [rocrail/service/command].");

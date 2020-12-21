@@ -34,8 +34,17 @@ bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;  // pin of the status LED (only relevant if installed)
 
 
+// ****************
+// Network settings
+// ****************
+
+// Trigger emergency brake upon disconnect
+#define TRIGGER_EBREAK_UPON_DISCONNECT false
+
+
 // ***************
 // Syslog settings
 // ***************
+
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MSIC";

@@ -30,7 +30,16 @@ const int NUM_SENSORS = 8;
 uint8_t SENSOR_PIN[NUM_SENSORS] = { D0, D1, D2, D3, D4, D5, D6, D7 };
 
 // Digital output PIN to monitor sensor contact (typically a LED)
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t LED_PIN = D8;
+
+
+// ****************
+// Network settings
+// ****************
+
+// Trigger emergency brake upon disconnect
+#define TRIGGER_EBREAK_UPON_DISCONNECT true
 
 
 // ***************
