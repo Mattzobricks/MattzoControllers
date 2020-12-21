@@ -144,6 +144,12 @@ enum struct MCConnectionStatus {
 
 MCConnectionStatus getConnectionStatus();
 
+// Status LED state.
+// If untouched: false (LED is off in normal operation).
+// Controllers may use the LED state to indicate specific operation stati
+// Example: SensorController indicates sensor contact with the status LED
+bool statusLEDState = false;
+
 void setStatusLED(bool ledState) {
   if (STATUS_LED_PIN_INSTALLED) {
     digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
@@ -156,15 +162,15 @@ void updateStatusLED() {
   switch (getConnectionStatus()) {
   case MCConnectionStatus::CONNECTING_WIFI:
     // flash
-    setStatusLED((t % 1000) < 100);
+    setStatusLED(((t % 1000) < 100) ^ statusLEDState);
     break;
   case MCConnectionStatus::CONNECTING_MQTT:
     // blink
-    setStatusLED((t % 1000) < 500);
+    setStatusLED(((t % 1000) < 500) ^ statusLEDState);
     break;
   case MCConnectionStatus::CONNECTED:
     // off
-    setStatusLED(false);
+    setStatusLED(statusLEDState);
     break;
   }
 }
@@ -316,9 +322,9 @@ void mcLog(String msg) {
 }
 
 
-// ************************
-// setup and loop functions
-// ************************
+// ***********************
+// setup and loop function
+// ***********************
 
 void setupMattzoController() {
   Serial.begin(115200);
