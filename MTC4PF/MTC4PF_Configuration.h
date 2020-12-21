@@ -47,7 +47,7 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 #define CONFIG_MOTOR_B -1  // configuration for Motor B. 1 = forward, 0 = not installed / not used, -1 = reverse.
 
 // Constants for motorshield type Lego IR Receiver 8884
-#define IR_LED_PIN D1			// pin on which the IR LED is installed.
+#define IR_LED_PIN D5			// pin on which the IR LED is installed.
 #define IR_CHANNEL 0			// channel number selected on the Lego IR Receiver 8884. May be 0, 1, 2 or 3.
 #define IR_PORT_RED 1     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
@@ -59,6 +59,10 @@ const int NUM_FUNCTIONS = 2;
 
 // Digital pins for function output
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = {D0, D1};
+
+// Digital output PIN to monitor controller operation (typically a LED)
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+uint8_t STATUS_LED_PIN = D8;
 
 
 // ****************

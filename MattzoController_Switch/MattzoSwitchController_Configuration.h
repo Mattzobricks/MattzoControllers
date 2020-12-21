@@ -27,7 +27,7 @@
 const int NUM_SWITCHPORTS = 8;
 
 // Digital output pins for servos
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3, D4, D5, D6, D7};
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {D0, D1, D2, D3, D4, D5, D6, D7};
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
