@@ -28,14 +28,17 @@ const char* WIFI_SSID = "railnet";
 // The passphrase of your WiFi network
 const char* WIFI_PASSWORD = "born2rail";
 
+
 // *************
 // MQTT settings
 // *************
 // The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
-const char* MQTT_BROKER_IP = "192.168.1.15";
+const char* MQTT_BROKER_IP = "192.168.178.57";
+const int MQTT_BROKER_PORT = 1883;
 
 // MQTT keep alive interval (in seconds)
 const int MQTT_KEEP_ALIVE_INTERVAL = 5;
+
 
 // *************
 // Ping settings
@@ -46,6 +49,7 @@ const boolean SEND_PING = false;
 
 // Interval for sending pings in milliseconds (5000 ^= 5 seconds)
 const int SEND_PING_INTERVAL = 5000;
+
 
 // ***************
 // Syslog settings

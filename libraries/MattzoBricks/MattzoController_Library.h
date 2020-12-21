@@ -27,10 +27,135 @@
 
 
 
+// ***************
+// Some declarions
+// ***************
+
+void mcLog(String msg);
+
+
+// ********************
+// Status LED functions
+// ********************
+
+enum struct MCConnectionStatus {
+  CONNECTING_WIFI = 0x0,
+  CONNECTING_MQTT = 0x1,
+  CONNECTED = 0x2
+};
+
+MCConnectionStatus getConnectionStatus();
+
+void setStatusLED(bool ledState) {
+  digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
+}
+
+void updateStatusLED() {
+  unsigned long t = millis();
+
+  switch (getConnectionStatus()) {
+  case MCConnectionStatus::CONNECTING_WIFI:
+    setStatusLED((t % 1000) < 100);
+    break;
+  case MCConnectionStatus::CONNECTING_MQTT:
+    setStatusLED((t % 1000) < 500);
+    break;
+  case MCConnectionStatus::CONNECTED:
+    setStatusLED(false);
+    break;
+  }
+}
+
+
+// **************
+// Wifi functions
+// **************
+
+WiFiClient wifiClient;
+
+// Status of the Wifi connection (true == "connected")
+bool lastKnownWifiConnectedStatus = false;
+
+// Setup wifi parameters and initiate connection process
+void setupWifi() {
+  delay(10);
+  Serial.println("Connecting to Wifi " + String(WIFI_SSID));
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+}
+
+// Check and monitor wifi connection status changes
+void checkWifi() {
+  if (WiFi.status() != WL_CONNECTED && lastKnownWifiConnectedStatus) {
+    lastKnownWifiConnectedStatus = false;
+    Serial.println("Connection to Wifi " + String(WIFI_SSID) + " lost.");
+  }
+  else if (WiFi.status() == WL_CONNECTED && !lastKnownWifiConnectedStatus) {
+    lastKnownWifiConnectedStatus = true;
+    mcLog("Wifi connected. My IP address is " + WiFi.localIP().toString() + ".");
+  }
+}
+
+
+// **************
+// MQTT functions
+// **************
+
+PubSubClient mqttClient(wifiClient);
+unsigned long lastMQTTConnectionAttempt = 0;
+#define MQTT_CONNECTION_INTERVAL 3000  // retry to connect 1 sec after last attempt
+
+// Controller must implement this function
+void mqttCallback(char* topic, byte* payload, unsigned int length);
+
+// Setup mqtt parameters
+void setupMQTT() {
+  mqttClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
+  mqttClient.setCallback(mqttCallback);
+  mqttClient.setBufferSize(2048);
+  mqttClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);
+}
+
+// Check mqtt connection and initiate reconnection if required
+void reconnectMQTT(char *mqttClientName_char) {
+  if (!mqttClient.connected() && (millis() - lastMQTTConnectionAttempt >= MQTT_CONNECTION_INTERVAL)) {
+    mcLog("(Re)connecting MQTT...");
+
+    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
+    char lastWillMessage_char[lastWillMessage.length() + 1];
+    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
+
+    setStatusLED(true);
+    if (mqttClient.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
+      setStatusLED(false);
+      mqttClient.subscribe("rocrail/service/command");
+      mcLog("MQTT connected, listening on topic [rocrail/service/command].");
+    } else {
+      mcLog("Failed to connect to mqtt, state=" + String(mqttClient.state()));
+    }
+    lastMQTTConnectionAttempt = millis();
+  }
+}
+
+
+// ******************************
+// General connectivity functions
+// ******************************
+
+MCConnectionStatus getConnectionStatus() {
+  if (WiFi.status() != WL_CONNECTED) {
+    return MCConnectionStatus::CONNECTING_WIFI;
+  }
+  if (!mqttClient.connected()) {
+    return MCConnectionStatus::CONNECTING_MQTT;
+  }
+  return MCConnectionStatus::CONNECTED;
+}
+
+
 // **************
 // Ping functions
-// Attention: pings were deprecated with issue #9 and replaced by mqtt last will messages
 // **************
+// Attention: pings were deprecated with issue #9 and replaced by mqtt last will messages
 
 // Time of the last sent ping
 unsigned long lastPing = millis();

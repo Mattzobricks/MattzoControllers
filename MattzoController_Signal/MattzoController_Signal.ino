@@ -24,10 +24,7 @@ unsigned int controllerNo;  // controllerNo. Read from memory upon starting the 
 const int MAX_CONTROLLER_ID = 65000;
 
 String mqttClientName;
-char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
-
-WiFiClient espClient;
-PubSubClient client(espClient);
+char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the mqttClient must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
 
 
@@ -43,7 +40,6 @@ void setup() {
     pinMode(SIGNALPORT_PIN[i], OUTPUT);
   }
   pinMode(STATUS_LED_PIN, OUTPUT);
-  setStatusLED(true);  // LED on
 
   loadPreferences();
   setupWifi();
@@ -111,33 +107,6 @@ void loadPreferences() {
   // set MQTT client name
   mqttClientName = eepromIDString + String(controllerNo);
   mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
-}
-
-void setupWifi() {
-  delay(10);
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(WIFI_SSID);
- 
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
- 
-  while (WiFi.status() != WL_CONNECTED) {
-    setStatusLED(true);
-    delay(400);
-    setStatusLED(false);
-    delay(400);
-    Serial.print(".");
-  }
- 
-  Serial.println("");
-  mcLog("WiFi connected. My IP address is " + WiFi.localIP().toString() + ".");
-}
- 
-void setupMQTT () {
-  client.setServer(MQTT_BROKER_IP, 1883);
-  client.setCallback(mqttCallback);
-  client.setBufferSize(2048);
-  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
@@ -213,40 +182,16 @@ void setSignalLED(int index, bool ledState) {
   digitalWrite(SIGNALPORT_PIN[index], ledState ? LOW : HIGH);
 }
 
-void setStatusLED(bool ledState) {
-  digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
-}
-
-void reconnectMQTT() {
-  while (!client.connected()) {
-    mcLog("Reconnecting MQTT...");
-
-    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
-    char lastWillMessage_char[lastWillMessage.length() + 1];
-    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
-
-    if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
-      Serial.print("Failed, rc=");
-      Serial.print(client.state());
-      Serial.println(". Retrying in 5 seconds...");
-      for (int i = 0; i < 5; i++) {
-        setStatusLED(false);
-        delay(500);
-        setStatusLED(true);
-        delay(500);
-      }
+void loop() {
+  checkWifi();
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!mqttClient.connected()) {
+      reconnectMQTT(mqttClientName_char);
+    }
+    if (mqttClient.connected()) {
+      mqttClient.loop();
+      sendMQTTPing(&mqttClient, mqttClientName_char);
     }
   }
-  setStatusLED(false);
-  client.subscribe("rocrail/service/command");
-  mcLog("MQTT connected, listening on topic [rocrail/service/command].");
-}
-
-void loop() {
-  if (!client.connected()) {
-    reconnectMQTT();
-  }
-  client.loop();
-
-  sendMQTTPing(&client, mqttClientName_char);
+  updateStatusLED();
 }
