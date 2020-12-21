@@ -61,6 +61,12 @@ const int NUM_FUNCTIONS = 2;
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = {D0, D1};
 
 
+// ****************
+// Network settings
+// ****************
+
+// Trigger emergency brake upon disconnect
+#define TRIGGER_EBREAK_UPON_DISCONNECT false
 
 
 // ***************
