@@ -6,6 +6,7 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#define MATTZO_CONTROLLER_TYPE "MattzoSwitchController"
 #include <Servo.h>  // servo library
 #include "MattzoSwitchController_Configuration.h"  // this file should be placed in the same folder
 #include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
@@ -60,15 +61,15 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   mcLog("<sw> node found.");
 
   // query addr1 attribute. This is the MattzoController id.
-  // If this does not equal the mattzoControllerNo of this controller, the message is disregarded.
+  // If this does not equal the mattzoControllerId of this controller, the message is disregarded.
   int rr_addr1 = 0;
   if (element->QueryIntAttribute("addr1", &rr_addr1) != XML_SUCCESS) {
     mcLog("addr1 attribute not found or wrong type. Message disregarded.");
     return;
   }
   mcLog("addr1: " + String(rr_addr1));
-  if (rr_addr1 != mattzoControllerNo) {
-    mcLog("Message disgarded, as it is not for me (" + String(mattzoControllerNo) + ")");
+  if (rr_addr1 != mattzoControllerId) {
+    mcLog("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")");
     return;
   }
 

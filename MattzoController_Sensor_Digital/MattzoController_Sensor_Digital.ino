@@ -6,6 +6,7 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+#define MATTZO_CONTROLLER_TYPE "MattzoSensorController"
 #include "MattzoSensorController_Configuration.h"  // this file should be placed in the same folder
 #include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
 
@@ -33,7 +34,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 void sendSensorEvent2MQTT(int sensorPort, int sensorState) {
-  String sensorRocId = eepromIDString + String(mattzoControllerNo) + "-" + String(sensorPort + 1);  // e.g. "MattzoController12345-3"
+  String sensorRocId = MATTZO_CONTROLLER_TYPE + String(mattzoControllerId) + "-" + String(sensorPort + 1);  // e.g. "MattzoController12345-3"
   String stateString = sensorState ? "true" : "false";
 
   // compile mqtt message. Parameters:
@@ -41,7 +42,7 @@ void sendSensorEvent2MQTT(int sensorPort, int sensorState) {
   //   bus: controller number
   //   address: port number (internal port number plus 1)
   // both id or bus/address can be used in Rocrail. If id is used, it superseeds the combination of bus and address
-  String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(mattzoControllerNo) + "\" addr=\"" + String(sensorPort + 1) + "\" state=\"" + stateString + "\"/>";
+  String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(mattzoControllerId) + "\" addr=\"" + String(sensorPort + 1) + "\" state=\"" + stateString + "\"/>";
   mcLog("Sending MQTT message: " + mqttMessage);
   char mqttMessage_char[255];   // message is usually 61 chars, so 255 chars should be enough
   mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);

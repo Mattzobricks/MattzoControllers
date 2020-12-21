@@ -19,6 +19,7 @@ enum struct MotorShieldType
   LEGO_IR_8884 = 0x3
 };
 
+#define MATTZO_CONTROLLER_TYPE "MTC4PF"
 #include "MattzoPowerFunctions.h"  // Power Functions library (required for LEGO Infrared Receiver 8884)
 #include "MTC4PF_Configuration.h"  // this file should be placed in the same folder
 #include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
