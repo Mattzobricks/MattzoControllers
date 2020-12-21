@@ -1,8 +1,5 @@
 // MattzoSignalController Firmware
 // Author: Dr. Matthias Runte
-// Libraries can be downloaded easily from within the Arduino IDE using the library manager.
-// TinyXML2 must be downloaded from https://github.com/leethomason/tinyxml2 (required files: tinyxml2.cpp, tinyxml2.h)
-
 // Copyright 2020 by Dr. Matthias Runte
 // License:
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -14,15 +11,13 @@
 
 
 
-
-
-
 void setup() {
   // initialize pins
   for (int i = 0; i < NUM_SIGNALPORTS; i++) {
     pinMode(SIGNALPORT_PIN[i], OUTPUT);
   }
 
+  // load config from EEPROM, initialize Wifi, MQTT etc.
   setupMattzoController();
 }
 
