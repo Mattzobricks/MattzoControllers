@@ -179,7 +179,7 @@ bool lastKnownWifiConnectedStatus = false;
 // Setup wifi parameters and initiate connection process
 void setupWifi() {
   delay(10);
-  Serial.println("Connecting to Wifi " + String(WIFI_SSID));
+  Serial.println("Connecting to Wifi " + String(WIFI_SSID) + "...");
   WiFi.hostname(mattzoControllerName_char);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
@@ -219,7 +219,7 @@ void setupMQTT() {
 // Check mqtt connection and initiate reconnection if required
 void reconnectMQTT() {
   if (!mqttClient.connected() && (millis() - lastMQTTConnectionAttempt >= MQTT_CONNECTION_INTERVAL)) {
-    mcLog("(Re)connecting MQTT...");
+    mcLog("(Re)connecting to MQTT " + String(MQTT_BROKER_IP) + "...");
 
     String lastWillMessage = String(mattzoControllerName_char) + " " + "last will and testament";
     char lastWillMessage_char[lastWillMessage.length() + 1];
