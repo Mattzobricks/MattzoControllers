@@ -180,6 +180,7 @@ bool lastKnownWifiConnectedStatus = false;
 void setupWifi() {
   delay(10);
   Serial.println("Connecting to Wifi " + String(WIFI_SSID));
+  WiFi.hostname(mattzoControllerName_char);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
