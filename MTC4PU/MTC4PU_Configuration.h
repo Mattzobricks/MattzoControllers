@@ -19,8 +19,33 @@
 
 
 
+// *************
+// Loco specifics
+// *************
+
+// Rocrail address of the train
+const int LOCO_ADDRESS = 8984;
+
+
+// ***************************
+// Controller wiring specifics
+// ***************************
+
+// Digital output PIN to monitor controller operation (typically a LED)
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+uint8_t STATUS_LED_PIN = 4;
+
+
+// ****************
+// Network settings
+// ****************
+
+// Trigger emergency brake upon disconnect
+#define TRIGGER_EBREAK_UPON_DISCONNECT false
+
+
 // ***************
 // Syslog settings
 // ***************
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MTC4PF";
+const char* SYSLOG_APP_NAME = "MTC4PU";

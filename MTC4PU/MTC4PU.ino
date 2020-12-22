@@ -1,31 +1,20 @@
 // MattzoTrainController for Powered Up Firmware
 // Author: Dr. Matthias Runte
-// Libraries can be downloaded easily from within the Arduino IDE using the library manager.
-// TinyXML2 must be downloaded from https://github.com/leethomason/tinyxml2 (required files: tinyxml2.cpp, tinyxml2.h)
-
 // Copyright 2020 by Dr. Matthias Runte
 // License:
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+// ****************************************
+// TARGET-PLATTFORM for this sketch: ESP-32
+// ****************************************
+
+// MattzoControllerType
+#define MATTZO_CONTROLLER_TYPE "MTC4PU"
+
 // Built-in libraries of the Arduino IDE
-#include <EEPROM.h>        // EEPROM library
-#include <WiFi.h>          // WiFi library
-
-// PubSubClient library by Nick O'Leary
-// Install via the built-in Library Manager of the Arduino IDE
-// Tested with Version V2.8.0
-#include <PubSubClient.h>
-
-// TinyXML2
-// Download from https://github.com/leethomason/tinyxml2
-// These files need to be placed in the Arduino library folder:
-//   "tinyxml2.cpp"
-//   "tinyxml2.h".
-// Tested with version of date 2020-11-21.
-#include <tinyxml2.h>
-using namespace tinyxml2;
+#include <WiFi.h>          // WiFi library for ESP-32
 
 // Legoino library by Cornelius Munz
 // Install via the built-in Library Manager of the Arduino IDE
@@ -37,23 +26,12 @@ using namespace tinyxml2;
 //   An ESP-32 can handle 9 BT connections concurrently.
 // Make this line: #define CONFIG_BT_NIMBLE_MAX_CONNECTIONS 3
 // Look like this: #define CONFIG_BT_NIMBLE_MAX_CONNECTIONS 9
-
 #include "Lpf2Hub.h"
 
 // MattzoBricks library files
-#include "MTC4PU_Configuration.h"  // this file should be placed in the same folder
-#include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
+#include "MTC4PU_Configuration.h"     // this file should be placed in the same folder
+#include "MattzoController_Library.h" // this file needs to be placed in the Arduino library folder
 
-
-/* MattzoController specifics */
-String eepromIDString = "MattzoTrainController4PU";  // ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
-const int eepromIDStringLength = 24;              // length of the ID String. Needs to be updated if the ID String is changed.
-unsigned int controllerNo;  // controllerNo. Read from memory upon starting the controller. Ranges between 1 and MAX_CONTROLLER_ID.
-const int MAX_CONTROLLER_ID = 16383;
-
-/* MQTT */
-String mqttClientName;                                   // Name of the MQTT client (me) with which messages are sent
-char mqttClientName_char[eepromIDStringLength + 5 + 1];  // the name of the client must be given as char[]. Length must be the ID String plus 5 figures for the controller ID.
 
 /* Functions */
 const int NUM_FUNCTIONS = 1;          // While theoretically possible to switch two lights on a Powered Up hub independently, this is not supported. So the number of "functions" is one.
@@ -62,7 +40,7 @@ bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
 /* Legoino Library */
 String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT established.
-const int NUM_HUBS = 3;  // Number of connected hubs
+const int NUM_HUBS = 2;  // Number of connected hubs
 Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
 
 // Main hub array
@@ -73,9 +51,8 @@ Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino librar
 //              v         v
 char* myHubData[NUM_HUBS][5] =
 {
-  {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"},
-  {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""},
-  {"Crocodile green", "90:84:2b:21:71:46", "false", "A", ""}
+  {"PUP1", "90:84:2b:01:20:f8", "false", "A", ""},
+  {"PUP2", "90:84:2b:00:5d:bb", "false", "B", ""},
 };
 // {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
 // {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
@@ -83,6 +60,8 @@ char* myHubData[NUM_HUBS][5] =
 // {"Crocodile green", "90:84:2b:21:71:46", "false", "A", ""}
 // {"EST1", "90:84:2b:18:f2:52", "false", "A", ""}
 // {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
+// {"PUP1", "90:84:2b:01:20:f8", "false", "A", "B"}
+// {"PUP2", "90:84:2b:00:5d:bb", "false", "B", ""}
 
 // Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME = 0; // name of the hub
@@ -108,166 +87,46 @@ int nextBatteryLevelReportingHub = 0;            // index of the last hubs for w
 const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
 const int ACCELERATE_STEP = 1;               // acceleration increment for a single acceleration step
 const int BRAKE_STEP = 2;                    // brake decrement for a single braking step
+
+// Speed variables
 int currentTrainSpeed = 0;                   // current speed of this train
 int targetTrainSpeed = 0;                    // Target speed of this train
 int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
 unsigned long lastAccelerate = millis();     // time of the last speed adjustment
 
-// ebreak
-boolean ebreak = false;   // Global emergency break flag.
+// Global emergency brake flag.
+boolean ebreak = false;
 
-// Wifi and MQTT objects
-WiFiClient espClient;
-PubSubClient client(espClient);
 
 
 void setup() {
-  Serial.begin(115200);
-  randomSeed(ESP.getCycleCount());
-  Serial.println("MattzoController booting...");
-
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
     functionCommand[i] = false;
+    functionState[i] = false;
   }
 
-  initMattzoController();
-  initWiFi();
-  setupSysLog(mqttClientName_char);
-  initMQTT();
+  // load config from EEPROM, initialize Wifi, MQTT etc.
+  setupMattzoController();
 
   // discover new Powered Up Hubs (just to display MAC address)
-  discoverPoweredUpHubs();
+  // discoverPoweredUpHubs();
 
-  mcLog("MattzoController setup completed.");
-}
-
-void initMattzoController() {
-  int i;
-  int controllerIDHiByte;
-  int controllerIDLowByte;
-
-  // set-up EEPROM read/write operations
-  EEPROM.begin(512);
-
-  // Check if the first part of the memory is filled with the MattzoController ID string.
-  // This is the case if the controller has booted before with a MattzoController firmware.
-  bool idStringCheck = true;
-  for (i = 0; i < eepromIDString.length(); i++) {
-
-    char charEeprom = EEPROM.read(i);
-    char charIDString = eepromIDString.charAt(i);
-
-    if (charEeprom != charIDString) {
-      idStringCheck = false;
-      break;
-    }
-  }
-
-  // TODO: also write / read SSID, Wifi-Password and MQTT Server from EEPROM
-
-  int paramsStartingPosition = eepromIDString.length();
-  if (idStringCheck) {
-    // load controllerNo from preferences
-    controllerIDHiByte = EEPROM.read(paramsStartingPosition);
-    controllerIDLowByte = EEPROM.read(paramsStartingPosition + 1);
-    controllerNo = controllerIDHiByte * 256 + controllerIDLowByte;
-
-    Serial.println("MattzoControlerId " + String(controllerNo) + " loaded from to EEPROM.");
-  }
-  else {
-    // preferences not initialized yet -> initialize controller
-    // this runs only a single time when starting the controller for the first time
-
-    // Wait a bit to give the user some time to open the serial console...
-    //delay (5000);
-
-    Serial.println("Initializing controller preferences on first start-up ...");
-    for (i = 0; i < eepromIDString.length(); i++) {
-      EEPROM.write(i, eepromIDString.charAt(i));
-    }
-
-    // assign random controllerNo between 1 and 65000 and store in EEPROM
-    controllerNo = random(1, MAX_CONTROLLER_ID);
-    controllerIDHiByte = controllerNo / 256;
-    controllerIDLowByte = controllerNo % 256;
-    EEPROM.write(paramsStartingPosition, controllerIDHiByte);
-    EEPROM.write(paramsStartingPosition + 1, controllerIDLowByte);
-
-    // Commit EEPROM write operation
-    EEPROM.commit();
-
-    Serial.println("New MattzoControlerId " + String(controllerNo) + " written to EEPROM.");
-  }
-
-  // set MQTT client name
-  mqttClientName = eepromIDString + String(controllerNo);
-  mqttClientName.toCharArray(mqttClientName_char, mqttClientName.length() + 1);
-}
-
-void initWIFI() {
-  Serial.println("My MAC: " + WiFi.macAddress());
-  //Serial.print("Connecting to SSID " + String(WIFI_SSID) + " ");
-  //WiFi.setSleepMode(WIFI_NONE_SLEEP);
-  reconnectWIFI();
-}
-
-void reconnectWIFI() {
-  Serial.print("Connecting to WiFi, SSID " + String(WIFI_SSID) + " ");
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  mcLog("WiFi connected. My IP address is " + WiFi.localIP().toString() + ".");
-}
-
-void initMQTT() {
-  client.setServer(MQTT_BROKER_IP, 1883);
-  client.setCallback(callbackMQTT);
-  client.setBufferSize(2048);
-  client.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);   // keep alive interval
-}
-
-void reconnectMQTT() {
-  while (!client.connected()) {
-    mcLog("Reconnecting MQTT...");
-
-    String lastWillMessage = String(mqttClientName_char) + " " + "last will and testament";
-    char lastWillMessage_char[lastWillMessage.length() + 1];
-    lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
-
-    if (!client.connect(mqttClientName_char, "roc2bricks/lastWill", 0, false, lastWillMessage_char)) {
-      Serial.print("Failed, rc=");
-      Serial.print(client.state());
-      Serial.println(". Retrying in 5 seconds...");
-      delay(5000);
-    }
-  }
-  client.subscribe("rocrail/service/command");
-  mcLog("MQTT connected, listening on topic [rocrail/service/command].");
-
-  // if a Powered Hub was discovered on start-up, transmit it after (first) MQTT connection.
-  if (discoveryHubAddress.length() > 0) {
-    sendMQTTMessage("roc2bricks/discovery", "Powered Up Hub discovered: " + discoveryHubAddress);
-    discoveryHubAddress = "";
-  }
+  // initialize Powered Up hubs that are expected to connect
+  initPoweredUpHubs();
 }
 
 void sendMQTTMessage(String topic, String message) {
   const int MAX_MQTT_TOPIC_SIZE = 255;
   const int MAX_MQTT_MESSAGE_SIZE = 255;
-  char topic_char[MAX_MQTT_TOPIC_SIZE];
-  char message_char[MAX_MQTT_MESSAGE_SIZE];
+  char topic_char[MAX_MQTT_TOPIC_SIZE + 1];
+  char message_char[MAX_MQTT_MESSAGE_SIZE + 1];
 
   if (topic.length() + 1 > MAX_MQTT_TOPIC_SIZE) {
     mcLog("ERROR: MQTT topic string too long - message not sent.");
     return;
   }
 
-  message = String(mqttClientName_char) + " " + message;
+  message = String(mattzoControllerName) + " " + message;
   if (message.length() + 1 > MAX_MQTT_MESSAGE_SIZE) {
     mcLog("ERROR: MQTT message string too long - message not sent.");
     return;
@@ -277,7 +136,7 @@ void sendMQTTMessage(String topic, String message) {
   message.toCharArray(message_char, message.length() + 1);
 
   mcLog("sending mqtt: " + topic + " " + message);
-  client.publish(topic_char, message_char);
+  mqttClient.publish(topic_char, message_char);
 }
 
 void sendMQTTBatteryLevel() {
@@ -294,7 +153,7 @@ void sendMQTTBatteryLevel() {
   }
 }
 
-void callbackMQTT(char* topic, byte* payload, unsigned int length) {
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length + 1];
   for (int i = 0; i < length; i++) {
     msg[i] = (char)payload[i];
@@ -331,13 +190,13 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     mcLog("loco id: " + String(rr_id));
 
     // query addr attribute. This is the MattzoController id.
-    // If this does not equal the controllerNo of this controller, the message is disregarded.
+    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     mcLog("addr: " + String(rr_addr));
-    if (rr_addr != controllerNo) {
+    if (rr_addr != LOCO_ADDRESS) {
       mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
@@ -404,13 +263,13 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
     mcLog("function id: " + String(rr_id));
 
     // query addr attribute. This is the MattzoController id.
-    // If this does not equal the ControllerNo of this controller, the message is disregarded.
+    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     mcLog("addr: " + String(rr_addr));
-    if (rr_addr != controllerNo) {
+    if (rr_addr != LOCO_ADDRESS) {
       mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
       return;
     }
@@ -489,8 +348,6 @@ void callbackMQTT(char* topic, byte* payload, unsigned int length) {
   mcLog("Unknown message, disregarded.");
 }
 
-
-
 void discoverPoweredUpHubs() {
   // Just after booting, the ESP-32 checks if there is a Powered Up hub that is ready to connect
   // Purpose is just to read out its MAC address at publish it via MQTT.
@@ -501,28 +358,31 @@ void discoverPoweredUpHubs() {
   mcLog("Discovering Powered Up Hubs...");
   discoveryHub.init();
   if (!discoveryHub.isConnected() && discoveryHub.isConnecting()) {
-    Serial.print("Powered Up Hub found. MAC Address: ");
     discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
-    mcLog(discoveryHubAddress);
+    mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
   }
   else {
-    mcLog("No Powered Up Hub found. Starting loop...");
+    mcLog("No Powered Up Hub found.");
   }
+  mcLog("Discovering new Powered Up hubs terminated.");
 }
 
 void initPoweredUpHubs() {
   // initialize all Powered Up hubs that are expected to connect to this controller
   for (int i = 0; i < NUM_HUBS; i++) {
-    myHubs[i].init(myHubData[i][HUB_ADDRESS], PU_SCAN_DURATION);
+    initPoweredUpHub(i);
     delay(100);
   }
 }
 
-void reconnectHUB() {
-  int i;
+void initPoweredUpHub(int hubIndex) {
+  mcLog("Initializing hub " + String(hubIndex) + "...");
+  myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
+}
 
+void reconnectHUB() {
   // init disconnected hubs from list and send "disconnected" information if lost
-  for (i = 0; i < NUM_HUBS; i++) {
+  for (int i = 0; i < NUM_HUBS; i++) {
     if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()) {
       if (String(myHubData[i][HUB_STATUS]) == String("true")) {
         // Send "connection lost" message
@@ -530,22 +390,26 @@ void reconnectHUB() {
         myHubData[i][HUB_STATUS] = "false";
       }
 
-      myHubs[i].init(myHubData[i][HUB_ADDRESS], PU_SCAN_DURATION);
+      // initPoweredUpHub(i);
+
     }
   }
 
   // connect to the hubs from the list and send "connected" information
-  for (i = 0; i < NUM_HUBS; i++) {
-    if (myHubs[i].isConnecting() && !myHubs[i].isConnected()) {
+  for (int i = 0; i < NUM_HUBS; i++) {
+    if (!myHubs[i].isConnecting() && !myHubs[i].isConnected()) {
       // Connect to hub
+      mcLog("Connecting to hub " + String(i) + "...");
       myHubs[i].connectHub();
 
       if (myHubs[i].isConnected()) {
         // Send "connected" message
+        mcLog("Connected to hub " + String(i) + ".");
         sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connected");
         myHubData[i][HUB_STATUS] = "true";
       }
       else {
+        mcLog("Not connected to hub " + String(i) + ".");
         myHubData[i][HUB_STATUS] = "false";
       }
     }
@@ -557,21 +421,18 @@ void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint
 {
   Lpf2Hub* myHub = (Lpf2Hub*)hub;
   String hubAddress = myHub->getHubAddress().toString().c_str();
-  Serial.print("PU Message received from " + hubAddress + ", hub property ");
-  mcLog((byte)hubProperty, HEX);
+  mcLog("PU Message received from " + hubAddress + ", hub property " + String((byte)hubProperty, HEX));
 
   if (hubProperty == HubPropertyReference::BATTERY_VOLTAGE)
   {
-    Serial.print("BatteryLevel: ");
-    mcLog(myHub->parseBatteryLevel(pData), DEC);
+    mcLog("BatteryLevel: " + String(myHub->parseBatteryLevel(pData), DEC));
     sendMQTTMessage("roc2bricks/battery", hubAddress + " " + myHub->parseBatteryLevel(pData));
     return;
   }
 
   if (hubProperty == HubPropertyReference::BUTTON)
   {
-    Serial.print("Button: ");
-    mcLog((byte)myHub->parseHubButton(pData), HEX);
+    mcLog("Button: " + String((byte)myHub->parseHubButton(pData), HEX));
     sendMQTTMessage("roc2bricks/button", hubAddress + " button pressed.");
     return;
   }
@@ -702,23 +563,21 @@ void setLights() {
   }
 }
 
+// if a Powered Hub was discovered on start - up, transmit once after initial MQTT connection.
+void transmitDiscoveredHub() {
+  if (discoveryHubAddress.length() > 0) {
+    if (getConnectionStatus() == MCConnectionStatus::CONNECTED) {
+      sendMQTTMessage("roc2bricks/discovery", "Powered Up Hub discovered: " + discoveryHubAddress);
+      discoveryHubAddress = "";
+    }
+  }
+}
 
 void loop() {
-  if (WiFi.status() != WL_CONNECTED) {
-    reconnectWIFI();
-  }
-
-  if (!client.connected()) {
-    reconnectMQTT();
-  }
-  client.loop();
-
+  loopMattzoController();
+  transmitDiscoveredHub();
   reconnectHUB();
-
   accelerateTrainSpeed();
   setLights();
-
-  // TODO: clean up
-  // sendMQTTPing(&client, mqttClientName_char);
   sendMQTTBatteryLevel();
 }

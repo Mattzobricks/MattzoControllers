@@ -21,9 +21,9 @@
 // Included libraries
 // ******************
 
-// Built-in EEPROM library for
+// Built-in EEPROM library
 // Install via the built-in Library Manager of the Arduino IDE
-#include <EEPROM.h>        // EEPROM library
+#include <EEPROM.h>
 
 // PubSubClient library by Nick O'Leary
 // Install via the built-in Library Manager of the Arduino IDE
@@ -198,8 +198,8 @@ bool lastKnownWifiConnectedStatus = false;
 // Setup wifi parameters and initiate connection process
 void setupWifi() {
   delay(10);
-  Serial.println("Connecting to Wifi " + String(WIFI_SSID) + "...");
-  WiFi.hostname(mattzoControllerName_char);
+  Serial.println("Connecting as " + String(mattzoControllerName_char) + " to Wifi " + String(WIFI_SSID) + "...");
+  WiFi.setHostname(mattzoControllerName_char);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
