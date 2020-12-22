@@ -19,7 +19,7 @@
 // Legoino library by Cornelius Munz
 // Install via the built-in Library Manager of the Arduino IDE
 // Tested with:
-//   Version V1.0.2 of the "Legoino" library
+//   Version V1.0.4 of the "Legoino" library
 //   Version V1.0.2 of the required dependent library "NimBLE-Arduino"
 // To connect more than 3 Powered Up units to the ESP-32, the constant CONFIG_BT_NIMBLE_MAX_CONNECTIONS
 //   needs to be changed in nimconfig.h in the NimBLE-Arduino/src directory of your libraries folder
@@ -371,33 +371,34 @@ void initPoweredUpHubs() {
   // initialize all Powered Up hubs that are expected to connect to this controller
   for (int i = 0; i < NUM_HUBS; i++) {
     initPoweredUpHub(i);
-    delay(100);
   }
 }
 
 void initPoweredUpHub(int hubIndex) {
   mcLog("Initializing hub " + String(hubIndex) + "...");
   myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
+  delay(100);
 }
 
 void reconnectHUB() {
-  // init disconnected hubs from list and send "disconnected" information if lost
+  // check for disconnected hubs (not connected and not connecting, but last known status is "connected")
+  // -> send "disconnected" information to mqtt if lost
+  // -> init hub again
   for (int i = 0; i < NUM_HUBS; i++) {
     if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()) {
       if (String(myHubData[i][HUB_STATUS]) == String("true")) {
         // Send "connection lost" message
         sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
         myHubData[i][HUB_STATUS] = "false";
+        initPoweredUpHub(i);
       }
-
-      // initPoweredUpHub(i);
-
     }
   }
 
-  // connect to the hubs from the list and send "connected" information
+  // check for hubs ready for connection (is connecting, but not connected)
+  // -> connect
   for (int i = 0; i < NUM_HUBS; i++) {
-    if (!myHubs[i].isConnecting() && !myHubs[i].isConnected()) {
+    if (myHubs[i].isConnecting() && !myHubs[i].isConnected()) {
       // Connect to hub
       mcLog("Connecting to hub " + String(i) + "...");
       myHubs[i].connectHub();
