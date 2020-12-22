@@ -20,9 +20,10 @@ enum struct MotorShieldType
 };
 
 #define MATTZO_CONTROLLER_TYPE "MTC4PF"
-#include "MattzoPowerFunctions.h"  // Power Functions library (required for LEGO Infrared Receiver 8884)
-#include "MTC4PF_Configuration.h"  // this file should be placed in the same folder
-#include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
+#include <ESP8266WiFi.h>                // WiFi library for ESP-8266
+#include "MattzoPowerFunctions.h"       // Power Functions library (required for LEGO Infrared Receiver 8884)
+#include "MTC4PF_Configuration.h"       // this file should be placed in the same folder
+#include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
 
 // Functions (lights)
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function

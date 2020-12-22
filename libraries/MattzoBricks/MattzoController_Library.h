@@ -21,9 +21,9 @@
 // Included libraries
 // ******************
 
-// Built-in libraries of the Arduino IDE
+// Built-in EEPROM library for
+// Install via the built-in Library Manager of the Arduino IDE
 #include <EEPROM.h>        // EEPROM library
-#include <ESP8266WiFi.h>  // WiFi library
 
 // PubSubClient library by Nick O'Leary
 // Install via the built-in Library Manager of the Arduino IDE

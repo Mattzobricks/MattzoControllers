@@ -7,8 +7,9 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define MATTZO_CONTROLLER_TYPE "MattzoSensorController"
-#include "MattzoSensorController_Configuration.h"  // this file should be placed in the same folder
-#include "MattzoController_Library.h"  // this file needs to be placed in the Arduino library folder
+#include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
+#include "MattzoSensorController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 // Time in milliseconds until release event is reported after sensor has lost contact
 const int SENSOR_RELEASE_TICKS = 100;
