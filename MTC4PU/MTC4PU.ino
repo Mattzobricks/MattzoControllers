@@ -19,7 +19,7 @@
 // Legoino library by Cornelius Munz
 // Install via the built-in Library Manager of the Arduino IDE
 // Tested with:
-//   Version V1.0.4 of the "Legoino" library
+//   Version V1.1.0 of the "Legoino" library
 //   Version V1.0.2 of the required dependent library "NimBLE-Arduino"
 // To connect more than 3 Powered Up units to the ESP-32, the constant CONFIG_BT_NIMBLE_MAX_CONNECTIONS
 //   needs to be changed in nimconfig.h in the NimBLE-Arduino/src directory of your libraries folder
@@ -39,8 +39,10 @@ bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
 /* Legoino Library */
-String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT established.
 const int NUM_HUBS = 8;  // Number of connected hubs
+
+String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT established.
+int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at the moment. :-(
 Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
 
 // Main hub array
@@ -69,7 +71,7 @@ char* myHubData[NUM_HUBS][5] =
 // {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""}
 // {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
 
-// Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
+// Constants the different values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME = 0; // name of the hub
 const int HUB_ADDRESS = 1; // MAC address
 const int HUB_STATUS = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected). Must be "false" in the configuration (start-up value).
@@ -78,14 +80,11 @@ const int HUB_MOTORPORT = 3; // indicates which ports have motors attached inclu
 const int HUB_LIGHTPORT = 4; // indicates which ports have lights attached
                                 // Allowed options: "", "A", "B", "AB""
 
-// Legoino Constants (god knows why we have to do this in the script USING the library...)
-const byte PUHubPortA = (byte)PoweredUpHubPort::A;
-const byte PUHubPortB = (byte)PoweredUpHubPort::B;
 const int PU_SCAN_DURATION = 1000;  // time the controller tries to connect to a Hub (in ms)
 
 
 /* Send battery level  */
-const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
+const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds (60000 = 60 seconds)
 unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
 int nextBatteryLevelReportingHub = 0;            // index of the last hubs for which a battery report was requested
 
@@ -378,20 +377,20 @@ void setTrainSpeed(int newTrainSpeed) {
   for (int i = 0; i < NUM_HUBS; i++) {
     if (myHubs[i].isConnected()) {
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("A") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortA, power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, power);
         delay(DELAY);
       }
       else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("a") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortA, -power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, -power);
         delay(DELAY);
       }
 
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("B") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortB, power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, power);
         delay(DELAY);
       }
       else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("b") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortB, -power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, -power);
         delay(DELAY);
       }
 
@@ -460,11 +459,11 @@ void setLights() {
       for (int h = 0; h < NUM_HUBS; h++) {
         if (myHubs[h].isConnected()) {
           if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("A") >= 0) {
-            myHubs[i].setBasicMotorSpeed(PUHubPortA, lightPower);
+            myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, lightPower);
             delay(DELAY);
           }
           else if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("B") >= 0) {
-            myHubs[i].setBasicMotorSpeed(PUHubPortB, lightPower);
+            myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, lightPower);
             delay(DELAY);
           }
         }
@@ -541,16 +540,16 @@ void initPoweredUpHub(int hubIndex) {
   delay(10);
 }
 
-bool hubInitialized[NUM_HUBS];
+unsigned long timeLastHubReport = 0;
 
 void reconnectHUB() {
   // check for hubs ready for connection (is connecting, but not connected) -> connect
   for (int i = 0; i < NUM_HUBS; i++) {
     if (!myHubs[i].isConnected()) {
-      // hub not yet initialized -> initialize (only one at a time)!
-      if (!hubInitialized[i]) {
+      // has this hub been initialized?
+      if (i != initializedHub) {
         initPoweredUpHub(i);
-        hubInitialized[i] = true;
+        initializedHub = i;
       }
 
       // hub connecting -> connect!
@@ -583,4 +582,16 @@ void reconnectHUB() {
       break;
     }
   }
+
+  // Debugging code... may be removed.
+  return;
+
+  if (millis() - timeLastHubReport < 10000) return;
+
+  mcLog("***");
+  mcLog("init hub: " + String(initializedHub));
+  for (int i = 0; i < NUM_HUBS; i++) {
+    mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubData[i][HUB_STATUS]));
+  }
+  timeLastHubReport = millis();
 }
