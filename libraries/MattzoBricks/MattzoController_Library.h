@@ -30,6 +30,11 @@
 // Tested with Version V2.8.0
 #include <PubSubClient.h>
 
+// Arduino OTA library
+// Install via the built-in Library Manager of the Arduino IDE
+// Tested with Version V1.0.5
+#include <ArduinoOTA.h>  // Over the air update library
+
 // TinyXML2
 // Download from https://github.com/leethomason/tinyxml2
 // These files need to be placed in the Arduino library folder:
@@ -207,6 +212,11 @@ void checkWifi() {
   else if (WiFi.status() == WL_CONNECTED && !lastKnownWifiConnectedStatus) {
     lastKnownWifiConnectedStatus = true;
     mcLog("Wifi connected. My IP address is " + WiFi.localIP().toString() + ".");
+
+    // Start OTA listener
+    ArduinoOTA.setHostname(mattzoControllerName_char);
+    ArduinoOTA.setPassword("mattzobricks");
+    ArduinoOTA.begin();
   }
 }
 
@@ -359,6 +369,7 @@ void loopMattzoController() {
       mqttClient.loop();
       sendMQTTPing();
     }
+    ArduinoOTA.handle();
   }
   updateStatusLED();
 }
