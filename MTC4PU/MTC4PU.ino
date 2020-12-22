@@ -40,7 +40,7 @@ bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
 /* Legoino Library */
 String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT established.
-const int NUM_HUBS = 2;  // Number of connected hubs
+const int NUM_HUBS = 8;  // Number of connected hubs
 Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
 
 // Main hub array
@@ -51,17 +51,23 @@ Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino librar
 //              v         v
 char* myHubData[NUM_HUBS][5] =
 {
-  {"PUP1", "90:84:2b:01:20:f8", "false", "A", ""},
-  {"PUP2", "90:84:2b:00:5d:bb", "false", "B", ""},
+ {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"},
+ {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""},
+ {"EST1", "90:84:2b:18:f2:52", "false", "A", ""},
+ {"EST2", "90:84:2b:18:f7:75", "false", "A", ""},
+ {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""},
+ {"GRECO", "90:84:2b:21:71:46", "false", "A", ""},
+ {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""},
+ {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
 };
 // {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
 // {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
-// {"Crocodile brown", "90:84:2b:0f:ac:c7", "false", "B", ""}
-// {"Crocodile green", "90:84:2b:21:71:46", "false", "A", ""}
+// {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""}
+// {"GRECO", "90:84:2b:21:71:46", "false", "A", ""}
 // {"EST1", "90:84:2b:18:f2:52", "false", "A", ""}
 // {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
-// {"PUP1", "90:84:2b:01:20:f8", "false", "A", "B"}
-// {"PUP2", "90:84:2b:00:5d:bb", "false", "B", ""}
+// {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""}
+// {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
 
 // Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME = 0; // name of the hub
@@ -529,55 +535,26 @@ void discoverPoweredUpHubs() {
 
 
 
-
-
-
 void initPoweredUpHub(int hubIndex) {
   mcLog("Initializing hub " + String(hubIndex) + "...");
   myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
   delay(10);
 }
 
-int nextPUHubtoConnect = 0;
-unsigned long timeLastHubConnectionAttempt = 0;
+bool hubInitialized[NUM_HUBS];
 
 void reconnectHUB() {
-  if (millis() - timeLastHubConnectionAttempt > PU_SCAN_DURATION) {
-    mcLog("Entering reconnectHUB(). Next hub to connect: " + String(nextPUHubtoConnect));
-
-    // search for disconnected hubs (not connected and not connecting, but last known status is "connected")
-    // -> send "disconnected" information to mqtt if lost
-    // -> init hub again
-
-    int numTries = 0;
-    bool hubInitialized = false;
-    int i = nextPUHubtoConnect;
-    while (!hubInitialized && numTries++ < NUM_HUBS) {
-      if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()) {
-        if (String(myHubData[i][HUB_STATUS]) == String("true")) {
-          // Send "connection lost" message
-          mcLog("Hub " + String(i) + " disconnected.");
-          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
-          myHubData[i][HUB_STATUS] = "false";
-        }
+  // check for hubs ready for connection (is connecting, but not connected) -> connect
+  for (int i = 0; i < NUM_HUBS; i++) {
+    if (!myHubs[i].isConnected()) {
+      // hub not yet initialized -> initialize (only one at a time)!
+      if (!hubInitialized[i]) {
         initPoweredUpHub(i);
-        hubInitialized = true;
-      } else {
-        mcLog("Skipping hub " + String(i) + " (already connected).");
+        hubInitialized[i] = true;
       }
-      i = ++i % NUM_HUBS;
-    };
-    nextPUHubtoConnect = ++nextPUHubtoConnect % NUM_HUBS;
-    timeLastHubConnectionAttempt = millis();
 
-    for (int i = 0; i < NUM_HUBS; i++) {
-      mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubData[i][HUB_STATUS]));
-    }
-  
-    // check for hubs ready for connection (is connecting, but not connected)
-    // -> connect
-    for (int i = 0; i < NUM_HUBS; i++) {
-      if (myHubs[i].isConnecting() && !myHubs[i].isConnected()) {
+      // hub connecting -> connect!
+      if (myHubs[i].isConnecting()) {
         // Connect to hub
         mcLog("Connecting to hub " + String(i) + "...");
         myHubs[i].connectHub();
@@ -589,10 +566,21 @@ void reconnectHUB() {
           myHubData[i][HUB_STATUS] = "true";
         }
         else {
-          mcLog("Not connected to hub " + String(i) + ".");
+          mcLog("Connection attempt to hub " + String(i) + " refused.");
+          initPoweredUpHub(i);
+        }
+      } else {
+        if (String(myHubData[i][HUB_STATUS]) == String("true")) {
+          // Send "connection lost" message
+          mcLog("Hub " + String(i) + " disconnected.");
+          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
           myHubData[i][HUB_STATUS] = "false";
+          initPoweredUpHub(i);
         }
       }
+
+      // if unconnected hub found, do not process any other hubs at this time.
+      break;
     }
   }
 }
