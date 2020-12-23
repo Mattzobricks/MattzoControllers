@@ -53,12 +53,12 @@ Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino librar
 //              v         v
 char* myHubData[NUM_HUBS][5] =
 {
+ {"GRECO", "90:84:2b:21:71:46", "false", "A", ""},
  {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"},
  {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""},
  {"EST1", "90:84:2b:18:f2:52", "false", "A", ""},
  {"EST2", "90:84:2b:18:f7:75", "false", "A", ""},
  {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""},
- {"GRECO", "90:84:2b:21:71:46", "false", "A", ""},
  {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""},
  {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
 };
@@ -114,8 +114,131 @@ void setup() {
   setupMattzoController();
 
   // discover new Powered Up Hubs (just to display MAC address)
-  // discoverPoweredUpHubs();
+  discoverPoweredUpHub();
 }
+
+
+
+void discoverPoweredUpHub() {
+  // Just after booting, the ESP-32 checks if there is a Powered Up hub that is ready to connect
+  // Purpose is just to read out its MAC address at publish it via MQTT.
+  // The MAC address is then known and can be used in the configuration of the MattzoController (recompiling the source code is required)
+
+  Lpf2Hub discoveryHub;  // Hub used for discovering new PU hubs
+
+  mcLog("Discovering Powered Up Hubs...");
+  discoveryHub.init();
+  unsigned long timeStart = millis();
+  while (millis() - timeStart < 5000) {  // wait 5 seconds for a hub to show up
+    if (discoveryHub.isConnecting()) {
+      discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
+      mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
+      return;
+    }
+  }
+  mcLog("No Powered Up Hub found. Discovering new Powered Up hubs terminated.");
+}
+
+void initPoweredUpHub(int hubIndex) {
+  mcLog("Initializing hub " + String(hubIndex) + "...");
+  myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
+  delay(10);
+}
+
+// for debugging only - may be deleted later
+unsigned long timeLastHubReport = 0;
+
+void connectPoweredUpHubs() {
+  // check for hubs ready for connection (is connecting, but not connected) -> connect
+  for (int i = 0; i < NUM_HUBS; i++) {
+    if (!myHubs[i].isConnected()) {
+      // has this hub been initialized?
+      if (i != initializedHub) {
+        initPoweredUpHub(i);
+        initializedHub = i;
+      }
+
+      // hub connecting -> connect!
+      if (myHubs[i].isConnecting()) {
+        // Connect to hub
+        mcLog("Connecting to hub " + String(i) + "...");
+        myHubs[i].connectHub();
+
+        if (myHubs[i].isConnected()) {
+          // Send "connected" message
+          mcLog("Connected to hub " + String(i) + ".");
+          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connected");
+          myHubData[i][HUB_STATUS] = "true";
+        }
+        else {
+          mcLog("Connection attempt to hub " + String(i) + " refused.");
+          initPoweredUpHub(i);
+        }
+      }
+      else {
+        if (String(myHubData[i][HUB_STATUS]) == String("true")) {
+          // Send "connection lost" message
+          mcLog("Hub " + String(i) + " disconnected.");
+          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
+          myHubData[i][HUB_STATUS] = "false";
+          initPoweredUpHub(i);
+        }
+      }
+
+      // if unconnected hub found, do not process any other hubs at this time.
+      break;
+    }
+  }
+
+  // Debugging code... may be removed.
+  return;
+
+  if (millis() - timeLastHubReport < 10000) return;
+
+  mcLog("***");
+  mcLog("init hub: " + String(initializedHub));
+  for (int i = 0; i < NUM_HUBS; i++) {
+    mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubData[i][HUB_STATUS]));
+  }
+  timeLastHubReport = millis();
+}
+
+void requestPoweredUpBatteryLevel() {
+  if (millis() - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL / NUM_HUBS) {
+    lastBatteryLevelMsg = millis();
+
+    if (myHubs[nextBatteryLevelReportingHub].isConnected()) {
+      // mcLog("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
+      myHubs[nextBatteryLevelReportingHub].activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
+      delay(10);
+    }
+
+    nextBatteryLevelReportingHub = (++nextBatteryLevelReportingHub) % NUM_HUBS;
+  }
+}
+
+void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint8_t* pData)
+{
+  Lpf2Hub* myHub = (Lpf2Hub*)hub;
+  String hubAddress = myHub->getHubAddress().toString().c_str();
+  mcLog("PU Message received from " + hubAddress + ", hub property " + String((byte)hubProperty, HEX));
+
+  if (hubProperty == HubPropertyReference::BATTERY_VOLTAGE)
+  {
+    mcLog("BatteryLevel: " + String(myHub->parseBatteryLevel(pData), DEC));
+    sendMQTTMessage("roc2bricks/battery", hubAddress + " " + myHub->parseBatteryLevel(pData));
+    return;
+  }
+
+  if (hubProperty == HubPropertyReference::BUTTON)
+  {
+    mcLog("Button: " + String((byte)myHub->parseHubButton(pData), HEX));
+    sendMQTTMessage("roc2bricks/button", hubAddress + " button pressed.");
+    return;
+  }
+}
+
+
 
 void sendMQTTMessage(String topic, String message) {
   const int MAX_MQTT_TOPIC_SIZE = 255;
@@ -141,17 +264,13 @@ void sendMQTTMessage(String topic, String message) {
   mqttClient.publish(topic_char, message_char);
 }
 
-void sendMQTTBatteryLevel() {
-  if (millis() - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL / NUM_HUBS) {
-    lastBatteryLevelMsg = millis();
-
-    if (myHubs[nextBatteryLevelReportingHub].isConnected()) {
-      mcLog("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
-      myHubs[nextBatteryLevelReportingHub].activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
-      delay(10);
+// if a Powered Hub was discovered on start-up, transmit its MAC address once after initial MQTT connection.
+void sendDiscoveredHub2mqtt() {
+  if (discoveryHubAddress.length() > 0) {
+    if (getConnectionStatus() == MCConnectionStatus::CONNECTED) {
+      sendMQTTMessage("roc2bricks/discovery", "Powered Up Hub discovered: " + discoveryHubAddress);
+      discoveryHubAddress = "";
     }
-
-    nextBatteryLevelReportingHub = (++nextBatteryLevelReportingHub) % NUM_HUBS;
   }
 }
 
@@ -472,127 +591,13 @@ void setLights() {
   }
 }
 
-// if a Powered Hub was discovered on start - up, transmit once after initial MQTT connection.
-void transmitDiscoveredHub() {
-  if (discoveryHubAddress.length() > 0) {
-    if (getConnectionStatus() == MCConnectionStatus::CONNECTED) {
-      sendMQTTMessage("roc2bricks/discovery", "Powered Up Hub discovered: " + discoveryHubAddress);
-      discoveryHubAddress = "";
-    }
-  }
-}
 
-// TODO: call the callback does not work yet... needs investigation.
-void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint8_t* pData)
-{
-  Lpf2Hub* myHub = (Lpf2Hub*)hub;
-  String hubAddress = myHub->getHubAddress().toString().c_str();
-  mcLog("PU Message received from " + hubAddress + ", hub property " + String((byte)hubProperty, HEX));
-
-  if (hubProperty == HubPropertyReference::BATTERY_VOLTAGE)
-  {
-    mcLog("BatteryLevel: " + String(myHub->parseBatteryLevel(pData), DEC));
-    sendMQTTMessage("roc2bricks/battery", hubAddress + " " + myHub->parseBatteryLevel(pData));
-    return;
-  }
-
-  if (hubProperty == HubPropertyReference::BUTTON)
-  {
-    mcLog("Button: " + String((byte)myHub->parseHubButton(pData), HEX));
-    sendMQTTMessage("roc2bricks/button", hubAddress + " button pressed.");
-    return;
-  }
-}
 
 void loop() {
   loopMattzoController();
-  transmitDiscoveredHub();
-  reconnectHUB();
+  sendDiscoveredHub2mqtt();
+  connectPoweredUpHubs();
+  requestPoweredUpBatteryLevel();
   accelerateTrainSpeed();
   setLights();
-  sendMQTTBatteryLevel();
-}
-
-void discoverPoweredUpHubs() {
-  // Just after booting, the ESP-32 checks if there is a Powered Up hub that is ready to connect
-  // Purpose is just to read out its MAC address at publish it via MQTT.
-  // The MAC address is then known and can be used in the configuration of the MattzoController (recompiling the source code is required)
-
-  Lpf2Hub discoveryHub;  // Hub used for discovering new PU hubs
-
-  mcLog("Discovering Powered Up Hubs...");
-  discoveryHub.init();
-  unsigned long timeStart = millis();
-  while (millis() - timeStart < 10000) {  // wait 10 seconds for a hub to connect
-    if (discoveryHub.isConnecting()) {
-      discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
-      mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
-      return;
-    }
-  }
-  mcLog("No Powered Up Hub found. Discovering new Powered Up hubs terminated.");
-}
-
-
-
-void initPoweredUpHub(int hubIndex) {
-  mcLog("Initializing hub " + String(hubIndex) + "...");
-  myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
-  delay(10);
-}
-
-unsigned long timeLastHubReport = 0;
-
-void reconnectHUB() {
-  // check for hubs ready for connection (is connecting, but not connected) -> connect
-  for (int i = 0; i < NUM_HUBS; i++) {
-    if (!myHubs[i].isConnected()) {
-      // has this hub been initialized?
-      if (i != initializedHub) {
-        initPoweredUpHub(i);
-        initializedHub = i;
-      }
-
-      // hub connecting -> connect!
-      if (myHubs[i].isConnecting()) {
-        // Connect to hub
-        mcLog("Connecting to hub " + String(i) + "...");
-        myHubs[i].connectHub();
-  
-        if (myHubs[i].isConnected()) {
-          // Send "connected" message
-          mcLog("Connected to hub " + String(i) + ".");
-          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connected");
-          myHubData[i][HUB_STATUS] = "true";
-        }
-        else {
-          mcLog("Connection attempt to hub " + String(i) + " refused.");
-          initPoweredUpHub(i);
-        }
-      } else {
-        if (String(myHubData[i][HUB_STATUS]) == String("true")) {
-          // Send "connection lost" message
-          mcLog("Hub " + String(i) + " disconnected.");
-          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
-          myHubData[i][HUB_STATUS] = "false";
-          initPoweredUpHub(i);
-        }
-      }
-
-      // if unconnected hub found, do not process any other hubs at this time.
-      break;
-    }
-  }
-
-  // Debugging code... may be removed.
-  return;
-
-  if (millis() - timeLastHubReport < 10000) return;
-
-  mcLog("***");
-  mcLog("init hub: " + String(initializedHub));
-  for (int i = 0; i < NUM_HUBS; i++) {
-    mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubData[i][HUB_STATUS]));
-  }
-  timeLastHubReport = millis();
 }
