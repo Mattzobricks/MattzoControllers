@@ -39,51 +39,110 @@ bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
 /* Legoino Library */
-const int NUM_HUBS = 8;  // Number of connected hubs
-
-String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT established.
-int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at the moment. :-(
-Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
-
-// Main hub array
-//              |-- number of Hubs
-//              |
-//              |         |-- { "name", "address", "connectionStatus", "motorPorts", "lightPorts"}
-//              |         |
-//              v         v
-char* myHubData[NUM_HUBS][5] =
-{
- {"GRECO", "90:84:2b:21:71:46", "false", "A", ""},
- {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"},
- {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""},
- {"EST1", "90:84:2b:18:f2:52", "false", "A", ""},
- {"EST2", "90:84:2b:18:f7:75", "false", "A", ""},
- {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""},
- {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""},
- {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
-};
-// {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
-// {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
-// {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""}
-// {"GRECO", "90:84:2b:21:71:46", "false", "A", ""}
-// {"EST1", "90:84:2b:18:f2:52", "false", "A", ""}
-// {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
-// {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""}
-// {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
-
-// Constants the different values of the second dimension of the hub-Array (the first dimension is the hub itself)
-const int HUB_NAME = 0; // name of the hub
-const int HUB_ADDRESS = 1; // MAC address
-const int HUB_STATUS = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected). Must be "false" in the configuration (start-up value).
-const int HUB_MOTORPORT = 3; // indicates which ports have motors attached including turning direction (small letter -> reverse)
-                                // Allowed options: "", "A", "a", "B", "b", "AB", "Ab", "aB", "ab" (BA also works and equals AB etc.)
-const int HUB_LIGHTPORT = 4; // indicates which ports have lights attached
-                                // Allowed options: "", "A", "B", "AB""
-
 const int PU_SCAN_DURATION = 1000;  // time the controller tries to connect to a Hub (in ms)
 
+String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT is established.
+int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at once. :-(
 
-/* Send battery level  */
+class MattzoPUHub {
+public:
+  // Constants
+  enum struct MattzoPUDevice {
+    NONE = 0x0,
+    PU_MOTOR = 0x1,
+    PU_LIGHT = 0x2
+  };
+  const int DELAY = 10;  // a small delay after setting the light intensity on the PU hub is required, else the call to the Legoino library will crash
+  const int MAX_PU_POWER = 88;  // maximum useful powered up power
+
+  void initMattzoPUHub(String _hubName, String _macAddress, MattzoPUDevice _devicePortA, int _configMotorA, MattzoPUDevice _devicePortB, int _configMotorB) {
+    hubName = _hubName;
+    macAddress = _macAddress;
+    devicePortA = _devicePortA;
+    configMotorA = _configMotorA;
+    devicePortB = _devicePortB;
+    configMotorB = _configMotorB;
+  };
+
+  // The hub object from Legoino
+  Lpf2Hub legoinoHub;
+
+  // Basic properties
+  String hubName;
+  String macAddress;
+  MattzoPUDevice devicePortA;
+  int configMotorA;  // 1 = forward, -1 = reverse
+  MattzoPUDevice devicePortB;
+  int configMotorB;  // 1 = forward, -1 = reverse
+
+  // Other properties
+  bool lastKnownConnectionStatus = false;
+
+  // Members
+  String getNiceName() {
+    getNiceName = hubName + " (" + macAddress + ")";
+  }
+
+  void initHub() {
+      mcLog("Initializing hub " + getNiceName() + "...");
+      legoinoHub.init(macAddress, PU_SCAN_DURATION);
+      delay(10);
+  }
+
+  bool isConnecting() {
+    isConnecting = legoinoHub.isConnecting();
+  }
+
+  bool isConnected() {
+    isConnected = legoinoHub.isConnected();
+  }
+
+  void requestBatteryReport() {
+    if (isConnected()) {
+      mcLog("Requesting battery level for hub " + getNiceName() + "...");
+      legoinoHub.activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
+      delay(10);
+    }
+  }
+
+  // Set integrated powered up hub light
+  void setLedColor(Color ledColor) {
+    if (!isConnected()) return;
+
+    legoinoHub.setLedColor(ledColor);
+    delay(DELAY);
+  }
+
+  // Set motor power
+  void setMotorSpeed(power) {
+    if (!isConnected()) return;
+
+    if (devicePortA == MattzoPUDevice::PU_MOTOR) {
+      legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::A, power * configMotorA);
+      delay(DELAY);
+    }
+    if (devicePortB == MattzoPUDevice::PU_MOTOR) {
+      legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::B, power * configMotorA);
+      delay(DELAY);
+    }
+  }
+
+  // Set light intensity for connected Powered Up hubs
+  void setLights(int lightPower) {
+    if (!isConnected()) return;
+
+    if (devicePortA == MattzoPUDevice::PU_LIGHT) {
+      legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::A, lightPower);
+      delay(DELAY);
+    }
+    if (devicePortB == MattzoPUDevice::PU_LIGHT) {
+      legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::B, lightPower);
+      delay(DELAY);
+    }
+  }
+} myHubs[NUM_HUBS];  // Objects for Powered Up Hubs
+
+// Send battery level
 const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds (60000 = 60 seconds)
 unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
 int nextBatteryLevelReportingHub = 0;            // index of the last hubs for which a battery report was requested
@@ -109,6 +168,9 @@ void setup() {
     functionCommand[i] = false;
     functionState[i] = false;
   }
+
+  // load powered up hub configuration
+  initMattzoPUHubs();
 
   // load config from EEPROM, initialize Wifi, MQTT etc.
   setupMattzoController();
@@ -139,12 +201,6 @@ void discoverPoweredUpHub() {
   mcLog("No Powered Up Hub found. Discovering new Powered Up hubs terminated.");
 }
 
-void initPoweredUpHub(int hubIndex) {
-  mcLog("Initializing hub " + String(hubIndex) + "...");
-  myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
-  delay(10);
-}
-
 // for debugging only - may be deleted later
 unsigned long timeLastHubReport = 0;
 
@@ -154,7 +210,7 @@ void connectPoweredUpHubs() {
     if (!myHubs[i].isConnected()) {
       // has this hub been initialized?
       if (i != initializedHub) {
-        initPoweredUpHub(i);
+        myHubs[i].initHub();
         initializedHub = i;
       }
 
@@ -167,8 +223,8 @@ void connectPoweredUpHubs() {
         if (myHubs[i].isConnected()) {
           // Send "connected" message
           mcLog("Connected to hub " + String(i) + ".");
-          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connected");
-          myHubData[i][HUB_STATUS] = "true";
+          sendMQTTMessage("roc2bricks/connectionStatus", myHubs[i].getNiceName() + " connected");
+          myHubs[i].lastKnownConnectionStatus = true;
         }
         else {
           mcLog("Connection attempt to hub " + String(i) + " refused.");
@@ -176,11 +232,11 @@ void connectPoweredUpHubs() {
         }
       }
       else {
-        if (String(myHubData[i][HUB_STATUS]) == String("true")) {
+        if (myHubs[i].lastKnownConnectionStatus) {
           // Send "connection lost" message
           mcLog("Hub " + String(i) + " disconnected.");
-          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
-          myHubData[i][HUB_STATUS] = "false";
+          sendMQTTMessage("roc2bricks/connectionStatus", myHubs[i].getNiceName() + " disconnected");
+          myHubs[i].lastKnownConnectionStatus = false;
           initPoweredUpHub(i);
         }
       }
@@ -191,14 +247,14 @@ void connectPoweredUpHubs() {
   }
 
   // Debugging code... may be removed.
-  return;
+  // return;
 
   if (millis() - timeLastHubReport < 10000) return;
 
   mcLog("***");
   mcLog("init hub: " + String(initializedHub));
   for (int i = 0; i < NUM_HUBS; i++) {
-    mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubData[i][HUB_STATUS]));
+    mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubs[i].lastKnownConnectionStatus));
   }
   timeLastHubReport = millis();
 }
@@ -209,7 +265,7 @@ void requestPoweredUpBatteryLevel() {
 
     if (myHubs[nextBatteryLevelReportingHub].isConnected()) {
       // mcLog("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
-      myHubs[nextBatteryLevelReportingHub].activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
+      myHubs[nextBatteryLevelReportingHub].requestBatteryReport();
       delay(10);
     }
 
@@ -471,10 +527,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 // set powered up motor speed
 void setTrainSpeed(int newTrainSpeed) {
-  const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
-  const int MAX_PU_POWER = 88;
-
-  int power = map(newTrainSpeed, 0, maxTrainSpeed, 0, MAX_PU_POWER * maxTrainSpeed / 100);
+  int power = map(newTrainSpeed, 0, maxTrainSpeed, 0, MattzoPUHub.MAX_PU_POWER * maxTrainSpeed / 100);
   mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
 
   currentTrainSpeed = newTrainSpeed;
@@ -494,29 +547,8 @@ void setTrainSpeed(int newTrainSpeed) {
   }
 
   for (int i = 0; i < NUM_HUBS; i++) {
-    if (myHubs[i].isConnected()) {
-      if (String(myHubData[i][HUB_MOTORPORT]).indexOf("A") >= 0) {
-        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, power);
-        delay(DELAY);
-      }
-      else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("a") >= 0) {
-        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, -power);
-        delay(DELAY);
-      }
-
-      if (String(myHubData[i][HUB_MOTORPORT]).indexOf("B") >= 0) {
-        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, power);
-        delay(DELAY);
-      }
-      else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("b") >= 0) {
-        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, -power);
-        delay(DELAY);
-      }
-
-      // Set integrated powered up hub light
-      myHubs[i].setLedColor(ledColor);
-      delay(DELAY);
-    }
+    myHubs[i].setMotorSpeed(power);
+    myHubs[i].setLedColor(ledColor);
   }
 
   mcLog("Motor speed set to: " + String(newTrainSpeed));
@@ -558,8 +590,6 @@ void accelerateTrainSpeed() {
 
 // switch lights on or off
 void setLights() {
-  const int DELAY = 10;  // a small delay after setting the light intensity on the PU hub is required, else the call to the Legoino library will crash
-
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
     bool onOff = functionCommand[i];
 
@@ -576,16 +606,7 @@ void setLights() {
       int lightPower = onOff ? 100 : 0;
 
       for (int h = 0; h < NUM_HUBS; h++) {
-        if (myHubs[h].isConnected()) {
-          if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("A") >= 0) {
-            myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, lightPower);
-            delay(DELAY);
-          }
-          else if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("B") >= 0) {
-            myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, lightPower);
-            delay(DELAY);
-          }
-        }
+        myHubs[h].setLights(lightPower);
       }
     }
   }

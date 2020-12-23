@@ -19,12 +19,61 @@
 
 
 
-// *************
+// **************
 // Loco specifics
-// *************
+// **************
 
 // Rocrail address of the train
 const int LOCO_ADDRESS = 8984;
+
+
+// ***************
+// Powered Up hubs
+// ***************
+
+// Number of Powered Up hubs that connect to this controller
+const int NUM_HUBS = 4;
+
+
+void initMattzoPUHubs() {
+	myHubs[0].initMattzoPUHub(
+		"GRECO",
+		"90:84:2b:21:71:46",
+		MattzoPUDevice::PU_MOTOR, -1,
+		MattzoPUDevice::NONE, 0
+	);
+
+	myHubs[1].initMattzoPUHub(
+		"BANAAN1",
+		"90:84:2b:01:20:f8",
+		MattzoPUDevice::NONE, 0,
+		MattzoPUDevice::PU_MOTOR, 1
+	);
+
+	myHubs[2].initMattzoPUHub(
+		"ICE1",
+		"90:84:2b:16:15:f8",
+		MattzoPUDevice::PU_MOTOR, 1,
+		MattzoPUDevice::PU_LIGHT, 0
+	);
+
+	myHubs[3].initMattzoPUHub(
+		"ICE2",
+		"90:84:2b:17:e9:4c",
+		MattzoPUDevice::PU_MOTOR, 1,
+		MattzoPUDevice::PU_LIGHT, 0
+	);
+
+	// Mattzes private notes - disregard...
+	// {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
+	// {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
+	// {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""}
+	// {"GRECO", "90:84:2b:21:71:46", "false", "A", ""}
+	// {"EST1", "90:84:2b:18:f2:52", "false", "A", ""}
+	// {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
+	// {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""}
+	// {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
+}
 
 
 // ***************************
