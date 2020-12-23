@@ -19,7 +19,7 @@
 // Legoino library by Cornelius Munz
 // Install via the built-in Library Manager of the Arduino IDE
 // Tested with:
-//   Version V1.0.2 of the "Legoino" library
+//   Version V1.1.0 of the "Legoino" library
 //   Version V1.0.2 of the required dependent library "NimBLE-Arduino"
 // To connect more than 3 Powered Up units to the ESP-32, the constant CONFIG_BT_NIMBLE_MAX_CONNECTIONS
 //   needs to be changed in nimconfig.h in the NimBLE-Arduino/src directory of your libraries folder
@@ -39,8 +39,10 @@ bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
 /* Legoino Library */
+const int NUM_HUBS = 8;  // Number of connected hubs
+
 String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT established.
-const int NUM_HUBS = 2;  // Number of connected hubs
+int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at the moment. :-(
 Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino library
 
 // Main hub array
@@ -51,19 +53,25 @@ Lpf2Hub myHubs[NUM_HUBS];  // Objects for Powered Up Hubs for the Legoino librar
 //              v         v
 char* myHubData[NUM_HUBS][5] =
 {
-  {"PUP1", "90:84:2b:01:20:f8", "false", "A", ""},
-  {"PUP2", "90:84:2b:00:5d:bb", "false", "B", ""},
+ {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"},
+ {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""},
+ {"EST1", "90:84:2b:18:f2:52", "false", "A", ""},
+ {"EST2", "90:84:2b:18:f7:75", "false", "A", ""},
+ {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""},
+ {"GRECO", "90:84:2b:21:71:46", "false", "A", ""},
+ {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""},
+ {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
 };
 // {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
 // {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
-// {"Crocodile brown", "90:84:2b:0f:ac:c7", "false", "B", ""}
-// {"Crocodile green", "90:84:2b:21:71:46", "false", "A", ""}
+// {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""}
+// {"GRECO", "90:84:2b:21:71:46", "false", "A", ""}
 // {"EST1", "90:84:2b:18:f2:52", "false", "A", ""}
 // {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
-// {"PUP1", "90:84:2b:01:20:f8", "false", "A", "B"}
-// {"PUP2", "90:84:2b:00:5d:bb", "false", "B", ""}
+// {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""}
+// {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
 
-// Constants the four different Values of the second dimension of the hub-Array (the first dimension is the hub itself)
+// Constants the different values of the second dimension of the hub-Array (the first dimension is the hub itself)
 const int HUB_NAME = 0; // name of the hub
 const int HUB_ADDRESS = 1; // MAC address
 const int HUB_STATUS = 2; // connectionstatus of the hub ("true" = connected, "false" = not connected). Must be "false" in the configuration (start-up value).
@@ -72,14 +80,11 @@ const int HUB_MOTORPORT = 3; // indicates which ports have motors attached inclu
 const int HUB_LIGHTPORT = 4; // indicates which ports have lights attached
                                 // Allowed options: "", "A", "B", "AB""
 
-// Legoino Constants (god knows why we have to do this in the script USING the library...)
-const byte PUHubPortA = (byte)PoweredUpHubPort::A;
-const byte PUHubPortB = (byte)PoweredUpHubPort::B;
 const int PU_SCAN_DURATION = 1000;  // time the controller tries to connect to a Hub (in ms)
 
 
 /* Send battery level  */
-const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
+const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds (60000 = 60 seconds)
 unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
 int nextBatteryLevelReportingHub = 0;            // index of the last hubs for which a battery report was requested
 
@@ -110,9 +115,6 @@ void setup() {
 
   // discover new Powered Up Hubs (just to display MAC address)
   // discoverPoweredUpHubs();
-
-  // initialize Powered Up hubs that are expected to connect
-  initPoweredUpHubs();
 }
 
 void sendMQTTMessage(String topic, String message) {
@@ -348,98 +350,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   mcLog("Unknown message, disregarded.");
 }
 
-void discoverPoweredUpHubs() {
-  // Just after booting, the ESP-32 checks if there is a Powered Up hub that is ready to connect
-  // Purpose is just to read out its MAC address at publish it via MQTT.
-  // The MAC address is then known and can be used in the configuration of the MattzoController (recompiling the source code is required)
-
-  Lpf2Hub discoveryHub;  // Hub used for discovering new PU hubs
-
-  mcLog("Discovering Powered Up Hubs...");
-  discoveryHub.init();
-  if (!discoveryHub.isConnected() && discoveryHub.isConnecting()) {
-    discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
-    mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
-  }
-  else {
-    mcLog("No Powered Up Hub found.");
-  }
-  mcLog("Discovering new Powered Up hubs terminated.");
-}
-
-void initPoweredUpHubs() {
-  // initialize all Powered Up hubs that are expected to connect to this controller
-  for (int i = 0; i < NUM_HUBS; i++) {
-    initPoweredUpHub(i);
-    delay(100);
-  }
-}
-
-void initPoweredUpHub(int hubIndex) {
-  mcLog("Initializing hub " + String(hubIndex) + "...");
-  myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
-}
-
-void reconnectHUB() {
-  // init disconnected hubs from list and send "disconnected" information if lost
-  for (int i = 0; i < NUM_HUBS; i++) {
-    if (!myHubs[i].isConnected() && !myHubs[i].isConnecting()) {
-      if (String(myHubData[i][HUB_STATUS]) == String("true")) {
-        // Send "connection lost" message
-        sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
-        myHubData[i][HUB_STATUS] = "false";
-      }
-
-      // initPoweredUpHub(i);
-
-    }
-  }
-
-  // connect to the hubs from the list and send "connected" information
-  for (int i = 0; i < NUM_HUBS; i++) {
-    if (!myHubs[i].isConnecting() && !myHubs[i].isConnected()) {
-      // Connect to hub
-      mcLog("Connecting to hub " + String(i) + "...");
-      myHubs[i].connectHub();
-
-      if (myHubs[i].isConnected()) {
-        // Send "connected" message
-        mcLog("Connected to hub " + String(i) + ".");
-        sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connected");
-        myHubData[i][HUB_STATUS] = "true";
-      }
-      else {
-        mcLog("Not connected to hub " + String(i) + ".");
-        myHubData[i][HUB_STATUS] = "false";
-      }
-    }
-  }
-}
-
-// TODO: call the callback does not work yet... needs investigation.
-void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint8_t* pData)
-{
-  Lpf2Hub* myHub = (Lpf2Hub*)hub;
-  String hubAddress = myHub->getHubAddress().toString().c_str();
-  mcLog("PU Message received from " + hubAddress + ", hub property " + String((byte)hubProperty, HEX));
-
-  if (hubProperty == HubPropertyReference::BATTERY_VOLTAGE)
-  {
-    mcLog("BatteryLevel: " + String(myHub->parseBatteryLevel(pData), DEC));
-    sendMQTTMessage("roc2bricks/battery", hubAddress + " " + myHub->parseBatteryLevel(pData));
-    return;
-  }
-
-  if (hubProperty == HubPropertyReference::BUTTON)
-  {
-    mcLog("Button: " + String((byte)myHub->parseHubButton(pData), HEX));
-    sendMQTTMessage("roc2bricks/button", hubAddress + " button pressed.");
-    return;
-  }
-}
-
-
-
 // set powered up motor speed
 void setTrainSpeed(int newTrainSpeed) {
   const int DELAY = 10;  // a small delay after setting the motor speed is required, else the call to the Legoino library will crash
@@ -467,20 +377,20 @@ void setTrainSpeed(int newTrainSpeed) {
   for (int i = 0; i < NUM_HUBS; i++) {
     if (myHubs[i].isConnected()) {
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("A") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortA, power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, power);
         delay(DELAY);
       }
       else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("a") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortA, -power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, -power);
         delay(DELAY);
       }
 
       if (String(myHubData[i][HUB_MOTORPORT]).indexOf("B") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortB, power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, power);
         delay(DELAY);
       }
       else if (String(myHubData[i][HUB_MOTORPORT]).indexOf("b") >= 0) {
-        myHubs[i].setBasicMotorSpeed(PUHubPortB, -power);
+        myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, -power);
         delay(DELAY);
       }
 
@@ -527,7 +437,6 @@ void accelerateTrainSpeed() {
   }
 }
 
-
 // switch lights on or off
 void setLights() {
   const int DELAY = 10;  // a small delay after setting the light intensity on the PU hub is required, else the call to the Legoino library will crash
@@ -550,11 +459,11 @@ void setLights() {
       for (int h = 0; h < NUM_HUBS; h++) {
         if (myHubs[h].isConnected()) {
           if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("A") >= 0) {
-            myHubs[i].setBasicMotorSpeed(PUHubPortA, lightPower);
+            myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::A, lightPower);
             delay(DELAY);
           }
           else if (String(myHubData[h][HUB_LIGHTPORT]).indexOf("B") >= 0) {
-            myHubs[i].setBasicMotorSpeed(PUHubPortB, lightPower);
+            myHubs[i].setBasicMotorSpeed((byte)PoweredUpHubPort::B, lightPower);
             delay(DELAY);
           }
         }
@@ -573,6 +482,28 @@ void transmitDiscoveredHub() {
   }
 }
 
+// TODO: call the callback does not work yet... needs investigation.
+void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint8_t* pData)
+{
+  Lpf2Hub* myHub = (Lpf2Hub*)hub;
+  String hubAddress = myHub->getHubAddress().toString().c_str();
+  mcLog("PU Message received from " + hubAddress + ", hub property " + String((byte)hubProperty, HEX));
+
+  if (hubProperty == HubPropertyReference::BATTERY_VOLTAGE)
+  {
+    mcLog("BatteryLevel: " + String(myHub->parseBatteryLevel(pData), DEC));
+    sendMQTTMessage("roc2bricks/battery", hubAddress + " " + myHub->parseBatteryLevel(pData));
+    return;
+  }
+
+  if (hubProperty == HubPropertyReference::BUTTON)
+  {
+    mcLog("Button: " + String((byte)myHub->parseHubButton(pData), HEX));
+    sendMQTTMessage("roc2bricks/button", hubAddress + " button pressed.");
+    return;
+  }
+}
+
 void loop() {
   loopMattzoController();
   transmitDiscoveredHub();
@@ -580,4 +511,87 @@ void loop() {
   accelerateTrainSpeed();
   setLights();
   sendMQTTBatteryLevel();
+}
+
+void discoverPoweredUpHubs() {
+  // Just after booting, the ESP-32 checks if there is a Powered Up hub that is ready to connect
+  // Purpose is just to read out its MAC address at publish it via MQTT.
+  // The MAC address is then known and can be used in the configuration of the MattzoController (recompiling the source code is required)
+
+  Lpf2Hub discoveryHub;  // Hub used for discovering new PU hubs
+
+  mcLog("Discovering Powered Up Hubs...");
+  discoveryHub.init();
+  if (!discoveryHub.isConnected() && discoveryHub.isConnecting()) {
+    discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
+    mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
+  }
+  else {
+    mcLog("No Powered Up Hub found.");
+  }
+  mcLog("Discovering new Powered Up hubs terminated.");
+}
+
+
+
+void initPoweredUpHub(int hubIndex) {
+  mcLog("Initializing hub " + String(hubIndex) + "...");
+  myHubs[hubIndex].init(myHubData[hubIndex][HUB_ADDRESS], PU_SCAN_DURATION);
+  delay(10);
+}
+
+unsigned long timeLastHubReport = 0;
+
+void reconnectHUB() {
+  // check for hubs ready for connection (is connecting, but not connected) -> connect
+  for (int i = 0; i < NUM_HUBS; i++) {
+    if (!myHubs[i].isConnected()) {
+      // has this hub been initialized?
+      if (i != initializedHub) {
+        initPoweredUpHub(i);
+        initializedHub = i;
+      }
+
+      // hub connecting -> connect!
+      if (myHubs[i].isConnecting()) {
+        // Connect to hub
+        mcLog("Connecting to hub " + String(i) + "...");
+        myHubs[i].connectHub();
+  
+        if (myHubs[i].isConnected()) {
+          // Send "connected" message
+          mcLog("Connected to hub " + String(i) + ".");
+          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " connected");
+          myHubData[i][HUB_STATUS] = "true";
+        }
+        else {
+          mcLog("Connection attempt to hub " + String(i) + " refused.");
+          initPoweredUpHub(i);
+        }
+      } else {
+        if (String(myHubData[i][HUB_STATUS]) == String("true")) {
+          // Send "connection lost" message
+          mcLog("Hub " + String(i) + " disconnected.");
+          sendMQTTMessage("roc2bricks/connectionStatus", String(myHubData[i][HUB_ADDRESS]) + " disconnected");
+          myHubData[i][HUB_STATUS] = "false";
+          initPoweredUpHub(i);
+        }
+      }
+
+      // if unconnected hub found, do not process any other hubs at this time.
+      break;
+    }
+  }
+
+  // Debugging code... may be removed.
+  return;
+
+  if (millis() - timeLastHubReport < 10000) return;
+
+  mcLog("***");
+  mcLog("init hub: " + String(initializedHub));
+  for (int i = 0; i < NUM_HUBS; i++) {
+    mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubData[i][HUB_STATUS]));
+  }
+  timeLastHubReport = millis();
 }
