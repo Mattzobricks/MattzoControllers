@@ -35,34 +35,36 @@ const int LOCO_ADDRESS = 8984;
 const int NUM_HUBS = 4;
 
 
-void initMattzoPUHubs() {
-	myHubs[0].initMattzoPUHub(
+void initMattzoPUHubs(MattzoPUHub *myHubs[]) {
+	/*
+	myHubs[0]->initMattzoPUHub(
 		"GRECO",
 		"90:84:2b:21:71:46",
 		MattzoPUDevice::PU_MOTOR, -1,
 		MattzoPUDevice::NONE, 0
 	);
 
-	myHubs[1].initMattzoPUHub(
+	myHubs[1]->initMattzoPUHub(
 		"BANAAN1",
 		"90:84:2b:01:20:f8",
 		MattzoPUDevice::NONE, 0,
 		MattzoPUDevice::PU_MOTOR, 1
 	);
 
-	myHubs[2].initMattzoPUHub(
+	myHubs[2]->initMattzoPUHub(
 		"ICE1",
 		"90:84:2b:16:15:f8",
 		MattzoPUDevice::PU_MOTOR, 1,
 		MattzoPUDevice::PU_LIGHT, 0
 	);
 
-	myHubs[3].initMattzoPUHub(
+	myHubs[3]->initMattzoPUHub(
 		"ICE2",
 		"90:84:2b:17:e9:4c",
 		MattzoPUDevice::PU_MOTOR, 1,
 		MattzoPUDevice::PU_LIGHT, 0
 	);
+	*/
 
 	// Mattzes private notes - disregard...
 	// {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
