@@ -35,6 +35,15 @@ enum struct MattzoPUDevice {
   PU_LIGHT = 0x2
 };
 
+struct MattzoPUHubConfiguration {
+  String hubName;
+  String macAddress;
+  MattzoPUDevice devicePortA;
+  int configMotorA;
+  MattzoPUDevice devicePortB;
+  int configMotorB;
+};
+
 // Forward declaration
 class MattzoPUHub;
 
@@ -63,13 +72,13 @@ public:
   bool lastKnownConnectionStatus = false;
 
   // Methods
-  void initMattzoPUHub(String hubName, String macAddress, MattzoPUDevice devicePortA, int configMotorA, MattzoPUDevice devicePortB, int configMotorB) {
-    _hubName = _hubName;
-    _macAddress = macAddress;
-    _devicePortA = devicePortA;
-    _configMotorA = configMotorA;
-    _devicePortB = devicePortB;
-    _configMotorB = configMotorB;
+  void initMattzoPUHub(MattzoPUHubConfiguration c) {
+    _hubName = c.hubName;
+    _macAddress = c.macAddress;
+    _devicePortA = c.devicePortA;
+    _configMotorA = c.configMotorA;
+    _devicePortB = c.devicePortB;
+    _configMotorB = c.configMotorB;
   };
 
   String getNiceName() {
@@ -179,34 +188,10 @@ void setup() {
   // load Powered Up hub configuration
   //initMattzoPUHubs(&myHubs);
 
-  myHubs[0].initMattzoPUHub(
-    "GRECO",
-    "90:84:2b:21:71:46",
-    MattzoPUDevice::PU_MOTOR, -1,
-    MattzoPUDevice::NONE, 0
-  );
-
-  myHubs[1].initMattzoPUHub(
-    "BANAAN1",
-    "90:84:2b:01:20:f8",
-    MattzoPUDevice::NONE, 0,
-    MattzoPUDevice::PU_MOTOR, 1
-  );
-
-  myHubs[2].initMattzoPUHub(
-    "ICE1",
-    "90:84:2b:16:15:f8",
-    MattzoPUDevice::PU_MOTOR, 1,
-    MattzoPUDevice::PU_LIGHT, 0
-  );
-
-  myHubs[3].initMattzoPUHub(
-    "ICE2",
-    "90:84:2b:17:e9:4c",
-    MattzoPUDevice::PU_MOTOR, 1,
-    MattzoPUDevice::PU_LIGHT, 0
-  );
-
+  MattzoPUHubConfiguration *hubConf = getMattzoPUHubConfiguration();
+  for (int i = 0; i < NUM_HUBS; i++) {
+    myHubs[i].initMattzoPUHub(*(hubConf + i));
+  }
 
   // load config from EEPROM, initialize Wifi, MQTT etc.
   setupMattzoController();
@@ -290,7 +275,7 @@ void connectPoweredUpHubs() {
   mcLog("***");
   mcLog("init hub: " + String(initializedHub));
   for (int i = 0; i < NUM_HUBS; i++) {
-    mcLog("Hub " + String(i) + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubs[i].lastKnownConnectionStatus));
+    mcLog("Hub " + String(i) + ": macAddress=" + myHubs[i]._macAddress + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubs[i].lastKnownConnectionStatus));
   }
   timeLastHubReport = millis();
 }

@@ -200,10 +200,8 @@ void setupWifi() {
   delay(10);
   Serial.println("Connecting as " + String(mattzoControllerName_char) + " to Wifi " + String(WIFI_SSID) + "...");
 #if defined(ESP8266)
-#pragma message "applying hostname setter for ESP8266."
   WiFi.hostname(mattzoControllerName_char);
 #elif defined(ESP32)
-#pragma message "applying hostname setter for ESP32."
   // The following code SHOULD work, but it doesn't do its job for some ESP32s.
   // Needs investigation...
   WiFi.setHostname(mattzoControllerName_char);

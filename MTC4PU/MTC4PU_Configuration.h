@@ -31,50 +31,86 @@ const int LOCO_ADDRESS = 8984;
 // Powered Up hubs
 // ***************
 
-// Number of Powered Up hubs that connect to this controller
-const int NUM_HUBS = 4;
+// Number of Powered Up hubs that shall connect to this controller
+const int NUM_HUBS = 8;
 
+// List of Powered Up hubs that shall connect to this controller
+MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
+  static MattzoPUHubConfiguration hubConf[NUM_HUBS];
 
-void initMattzoPUHubs(MattzoPUHub *myHubs[]) {
-	/*
-	myHubs[0]->initMattzoPUHub(
-		"GRECO",
-		"90:84:2b:21:71:46",
-		MattzoPUDevice::PU_MOTOR, -1,
-		MattzoPUDevice::NONE, 0
-	);
+  hubConf[0] = (MattzoPUHubConfiguration){
+      .hubName = "GRECO",
+      .macAddress = "90:84:2b:21:71:46",
+      .devicePortA = MattzoPUDevice::PU_MOTOR,
+      .configMotorA = -1,
+      .devicePortB = MattzoPUDevice::NONE,
+      .configMotorB = 0
+    };
 
-	myHubs[1]->initMattzoPUHub(
-		"BANAAN1",
-		"90:84:2b:01:20:f8",
-		MattzoPUDevice::NONE, 0,
-		MattzoPUDevice::PU_MOTOR, 1
-	);
+  hubConf[1] = (MattzoPUHubConfiguration){
+      .hubName = "BANAAN1",
+      .macAddress = "90:84:2b:01:20:f8",
+      .devicePortA = MattzoPUDevice::NONE,
+      .configMotorA = 0,
+      .devicePortB = MattzoPUDevice::PU_MOTOR,
+      .configMotorB = 1
+    };
 
-	myHubs[2]->initMattzoPUHub(
-		"ICE1",
-		"90:84:2b:16:15:f8",
-		MattzoPUDevice::PU_MOTOR, 1,
-		MattzoPUDevice::PU_LIGHT, 0
-	);
+  hubConf[2] = (MattzoPUHubConfiguration){
+      .hubName = "ICE1",
+      .macAddress = "90:84:2b:16:15:f8",
+      .devicePortA = MattzoPUDevice::PU_MOTOR,
+      .configMotorA = 1,
+      .devicePortB = MattzoPUDevice::PU_LIGHT,
+      .configMotorB = 0
+    };
 
-	myHubs[3]->initMattzoPUHub(
-		"ICE2",
-		"90:84:2b:17:e9:4c",
-		MattzoPUDevice::PU_MOTOR, 1,
-		MattzoPUDevice::PU_LIGHT, 0
-	);
-	*/
+  hubConf[3] = (MattzoPUHubConfiguration){
+      .hubName = "ICE2",
+      .macAddress = "90:84:2b:17:e9:4c",
+      .devicePortA = MattzoPUDevice::PU_MOTOR,
+      .configMotorA = 1,
+      .devicePortB = MattzoPUDevice::NONE,
+      .configMotorB = 0
+    };
 
-	// Mattzes private notes - disregard...
-	// {"ICE1", "90:84:2b:16:15:f8", "false", "A", "B"}
-	// {"ICE2", "90:84:2b:17:e9:4c", "false", "A", ""}
-	// {"BROCO", "90:84:2b:0f:ac:c7", "false", "B", ""}
-	// {"GRECO", "90:84:2b:21:71:46", "false", "A", ""}
-	// {"EST1", "90:84:2b:18:f2:52", "false", "A", ""}
-	// {"EST2", "90:84:2b:18:f7:75", "false", "A", ""}
-	// {"BANAAN1", "90:84:2b:01:20:f8", "false", "A", ""}
-	// {"BANAAN2", "90:84:2b:00:5d:bb", "false", "A", ""}
+  hubConf[4] = (MattzoPUHubConfiguration){
+      .hubName = "BROCO",
+      .macAddress = "90:84:2b:0f:ac:c7",
+      .devicePortA = MattzoPUDevice::NONE,
+      .configMotorA = 0,
+      .devicePortB = MattzoPUDevice::PU_MOTOR,
+      .configMotorB = 1
+    };
+
+  hubConf[5] = (MattzoPUHubConfiguration){
+      .hubName = "EST1",
+      .macAddress = "90:84:2b:18:f2:52",
+      .devicePortA = MattzoPUDevice::PU_MOTOR,
+      .configMotorA = 1,
+      .devicePortB = MattzoPUDevice::NONE,
+      .configMotorB = 0
+    };
+
+  hubConf[6] = (MattzoPUHubConfiguration){
+      .hubName = "EST2",
+      .macAddress = "90:84:2b:18:f7:75",
+      .devicePortA = MattzoPUDevice::PU_MOTOR,
+      .configMotorA = 1,
+      .devicePortB = MattzoPUDevice::NONE,
+      .configMotorB = 0
+    };
+
+  hubConf[7] = (MattzoPUHubConfiguration){
+      .hubName = "BANAAN2",
+      .macAddress = "90:84:2b:00:5d:bb",
+      .devicePortA = MattzoPUDevice::PU_MOTOR,
+      .configMotorA = 1,
+      .devicePortB = MattzoPUDevice::NONE,
+      .configMotorB = 0
+    };
+
+  return hubConf;
 }
 
 
