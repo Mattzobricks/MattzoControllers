@@ -6,7 +6,11 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// The following includes need some enum definitions before the compiler gets to them...
+// ****************************************
+// TARGET-PLATTFORM for this sketch: ESP-32
+// ****************************************
+
+// The following #include directives need some enum definitions before the compiler gets to them...
 // MOTORSHIELD_TYPE represents the type motor shield that this controller uses.
 // 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
 // Types 1 and 2 are motorshields that are physically connected to the controller
