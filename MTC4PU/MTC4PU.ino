@@ -522,14 +522,15 @@ void discoverPoweredUpHubs() {
 
   mcLog("Discovering Powered Up Hubs...");
   discoveryHub.init();
-  if (!discoveryHub.isConnected() && discoveryHub.isConnecting()) {
-    discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
-    mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
+  unsigned long timeStart = millis();
+  while (millis() - timeStart < 10000) {  // wait 10 seconds for a hub to connect
+    if (discoveryHub.isConnecting()) {
+      discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
+      mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
+      return;
+    }
   }
-  else {
-    mcLog("No Powered Up Hub found.");
-  }
-  mcLog("Discovering new Powered Up hubs terminated.");
+  mcLog("No Powered Up Hub found. Discovering new Powered Up hubs terminated.");
 }
 
 
