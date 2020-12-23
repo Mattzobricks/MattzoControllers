@@ -204,6 +204,8 @@ void setupWifi() {
   WiFi.hostname(mattzoControllerName_char);
 #elif defined(ESP32)
 #pragma message "applying hostname setter for ESP32."
+  // The following code SHOULD work, but it doesn't do its job for some ESP32s.
+  // Needs investigation...
   WiFi.setHostname(mattzoControllerName_char);
 #else
 #error "Error: this sketch is designed for ESP8266 or ESP32 only."
