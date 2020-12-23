@@ -199,7 +199,15 @@ bool lastKnownWifiConnectedStatus = false;
 void setupWifi() {
   delay(10);
   Serial.println("Connecting as " + String(mattzoControllerName_char) + " to Wifi " + String(WIFI_SSID) + "...");
+#if defined(ESP8266)
+#pragma message "applying hostname setter for ESP8266."
+  WiFi.hostname(mattzoControllerName_char);
+#elif defined(ESP32)
+#pragma message "applying hostname setter for ESP32."
   WiFi.setHostname(mattzoControllerName_char);
+#else
+#error "Error: this sketch is designed for ESP8266 or ESP32 only."
+#endif
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
