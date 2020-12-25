@@ -19,9 +19,9 @@
 
 
 
-// *************
+// **************
 // Loco specifics
-// *************
+// **************
 
 // Rocrail address of the train
 const int LOCO_ADDRESS = 8984;
@@ -32,17 +32,18 @@ const int LOCO_ADDRESS = 8984;
 // ***************************
 
 // Type of motor shield installed.
+// (The different motor shield types are defined in MTC4PF.ino)
 const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
 // Constants for motor shield type L298N
-#define enA D1  // PWM signal for motor A. Relevant for L298N only.
-#define enB D5  // PWM signal for motor B. Relevant for L298N only.
+#define enA D1  // PWM signal pin for motor A. Relevant for L298N only.
+#define enB D5  // PWM signal pin for motor B. Relevant for L298N only.
 
 // Constants for motor shield type L298N and L9110
-#define in1 D2  // motor A direction control (forward).
-#define in2 D3  // motor A direction control (reverse).
-#define in3 D6  // motor B direction control (forward).
-#define in4 D7  // motor B direction control (reverse).
+#define in1 D2  // pin for motor A direction control (forward).
+#define in2 D3  // pin for motor A direction control (reverse).
+#define in3 D6  // pin for motor B direction control (forward).
+#define in4 D7  // pin for motor B direction control (reverse).
 #define CONFIG_MOTOR_A 1   // configuration for Motor A. 1 = forward, 0 = not installed / not used, -1 = reverse.
 #define CONFIG_MOTOR_B -1  // configuration for Motor B. 1 = forward, 0 = not installed / not used, -1 = reverse.
 
@@ -53,12 +54,16 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
-// If increased, the fn1, fn2... defintions must be enhanced as well.
+// If changed, the number of array values for FUNCTION_PIN below must be changed as well.
 // Also check for usage of those parameters and extend code accordingly! You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
 const int NUM_FUNCTIONS = 2;
 
 // Digital pins for function output
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = {D0, D1};
+
+// Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and odd numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
+// To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
+const bool AUTO_LIGHTS = true;
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed

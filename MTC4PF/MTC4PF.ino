@@ -7,7 +7,7 @@
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // ****************************************
-// TARGET-PLATTFORM for this sketch: ESP-32
+// TARGET-PLATTFORM for this sketch: ESP-12
 // ****************************************
 
 // The following #include directives need some enum definitions before the compiler gets to them...
@@ -430,21 +430,30 @@ void accelerateTrainSpeed() {
 
 // execute light event
 void lightEvent(LightEventType le) {
+  if (!AUTO_LIGHTS)
+    return;
+  
   switch (le) {
     case LightEventType::STOP:
       mcLog("Light event stop");
-      functionCommand[0] = false;
-      functionCommand[1] = false;
+      // switch all functions off
+      for (int i = 0; i < NUM_FUNCTIONS; i++) {
+        functionCommand[i] = false;
+      }
       break;
     case LightEventType::FORWARD:
       mcLog("Light event forward");
-      functionCommand[0] = true;
-      functionCommand[1] = false;
+      // switch functions with odd numbers on and with even number off
+      for (int i = 0; i < NUM_FUNCTIONS; i++) {
+        functionCommand[i] = i % 2 == 0;
+      }
       break;
     case LightEventType::REVERSE:
       mcLog("Light event reverse");
-      functionCommand[0] = false;
-      functionCommand[1] = true;
+      // switch functions with odd number off and with even number on
+      for (int i = 0; i < NUM_FUNCTIONS; i++) {
+        functionCommand[i] = i % 2 == 1;
+      }
       break;
   }
 }
