@@ -1,4 +1,0 @@
-The following directory including the contained log.h file is missing in the NIMBLE library:
-src/log
-
-I (Mattze) have now clue why this happens - must be corrected when repository in set-up again.
