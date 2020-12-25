@@ -23,11 +23,34 @@
 // Controller wiring specifics
 // ***************************
 
+// SWITCH WIRING CONFIGURATION
+
 // Number of switch ports
-const int NUM_SWITCHPORTS = 8;
+const int NUM_SWITCHPORTS = 3;
 
 // Digital output pins for switch servos
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {D0, D1, D2, D3, D4, D5, D6, D7};
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {D0, D1, D2};
+
+
+// SIGNAL WIRING CONFIGURATION
+
+// Number of signal ports
+const int NUM_SIGNALPORTS = 4;
+
+// Digital pins for signal LEDs
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {D3, D4, D5, D6};
+
+
+// SENSOR WIRING CONFIGURATION
+
+// Number of sensors connected or connectable to the controller
+const int NUM_SENSORS = 1;
+
+// Digital input PINs for hall, reed or other digital sensors
+uint8_t SENSOR_PIN[NUM_SENSORS] = {D7};
+
+
+// STATUS LED WIRING CONFIGURATION
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
@@ -46,4 +69,4 @@ uint8_t STATUS_LED_PIN = D8;
 // Syslog settings
 // ***************
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MSWC";
+const char* SYSLOG_APP_NAME = "MSTC";

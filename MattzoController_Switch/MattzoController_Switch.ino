@@ -26,7 +26,7 @@ const int SWITCH_DELAY = 200;
 
 
 void setup() {
-    // initialize pins and turn servos to start position
+    // initialize servo pins and turn servos to start position
     for (int i = 0; i < NUM_SWITCHPORTS; i++) {
       servo[i].attach(SWITCHPORT_PIN[i]);
       servo[i].write(SERVO_START);
@@ -48,11 +48,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS){
-    mcLog("Error parsing.");
+    mcLog("Error parsing XML.");
     return;
   }
-
   mcLog("Parsing XML successful.");
+
   XMLElement * element = xmlDocument.FirstChildElement("sw");
   if (element == NULL) {
     mcLog("<sw> node not found. Message disregarded.");

@@ -14,7 +14,7 @@
 
 
 void setup() {
-  // initialize pins
+  // initialize signal pins
   for (int i = 0; i < NUM_SIGNALPORTS; i++) {
     pinMode(SIGNALPORT_PIN[i], OUTPUT);
   }
@@ -34,11 +34,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS) {
-    mcLog("Error parsing.");
+    mcLog("Error parsing XML.");
     return;
   }
-
   mcLog("Parsing XML successful.");
+
   XMLElement * element = xmlDocument.FirstChildElement("co");
   if (element == NULL) {
     mcLog("<co> node not found. Message disregarded.");
@@ -88,7 +88,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     setSignalLED(rr_port - 1, false);
   } else {
     mcLog("Signal port command unknown - message disregarded.");
-    return;
   }
 }
 
