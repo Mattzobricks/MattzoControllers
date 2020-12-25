@@ -16,9 +16,11 @@
 Servo servo[NUM_SWITCHPORTS];
 
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
+const int SERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected.
 const int SERVO_MIN = 70;
-const int SERVO_START = 78;  // position after boot-up
-const int SERVO_MAX = 85;
+const int SERVO_START = 75;  // position after boot-up
+const int SERVO_MAX = 80;
+const int SERVO_MAX_ALLOWED = 100;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected.
 
 // Delay between to switch operations
 const int SWITCH_DELAY = 200;
@@ -101,6 +103,13 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
     mcLog("param1 attribute not found or wrong type. Using default value.");
   }
+  if (rr_param1 < SERVO_MIN_ALLOWED || rr_param1 > SERVO_MAX_ALLOWED) {
+    // Reset angle back to standard if angle is too small
+    // User has obviously forgotten to configure servo angle in Rocrail properly
+    // To protect the servo, the default value is used
+    mcLog("param1 attribute out of bounds. Using default value.");
+    rr_param1 = SERVO_MIN;
+  }
   mcLog("param1: " + String(rr_param1));
 
   // query value1 attribute. This is the "turnout" position of the switch servo motor.
@@ -108,6 +117,13 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   int rr_value1 = SERVO_MAX;
   if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
     mcLog("value1 attribute not found or wrong type. Using default value.");
+  }
+  if (rr_value1 < SERVO_MIN_ALLOWED || rr_value1 > SERVO_MAX_ALLOWED) {
+    // Reset angle back to standard if angle is too small
+    // User has obviously forgotten to configure servo angle in Rocrail properly
+    // To protect the servo, the default value is used
+    mcLog("value1 attribute out of bounds. Using default value.");
+    rr_value1 = SERVO_MAX;
   }
   mcLog("value1: " + String(rr_value1));
 
