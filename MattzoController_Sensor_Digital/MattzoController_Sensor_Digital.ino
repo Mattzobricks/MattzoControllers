@@ -89,4 +89,5 @@ void monitorSensors() {
 void loop() {
   loopMattzoController();
   monitorSensors();
+  setLEDBySensorStates();
 }
