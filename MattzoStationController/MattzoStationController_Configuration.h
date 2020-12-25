@@ -34,7 +34,7 @@ uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {D0, D1, D2};
 
 // SIGNAL WIRING CONFIGURATION
 
-// Number of signal ports
+// Number of signal ports (the number of signal LEDs, not the number of signals!)
 const int NUM_SIGNALPORTS = 4;
 
 // Digital pins for signal LEDs

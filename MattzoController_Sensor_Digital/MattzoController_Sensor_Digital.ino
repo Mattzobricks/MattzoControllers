@@ -19,7 +19,7 @@ int lastSensorContactMillis[NUM_SENSORS];
 
 
 void setup() {
-  // initialize pins
+  // initialize sensor pins
   for (int i = 0; i < NUM_SENSORS; i++) {
     pinMode(SENSOR_PIN[i], INPUT);
     sensorState[i] = false;
@@ -84,10 +84,11 @@ void monitorSensors() {
       }
     }
   }
+
+  setLEDBySensorStates();
 }
 
 void loop() {
   loopMattzoController();
   monitorSensors();
-  setLEDBySensorStates();
 }
