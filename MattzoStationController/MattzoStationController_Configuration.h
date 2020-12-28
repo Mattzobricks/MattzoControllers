@@ -48,23 +48,23 @@
 // PCA9685 WIRING CONFIGURATION
 
 // PCA9685 port expander used?
-DEFINE USE_PCA9685 true
+#define USE_PCA9685 true
 
 // PCA9685 OE pin supported?
-bool PCA9685_OE_PIN_INSTALLED = true;  // set to false if OE pin is not connected
+bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
 uint8_t PCA9685_OE_PIN = D0;
 
 
 // SWITCH WIRING CONFIGURATION
 
 // Number of switch ports
-const int NUM_SWITCHPORTS = 5;
+const int NUM_SWITCHPORTS = 8;
 
 // Digital output pins for switch servos
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4 };
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 // Type of digital output pins for switch servos (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40 };
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
 
 
 // SIGNAL WIRING CONFIGURATION
