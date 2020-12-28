@@ -23,6 +23,10 @@ enum struct MotorShieldType
   LEGO_IR_8884 = 0x3
 };
 
+// Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
+const uint8_t IR_LIGHT_RED = 254;
+const uint8_t IR_LIGHT_BLUE = 255;
+
 #define MATTZO_CONTROLLER_TYPE "MTC4PF"
 #include <ESP8266WiFi.h>                // WiFi library for ESP-8266
 #include "MattzoPowerFunctions.h"       // Power Functions library (required for LEGO Infrared Receiver 8884)
@@ -32,8 +36,6 @@ enum struct MotorShieldType
 // Functions (lights)
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
-const uint8_t IR_LIGHT_RED = 254;     // Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
-const uint8_t IR_LIGHT_BLUE = 255;
 
 enum struct LightEventType
 {
