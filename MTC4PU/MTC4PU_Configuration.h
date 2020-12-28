@@ -118,8 +118,12 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
 // Controller wiring specifics
 // ***************************
 
+// Automatic lights. If set to true, the lights are switched on when loco is moving, and switched off if the train stops.
+// To set-up more advanced behaviour, find the lightEvent() function in the MTC4PU code and change it as desired.
+const bool AUTO_LIGHTS = true;
+
 // Digital output PIN to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+bool STATUS_LED_PIN_INSTALLED = false;  // set to true if LED is installed (if not: false)
 uint8_t STATUS_LED_PIN = 4;
 
 

@@ -154,6 +154,13 @@ const int NUM_FUNCTIONS = 1;          // While theoretically possible to switch 
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
+enum struct LightEventType
+{
+  STOP = 0x0,
+  FORWARD = 0x1,
+  REVERSE = 0x2
+};
+
 /* Legoino Library */
 String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT is established.
 int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at once. :-(
@@ -548,10 +555,27 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 // set powered up motor speed
 void setTrainSpeed(int newTrainSpeed) {
+  // set motor power
   int power = map(newTrainSpeed, 0, maxTrainSpeed, 0, MattzoPUHub::MAX_PU_POWER * maxTrainSpeed / 100);
   mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
+  for (int i = 0; i < NUM_HUBS; i++) {
+    myHubs[i].setMotorSpeed(power);
+  }
+  mcLog("Motor speed set to: " + String(newTrainSpeed));
+
+  // Execute light events
+  if (newTrainSpeed == 0 && currentTrainSpeed != 0) {
+    lightEvent(LightEventType::STOP);
+  }
+  else if (newTrainSpeed > 0 && currentTrainSpeed <= 0) {
+    lightEvent(LightEventType::FORWARD);
+  }
+  else if (newTrainSpeed < 0 && currentTrainSpeed >= 0) {
+    lightEvent(LightEventType::REVERSE);
+  }
 
   currentTrainSpeed = newTrainSpeed;
+
   // Set integrated powered up hub light according to situation
   Color ledColor;
   if (currentTrainSpeed != targetTrainSpeed) {
@@ -568,11 +592,8 @@ void setTrainSpeed(int newTrainSpeed) {
   }
 
   for (int i = 0; i < NUM_HUBS; i++) {
-    myHubs[i].setMotorSpeed(power);
     myHubs[i].setLedColor(ledColor);
   }
-
-  mcLog("Motor speed set to: " + String(newTrainSpeed));
 }
 
 
@@ -609,6 +630,36 @@ void accelerateTrainSpeed() {
   }
 }
 
+// execute light event
+void lightEvent(LightEventType le) {
+  if (!AUTO_LIGHTS)
+    return;
+
+  switch (le) {
+  case LightEventType::STOP:
+    mcLog("Light event stop");
+    // switch all functions off
+    for (int i = 0; i < NUM_FUNCTIONS; i++) {
+      functionCommand[i] = false;
+    }
+    break;
+  case LightEventType::FORWARD:
+    mcLog("Light event forward");
+    // switch functions with odd numbers on and with even number off
+    for (int i = 0; i < NUM_FUNCTIONS; i++) {
+      functionCommand[i] = i % 2 == 0;
+    }
+    break;
+  case LightEventType::REVERSE:
+    mcLog("Light event reverse");
+    // switch functions with odd number off and with even number on
+    for (int i = 0; i < NUM_FUNCTIONS; i++) {
+      functionCommand[i] = i % 2 == 1;
+    }
+    break;
+  }
+}
+
 // switch lights on or off
 void setLights() {
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
@@ -622,7 +673,7 @@ void setLights() {
 
     if (functionState[i] != onOff) {
       functionState[i] = onOff;
-      mcLog("Flipping function " + String(i + 1));
+      mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
 
       int lightPower = onOff ? 100 : 0;
 
