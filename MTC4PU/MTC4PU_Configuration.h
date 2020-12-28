@@ -118,7 +118,7 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
 // Controller wiring specifics
 // ***************************
 
-// Automatic lights. If set to true, the lights are switched on when loco is moving, and switched off if the train stops.
+// Automatic lights. If set to true, the lights are switched on when loco is moving forward, and switched off if the train stops or goes backwards.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PU code and change it as desired.
 const bool AUTO_LIGHTS = true;
 
