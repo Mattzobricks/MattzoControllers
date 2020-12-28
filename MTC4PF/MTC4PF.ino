@@ -473,7 +473,7 @@ void setLights() {
 
     if (functionState[i] != onOff) {
       functionState[i] = onOff;
-      mcLog("Flipping function " + String(i + 1));
+      mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
 
       MattzoPowerFunctionsPwm irPwmLevel = onOff ? MattzoPowerFunctionsPwm::FORWARD7 : MattzoPowerFunctionsPwm::BRAKE;
 
