@@ -553,6 +553,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int functionPinId = rr_functionNo - 1;
     mcLog("Function PIN Id: " + String(functionPinId));
 
+    // Check if the function is associated with the loco
+    if (FUNCTION_PIN_LOCO_ADDRESS[functionPinId] != loco._locoAddress) {
+      mcLog("Function PIN is associated with loco " + String(FUNCTION_PIN_LOCO_ADDRESS[functionPinId]) + ", not with " + String(loco._locoAddress) + ". Disregarding message.");
+      return;
+    }
+
     // query fnchangedstate attribute. This is value if the function shall be set on or off
     const char* rr_state = "xxxxxx";  // expected values are "true" or "false"
     if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
@@ -626,13 +632,13 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
 
   // Execute light events
   if (newTrainSpeed == 0 && loco._currentTrainSpeed != 0) {
-    lightEvent(LightEventType::STOP);
+    lightEvent(LightEventType::STOP, locoIndex);
   }
   else if (newTrainSpeed > 0 && loco._currentTrainSpeed <= 0) {
-    lightEvent(LightEventType::FORWARD);
+    lightEvent(LightEventType::FORWARD, locoIndex);
   }
   else if (newTrainSpeed < 0 && loco._currentTrainSpeed >= 0) {
-    lightEvent(LightEventType::REVERSE);
+    lightEvent(LightEventType::REVERSE, locoIndex);
   }
 
   loco._currentTrainSpeed = newTrainSpeed;
@@ -696,32 +702,36 @@ void accelerateTrainSpeed() {
 }
 
 // execute light event
-void lightEvent(LightEventType le) {
+// IF DESIRED, YOU MAY UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+void lightEvent(LightEventType le, int locoIndex) {
   if (!AUTO_LIGHTS)
     return;
 
-  switch (le) {
-  case LightEventType::STOP:
-    mcLog("Light event stop");
-    // switch all functions off
-    for (int i = 0; i < NUM_FUNCTIONS; i++) {
-      functionCommand[i] = false;
+  for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    if (locoIndex == 0 || locoIndex == FUNCTION_PIN_LOCO_ADDRESS[i]) {
+      switch (le) {
+      case LightEventType::STOP:
+        mcLog("Light event stop");
+        // switch all functions off
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+        functionCommand[i] = false;
+        break;
+      case LightEventType::FORWARD:
+        mcLog("Light event forward");
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+        // functionCommand[i] = (i % 2) == 0;
+        // functionCommand[i] = true;
+        functionCommand[i] = i <= 1;
+        break;
+      case LightEventType::REVERSE:
+        mcLog("Light event reverse");
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+        // functionCommand[i] = (i % 2) == 1;
+        // functionCommand[i] = true;
+        functionCommand[i] = i >= 1;
+        break;
+      }
     }
-    break;
-  case LightEventType::FORWARD:
-    mcLog("Light event forward");
-    // switch functions with odd numbers on and with even number off
-    for (int i = 0; i < NUM_FUNCTIONS; i++) {
-      functionCommand[i] = i % 2 == 0;
-    }
-    break;
-  case LightEventType::REVERSE:
-    mcLog("Light event reverse");
-    // switch functions with odd number off and with even number on
-    for (int i = 0; i < NUM_FUNCTIONS; i++) {
-      functionCommand[i] = i % 2 == 1;
-    }
-    break;
   }
 }
 
@@ -730,30 +740,29 @@ void setLights() {
   int puLightPower;
 
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
-    bool onOff = functionCommand[i];
+    bool onOff = functionCommand[i];  // desired on/off state of the LED
+    bool lightStateChange = false;
 
     if (ebreak) {
-      // override function state on ebreak (alternate lights on/off every 500ms)
+      // override LED on ebreak (alternate lights on/off every 500ms)
       long phase = (millis() / 500) % 2;
       onOff = (phase + i) % 2 == 0;
     }
-    else {
-      if (functionState[i] != onOff) {
-        functionState[i] = onOff;
-        mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
 
-        switch (FUNCTION_PIN[i]) {
-        case PU_LIGHT:
-          puLightPower = onOff ? 100 : 0;
-          for (int h = 0; h < NUM_HUBS; h++) {
-            myHubs[h].setLights(puLightPower, FUNCTION_PIN_LOCO_ADDRESS[i]);
-          }
-          break;
-        default:
-          digitalWrite(FUNCTION_PIN[i], onOff ? HIGH : LOW);
-        } // of switch
-      } // of if
-    } // else else if
+    if (onOff != functionState[i]) {
+      mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
+      functionState[i] = onOff;
+      switch (FUNCTION_PIN[i]) {
+      case PU_LIGHT:
+        puLightPower = onOff ? 100 : 0;
+        for (int h = 0; h < NUM_HUBS; h++) {
+          myHubs[h].setLights(puLightPower, FUNCTION_PIN_LOCO_ADDRESS[i]);
+        }
+        break;
+      default:
+        digitalWrite(FUNCTION_PIN[i], onOff ? HIGH : LOW);
+      } // of switch
+    } // of if
   } // of for
 }
 
@@ -791,7 +800,7 @@ void loop() {
 unsigned long timeLastHubReport = 0;
 
 void debugInfo() {
-  // return;
+  // return;  // comment out to display debug info every 10 seconds
 
   if (millis() - timeLastHubReport < 10000) return;
 
