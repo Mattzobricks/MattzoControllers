@@ -1,4 +1,3 @@
-// MattzoTrainController for Powered Up Firmware
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
 // License:
@@ -38,6 +37,14 @@ enum struct MattzoPUDevice {
   PU_LIGHT = 0x2
 };
 
+struct MattzoLocoConfiguration {
+  String locoName;
+  int locoAddress;
+  int accelerationInterval;
+  int accelerateStep;
+  int brakeStep;
+};
+
 struct MattzoPUHubConfiguration {
   String hubName;
   String macAddress;
@@ -45,15 +52,48 @@ struct MattzoPUHubConfiguration {
   int configMotorA;
   MattzoPUDevice devicePortB;
   int configMotorB;
+  int locoAddress;
 };
 
 // Forward declaration
+class MattzoLoco;
 class MattzoPUHub;
 
 // MattzoBricks library files
 #include "MTC4PU_Configuration.h"     // this file should be placed in the same folder
 #include "MattzoController_Library.h" // this file needs to be placed in the Arduino library folder
 
+
+
+// Class containing a locomotive object as defined in Rocrail
+class MattzoLoco {
+public:
+  // Members
+  String _locoName;                             // name of the loco as specified in Rocrail
+  int _locoAddress;                             // address of the loco in Rocrail
+  int _currentTrainSpeed = 0;                   // current speed of this train
+  int _targetTrainSpeed = 0;                    // Target speed of this train
+  int _maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
+  unsigned long _lastAccelerate = millis();     // time of the last speed adjustment
+
+  // Motor acceleration parameters
+  int _accelerationInterval = 100;       // pause between individual speed adjustments in milliseconds
+  int _accelerateStep = 1;               // acceleration increment for a single acceleration step
+  int _brakeStep = 2;                    // brake decrement for a single braking step
+
+  // Methods
+  void initMattzoLoco(MattzoLocoConfiguration c) {
+    _locoName = c.locoName;
+    _locoAddress = c.locoAddress;
+    _accelerationInterval = c.accelerationInterval;
+    _accelerateStep = c.accelerateStep;
+    _brakeStep = c.brakeStep;
+  };
+
+  String getNiceName() {
+    return _locoName + " (" + _locoAddress + ")";
+  }
+} myLocos[NUM_LOCOS];  // Objects for MattzoLocos
 
 
 // Class containining the Powered Hub hub object from the Legoino library
@@ -72,6 +112,7 @@ public:
   int _configMotorA;  // 1 = forward, -1 = reverse
   MattzoPUDevice _devicePortB;
   int _configMotorB;  // 1 = forward, -1 = reverse
+  int _locoAddress;   // address of the Rocrail loco in which this PU hub is built-in
   bool lastKnownConnectionStatus = false;
 
   // Methods
@@ -82,6 +123,7 @@ public:
     _configMotorA = c.configMotorA;
     _devicePortB = c.devicePortB;
     _configMotorB = c.configMotorB;
+    _locoAddress = c.locoAddress;
   };
 
   String getNiceName() {
@@ -115,8 +157,14 @@ public:
     }
   }
 
+  bool checkLocoAddress(int locoAddress) {
+    return (locoAddress == 0 || locoAddress == _locoAddress);
+  }
+
   // Set integrated powered up hub light
-  void setLedColor(Color ledColor) {
+  void setLedColor(Color ledColor, int locoAddress) {
+    if (!checkLocoAddress(locoAddress)) return;
+
     if (!isConnected()) return;
 
     legoinoHub.setLedColor(ledColor);
@@ -124,7 +172,9 @@ public:
   }
 
   // Set motor power
-  void setMotorSpeed(int power) {
+  void setMotorSpeed(int power, int locoAddress) {
+    if (!checkLocoAddress(locoAddress)) return;
+
     if (!isConnected()) return;
 
     if (_devicePortA == MattzoPUDevice::PU_MOTOR) {
@@ -138,7 +188,9 @@ public:
   }
 
   // Set light intensity for connected Powered Up hubs
-  void setLights(int lightPower) {
+  void setLights(int lightPower, int locoAddress) {
+    if (!checkLocoAddress(locoAddress)) return;
+
     if (!isConnected()) return;
 
     if (_devicePortA == MattzoPUDevice::PU_LIGHT) {
@@ -172,17 +224,6 @@ const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery le
 unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
 int nextBatteryLevelReportingHub = 0;            // index of the last hubs for which a battery report was requested
 
-// Motor acceleration parameters
-const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
-const int ACCELERATE_STEP = 1;               // acceleration increment for a single acceleration step
-const int BRAKE_STEP = 2;                    // brake decrement for a single braking step
-
-// Speed variables
-int currentTrainSpeed = 0;                   // current speed of this train
-int targetTrainSpeed = 0;                    // Target speed of this train
-int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
-unsigned long lastAccelerate = millis();     // time of the last speed adjustment
-
 // Global emergency brake flag.
 boolean ebreak = false;
 
@@ -199,9 +240,13 @@ void setup() {
     functionState[i] = false;
   }
 
-  // load Powered Up hub configuration
-  //initMattzoPUHubs(&myHubs);
+  // load loco configuration
+  MattzoLocoConfiguration *locoConf = getMattzoLocoConfiguration();
+  for (int i = 0; i < NUM_LOCOS; i++) {
+    myLocos[i].initMattzoLoco(*(locoConf + i));
+  }
 
+  // load Powered Up hub configuration
   MattzoPUHubConfiguration *hubConf = getMattzoPUHubConfiguration();
   for (int i = 0; i < NUM_HUBS; i++) {
     myHubs[i].initMattzoPUHub(*(hubConf + i));
@@ -212,6 +257,20 @@ void setup() {
 
   // discover new Powered Up Hubs (just to display MAC address)
   discoverPoweredUpHub();
+}
+
+
+
+int getMattzoLocoIndexByLocoAddress(int locoAddress) {
+  // mcLog("getMattzoLocoIndexByLocoAddress is checking if this controller handles loco " + String(locoAddress) + "...");
+  for (int l = 0; l < NUM_LOCOS; l++) {
+    if (myLocos[l]._locoAddress == locoAddress) {
+      // mcLog("getMattzoLocoIndexByLocoAddress found loco " + myLocos[l].getNiceName() + " (index " + String(l) + ").");
+      return l;
+    }
+  }
+  // mcLog("getMattzoLocoIndexByLocoAddress did not find the loco.");
+  return -1;
 }
 
 
@@ -235,9 +294,6 @@ void discoverPoweredUpHub() {
   }
   mcLog("No Powered Up Hub found. Discovering new Powered Up hubs terminated.");
 }
-
-// for debugging only - may be deleted later
-unsigned long timeLastHubReport = 0;
 
 void connectPoweredUpHubs() {
   // check for hubs ready for connection (is connecting, but not connected) -> connect
@@ -280,18 +336,6 @@ void connectPoweredUpHubs() {
       break;
     }
   }
-
-  // Debugging code... may be removed.
-  // return;
-
-  if (millis() - timeLastHubReport < 10000) return;
-
-  mcLog("***");
-  mcLog("init hub: " + String(initializedHub));
-  for (int i = 0; i < NUM_HUBS; i++) {
-    mcLog("Hub " + String(i) + ": macAddress=" + myHubs[i]._macAddress + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubs[i].lastKnownConnectionStatus));
-  }
-  timeLastHubReport = millis();
 }
 
 void requestPoweredUpBatteryLevel() {
@@ -408,10 +452,14 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       return;
     }
     mcLog("addr: " + String(rr_addr));
-    if (rr_addr != LOCO_ADDRESS) {
-      mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+
+    int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
+    if (locoIndex < 0) {
+      mcLog("Message disregarded, as this controller does not handle train " + String(rr_addr));
       return;
     }
+    MattzoLoco& loco = myLocos[locoIndex];
+    mcLog("Consuming message for train " + loco.getNiceName());
 
     // query dir attribute. This is direction information for the loco (forward, backward)
     const char* rr_dir = "xxxxxx";  // expected values are "true" or "false"
@@ -452,9 +500,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     mcLog("V_max: " + String(rr_vmax));
 
     // set target train speed
-    targetTrainSpeed = rr_v * dir;
-    maxTrainSpeed = rr_vmax;
-    mcLog("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
+    loco._targetTrainSpeed = rr_v * dir;
+    loco._maxTrainSpeed = rr_vmax;
+    mcLog("Message parsing complete, target speed set to " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")");
     return;
   }
 
@@ -481,10 +529,14 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       return;
     }
     mcLog("addr: " + String(rr_addr));
-    if (rr_addr != LOCO_ADDRESS) {
-      mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+
+    int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
+    if (locoIndex < 0) {
+      mcLog("Message disregarded, as this controller does not handle train " + String(rr_addr));
       return;
     }
+    MattzoLoco& loco = myLocos[locoIndex];
+    mcLog("Consuming message for train " + loco.getNiceName());
 
     // query fnchanged attribute. This is information which function shall be set.
     int rr_functionNo;
@@ -561,35 +613,37 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 // set powered up motor speed
-void setTrainSpeed(int newTrainSpeed) {
+void setTrainSpeed(int newTrainSpeed, int locoIndex) {
+  MattzoLoco& loco = myLocos[locoIndex];
+
   // set motor power
-  int power = map(newTrainSpeed, 0, maxTrainSpeed, 0, MattzoPUHub::MAX_PU_POWER * maxTrainSpeed / 100);
+  int power = map(newTrainSpeed, 0, loco._maxTrainSpeed, 0, MattzoPUHub::MAX_PU_POWER * loco._maxTrainSpeed / 100);
   mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
   for (int i = 0; i < NUM_HUBS; i++) {
-    myHubs[i].setMotorSpeed(power);
+    myHubs[i].setMotorSpeed(power, loco._locoAddress);
   }
   mcLog("Motor speed set to: " + String(newTrainSpeed));
 
   // Execute light events
-  if (newTrainSpeed == 0 && currentTrainSpeed != 0) {
+  if (newTrainSpeed == 0 && loco._currentTrainSpeed != 0) {
     lightEvent(LightEventType::STOP);
   }
-  else if (newTrainSpeed > 0 && currentTrainSpeed <= 0) {
+  else if (newTrainSpeed > 0 && loco._currentTrainSpeed <= 0) {
     lightEvent(LightEventType::FORWARD);
   }
-  else if (newTrainSpeed < 0 && currentTrainSpeed >= 0) {
+  else if (newTrainSpeed < 0 && loco._currentTrainSpeed >= 0) {
     lightEvent(LightEventType::REVERSE);
   }
 
-  currentTrainSpeed = newTrainSpeed;
+  loco._currentTrainSpeed = newTrainSpeed;
 
   // Set integrated powered up hub light according to situation
   Color ledColor;
-  if (currentTrainSpeed != targetTrainSpeed) {
+  if (loco._currentTrainSpeed != loco._targetTrainSpeed) {
     // accelerating / braking
     ledColor = YELLOW;
   }
-  else if (currentTrainSpeed == 0) {
+  else if (loco._currentTrainSpeed == 0) {
     // stopped
     ledColor = RED;
   }
@@ -599,40 +653,44 @@ void setTrainSpeed(int newTrainSpeed) {
   }
 
   for (int i = 0; i < NUM_HUBS; i++) {
-    myHubs[i].setLedColor(ledColor);
+    myHubs[i].setLedColor(ledColor, loco._locoAddress);
   }
 }
 
 
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed() {
-  if (ebreak) {
-    // emergency break pulled and train moving -> stop train immediately
-    if (currentTrainSpeed != 0) {
-      setTrainSpeed(0);
-    }
-  }
-  else if (currentTrainSpeed != targetTrainSpeed) {
-    if (targetTrainSpeed == 0) {
-      // stop -> execute immediately
-      setTrainSpeed(0);
-    }
-    else if (millis() - lastAccelerate >= ACCELERATION_INTERVAL) {
-      lastAccelerate = millis();
+  for (int locoIndex; locoIndex < NUM_LOCOS; locoIndex++) {
+    MattzoLoco& loco = myLocos[locoIndex];
 
-      // determine if trains accelerates or brakes
-      boolean accelerateFlag = abs(currentTrainSpeed) < abs(targetTrainSpeed) && (currentTrainSpeed * targetTrainSpeed > 0);
-      int step = accelerateFlag ? ACCELERATE_STEP : BRAKE_STEP;
-
-      int nextSpeed;
-      // accelerate / brake gently
-      if (currentTrainSpeed < targetTrainSpeed) {
-        nextSpeed = min(currentTrainSpeed + step, targetTrainSpeed);
+    if (ebreak) {
+      // emergency break pulled and train moving -> stop train immediately
+      if (loco._currentTrainSpeed != 0) {
+        setTrainSpeed(0, locoIndex);
       }
-      else {
-        nextSpeed = max(currentTrainSpeed - step, targetTrainSpeed);
+    }
+    else if (loco._currentTrainSpeed != loco._targetTrainSpeed) {
+      if (loco._targetTrainSpeed == 0) {
+        // stop -> execute immediately
+        setTrainSpeed(0, locoIndex);
       }
-      setTrainSpeed(nextSpeed);
+      else if (millis() - loco._lastAccelerate >= loco._accelerationInterval) {
+        loco._lastAccelerate = millis();
+  
+        // determine if trains accelerates or brakes
+        boolean accelerateFlag = abs(loco._currentTrainSpeed) < abs(loco._targetTrainSpeed) && (loco._currentTrainSpeed * loco._targetTrainSpeed > 0);
+        int step = accelerateFlag ? loco._accelerateStep : loco._brakeStep;
+  
+        int nextSpeed;
+        // accelerate / brake gently
+        if (loco._currentTrainSpeed < loco._targetTrainSpeed) {
+          nextSpeed = min(loco._currentTrainSpeed + step, loco._targetTrainSpeed);
+        }
+        else {
+          nextSpeed = max(loco._currentTrainSpeed - step, loco._targetTrainSpeed);
+        }
+        setTrainSpeed(nextSpeed, locoIndex);
+      }
     }
   }
 }
@@ -670,7 +728,7 @@ void lightEvent(LightEventType le) {
 // switch lights on or off
 void setLights() {
   int puLightPower;
-  
+
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
     bool onOff = functionCommand[i];
 
@@ -679,22 +737,23 @@ void setLights() {
       long phase = (millis() / 500) % 2;
       onOff = (phase + i) % 2 == 0;
     }
+    else {
+      if (functionState[i] != onOff) {
+        functionState[i] = onOff;
+        mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
 
-    if (functionState[i] != onOff) {
-      functionState[i] = onOff;
-      mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
-
-      switch (FUNCTION_PIN[i]) {
+        switch (FUNCTION_PIN[i]) {
         case PU_LIGHT:
           puLightPower = onOff ? 100 : 0;
           for (int h = 0; h < NUM_HUBS; h++) {
-            myHubs[h].setLights(puLightPower);
+            myHubs[h].setLights(puLightPower, FUNCTION_PIN_LOCO_ADDRESS[i]);
           }
           break;
         default:
           digitalWrite(FUNCTION_PIN[i], onOff ? HIGH : LOW);
-      } // of switch
-    } // of if
+        } // of switch
+      } // of if
+    } // else else if
   } // of for
 }
 
@@ -707,4 +766,43 @@ void loop() {
   requestPoweredUpBatteryLevel();
   accelerateTrainSpeed();
   setLights();
+
+  debugInfo();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// From here: debugging code! May be removed later
+unsigned long timeLastHubReport = 0;
+
+void debugInfo() {
+  // return;
+
+  if (millis() - timeLastHubReport < 10000) return;
+
+  mcLog("*** DEBUG-INFO ***");
+  for (int i = 0; i < NUM_LOCOS; i++) {
+    mcLog("Loco " + String(i) + ": " + myLocos[i].getNiceName() + ". Target speed: " + String(myLocos[i]._targetTrainSpeed) + ", current speed: " + String(myLocos[i]._currentTrainSpeed) + ", max speed: " + String(myLocos[i]._maxTrainSpeed));
+  }
+  mcLog("next hub to initialize (if any): " + String(initializedHub));
+  for (int i = 0; i < NUM_HUBS; i++) {
+    mcLog("Hub " + String(i) + ": macAddress=" + myHubs[i]._macAddress + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubs[i].lastKnownConnectionStatus));
+  }
+  timeLastHubReport = millis();
+  mcLog("******************");
 }

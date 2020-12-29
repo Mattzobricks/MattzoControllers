@@ -19,12 +19,35 @@
 
 
 
-// **************
-// Loco specifics
-// **************
+// ***********
+// MattzoLocos
+// ***********
 
-// Rocrail address of the train
-const int LOCO_ADDRESS = 8984;
+// Number of locos (aka. MattzoLocos) controlled by this controller
+const int NUM_LOCOS = 2;
+
+// List of MattzoLocos
+MattzoLocoConfiguration* getMattzoLocoConfiguration() {
+  static MattzoLocoConfiguration locoConf[NUM_LOCOS];
+
+  locoConf[0] = (MattzoLocoConfiguration){
+    .locoName = "ICE",
+    .locoAddress = 6051,
+    .accelerationInterval = 100,
+    .accelerateStep = 1,
+    .brakeStep = 2
+  };
+
+  locoConf[1] = (MattzoLocoConfiguration){
+  .locoName = "EST",
+  .locoAddress = 6197,
+  .accelerationInterval = 100,
+  .accelerateStep = 1,
+  .brakeStep = 2
+  };
+
+  return locoConf;
+}
 
 
 // ***************
@@ -32,82 +55,50 @@ const int LOCO_ADDRESS = 8984;
 // ***************
 
 // Number of Powered Up hubs that shall connect to this controller
-const int NUM_HUBS = 8;
+const int NUM_HUBS = 4;
 
 // List of Powered Up hubs that shall connect to this controller
 MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
   static MattzoPUHubConfiguration hubConf[NUM_HUBS];
 
   hubConf[0] = (MattzoPUHubConfiguration){
-      .hubName = "GRECO",
-      .macAddress = "90:84:2b:21:71:46",
-      .devicePortA = MattzoPUDevice::PU_MOTOR,
-      .configMotorA = -1,
-      .devicePortB = MattzoPUDevice::NONE,
-      .configMotorB = 0
-    };
-
-  hubConf[1] = (MattzoPUHubConfiguration){
-      .hubName = "BANAAN1",
-      .macAddress = "90:84:2b:01:20:f8",
-      .devicePortA = MattzoPUDevice::NONE,
-      .configMotorA = 0,
-      .devicePortB = MattzoPUDevice::PU_MOTOR,
-      .configMotorB = 1
-    };
-
-  hubConf[2] = (MattzoPUHubConfiguration){
       .hubName = "ICE1",
       .macAddress = "90:84:2b:16:15:f8",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
       .configMotorA = 1,
       .devicePortB = MattzoPUDevice::PU_LIGHT,
-      .configMotorB = 0
-    };
+      .configMotorB = 0,
+      .locoAddress = 6051
+  };
 
-  hubConf[3] = (MattzoPUHubConfiguration){
+  hubConf[1] = (MattzoPUHubConfiguration){
       .hubName = "ICE2",
       .macAddress = "90:84:2b:17:e9:4c",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
       .configMotorA = 1,
       .devicePortB = MattzoPUDevice::NONE,
-      .configMotorB = 0
-    };
+      .configMotorB = 0,
+      .locoAddress = 6051
+  };
 
-  hubConf[4] = (MattzoPUHubConfiguration){
-      .hubName = "BROCO",
-      .macAddress = "90:84:2b:0f:ac:c7",
-      .devicePortA = MattzoPUDevice::NONE,
-      .configMotorA = 0,
-      .devicePortB = MattzoPUDevice::PU_MOTOR,
-      .configMotorB = 1
-    };
-
-  hubConf[5] = (MattzoPUHubConfiguration){
+  hubConf[2] = (MattzoPUHubConfiguration){
       .hubName = "EST1",
       .macAddress = "90:84:2b:18:f2:52",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
       .configMotorA = 1,
       .devicePortB = MattzoPUDevice::NONE,
-      .configMotorB = 0
-    };
+      .configMotorB = 0,
+      .locoAddress = 6197
+  };
 
-  hubConf[6] = (MattzoPUHubConfiguration){
+  hubConf[3] = (MattzoPUHubConfiguration){
       .hubName = "EST2",
       .macAddress = "90:84:2b:18:f7:75",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
       .configMotorA = 1,
       .devicePortB = MattzoPUDevice::NONE,
-      .configMotorB = 0
-    };
-
-  hubConf[7] = (MattzoPUHubConfiguration){
-      .hubName = "BANAAN2",
-      .macAddress = "90:84:2b:00:5d:bb",
-      .devicePortA = MattzoPUDevice::PU_MOTOR,
-      .configMotorA = 1,
-      .devicePortB = MattzoPUDevice::NONE,
-      .configMotorB = 0
+      .configMotorB = 0,
+      .locoAddress = 6197
     };
 
   return hubConf;
@@ -126,6 +117,10 @@ const int NUM_FUNCTIONS = 4;
 // Digital pins for function output
 // For powered up lights, use virtual function pin PU_LIGHT
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { PU_LIGHT, 22, 4, 2 };
+
+// The loco address for which the function pin will be triggered.
+// You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
+int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 6051, 6051, 6051, 6051 };
 
 // Automatic lights. If set to true, the lights are switched on when loco is moving forward, and switched off if the train stops or goes backwards.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PU code and change it as desired.
