@@ -202,8 +202,11 @@ void setupWifi() {
 #if defined(ESP8266)
   WiFi.hostname(mattzoControllerName_char);
 #elif defined(ESP32)
-  // The following code SHOULD work, but it doesn't do its job for some ESP32s.
-  // Needs investigation...
+  // The following code SHOULD work without the disconnect en config lines, 
+  // but it doesn't do its job for some ESP32s.
+  // see https://github.com/espressif/arduino-esp32/issues/2537
+  WiFi.disconnect(true);
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
   WiFi.setHostname(mattzoControllerName_char);
 #else
 #error "Error: this sketch is designed for ESP8266 or ESP32 only."
