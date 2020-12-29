@@ -226,7 +226,7 @@ void checkWifi() {
 
     // Start OTA listener
     ArduinoOTA.setHostname(mattzoControllerName_char);
-    ArduinoOTA.setPassword("mattzobricks");
+    ArduinoOTA.setPassword(OTA_PASSWORD);
     ArduinoOTA.begin();
   }
 }

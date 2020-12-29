@@ -60,3 +60,11 @@ const bool SYSLOG_ENABLED = true;
 const char* SYSLOG_SERVER = MQTT_BROKER_IP;
 // Port of the syslog server
 const int SYSLOG_PORT = 514;
+
+
+// ************
+// OTA settings
+// ************
+// Password for over-the-air firmware updates
+// PLEASE CHANGE THE PASSWORD AND KEEP IT SECRET FROM EVIL PLAYMOBIL FANS!
+const char* OTA_PASSWORD = "mattzobricks";
