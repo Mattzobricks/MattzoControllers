@@ -121,7 +121,7 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.
 // You should also check void lightEvent() in MTC4PU.ino, which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 2;
+const int NUM_FUNCTIONS = 4;
 
 // Digital pins for function output
 // For powered up lights, use virtual function pin PU_LIGHT
@@ -132,8 +132,8 @@ uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { PU_LIGHT, 22, 4, 2 };
 const bool AUTO_LIGHTS = true;
 
 // Digital output PIN to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = false;  // set to true if LED is installed (if not: false)
-uint8_t STATUS_LED_PIN = 4;
+bool STATUS_LED_PIN_INSTALLED = true;  // set to true if LED is installed (if not: false)
+uint8_t STATUS_LED_PIN = 0;
 
 
 // ****************
