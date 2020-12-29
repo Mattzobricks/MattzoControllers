@@ -16,13 +16,13 @@
 Servo servo[NUM_SWITCHPORTS];
 
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
-const int SERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected.
-const int SERVO_MIN = 70;
-const int SERVO_START = 75;  // position after boot-up
-const int SERVO_MAX = 80;
-const int SERVO_MAX_ALLOWED = 100;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected.
+const int SERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SERVO_MIN.
+const int SERVO_MIN = 75;           // a good first guess for the minimum angle of TrixBrix servos is 70
+const int SERVO_START = 80;         // position after boot-up. For TrixBrix servos, this is more or less the middle position
+const int SERVO_MAX = 85;           // a good first guess for the maximum angle of TrixBrix servos is 90
+const int SERVO_MAX_ALLOWED = 120;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SERVO_MAX.
 
-// Delay between to switch operations
+// Delay between two switch operations
 const int SWITCH_DELAY = 200;
 
 
