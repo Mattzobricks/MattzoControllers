@@ -23,7 +23,8 @@ enum struct MotorShieldType
   LEGO_IR_8884 = 0x3
 };
 
-// Constants for lights connected to Lego IR Receiver 8884. Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
+// Virtual pins for lights connected to Lego IR Receiver 8884.
+// Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
 const uint8_t IR_LIGHT_RED = 254;
 const uint8_t IR_LIGHT_BLUE = 255;
 
@@ -74,7 +75,10 @@ boolean ebreak = false;
 void setup() {
     // initialize function pins
     for (int i = 0; i < NUM_FUNCTIONS; i++) {
-      pinMode(FUNCTION_PIN[i], OUTPUT);
+      // only real (non-virtual) pins shall be initialized
+      if (FUNCTION_PIN[i] < IR_LIGHT_RED) {
+        pinMode(FUNCTION_PIN[i], OUTPUT);
+      }
       functionCommand[i] = false;
       functionState[i] = false;
     }

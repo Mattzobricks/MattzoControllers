@@ -55,10 +55,11 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.
-// Also check for usage of those parameters and extend code accordingly! You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
+// You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
 const int NUM_FUNCTIONS = 2;
 
 // Digital pins for function output
+// For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = {D0, D1};
 
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and odd numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
