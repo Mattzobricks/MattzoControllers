@@ -37,7 +37,7 @@ const char* MQTT_BROKER_IP = "192.168.178.57";
 const int MQTT_BROKER_PORT = 1883;
 
 // MQTT keep alive interval (in seconds)
-const int MQTT_KEEP_ALIVE_INTERVAL = 5;
+const int MQTT_KEEP_ALIVE_INTERVAL = 10;
 
 
 // *************
