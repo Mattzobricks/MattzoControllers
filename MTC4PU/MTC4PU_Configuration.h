@@ -118,6 +118,15 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
 // Controller wiring specifics
 // ***************************
 
+// NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
+// If changed, the number of array values for FUNCTION_PIN below must be changed as well.
+// You should also check void lightEvent() in MTC4PU.ino, which is responsible for switching headlights from white to red etc.
+const int NUM_FUNCTIONS = 2;
+
+// Digital pins for function output
+// For powered up lights, use virtual function pin PU_LIGHT
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { PU_LIGHT, 22, 4, 2 };
+
 // Automatic lights. If set to true, the lights are switched on when loco is moving forward, and switched off if the train stops or goes backwards.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PU code and change it as desired.
 const bool AUTO_LIGHTS = true;
