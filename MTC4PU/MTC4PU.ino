@@ -10,6 +10,9 @@
 // TARGET-PLATTFORM for this sketch: ESP-32
 // ****************************************
 
+// Constants for Powered Up Lights connected to Powered Up Units.
+const uint8_t PU_LIGHT = 253;
+
 // MattzoControllerType
 #define MATTZO_CONTROLLER_TYPE "MTC4PU"
 
@@ -150,7 +153,6 @@ public:
 } myHubs[NUM_HUBS];  // Objects for Powered Up Hubs
 
 /* Functions */
-const int NUM_FUNCTIONS = 1;          // While theoretically possible to switch two lights on a Powered Up hub independently, this is not supported. So the number of "functions" is one.
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
 bool functionState[NUM_FUNCTIONS];    // Actual state of a function
 
@@ -187,7 +189,12 @@ boolean ebreak = false;
 
 
 void setup() {
+  // initialize function pins
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    // only real (non-virtual) pins shall be initialized
+    if (FUNCTION_PIN[i] < PU_LIGHT) {
+      pinMode(FUNCTION_PIN[i], OUTPUT);
+    }
     functionCommand[i] = false;
     functionState[i] = false;
   }
@@ -662,6 +669,8 @@ void lightEvent(LightEventType le) {
 
 // switch lights on or off
 void setLights() {
+  int puLightPower;
+  
   for (int i = 0; i < NUM_FUNCTIONS; i++) {
     bool onOff = functionCommand[i];
 
@@ -675,13 +684,18 @@ void setLights() {
       functionState[i] = onOff;
       mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
 
-      int lightPower = onOff ? 100 : 0;
-
-      for (int h = 0; h < NUM_HUBS; h++) {
-        myHubs[h].setLights(lightPower);
-      }
-    }
-  }
+      switch (FUNCTION_PIN[i]) {
+        case PU_LIGHT:
+          puLightPower = onOff ? 100 : 0;
+          for (int h = 0; h < NUM_HUBS; h++) {
+            myHubs[h].setLights(puLightPower);
+          }
+          break;
+        default:
+          digitalWrite(FUNCTION_PIN[i], onOff ? HIGH : LOW);
+      } // of switch
+    } // of if
+  } // of for
 }
 
 
