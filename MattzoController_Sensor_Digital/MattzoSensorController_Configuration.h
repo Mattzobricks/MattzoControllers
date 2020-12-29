@@ -27,11 +27,14 @@
 const int NUM_SENSORS = 8;
 
 // Digital input PINs for hall, reed or other digital sensors
-uint8_t SENSOR_PIN[NUM_SENSORS] = {D0, D1, D2, D3, D4, D5, D6, D7};
+// WARNING: when connecting the controller to power or resetting it, sensor D8 MUST NOT BE TRIGGERED, or the controller will not boot correctly.
+// The source code of the MattzoSensorController and MattzoStationController assumes, that D8 works inverted (contact = HIGH, no contact = pulled down).
+uint8_t SENSOR_PIN[NUM_SENSORS] = {D1, D2, D3, D4, D5, D6, D7, D8};
 
 // Digital output PIN to monitor sensor contact (typically a LED)
+// Usually, you would use D0 for the status LED, as this pin has no built-in pull-up option and may only be used as a sensor pin with an additional pull-up resistor.
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-uint8_t STATUS_LED_PIN = D8;
+uint8_t STATUS_LED_PIN = D0;
 
 
 // ****************

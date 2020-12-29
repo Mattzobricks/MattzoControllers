@@ -53,6 +53,7 @@ unsigned long servoSleepModeFrom_ms = 0;
 // Time in milliseconds until release event is reported after sensor has lost contact
 const int SENSOR_RELEASE_TICKS = 100;
 bool sensorState[NUM_SENSORS];
+int sensorTriggerState[NUM_SENSORS];
 int lastSensorContactMillis[NUM_SENSORS];
 
 
@@ -97,8 +98,9 @@ void setup() {
 
   // initialize sensor pins
   for (int i = 0; i < NUM_SENSORS; i++) {
-    pinMode(SENSOR_PIN[i], INPUT);
+    pinMode(SENSOR_PIN[i], INPUT_PULLUP);
     sensorState[i] = false;
+    sensorTriggerState[i] = (SENSOR_PIN[i] == D8) ? HIGH : LOW;
   }
 
   // load config from EEPROM, initialize Wifi, MQTT etc.
@@ -343,7 +345,7 @@ void monitorSensors() {
   for (int i = 0; i < NUM_SENSORS; i++) {
     int sensorValue = digitalRead(SENSOR_PIN[i]);
 
-    if (sensorValue == LOW) {
+    if (sensorValue == sensorTriggerState[i]) {
       // Contact -> report contact immediately
       if (!sensorState[i]) {
         mcLog("Sensor " + String(i) + " triggered.");

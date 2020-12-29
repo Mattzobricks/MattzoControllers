@@ -82,17 +82,17 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0
 // SENSOR WIRING CONFIGURATION
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 5;
+const int NUM_SENSORS = 6;
 
 // Digital input PINs for hall, reed or other digital sensors
-uint8_t SENSOR_PIN[NUM_SENSORS] = {D3, D4, D5, D6, D7};
+uint8_t SENSOR_PIN[NUM_SENSORS] = {D3, D4, D5, D6, D7, D8};
 
 
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-uint8_t STATUS_LED_PIN = D8;
+uint8_t STATUS_LED_PIN = D0;
 
 
 // ****************
