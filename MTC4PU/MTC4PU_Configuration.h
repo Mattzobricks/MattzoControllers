@@ -24,26 +24,34 @@
 // ***********
 
 // Number of locos (aka. MattzoLocos) controlled by this controller
-const int NUM_LOCOS = 2;
+const int NUM_LOCOS = 3;
 
 // List of MattzoLocos
 MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-  locoConf[0] = (MattzoLocoConfiguration){
+  locoConf[0] = (MattzoLocoConfiguration) {
     .locoName = "ICE",
     .locoAddress = 6051,
     .accelerationInterval = 100,
-    .accelerateStep = 1,
-    .brakeStep = 2
+    .accelerateStep = 2,
+    .brakeStep = 3
   };
 
-  locoConf[1] = (MattzoLocoConfiguration){
+  locoConf[1] = (MattzoLocoConfiguration) {
   .locoName = "EST",
   .locoAddress = 6197,
   .accelerationInterval = 100,
-  .accelerateStep = 1,
-  .brakeStep = 2
+  .accelerateStep = 2,
+  .brakeStep = 3
+  };
+
+  locoConf[2] = (MattzoLocoConfiguration) {
+  .locoName = "BROCO",
+  .locoAddress = 10277,
+  .accelerationInterval = 100,
+  .accelerateStep = 2,
+  .brakeStep = 3
   };
 
   return locoConf;
@@ -55,7 +63,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 // ***************
 
 // Number of Powered Up hubs that shall connect to this controller
-const int NUM_HUBS = 4;
+const int NUM_HUBS = 5;
 
 // List of Powered Up hubs that shall connect to this controller
 MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
@@ -100,6 +108,15 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
       .configMotorB = 0,
       .locoAddress = 6197
     };
+
+  hubConf[4] = (MattzoPUHubConfiguration){
+    .hubName = "BROCO",
+    .macAddress = "90:84:2b:0f:ac:c7",
+    .devicePortA = MattzoPUDevice::NONE,
+    .configMotorA = 0,
+    .devicePortB = MattzoPUDevice::PU_MOTOR,
+    .configMotorB = 1
+  };
 
   return hubConf;
 }
