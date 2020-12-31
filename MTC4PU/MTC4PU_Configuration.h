@@ -51,7 +51,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   .locoAddress = 10277,
   .accelerationInterval = 100,
   .accelerateStep = 2,
-  .brakeStep = 3
+  .brakeStep = 2
   };
 
   return locoConf;
@@ -115,7 +115,8 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
     .devicePortA = MattzoPUDevice::NONE,
     .configMotorA = 0,
     .devicePortB = MattzoPUDevice::PU_MOTOR,
-    .configMotorB = 1
+    .configMotorB = 1,
+    .locoAddress = 10277
   };
 
   return hubConf;
