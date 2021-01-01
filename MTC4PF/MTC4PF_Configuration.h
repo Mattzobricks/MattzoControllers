@@ -23,8 +23,12 @@
 // Loco specifics
 // **************
 
-// Rocrail address of the train
-const int LOCO_ADDRESS = 8984;
+// Rocrail train name and address.
+// If using motor shield "4D", the loco name must be set and be identical in Rocrail, in the following line, and in the 4DBrix WiFi Train Receiver.
+// Short names are recommended. Max. number of characters: 50.
+const char* LOCO_NAME = "EME";
+// Must correspond to the loco address set in Rocrail. Used to identify loco messages that are handled by this MattzoTrainController.
+const int LOCO_ADDRESS = 10194;
 
 
 // ***************************
@@ -33,7 +37,7 @@ const int LOCO_ADDRESS = 8984;
 
 // Type of motor shield installed.
 // (The different motor shield types are defined in MTC4PF.ino)
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
+const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX;
 
 // Constants for motor shield type L298N
 #define enA D1  // PWM signal pin for motor A. Relevant for L298N only.
@@ -52,6 +56,9 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 #define IR_CHANNEL 0			// channel number selected on the Lego IR Receiver 8884. May be 0, 1, 2 or 3.
 #define IR_PORT_RED 1     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
+
+// Constants for motorshield type 4D Brix WiFi Train Receiver
+#define CONFIG_MOTOR_4D -1   // configuration for Motor. 1 = forward, -1 = reverse.
 
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.

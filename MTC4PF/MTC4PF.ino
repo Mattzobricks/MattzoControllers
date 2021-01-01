@@ -20,12 +20,13 @@ enum struct MotorShieldType
   NONE = 0x0,
   L298N = 0x1,
   L9110 = 0x2,
-  LEGO_IR_8884 = 0x3
+  LEGO_IR_8884 = 0x3,
+  WIFI_TRAIN_RECEIVER_4DBRIX = 0x4
 };
 
 // Virtual pins for lights connected to Lego IR Receiver 8884.
 // Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
-const uint8_t IR_LIGHT_RED = 254;7
+const uint8_t IR_LIGHT_RED = 254;
 const uint8_t IR_LIGHT_BLUE = 255;
 
 #define MATTZO_CONTROLLER_TYPE "MTC4PF"
@@ -101,9 +102,13 @@ void setup() {
         // IR pin in the global section at the beginning of the code
         // => nothing to do here
         break;
+      case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
+        // init handler for 4DBrix WiFi Train Receiver
+        // => nothing to do here
+        break;
     }
 
-    // stop all motors
+    // stop all directly connected train motors
     setTrainSpeed(0);
 
     // load config from EEPROM, initialize Wifi, MQTT etc.
@@ -306,12 +311,18 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 // set the motor to a desired power.
 void setTrainSpeed(int newTrainSpeed) {
+  // Motorshield specific constants and variables
   const int MIN_ARDUINO_POWER = 400;   // minimum useful arduino power
   const int MAX_ARDUINO_POWER = 1023;  // maximum arduino power
+  int power = 0;
   const int MAX_IR_SPEED = 100;  // maximum speed to power functions speed mapping function
+  MattzoPowerFunctionsPwm pfPWMRed;
+  MattzoPowerFunctionsPwm pfPWMBlue;
+  int irSpeed = 0;
+  const int MAX_4D_POWER = 1023;
+  int power4dBrix = 0;
 
   boolean dir = currentTrainSpeed >= 0;  // true = forward, false = reverse
-  int power = 0;
 
   switch (MOTORSHIELD_TYPE) {
     case MotorShieldType::L298N:
@@ -376,12 +387,11 @@ void setTrainSpeed(int newTrainSpeed) {
 
     // motor shield type Lego IR Receiver 8884
     case MotorShieldType::LEGO_IR_8884:
-      int irSpeed = 0;
       if (maxTrainSpeed > 0) {
         irSpeed = newTrainSpeed * MAX_IR_SPEED / maxTrainSpeed;
       }
-      MattzoPowerFunctionsPwm pfPWMRed = powerFunctions.speedToPwm(IR_PORT_RED * irSpeed);
-      MattzoPowerFunctionsPwm pfPWMBlue = powerFunctions.speedToPwm(IR_PORT_BLUE * irSpeed);
+      pfPWMRed = powerFunctions.speedToPwm(IR_PORT_RED * irSpeed);
+      pfPWMBlue = powerFunctions.speedToPwm(IR_PORT_BLUE * irSpeed);
       mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR speed: " + irSpeed + ")");
 
       if (IR_PORT_RED) {
@@ -390,6 +400,18 @@ void setTrainSpeed(int newTrainSpeed) {
       if (IR_PORT_BLUE) {
         powerFunctions.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPWMBlue);
       }
+
+      break;
+
+    // motor shield type 4DBrix WiFi Train Receiver
+    case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
+      if (maxTrainSpeed > 0) {
+        power4dBrix = newTrainSpeed * CONFIG_MOTOR_4D * MAX_4D_POWER / maxTrainSpeed;
+      }
+      send4DMessage(power4dBrix);
+
+      break;
+      
   } // of outer switch
 
   // Execute light events
@@ -412,7 +434,7 @@ void accelerateTrainSpeed() {
       setTrainSpeed(0);
     }
   } else if (currentTrainSpeed != targetTrainSpeed) {
-    if (targetTrainSpeed == 0){
+    if (targetTrainSpeed == 0) {
       // stop train -> execute immediately
       setTrainSpeed(0);
     } else if (millis() - lastAccelerate >= ACCELERATION_INTERVAL) {
@@ -512,6 +534,45 @@ void sendBatteryLevel2MQTT() {
 
       mqttClient.publish("roc2bricks/battery", batteryMessage_char);
     }
+  }
+}
+
+// sends a message to a 4DBrix WiFi Train Receiver
+// - power is a value that indicates the desired power of the train motor. Useful values range from -1023 (full reverse) to 1023 (full forward). 0 means "stop".
+void send4DMessage(int power) {
+  if (getConnectionStatus() == MCConnectionStatus::CONNECTED) {
+    // MQTT topic has max. 60 chars, so max. characters is LOCO_NAME is 50.
+    const int MAX_MQTT_TOPIC_LENGTH = 60;
+    char mqttTopicCharArray[MAX_MQTT_TOPIC_LENGTH];
+
+    // Prepare the 4-byte 4DBrix command string for train controller motor commands
+    // First character is always "D" (0x44).
+    char* mqttCommandBytes = "D\"!!";  // default ("stop!")
+    int powerValue4DBrix = 0;
+
+    // Second character indicates the direction of the motor
+    if (power > 0)
+    {
+      // forward
+      mqttCommandBytes[1] = 0x32;  // = "2"
+    }
+    else
+    {
+      // backward
+      mqttCommandBytes[1] = 0x2A;  // = "*"
+    }
+
+    // Third and fourth character contain the motor speed
+    powerValue4DBrix = min(abs(power), 1023);   // limit range to value between 0 to 1023.
+
+    mqttCommandBytes[2] = (byte)(powerValue4DBrix / 64 + 33);
+    mqttCommandBytes[3] = (byte)(powerValue4DBrix % 64 + 33);
+
+    // send MQTT command to MQTT broker
+    mcLog("Sending 4DBrix command " + String(mqttCommandBytes) + " for loco " + LOCO_NAME + ", power " + String(powerValue4DBrix));
+    String mqttTopicString = "nControl/" + String(LOCO_NAME);
+    mqttTopicString.toCharArray(mqttTopicCharArray, MAX_MQTT_TOPIC_LENGTH);
+    mqttClient.publish(mqttTopicCharArray, mqttCommandBytes);
   }
 }
 
