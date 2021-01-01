@@ -25,7 +25,7 @@ enum struct MotorShieldType
 
 // Virtual pins for lights connected to Lego IR Receiver 8884.
 // Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
-const uint8_t IR_LIGHT_RED = 254;
+const uint8_t IR_LIGHT_RED = 254;7
 const uint8_t IR_LIGHT_BLUE = 255;
 
 #define MATTZO_CONTROLLER_TYPE "MTC4PF"
@@ -49,12 +49,12 @@ enum struct LightEventType
 MattzoPowerFunctions powerFunctions(IR_LED_PIN, IR_CHANNEL);
 
 // Report battery level
-#define REPORT_BATTERYLEVEL true    // set to false to omit battery level reports
-const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
+#define REPORT_BATTERYLEVEL false               // set to true or false to allow or omit battery level reports
+const int SEND_BATTERYLEVEL_INTERVAL = 60000;   // interval for sending battery level in milliseconds
 const int BATTERY_PIN = A0;
-const int VOLTAGE_MULTIPLIER = 20000/5000 - 1;   // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
-const int MAX_AI_VOLTAGE = 5100;  // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
-unsigned long lastBatteryLevelMsg = millis();  // Time of the last battery report
+const int VOLTAGE_MULTIPLIER = 20000/5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
+const int MAX_AI_VOLTAGE = 5100;                // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
+unsigned long lastBatteryLevelMsg = millis();   // Time of the last battery report
 
 // Motor acceleration parameters
 const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds

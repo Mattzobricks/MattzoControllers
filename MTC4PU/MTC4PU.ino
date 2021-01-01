@@ -220,9 +220,10 @@ String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT
 int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at once. :-(
 
 // Send battery level
-const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds (60000 = 60 seconds)
-unsigned long lastBatteryLevelMsg = millis();    // time of the last sent battery level
-int nextBatteryLevelReportingHub = 0;            // index of the last hubs for which a battery report was requested
+#define REPORT_BATTERYLEVEL true                // set to true or false to allow or omit battery level reports
+const int SEND_BATTERYLEVEL_INTERVAL = 60000;   // interval for sending battery level in milliseconds (60000 = 60 seconds)
+unsigned long lastBatteryLevelMsg = millis();   // time of the last sent battery level
+int nextBatteryLevelReportingHub = 0;           // index of the last hubs for which a battery report was requested
 
 // Global emergency brake flag.
 boolean ebreak = false;
@@ -339,16 +340,18 @@ void connectPoweredUpHubs() {
 }
 
 void requestPoweredUpBatteryLevel() {
-  if (millis() - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL / NUM_HUBS) {
-    lastBatteryLevelMsg = millis();
+  if (REPORT_BATTERYLEVEL && mqttClient.connected()) {
+    if (millis() - lastBatteryLevelMsg >= SEND_BATTERYLEVEL_INTERVAL / NUM_HUBS) {
+      lastBatteryLevelMsg = millis();
 
-    if (myHubs[nextBatteryLevelReportingHub].isConnected()) {
-      // mcLog("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
-      myHubs[nextBatteryLevelReportingHub].requestBatteryReport(hubPropertyChangeCallback);
-      delay(10);
+      if (myHubs[nextBatteryLevelReportingHub].isConnected()) {
+        // mcLog("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
+        myHubs[nextBatteryLevelReportingHub].requestBatteryReport(hubPropertyChangeCallback);
+        delay(10);
+      }
+
+      nextBatteryLevelReportingHub = (++nextBatteryLevelReportingHub) % NUM_HUBS;
     }
-
-    nextBatteryLevelReportingHub = (++nextBatteryLevelReportingHub) % NUM_HUBS;
   }
 }
 
