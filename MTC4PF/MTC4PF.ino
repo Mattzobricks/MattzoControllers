@@ -24,6 +24,10 @@ enum struct MotorShieldType
   WIFI_TRAIN_RECEIVER_4DBRIX = 0x4
 };
 
+// Min and max useful power for Arduino based motor shields
+const int MIN_ARDUINO_POWER = 400;   // minimum useful arduino power. May be overwritten in motor shield configuration
+const int MAX_ARDUINO_POWER = 1023;  // maximum arduino power
+
 // Virtual pins for lights connected to Lego IR Receiver 8884.
 // Function pins should only be set to this constant if MOTORSHIELD_TYPE == LEGO_IR_8884.
 const uint8_t IR_LIGHT_RED = 254;
@@ -32,8 +36,105 @@ const uint8_t IR_LIGHT_BLUE = 255;
 #define MATTZO_CONTROLLER_TYPE "MTC4PF"
 #include <ESP8266WiFi.h>                // WiFi library for ESP-8266
 #include "MattzoPowerFunctions.h"       // Power Functions library (required for LEGO Infrared Receiver 8884)
+
+struct MattzoLocoConfiguration {
+  String locoName;
+  int locoAddress;
+  int accelerationInterval;
+  int accelerateStep;
+  int brakeStep;
+};
+
+struct MattzoMotorShieldConfiguration {
+  String motorShieldName;
+  MotorShieldType motorShieldType;
+  int minArduinoPower;
+  int maxArduinoPower;
+  int configMotorA;
+  int configMotorB;
+  int locoAddress;
+};
+
+// Forward declaration
+class MattzoLoco;
+class MattzoMotorShield;
+
+// MattzoBricks library files
 #include "MTC4PF_Configuration.h"       // this file should be placed in the same folder
 #include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
+
+
+
+// Class containing a locomotive object as defined in Rocrail
+class MattzoLoco {
+public:
+  // Members
+  String _locoName;                             // name of the loco as specified in Rocrail
+  int _locoAddress;                             // address of the loco in Rocrail
+  int _currentTrainSpeed = 0;                   // current speed of this train
+  int _targetTrainSpeed = 0;                    // Target speed of this train
+  int _maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
+  unsigned long _lastAccelerate = millis();     // time of the last speed adjustment
+
+  // Motor acceleration parameters
+  int _accelerationInterval = 100;       // pause between individual speed adjustments in milliseconds
+  int _accelerateStep = 1;               // acceleration increment for a single acceleration step
+  int _brakeStep = 2;                    // brake decrement for a single braking step
+
+  // Methods
+  void initMattzoLoco(MattzoLocoConfiguration c) {
+    _locoName = c.locoName;
+    _locoAddress = c.locoAddress;
+    _accelerationInterval = c.accelerationInterval;
+    _accelerateStep = c.accelerateStep;
+    _brakeStep = c.brakeStep;
+  };
+
+  String getNiceName() {
+    return _locoName + " (" + _locoAddress + ")";
+  }
+
+  // sets a new target speed
+  void setTargetTrainSpeed(int targetTrainSpeed) {
+    _targetTrainSpeed = targetTrainSpeed;
+    _lastAccelerate = millis() - _accelerationInterval;
+  }
+} myLocos[NUM_LOCOS];  // Objects for MattzoLocos
+
+
+// Base class for motor shields
+class MattzoMotorShield {
+public:
+  // Members
+  String _motorShieldName;
+  MotorShieldType _motorShieldType;
+  int _minArduinoPower = MIN_ARDUINO_POWER;  // minimum useful power setting
+  int _maxArduinoPower = MAX_ARDUINO_POWER;  // maximum useful power setting
+  int _configMotorA = 0;  // 1 = forward, 0 not installed, -1 = reverse
+  int _configMotorB = 0;
+  int _locoAddress;   // address of the Rocrail loco in which this motor shield is built-in
+
+  // Methods
+  void initMattzoMotorShield(MattzoMotorShieldConfiguration c) {
+    _motorShieldName = c.motorShieldName;
+    _motorShieldType = c.motorShieldType;
+    _minArduinoPower = c.minArduinoPower;
+    _maxArduinoPower = c.maxArduinoPower;
+    _configMotorA = c.configMotorA;
+    _configMotorB = c.configMotorB;
+    _locoAddress = c.locoAddress;
+  }
+
+  String getNiceName() {
+    return _motorShieldName;
+  }
+
+  bool checkLocoAddress(int locoAddress) {
+    return (locoAddress == 0 || locoAddress == _locoAddress);
+  }
+} myMattzoMotorShields[NUM_MOTORSHIELDS];
+
+
 
 // Functions (lights)
 bool functionCommand[NUM_FUNCTIONS];  // Desired state of a function
@@ -57,63 +158,91 @@ const int VOLTAGE_MULTIPLIER = 20000/5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20 k
 const int MAX_AI_VOLTAGE = 5100;                // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
 unsigned long lastBatteryLevelMsg = millis();   // Time of the last battery report
 
-// Motor acceleration parameters
-const int ACCELERATION_INTERVAL = 100;       // pause between individual speed adjustments in milliseconds
-const int ACCELERATE_STEP = 2;               // acceleration increment for a single acceleration step
-const int BRAKE_STEP = 3;                    // brake decrement for a single braking step
-
-// Speed variables
-int currentTrainSpeed = 0;                   // current speed of this train
-int targetTrainSpeed = 0;                    // Target speed of this train
-int maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
-unsigned long lastAccelerate = millis();     // time of the last speed adjustment
-
 // Global emergency brake flag.
 boolean ebreak = false;
 
 
 
 void setup() {
-    // initialize function pins
-    for (int i = 0; i < NUM_FUNCTIONS; i++) {
-      // only real (non-virtual) pins shall be initialized
-      if (FUNCTION_PIN[i] < IR_LIGHT_RED) {
-        pinMode(FUNCTION_PIN[i], OUTPUT);
-      }
-      functionCommand[i] = false;
-      functionState[i] = false;
+  // load config from EEPROM, initialize Wifi, MQTT etc.
+  setupMattzoController();
+
+  mcLog("initializing function pins");
+
+  // initialize function pins
+  for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    // only real (non-virtual) pins shall be initialized
+    if (FUNCTION_PIN[i] < IR_LIGHT_RED) {
+      pinMode(FUNCTION_PIN[i], OUTPUT);
     }
+    functionCommand[i] = false;
+    functionState[i] = false;
+  }
 
-    // initialize motor shield pins
-    switch (MOTORSHIELD_TYPE) {
-      case MotorShieldType::L298N:
-        // initialize motor pins for L298N
-        pinMode(enA, OUTPUT);
-        pinMode(enB, OUTPUT);
-      case MotorShieldType::L9110:
-        // initialize motor pins for L298N (continued) and L9110
-        pinMode(in1, OUTPUT);
-        pinMode(in2, OUTPUT);
-        pinMode(in3, OUTPUT);
-        pinMode(in4, OUTPUT);
-        break;
-      case MotorShieldType::LEGO_IR_8884:
-        // Power Functions instance is initialized and mapped to the 
-        // IR pin in the global section at the beginning of the code
-        // => nothing to do here
-        break;
-      case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
-        // init handler for 4DBrix WiFi Train Receiver
-        // => nothing to do here
-        break;
-    }
+  mcLog("loading loco and motor shield configuration");
 
-    // stop all directly connected train motors
-    setTrainSpeed(0);
+  // load loco configuration
+  MattzoLocoConfiguration* locoConf = getMattzoLocoConfiguration();
+  for (int i = 0; i < NUM_LOCOS; i++) {
+    myLocos[i].initMattzoLoco(*(locoConf + i));
+  }
 
-    // load config from EEPROM, initialize Wifi, MQTT etc.
-    setupMattzoController();
+  // load motor shield configuration
+  MattzoMotorShieldConfiguration* msConf = getMattzoMotorShieldConfiguration();
+  for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
+    myMattzoMotorShields[i].initMattzoMotorShield(*(msConf + i));
+  }
+
+  mcLog("initializing built-in motor shield");
+
+  // initialize pins for built-in motor shield (if any)
+  switch (MOTORSHIELD_TYPE) {
+    case MotorShieldType::L298N:
+      // initialize motor pins for L298N
+      pinMode(enA, OUTPUT);
+      pinMode(enB, OUTPUT);
+    case MotorShieldType::L9110:
+      // initialize motor pins for L298N (continued) and L9110
+      pinMode(in1, OUTPUT);
+      pinMode(in2, OUTPUT);
+      pinMode(in3, OUTPUT);
+      pinMode(in4, OUTPUT);
+      break;
+    case MotorShieldType::LEGO_IR_8884:
+      // Power Functions instance is initialized and mapped to the 
+      // IR pin in the global section at the beginning of the code
+      // => nothing to do here
+      break;
+    case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
+      // init handler for 4DBrix WiFi Train Receiver
+      // => nothing to do here
+      break;
+    default:
+      ;
+      // => nothing to do here
+  }
+
+  mcLog("stopping all trains");
+
+  // stop all directly connected train motors
+  for (int i=0; i < NUM_LOCOS; i++) {
+    setTrainSpeed(0, i);
+  }
 }
+
+
+
+int getMattzoLocoIndexByLocoAddress(int locoAddress) {
+  // mcLog("getMattzoLocoIndexByLocoAddress is checking if this controller handles loco " + String(locoAddress) + "...");
+  for (int l = 0; l < NUM_LOCOS; l++) {
+    if (myLocos[l]._locoAddress == locoAddress) {
+      return l;
+    }
+  }
+  return -1;
+}
+
+
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length + 1];
@@ -153,19 +282,23 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
     mcLog("loco id: " + String(rr_id));
   
-    // query addr attribute. This is the MattzoController id.
-    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
+    // query addr attribute. This is the address of the loco as specified in Rocrail.
+    // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     mcLog("addr: " + String(rr_addr));
-    if (rr_addr != LOCO_ADDRESS) {
-      mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+
+    int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
+    if (locoIndex < 0) {
+      mcLog("Message disregarded, as this controller does not handle train " + String(rr_addr));
       return;
     }
-  
-    // query dir attribute. This is direction information for the loco (forward, backward)
+    MattzoLoco& loco = myLocos[locoIndex];
+    mcLog("Consuming message for train " + loco.getNiceName());
+
+    // query dir attribute. This is the direction information for the loco (forward, reverse)
     const char * rr_dir = "xxxxxx";  // expected values are "true" or "false"
     int dir;
     if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
@@ -204,9 +337,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     mcLog("V_max: " + String(rr_vmax));
   
     // set target train speed
-    targetTrainSpeed = rr_v * dir;
-    maxTrainSpeed = rr_vmax;
-    mcLog("Message parsing complete, target speed set to " + String(targetTrainSpeed) + " (current: " + String(currentTrainSpeed) + ", max: " + String(maxTrainSpeed) + ")");
+    loco.setTargetTrainSpeed(rr_v * dir);
+    loco._maxTrainSpeed = rr_vmax;
+    mcLog("Message parsing complete, target speed set to " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")");
 
     return;
   }
@@ -218,26 +351,29 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // -> process fn (function) message
 
-    // query id attribute. This is the loco id.
+    // query id attribute. This is the loco name.
     // The id is a mandatory field. If not found, the message is discarded.
-    // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
       mcLog("id attribute not found or wrong type.");
       return;
     }
     mcLog("function id: " + String(rr_id));
-  
-    // query addr attribute. This is the MattzoController id.
-    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
+
+    // query addr attribute. This is the address of the loco as specified in Rocrail.
+    // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
     mcLog("addr: " + String(rr_addr));
-    if (rr_addr != LOCO_ADDRESS) {
-      mcLog("Message disgarded, as it is not for me, but for MattzoController No. " + String(rr_addr));
+
+    int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
+    if (locoIndex < 0) {
+      mcLog("Message disregarded, as this controller does not handle train " + String(rr_addr));
       return;
     }
+    MattzoLoco& loco = myLocos[locoIndex];
+    mcLog("Consuming message for train " + loco.getNiceName());
 
     // query fnchanged attribute. This is information which function shall be set.
     int rr_functionNo;
@@ -252,6 +388,13 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       return;
     }
     int functionPinId = rr_functionNo - 1;
+    mcLog("Function PIN Id: " + String(functionPinId));
+
+    // Check if the function is associated with the loco
+    if (FUNCTION_PIN_LOCO_ADDRESS[functionPinId] != loco._locoAddress) {
+      mcLog("Function PIN is associated with loco " + String(FUNCTION_PIN_LOCO_ADDRESS[functionPinId]) + ", not with " + String(loco._locoAddress) + ". Disregarding message.");
+      return;
+    }
 
     // query fnchangedstate attribute. This is value if the function shall be set on or off
     const char * rr_state = "xxxxxx";  // expected values are "true" or "false"
@@ -259,6 +402,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog("fnchangedstate attribute not found or wrong type.");
       return;
     }
+    mcLog("fnchangedstate (raw): " + String(rr_state));
     if (strcmp(rr_state, "true")==0) {
       mcLog("fnchangedstate: true");
       functionCommand[functionPinId] = true;
@@ -297,10 +441,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     if (rr_cmd_s == "ebreak" || rr_cmd_s == "stop" || rr_cmd_s == "shutdown") {
       mcLog("received ebreak, stop or shutdown command. Stopping train.");
       ebreak = true;
-    } else if (rr_cmd_s == "go") {
+    }
+    else if (rr_cmd_s == "go") {
       mcLog("received go command. Releasing emergency break.");
       ebreak = false;
-    } else {
+    }
+    else {
       mcLog("received other system command, disregarded.");
     }
     return;
@@ -309,180 +455,198 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   mcLog("Unknown message, disregarded.");
 }
 
-// set the motor to a desired power.
-void setTrainSpeed(int newTrainSpeed) {
+// set the motor(s) of a train to a desired speed
+void setTrainSpeed(int newTrainSpeed, int locoIndex) {
   // Motorshield specific constants and variables
-  const int MIN_ARDUINO_POWER = 400;   // minimum useful arduino power
-  const int MAX_ARDUINO_POWER = 1023;  // maximum arduino power
-  int power = 0;
   const int MAX_IR_SPEED = 100;  // maximum speed to power functions speed mapping function
   MattzoPowerFunctionsPwm pfPWMRed;
   MattzoPowerFunctionsPwm pfPWMBlue;
   int irSpeed = 0;
-  const int MAX_4D_POWER = 1023;
-  int power4dBrix = 0;
 
-  boolean dir = currentTrainSpeed >= 0;  // true = forward, false = reverse
+  MattzoLoco& loco = myLocos[locoIndex];
 
-  switch (MOTORSHIELD_TYPE) {
-    case MotorShieldType::L298N:
-      ;
-    case MotorShieldType::L9110:
-      // motor shield types L298N and L9110
+  // Walk through all motor shields and check if they belong to the loco. If yes, set power!
+  for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
+    if (myMattzoMotorShields[i].checkLocoAddress(loco._locoAddress)) {
+      boolean dir = loco._currentTrainSpeed >= 0;  // true = forward, false = reverse
+      int power;  // power level for all arduino based motor shields (L298N, L9110, 4DBrix)
+    
+      // Calculate arduino power
       if (newTrainSpeed != 0) {
-        // TODO: needs review!
-        power = map(abs(newTrainSpeed), 0, maxTrainSpeed, MIN_ARDUINO_POWER, MAX_ARDUINO_POWER * maxTrainSpeed / 100);
+        power = map(abs(newTrainSpeed), 0, loco._maxTrainSpeed, myMattzoMotorShields[i]._minArduinoPower, myMattzoMotorShields[i]._maxArduinoPower);
       }
-      mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + "/" + MAX_ARDUINO_POWER + ")");
+      else {
+        power = 0;
+      }
 
-      if (MOTORSHIELD_TYPE == MotorShieldType::L298N) {
-        // motor shield type L298N
-        if (CONFIG_MOTOR_A != 0) {
-          if (dir ^ (CONFIG_MOTOR_A < 0)) {
-            digitalWrite(in1, LOW);
-            digitalWrite(in2, HIGH);
+      switch (myMattzoMotorShields[i]._motorShieldType) {
+      case MotorShieldType::L298N:
+        ;
+      case MotorShieldType::L9110:
+        // motor shield types L298N and L9110
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[i].getNiceName());
+
+        if (MOTORSHIELD_TYPE == MotorShieldType::L298N) {
+          // motor shield type L298N
+          if (myMattzoMotorShields[i]._configMotorA != 0) {
+            if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
+              digitalWrite(in1, LOW);
+              digitalWrite(in2, HIGH);
+            }
+            else {
+              digitalWrite(in1, HIGH);
+              digitalWrite(in2, LOW);
+            }
+            analogWrite(enA, power);
           }
-          else {
-            digitalWrite(in1, HIGH);
-            digitalWrite(in2, LOW);
-          }
-          analogWrite(enA, power);
-        }
-        if (CONFIG_MOTOR_B != 0) {
-          if (dir ^ (CONFIG_MOTOR_B < 0)) {
-            digitalWrite(in3, LOW);
-            digitalWrite(in4, HIGH);
-          }
-          else {
-            digitalWrite(in3, HIGH);
-            digitalWrite(in4, LOW);
-          }
-          analogWrite(enB, power);
-        }
-      } else if (MOTORSHIELD_TYPE == MotorShieldType::L9110) {
-        // motor shield type L9110
-        if (CONFIG_MOTOR_A != 0) {
-          if (dir ^ (CONFIG_MOTOR_A < 0)) {
-            analogWrite(in1, 0);
-            analogWrite(in2, power);
-          }
-          else {
-            analogWrite(in1, power);
-            analogWrite(in2, 0);
+          if (myMattzoMotorShields[i]._configMotorB != 0) {
+            if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
+              digitalWrite(in3, LOW);
+              digitalWrite(in4, HIGH);
+            }
+            else {
+              digitalWrite(in3, HIGH);
+              digitalWrite(in4, LOW);
+            }
+            analogWrite(enB, power);
           }
         }
-        if (CONFIG_MOTOR_B != 0) {
-          if (dir ^ (CONFIG_MOTOR_B < 0)) {
-            analogWrite(in3, 0);
-            analogWrite(in4, power);
+        else if (MOTORSHIELD_TYPE == MotorShieldType::L9110) {
+          // motor shield type L9110
+          if (myMattzoMotorShields[i]._configMotorA != 0) {
+            if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
+              analogWrite(in1, 0);
+              analogWrite(in2, power);
+            }
+            else {
+              analogWrite(in1, power);
+              analogWrite(in2, 0);
+            }
           }
-          else {
-            analogWrite(in3, power);
-            analogWrite(in4, 0);
+          if (myMattzoMotorShields[i]._configMotorB != 0) {
+            if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
+              analogWrite(in3, 0);
+              analogWrite(in4, power);
+            }
+            else {
+              analogWrite(in3, power);
+              analogWrite(in4, 0);
+            }
           }
         }
-      }
 
-      break;
+        break;
 
-    // motor shield type Lego IR Receiver 8884
-    case MotorShieldType::LEGO_IR_8884:
-      if (maxTrainSpeed > 0) {
-        irSpeed = newTrainSpeed * MAX_IR_SPEED / maxTrainSpeed;
-      }
-      pfPWMRed = powerFunctions.speedToPwm(IR_PORT_RED * irSpeed);
-      pfPWMBlue = powerFunctions.speedToPwm(IR_PORT_BLUE * irSpeed);
-      mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR speed: " + irSpeed + ")");
+        // motor shield type Lego IR Receiver 8884
+      case MotorShieldType::LEGO_IR_8884:
+        if (loco._maxTrainSpeed > 0) {
+          irSpeed = newTrainSpeed * MAX_IR_SPEED / loco._maxTrainSpeed;
+        }
+        pfPWMRed = powerFunctions.speedToPwm(IR_PORT_RED * irSpeed);
+        pfPWMBlue = powerFunctions.speedToPwm(IR_PORT_BLUE * irSpeed);
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR speed: " + irSpeed + ")");
 
-      if (IR_PORT_RED) {
-        powerFunctions.single_pwm(MattzoPowerFunctionsPort::RED, pfPWMRed);
-      }
-      if (IR_PORT_BLUE) {
-        powerFunctions.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPWMBlue);
-      }
+        if (IR_PORT_RED) {
+          powerFunctions.single_pwm(MattzoPowerFunctionsPort::RED, pfPWMRed);
+        }
+        if (IR_PORT_BLUE) {
+          powerFunctions.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPWMBlue);
+        }
 
-      break;
+        break;
 
-    // motor shield type 4DBrix WiFi Train Receiver
-    case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
-      if (maxTrainSpeed > 0) {
-        power4dBrix = newTrainSpeed * CONFIG_MOTOR_4D * MAX_4D_POWER / maxTrainSpeed;
-      }
-      send4DMessage(power4dBrix);
+        // motor shield type 4DBrix WiFi Train Receiver
+      case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for 4DBrix WiFi Train Receiver " + myMattzoMotorShields[i].getNiceName());
+        send4DMessage(power * myMattzoMotorShields[i]._configMotorA * dir, myMattzoMotorShields[i]._motorShieldName);
 
-      break;
-      
-  } // of outer switch
+        break;
+
+      } // of switch
+    } // of if
+  } // of for
 
   // Execute light events
-  if (newTrainSpeed == 0 && currentTrainSpeed != 0) {
-    lightEvent(LightEventType::STOP);
-  } else if (newTrainSpeed > 0 && currentTrainSpeed <= 0) {
-    lightEvent(LightEventType::FORWARD);
-  } else if (newTrainSpeed < 0 && currentTrainSpeed >= 0) {
-    lightEvent(LightEventType::REVERSE);
+  if (newTrainSpeed == 0 && loco._currentTrainSpeed != 0) {
+    lightEvent(LightEventType::STOP, locoIndex);
+  }
+  else if (newTrainSpeed > 0 && loco._currentTrainSpeed <= 0) {
+    lightEvent(LightEventType::FORWARD, locoIndex);
+  }
+  else if (newTrainSpeed < 0 && loco._currentTrainSpeed >= 0) {
+    lightEvent(LightEventType::REVERSE, locoIndex);
   }
 
-  currentTrainSpeed = newTrainSpeed;
+  loco._currentTrainSpeed = newTrainSpeed;
 }
 
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed() {
-  if (ebreak || getConnectionStatus() != MCConnectionStatus::CONNECTED) {
-    // (emergency break pulled or controller disconnected) and train moving -> stop train immediately
-    if (currentTrainSpeed != 0) {
-      setTrainSpeed(0);
-    }
-  } else if (currentTrainSpeed != targetTrainSpeed) {
-    if (targetTrainSpeed == 0) {
-      // stop train -> execute immediately
-      setTrainSpeed(0);
-    } else if (millis() - lastAccelerate >= ACCELERATION_INTERVAL) {
-      lastAccelerate = millis();
+  boolean accelerateFlag;
+  int step;
+  int nextSpeed;
 
-      // determine if trains accelerates or brakes
-      boolean accelerateFlag = abs(currentTrainSpeed) < abs(targetTrainSpeed) && (currentTrainSpeed * targetTrainSpeed > 0);
-      int step = accelerateFlag ? ACCELERATE_STEP : BRAKE_STEP;
+  for (int locoIndex = 0; locoIndex < NUM_LOCOS; locoIndex++) {
+    MattzoLoco& loco = myLocos[locoIndex];
 
-      int nextSpeed;
-      // accelerate / brake gently
-      if (currentTrainSpeed < targetTrainSpeed) {
-        nextSpeed = min(currentTrainSpeed + step, targetTrainSpeed);
-      } else {
-        nextSpeed = max(currentTrainSpeed - step, targetTrainSpeed);
+    if (ebreak) {
+      // emergency break pulled and train moving -> stop train immediately
+      if (loco._currentTrainSpeed != 0) {
+        setTrainSpeed(0, locoIndex);
       }
-      setTrainSpeed(nextSpeed);
+    }
+    else if (loco._currentTrainSpeed != loco._targetTrainSpeed) {
+      if (loco._targetTrainSpeed == 0) {
+        // stop -> execute immediately
+        setTrainSpeed(0, locoIndex);
+      }
+      else if (millis() - loco._lastAccelerate >= loco._accelerationInterval) {
+        loco._lastAccelerate = millis();
+
+        // determine if trains accelerates or brakes
+        accelerateFlag = abs(loco._currentTrainSpeed) < abs(loco._targetTrainSpeed) && (loco._currentTrainSpeed * loco._targetTrainSpeed > 0);
+        step = accelerateFlag ? loco._accelerateStep : loco._brakeStep;
+
+        // accelerate / brake gently
+        if (loco._currentTrainSpeed < loco._targetTrainSpeed) {
+          nextSpeed = min(loco._currentTrainSpeed + step, loco._targetTrainSpeed);
+        }
+        else {
+          nextSpeed = max(loco._currentTrainSpeed - step, loco._targetTrainSpeed);
+        }
+        setTrainSpeed(nextSpeed, locoIndex);
+      }
     }
   }
 }
 
 // execute light event
-void lightEvent(LightEventType le) {
+// IF DESIRED, YOU MAY UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+void lightEvent(LightEventType le, int locoIndex) {
   if (!AUTO_LIGHTS)
     return;
   
-  switch (le) {
-    case LightEventType::STOP:
-      mcLog("Light event stop");
-      // switch all functions off
-      for (int i = 0; i < NUM_FUNCTIONS; i++) {
+  for (int i = 0; i < NUM_FUNCTIONS; i++) {
+    if (locoIndex == 0 || locoIndex == FUNCTION_PIN_LOCO_ADDRESS[i]) {
+      switch (le) {
+      case LightEventType::STOP:
+        mcLog("Light event stop");
+        // switch all functions off
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
         functionCommand[i] = false;
+        break;
+      case LightEventType::FORWARD:
+        mcLog("Light event forward");
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+        functionCommand[i] = (i % 2) == 0;
+        break;
+      case LightEventType::REVERSE:
+        mcLog("Light event reverse");
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+        functionCommand[i] = (i % 2) == 1;
+        break;
       }
-      break;
-    case LightEventType::FORWARD:
-      mcLog("Light event forward");
-      // switch functions with odd numbers on and with even number off
-      for (int i = 0; i < NUM_FUNCTIONS; i++) {
-        functionCommand[i] = i % 2 == 0;
-      }
-      break;
-    case LightEventType::REVERSE:
-      mcLog("Light event reverse");
-      // switch functions with odd number off and with even number on
-      for (int i = 0; i < NUM_FUNCTIONS; i++) {
-        functionCommand[i] = i % 2 == 1;
-      }
-      break;
+    }
   }
 }
 
@@ -539,7 +703,8 @@ void sendBatteryLevel2MQTT() {
 
 // sends a message to a 4DBrix WiFi Train Receiver
 // - power is a value that indicates the desired power of the train motor. Useful values range from -1023 (full reverse) to 1023 (full forward). 0 means "stop".
-void send4DMessage(int power) {
+// - locoName is the name of the loco as chosen in the 4DBrix WiFi Train Receiver
+void send4DMessage(int power, String locoName) {
   if (getConnectionStatus() == MCConnectionStatus::CONNECTED) {
     // MQTT topic has max. 60 chars, so max. characters is LOCO_NAME is 50.
     const int MAX_MQTT_TOPIC_LENGTH = 60;
@@ -569,8 +734,8 @@ void send4DMessage(int power) {
     mqttCommandBytes[3] = (byte)(powerValue4DBrix % 64 + 33);
 
     // send MQTT command to MQTT broker
-    mcLog("Sending 4DBrix command " + String(mqttCommandBytes) + " for loco " + LOCO_NAME + ", power " + String(powerValue4DBrix));
-    String mqttTopicString = "nControl/" + String(LOCO_NAME);
+    // mcLog("Sending 4DBrix command " + String(mqttCommandBytes) + " for loco " + locoName + ", power " + String(powerValue4DBrix));
+    String mqttTopicString = "nControl/" + String(locoName);
     mqttTopicString.toCharArray(mqttTopicCharArray, MAX_MQTT_TOPIC_LENGTH);
     mqttClient.publish(mqttTopicCharArray, mqttCommandBytes);
   }

@@ -220,7 +220,7 @@ String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT
 int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at once. :-(
 
 // Send battery level
-#define REPORT_BATTERYLEVEL true                // set to true or false to allow or omit battery level reports
+const bool REPORT_BATTERYLEVEL = true;          // set to true or false to allow or omit battery level reports
 const int SEND_BATTERYLEVEL_INTERVAL = 60000;   // interval for sending battery level in milliseconds (60000 = 60 seconds)
 unsigned long lastBatteryLevelMsg = millis();   // time of the last sent battery level
 int nextBatteryLevelReportingHub = 0;           // index of the last hubs for which a battery report was requested
@@ -266,11 +266,9 @@ int getMattzoLocoIndexByLocoAddress(int locoAddress) {
   // mcLog("getMattzoLocoIndexByLocoAddress is checking if this controller handles loco " + String(locoAddress) + "...");
   for (int l = 0; l < NUM_LOCOS; l++) {
     if (myLocos[l]._locoAddress == locoAddress) {
-      // mcLog("getMattzoLocoIndexByLocoAddress found loco " + myLocos[l].getNiceName() + " (index " + String(l) + ").");
       return l;
     }
   }
-  // mcLog("getMattzoLocoIndexByLocoAddress did not find the loco.");
   return -1;
 }
 
@@ -439,17 +437,16 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // -> process lc (loco) message
 
-    // query id attribute. This is the loco id.
+    // query id attribute. This is the loco name.
     // The id is a mandatory field. If not found, the message is discarded.
-
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
       mcLog("id attribute not found or wrong type.");
       return;
     }
     mcLog("loco id: " + String(rr_id));
 
-    // query addr attribute. This is the MattzoController id.
-    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
+    // query addr attribute. This is the address of the loco as specified in Rocrail.
+    // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
@@ -464,7 +461,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     MattzoLoco& loco = myLocos[locoIndex];
     mcLog("Consuming message for train " + loco.getNiceName());
 
-    // query dir attribute. This is direction information for the loco (forward, backward)
+    // query dir attribute. This is the direction information for the loco (forward, reverse)
     const char* rr_dir = "xxxxxx";  // expected values are "true" or "false"
     int dir;
     if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
@@ -506,6 +503,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     loco._targetTrainSpeed = rr_v * dir;
     loco._maxTrainSpeed = rr_vmax;
     mcLog("Message parsing complete, target speed set to " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")");
+
     return;
   }
 
@@ -516,17 +514,16 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // -> process fn (function) message
 
-    // query id attribute. This is the loco id.
+    // query id attribute. This is the loco name.
     // The id is a mandatory field. If not found, the message is discarded.
-    // Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
       mcLog("id attribute not found or wrong type.");
       return;
     }
     mcLog("function id: " + String(rr_id));
 
-    // query addr attribute. This is the MattzoController id.
-    // If this does not equal the LOCO_ADDRESS of this controller, the message is disregarded.
+    // query addr attribute. This is the address of the loco as specified in Rocrail.
+    // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
@@ -626,7 +623,7 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
   MattzoLoco& loco = myLocos[locoIndex];
 
   // set motor power
-  int power = map(newTrainSpeed, 0, loco._maxTrainSpeed, 0, MattzoPUHub::MAX_PU_POWER * loco._maxTrainSpeed / 100);
+  int power = map(newTrainSpeed, 0, loco._maxTrainSpeed, 0, MattzoPUHub::MAX_PU_POWER);
   mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
   for (int i = 0; i < NUM_HUBS; i++) {
     myHubs[i].setMotorSpeed(power, loco._locoAddress);
@@ -669,7 +666,11 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
 
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed() {
-  for (int locoIndex; locoIndex < NUM_LOCOS; locoIndex++) {
+  boolean accelerateFlag;
+  int step;
+  int nextSpeed;
+
+  for (int locoIndex = 0; locoIndex < NUM_LOCOS; locoIndex++) {
     MattzoLoco& loco = myLocos[locoIndex];
 
     if (ebreak) {
@@ -687,10 +688,9 @@ void accelerateTrainSpeed() {
         loco._lastAccelerate = millis();
   
         // determine if trains accelerates or brakes
-        boolean accelerateFlag = abs(loco._currentTrainSpeed) < abs(loco._targetTrainSpeed) && (loco._currentTrainSpeed * loco._targetTrainSpeed > 0);
-        int step = accelerateFlag ? loco._accelerateStep : loco._brakeStep;
+        accelerateFlag = abs(loco._currentTrainSpeed) < abs(loco._targetTrainSpeed) && (loco._currentTrainSpeed * loco._targetTrainSpeed > 0);
+        step = accelerateFlag ? loco._accelerateStep : loco._brakeStep;
   
-        int nextSpeed;
         // accelerate / brake gently
         if (loco._currentTrainSpeed < loco._targetTrainSpeed) {
           nextSpeed = min(loco._currentTrainSpeed + step, loco._targetTrainSpeed);
@@ -722,16 +722,12 @@ void lightEvent(LightEventType le, int locoIndex) {
       case LightEventType::FORWARD:
         mcLog("Light event forward");
         // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
-        // functionCommand[i] = (i % 2) == 0;
-        // functionCommand[i] = true;
-        functionCommand[i] = i <= 1;
+        functionCommand[i] = (i % 2) == 0;
         break;
       case LightEventType::REVERSE:
         mcLog("Light event reverse");
         // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
-        // functionCommand[i] = (i % 2) == 1;
-        // functionCommand[i] = true;
-        functionCommand[i] = i >= 1;
+        functionCommand[i] = (i % 2) == 1;
         break;
       }
     }
@@ -803,7 +799,7 @@ void loop() {
 unsigned long timeLastHubReport = 0;
 
 void debugInfo() {
-  // return;  // comment out to display debug info every 10 seconds
+  // return;  // if not commented out, connection information is put out every 10 seconds
 
   if (millis() - timeLastHubReport < 10000) return;
 

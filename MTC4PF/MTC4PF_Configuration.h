@@ -19,37 +19,165 @@
 
 
 
-// **************
-// Loco specifics
-// **************
+// ***********
+// MattzoLocos
+// ***********
 
-// Rocrail train name and address.
-// If using motor shield "4D", the loco name must be set and be identical in Rocrail, in the following line, and in the 4DBrix WiFi Train Receiver.
-// Short names are recommended. Max. number of characters: 50.
-const char* LOCO_NAME = "EME";
-// Must correspond to the loco address set in Rocrail. Used to identify loco messages that are handled by this MattzoTrainController.
-const int LOCO_ADDRESS = 10194;
+// Number of locos (aka. MattzoLocos) controlled by this controller
+const int NUM_LOCOS = 5;
+
+// List of MattzoLocos
+MattzoLocoConfiguration* getMattzoLocoConfiguration() {
+  static MattzoLocoConfiguration locoConf[NUM_LOCOS];
+
+  locoConf[0] = (MattzoLocoConfiguration) {
+    .locoName = "EME",
+    .locoAddress = 10194,
+    .accelerationInterval = 100,
+    .accelerateStep = 2,
+    .brakeStep = 1
+  };
+
+  locoConf[1] = (MattzoLocoConfiguration) {
+    .locoName = "TGV",
+    .locoAddress = 10233,
+    .accelerationInterval = 100,
+    .accelerateStep = 2,
+    .brakeStep = 2
+  };
+
+  locoConf[2] = (MattzoLocoConfiguration) {
+    .locoName = "MAE",
+    .locoAddress = 10219,
+    .accelerationInterval = 100,
+    .accelerateStep = 2,
+    .brakeStep = 2
+  };
+
+  locoConf[3] = (MattzoLocoConfiguration) {
+    .locoName = "E03",
+    .locoAddress = 103,
+    .accelerationInterval = 100,
+    .accelerateStep = 2,
+    .brakeStep = 2
+  };
+
+  locoConf[4] = (MattzoLocoConfiguration) {
+    .locoName = "V200",
+    .locoAddress = 200,
+    .accelerationInterval = 100,
+    .accelerateStep = 2,
+    .brakeStep = 2
+  };
+
+  return locoConf;
+}
+
+
+// *************
+// Motor shields
+// *************
+// Motor shields are usually electronical components attached to the MattzoTrainController.
+// They are controlled via PWM signals from the controller and handle the higher currents required
+// for train motors.
+// Beside those physically existing motor shields, they are also partly or completely virtual motor shields as:
+// - LEGO_IR_8884, and
+// - WIFI_TRAIN_RECEIVER_4DBRIX
+// It is important to note that one train can have MULTIPLE motor shields attached to it. This is relevant for the following scenarios:
+// - Infrared LED controls multiple motors in a single train
+// - More than one 4DBrix WiFi Train Receiver installed in a single train.
+// - Combining different motorshields into a single train is also possible (e.g. steam loco with 4DBrix receiver in the front 
+//   and an additional "push" waggon in the middle of the train with an L9110 motorshield).
+
+// Number of motor shields controlled by this controller
+const int NUM_MOTORSHIELDS = 6;
+
+// List of motor shields that are controlled by this controller
+MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
+  static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
+
+  msConf[0] = (MattzoMotorShieldConfiguration) {
+      .motorShieldName = "EME",
+      .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
+      .minArduinoPower = MIN_ARDUINO_POWER,
+      .maxArduinoPower = MAX_ARDUINO_POWER,
+      .configMotorA = -1,
+      .configMotorB = 0,
+      .locoAddress = 10194
+  };
+
+  msConf[1] = (MattzoMotorShieldConfiguration) {
+      .motorShieldName = "TGV1",
+      .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
+      .minArduinoPower = MIN_ARDUINO_POWER,
+      .maxArduinoPower = MAX_ARDUINO_POWER,
+      .configMotorA = 1,
+      .configMotorB = 0,
+      .locoAddress = 10233
+  };
+
+  msConf[2] = (MattzoMotorShieldConfiguration) {
+      .motorShieldName = "TGV2",
+      .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
+      .minArduinoPower = MIN_ARDUINO_POWER,
+      .maxArduinoPower = MAX_ARDUINO_POWER,
+      .configMotorA = -1,
+      .configMotorB = 0,
+      .locoAddress = 10233
+  };
+
+  msConf[3] = (MattzoMotorShieldConfiguration) {
+      .motorShieldName = "MAE",
+      .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
+      .minArduinoPower = MIN_ARDUINO_POWER,
+      .maxArduinoPower = MAX_ARDUINO_POWER,
+      .configMotorA = 1,
+      .configMotorB = 0,
+      .locoAddress = 10219
+  };
+
+  msConf[4] = (MattzoMotorShieldConfiguration) {
+      .motorShieldName = "E03",
+      .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
+      .minArduinoPower = 0,
+      .maxArduinoPower = MAX_ARDUINO_POWER,
+      .configMotorA = 1,
+      .configMotorB = 0,
+      .locoAddress = 103
+  };
+
+  msConf[5] = (MattzoMotorShieldConfiguration) {
+      .motorShieldName = "V200",
+      .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
+      .minArduinoPower = 0,
+      .maxArduinoPower = MAX_ARDUINO_POWER,
+      .configMotorA = 1,
+      .configMotorB = 0,
+      .locoAddress = 200
+  };
+
+  return msConf;
+}
 
 
 // ***************************
 // Controller wiring specifics
 // ***************************
 
-// Type of motor shield installed.
+// Type of motor shield directly wired to the controller.
 // (The different motor shield types are defined in MTC4PF.ino)
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX;
+// Set to MotorShieldType::NONE if only virtual motor shields are used!
+const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::NONE;
 
 // Constants for motor shield type L298N
-#define enA D1  // PWM signal pin for motor A. Relevant for L298N only.
-#define enB D5  // PWM signal pin for motor B. Relevant for L298N only.
+#define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
+#define enB D1  // PWM signal pin for motor B. Relevant for L298N only.
 
 // Constants for motor shield type L298N and L9110
 #define in1 D2  // pin for motor A direction control (forward).
 #define in2 D3  // pin for motor A direction control (reverse).
-#define in3 D6  // pin for motor B direction control (forward).
-#define in4 D7  // pin for motor B direction control (reverse).
-#define CONFIG_MOTOR_A 1   // configuration for Motor A. 1 = forward, 0 = not installed / not used, -1 = reverse.
-#define CONFIG_MOTOR_B -1  // configuration for Motor B. 1 = forward, 0 = not installed / not used, -1 = reverse.
+#define in3 D4  // pin for motor B direction control (forward).
+#define in4 D5  // pin for motor B direction control (reverse).
 
 // Constants for motorshield type Lego IR Receiver 8884
 #define IR_LED_PIN D5			// pin on which the IR LED is installed.
@@ -57,17 +185,18 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::WIFI_TRAIN_RECEIVER_4D
 #define IR_PORT_RED 1     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 
-// Constants for motorshield type 4D Brix WiFi Train Receiver
-#define CONFIG_MOTOR_4D -1   // configuration for Motor. 1 = forward, -1 = reverse.
-
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.
 // You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 2;
+const int NUM_FUNCTIONS = 0;
 
 // Digital pins for function output
 // For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = {D0, D1};
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = {};
+
+// The loco address for which the function pin will be triggered.
+// You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
+int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = {};
 
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and odd numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
