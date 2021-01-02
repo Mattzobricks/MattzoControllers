@@ -109,9 +109,9 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   msConf[1] = (MattzoMotorShieldConfiguration) {
       .motorShieldName = "TGV1",
       .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
-      .minArduinoPower = MIN_ARDUINO_POWER,
+      .minArduinoPower = 0,
       .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = 1,
+      .configMotorA = -1,
       .configMotorB = 0,
       .locoAddress = 10233
   };
@@ -119,7 +119,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   msConf[2] = (MattzoMotorShieldConfiguration) {
       .motorShieldName = "TGV2",
       .motorShieldType = MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX,
-      .minArduinoPower = MIN_ARDUINO_POWER,
+      .minArduinoPower = 0,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = -1,
       .configMotorB = 0,

@@ -558,7 +558,7 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
         // motor shield type 4DBrix WiFi Train Receiver
       case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
         mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for 4DBrix WiFi Train Receiver " + myMattzoMotorShields[i].getNiceName());
-        send4DMessage(power * myMattzoMotorShields[i]._configMotorA * dir, myMattzoMotorShields[i]._motorShieldName);
+        send4DMessage(power * myMattzoMotorShields[i]._configMotorA * (dir ? 1 : -1), myMattzoMotorShields[i]._motorShieldName);
 
         break;
 
