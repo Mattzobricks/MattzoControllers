@@ -27,6 +27,12 @@
 const int NUM_LOCOS = 3;
 
 // List of MattzoLocos
+// The parameters have the following meaning:
+// - locoName: name of the loco as setup in Rocrail
+// - locoAddress: address of the loco as setup in Rocrail
+// - accelerationInterval: time interval for acceleration / braking (default: 100 ms)
+// - accelerateStep: power increment for each acceleration step
+// - brakeStep: : power decrement for each braking step
 MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 

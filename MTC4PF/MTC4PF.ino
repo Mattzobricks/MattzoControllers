@@ -151,11 +151,6 @@ enum struct LightEventType
 MattzoPowerFunctions powerFunctions(IR_LED_PIN, IR_CHANNEL);
 
 // Report battery level
-#define REPORT_BATTERYLEVEL false               // set to true or false to allow or omit battery level reports
-const int SEND_BATTERYLEVEL_INTERVAL = 60000;   // interval for sending battery level in milliseconds
-const int BATTERY_PIN = A0;
-const int VOLTAGE_MULTIPLIER = 20000/5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
-const int MAX_AI_VOLTAGE = 5100;                // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
 unsigned long lastBatteryLevelMsg = millis();   // Time of the last battery report
 
 // Global emergency brake flag.

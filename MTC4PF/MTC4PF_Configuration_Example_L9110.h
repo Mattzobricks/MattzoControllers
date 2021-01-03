@@ -18,6 +18,11 @@
 
 
 
+// **********************************************************************************
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield
+// **********************************************************************************
+
+
 // ***********
 // MattzoLocos
 // ***********
@@ -66,14 +71,6 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 const int NUM_MOTORSHIELDS = 1;
 
 // List of motor shields that are controlled by this controller
-// The parameters have the following meaning:
-// - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
-// - motorShieldType: motor shield type
-// - minArduinoPower: minimum power setting for Arduino based motor shields
-// - maxArduinoPower: maximum power setting for Arduino based motor shields
-// - configMotorA: turning direction of motor A
-// - configMotorB: turning direction of motor B
-// - locoAddress: loco that this motor shields is attached to
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
@@ -82,7 +79,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
       .motorShieldType = MotorShieldType::L9110N,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = 1,
+      .configMotorA = -1,
       .configMotorB = 0,
       .locoAddress = 200
   };

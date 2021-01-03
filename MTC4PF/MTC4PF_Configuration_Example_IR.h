@@ -18,6 +18,11 @@
 
 
 
+// **********************************************************************************
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield
+// **********************************************************************************
+
+
 // ***********
 // MattzoLocos
 // ***********
@@ -36,8 +41,8 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
   locoConf[0] = (MattzoLocoConfiguration) {
-    .locoName = "SFE",
-    .locoAddress = 13043,
+    .locoName = "L7938",
+    .locoAddress = 7938,
     .accelerationInterval = 100,
     .accelerateStep = 2,
     .brakeStep = 2
@@ -66,23 +71,15 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 const int NUM_MOTORSHIELDS = 1;
 
 // List of motor shields that are controlled by this controller
-// The parameters have the following meaning:
-// - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
-// - motorShieldType: motor shield type
-// - minArduinoPower: minimum power setting for Arduino based motor shields
-// - maxArduinoPower: maximum power setting for Arduino based motor shields
-// - configMotorA: turning direction of motor A
-// - configMotorB: turning direction of motor B
-// - locoAddress: loco that this motor shields is attached to
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
       .motorShieldName = "SFE",
-      .motorShieldType = MotorShieldType::L9110N,
+      .motorShieldType = MotorShieldType::LEGO_IR_8884,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = 1,
+      .configMotorA = 0,
       .configMotorB = 0,
       .locoAddress = 200
   };
@@ -113,17 +110,17 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 // Constants for motorshield type Lego IR Receiver 8884
 #define IR_LED_PIN D5			// pin on which the IR LED is installed.
 #define IR_CHANNEL 0			// channel number selected on the Lego IR Receiver 8884. May be 0, 1, 2 or 3.
-#define IR_PORT_RED 0     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
+#define IR_PORT_RED 1     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.
 // You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 3;
+const int NUM_FUNCTIONS = 1;
 
 // Digital pins for function output
 // For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D1, D2 };
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { IR_LIGHT_BLUE };
 
 // The loco address for which the function pin will be triggered.
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
