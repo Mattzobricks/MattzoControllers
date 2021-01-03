@@ -425,7 +425,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  mcLog("Parsing XML successful.");
+  // mcLog("Parsing XML successful.");
 
   const char* rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
   int rr_addr = 0;
@@ -628,7 +628,6 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
   for (int i = 0; i < NUM_HUBS; i++) {
     myHubs[i].setMotorSpeed(power, loco._locoAddress);
   }
-  mcLog("Motor speed set to: " + String(newTrainSpeed));
 
   // Execute light events
   if (newTrainSpeed == 0 && loco._currentTrainSpeed != 0) {
