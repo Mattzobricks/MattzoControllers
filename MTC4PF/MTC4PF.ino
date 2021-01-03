@@ -385,8 +385,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int functionPinId = rr_functionNo - 1;
     mcLog("Function PIN Id: " + String(functionPinId));
 
-    // Check if the function is associated with the loco
-    if (FUNCTION_PIN_LOCO_ADDRESS[functionPinId] != loco._locoAddress) {
+    // Check if the function is associated with the loco or is set to "0" (all locos)
+    if (FUNCTION_PIN_LOCO_ADDRESS[functionPinId] != loco._locoAddress && FUNCTION_PIN_LOCO_ADDRESS[functionPinId] != 0) {
       mcLog("Function PIN is associated with loco " + String(FUNCTION_PIN_LOCO_ADDRESS[functionPinId]) + ", not with " + String(loco._locoAddress) + ". Disregarding message.");
       return;
     }

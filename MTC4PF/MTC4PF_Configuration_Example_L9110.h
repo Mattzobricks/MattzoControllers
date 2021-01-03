@@ -76,12 +76,12 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
       .motorShieldName = "SFE",
-      .motorShieldType = MotorShieldType::L9110N,
+      .motorShieldType = MotorShieldType::L9110,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = -1,
       .configMotorB = 0,
-      .locoAddress = 200
+      .locoAddress = 13043
   };
 
   return msConf;
