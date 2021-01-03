@@ -76,6 +76,16 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
   static MattzoPUHubConfiguration hubConf[NUM_HUBS];
 
   hubConf[0] = (MattzoPUHubConfiguration){
+    .hubName = "BROCO",
+    .macAddress = "90:84:2b:0f:ac:c7",
+    .devicePortA = MattzoPUDevice::NONE,
+    .configMotorA = 0,
+    .devicePortB = MattzoPUDevice::PU_MOTOR,
+    .configMotorB = 1,
+    .locoAddress = 10277
+  };
+
+  hubConf[1] = (MattzoPUHubConfiguration){
       .hubName = "ICE1",
       .macAddress = "90:84:2b:16:15:f8",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
@@ -85,7 +95,7 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
       .locoAddress = 6051
   };
 
-  hubConf[1] = (MattzoPUHubConfiguration){
+  hubConf[2] = (MattzoPUHubConfiguration){
       .hubName = "ICE2",
       .macAddress = "90:84:2b:17:e9:4c",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
@@ -95,7 +105,7 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
       .locoAddress = 6051
   };
 
-  hubConf[2] = (MattzoPUHubConfiguration){
+  hubConf[3] = (MattzoPUHubConfiguration){
       .hubName = "EST1",
       .macAddress = "90:84:2b:18:f2:52",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
@@ -105,7 +115,7 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
       .locoAddress = 6197
   };
 
-  hubConf[3] = (MattzoPUHubConfiguration){
+  hubConf[4] = (MattzoPUHubConfiguration){
       .hubName = "EST2",
       .macAddress = "90:84:2b:18:f7:75",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
@@ -114,16 +124,6 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
       .configMotorB = 0,
       .locoAddress = 6197
     };
-
-  hubConf[4] = (MattzoPUHubConfiguration){
-    .hubName = "BROCO",
-    .macAddress = "90:84:2b:0f:ac:c7",
-    .devicePortA = MattzoPUDevice::NONE,
-    .configMotorA = 0,
-    .devicePortB = MattzoPUDevice::PU_MOTOR,
-    .configMotorB = 1,
-    .locoAddress = 10277
-  };
 
   return hubConf;
 }

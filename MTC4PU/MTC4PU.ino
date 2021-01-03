@@ -804,6 +804,7 @@ void debugInfo() {
   if (millis() - timeLastHubReport < 10000) return;
 
   mcLog("*** DEBUG-INFO ***");
+  mcLog("WiFi + MQTT connection Status: " + String(getConnectionStatus() == MCConnectionStatus::CONNECTED));
   for (int i = 0; i < NUM_LOCOS; i++) {
     mcLog("Loco " + String(i) + ": " + myLocos[i].getNiceName() + ". Target speed: " + String(myLocos[i]._targetTrainSpeed) + ", current speed: " + String(myLocos[i]._currentTrainSpeed) + ", max speed: " + String(myLocos[i]._maxTrainSpeed));
   }
