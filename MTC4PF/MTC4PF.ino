@@ -452,19 +452,20 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 // set the motor(s) of a train to a desired speed
 void setTrainSpeed(int newTrainSpeed, int locoIndex) {
+  boolean dir;
+  int power;  // power level for all arduino based motor shields (L298N, L9110, 4DBrix)
+  MattzoLoco& loco = myLocos[locoIndex];
+  
   // Motorshield specific constants and variables
   const int MAX_IR_SPEED = 100;  // maximum speed to power functions speed mapping function
   MattzoPowerFunctionsPwm pfPWMRed;
   MattzoPowerFunctionsPwm pfPWMBlue;
   int irSpeed = 0;
 
-  MattzoLoco& loco = myLocos[locoIndex];
-
   // Walk through all motor shields and check if they belong to the loco. If yes, set power!
   for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
     if (myMattzoMotorShields[i].checkLocoAddress(loco._locoAddress)) {
-      boolean dir = loco._currentTrainSpeed >= 0;  // true = forward, false = reverse
-      int power;  // power level for all arduino based motor shields (L298N, L9110, 4DBrix)
+      dir = loco._currentTrainSpeed >= 0;  // true = forward, false = reverse
     
       // Calculate arduino power
       if (newTrainSpeed != 0) {

@@ -75,13 +75,13 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "SFE",
+      .motorShieldName = "L7938",
       .motorShieldType = MotorShieldType::LEGO_IR_8884,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = 0,
+      .configMotorA = 1,
       .configMotorB = 0,
-      .locoAddress = 200
+      .locoAddress = 7938
   };
 
   return msConf;
@@ -95,7 +95,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 // Type of motor shield directly wired to the controller.
 // (The different motor shield types are defined in MTC4PF.ino)
 // Set to MotorShieldType::NONE if only virtual motor shields are used!
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
+const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::NONE;
 
 // Constants for motor shield type L298N
 #define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
@@ -124,7 +124,7 @@ uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { IR_LIGHT_BLUE };
 
 // The loco address for which the function pin will be triggered.
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
-int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0, 0 };
+int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0 };
 
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and odd numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
