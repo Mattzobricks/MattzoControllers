@@ -238,7 +238,7 @@ void checkWifi() {
 
 PubSubClient mqttClient(wifiClient);
 unsigned long lastMQTTConnectionAttempt = 0;
-#define MQTT_CONNECTION_INTERVAL 3000  // retry to connect 1 sec after last attempt
+#define MQTT_CONNECTION_INTERVAL 3000  // retry to connect 3 seconds after last attempt
 
 // Controller must implement this function
 void mqttCallback(char* topic, byte* payload, unsigned int length);
