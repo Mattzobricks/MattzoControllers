@@ -79,12 +79,12 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
       .motorShieldName = "SFE",
-      .motorShieldType = MotorShieldType::L9110N,
+      .motorShieldType = MotorShieldType::L9110,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = 1,
       .configMotorB = 0,
-      .locoAddress = 200
+      .locoAddress = 13043
   };
 
   return msConf;
@@ -111,7 +111,7 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 #define in4 D6  // pin for motor B direction control (reverse).
 
 // Constants for motorshield type Lego IR Receiver 8884
-#define IR_LED_PIN D5			// pin on which the IR LED is installed.
+#define IR_LED_PIN D7			// pin on which the IR LED is installed.
 #define IR_CHANNEL 0			// channel number selected on the Lego IR Receiver 8884. May be 0, 1, 2 or 3.
 #define IR_PORT_RED 0     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
@@ -119,22 +119,22 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.
 // You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 3;
+const int NUM_FUNCTIONS = 4;
 
 // Digital pins for function output
 // For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D1, D2 };
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D1, D2, D7 };
 
 // The loco address for which the function pin will be triggered.
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
-int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0, 0 };
+int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0, 0, 0 };
 
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and odd numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
 const bool AUTO_LIGHTS = true;
 
 // Digital output PIN to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = false;  // set to false if no LED is installed
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;
 
 // Report battery level
