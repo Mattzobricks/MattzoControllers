@@ -25,19 +25,22 @@
 
 // Infos for port expander PCA9685
 // Usage:
-// - If a USE_PCA9685 port expander is connected to your ESP8266, set USE_PCA9685 to true
+// - If a USE_PCA9685 port expander is connected to your ESP8266, set USE_PCA9685 to true.
 // Wiring:
-// - PCA9685 is usually connected to pins D1 (clock) and D2 (data) of the ESP8266
-// - VCC is sourced from V3V of the ESP8266
-// - V+ is sourced from VIN of the ESP8266 and should be between 5 and 6 Volts. According to the documentation, it will also sustain 12V, but this is not recommended (UNTESTED!)
-// - Connecting GND is mandatory
+// - PCA9685 is usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
+// - VCC is sourced from V3V of the ESP8266.
+// - V+ is sourced from VIN of the ESP8266
+// -- VIN should be between 5 and 6 Volts.
+// -- According to the documentation, the PCA9685 will also sustain 12V, but this is not recommended and we have not tested it.
+// -- We have tested run the board with standard USV voltage (4,65V) and it worked without problems.
+// - Connecting GND is mandatory.
 // - OE should also be connected. If pulled high, servo power is switched off. Good to preserve your servos. Cabling is usually easiest if pin D0 is used as OE.
 // Chaining:
 // - PCA9685 supports chaining. However, this is not supported in this firmware yet. Only board 0x40 is usable at this time.
 // Servos:
 // - Just connect the servos as designed. Servos connected to PCA9685 must be mapped in SWITCHPORT_PIN_PCA9685.
 // Signals:
-// - Connecting TrixBrix signals to the PCA9685 is somewhat tricky, because of the "common anode" of the signal.
+// - Connecting TrixBrix signals to the PCA9685 is somewhat tricky, because of the "common anode" (common plus terminal) of the signal LEDs.
 // - The solution is to connect the middle wire (plus) to V3V of the ESP8266 (NOT the plus pins of the PCA9685 ports), and the outer wires to the PCA9685 pins.
 // - It is important to remember the correct way of setting a pin on the PCA9685 to:
 // -- fully on: pwm.setPWM(port, 4096, 0);
@@ -57,7 +60,8 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // SWITCH WIRING CONFIGURATION
 
-// Number of switch ports
+// PHYSICAL SWITCH PORTS
+// Number of physical switch ports
 const int NUM_SWITCHPORTS = 8;
 
 // Digital output pins for switch servos
@@ -65,6 +69,28 @@ uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 // Type of digital output pins for switch servos (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
 uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
+
+// LOGICAL SWITCH PORTS
+// Number of logical switch ports
+const int NUM_LOGICAL_SWITCHPORTS = 4;
+
+// Logical switch ports
+// Purpose: required for TrixBrix double slip switches
+// Rules:
+// - First logical switch port number is always 1001!
+int LOGICAL_SWITCHPORTS[NUM_LOGICAL_SWITCHPORTS] = { 1001, 1002, 1003, 1004 };
+
+// Mappings for logical switch ports to physical switch ports
+// 1 logical switch port maps to exactly two physical switch ports.
+// Standard configuration:
+// - logical port 1001 -> physical switch ports 0 and 1 (as defined in SWITCHPORT_PIN array)
+// - logical port 1002 -> physical switch ports 2 and 3
+// - logical port 1003 -> physical switch ports 4 and 5
+// - logical port 1004 -> physical switch ports 6 and 7
+uint8_t LOGICAL_SWITCHPORT_MAPPINGS[NUM_LOGICAL_SWITCHPORTS * 2] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+
+// Reverse second physical port?
+boolean LOGICAL_SWITCHPORT_REV_2ND_PORT[NUM_LOGICAL_SWITCHPORTS] = { false, false, false, false };
 
 
 // SIGNAL WIRING CONFIGURATION
