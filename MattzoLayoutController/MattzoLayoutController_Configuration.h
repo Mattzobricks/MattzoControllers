@@ -64,10 +64,12 @@ uint8_t PCA9685_OE_PIN = D0;
 // Number of physical switch ports
 const int NUM_SWITCHPORTS = 8;
 
-// Digital output pins for switch servos
+// Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+// uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3, D4, D5, D6, D7 };
 uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 // Type of digital output pins for switch servos (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
+// uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
 
 // LOGICAL SWITCH PORTS
@@ -82,11 +84,12 @@ int LOGICAL_SWITCHPORTS[NUM_LOGICAL_SWITCHPORTS] = { 1001, 1002, 1003, 1004 };
 
 // Mappings for logical switch ports to physical switch ports
 // 1 logical switch port maps to exactly two physical switch ports.
+// The values in the array mean the array index of the physical port in the SWITCHPORT_PIN, NOT THE PIN NUMBER!
 // Standard configuration:
-// - logical port 1001 -> physical switch ports 0 and 1 (as defined in SWITCHPORT_PIN array)
-// - logical port 1002 -> physical switch ports 2 and 3
-// - logical port 1003 -> physical switch ports 4 and 5
-// - logical port 1004 -> physical switch ports 6 and 7
+// - logical port 1001 -> physical switch ports index 0 and 1 (as defined in SWITCHPORT_PIN array)
+// - logical port 1002 -> physical switch ports index 2 and 3
+// - logical port 1003 -> physical switch ports index 4 and 5
+// - logical port 1004 -> physical switch ports index 6 and 7
 uint8_t LOGICAL_SWITCHPORT_MAPPINGS[NUM_LOGICAL_SWITCHPORTS * 2] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 // Reverse second physical port?
@@ -111,7 +114,7 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0
 const int NUM_SENSORS = 6;
 
 // Digital input PINs for hall, reed or other digital sensors
-uint8_t SENSOR_PIN[NUM_SENSORS] = {D3, D4, D5, D6, D7, D8};
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D3, D4, D5, D6, D7, D8 };
 
 
 // STATUS LED WIRING CONFIGURATION

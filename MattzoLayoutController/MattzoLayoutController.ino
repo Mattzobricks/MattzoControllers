@@ -159,7 +159,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       return;
     }
     mcLog("port1: " + String(rr_port1));
-    if ((rr_port1 < 1 || rr_port1 > NUM_SWITCHPORTS) && (rr_port1 < 1001 || rr_port1 > 1004)) {
+    if ((rr_port1 < 1 || rr_port1 > NUM_SWITCHPORTS) && (rr_port1 < 1001)) {
       mcLog("Message disgarded, this controller does not have such a port.");
       return;
     }
@@ -205,53 +205,43 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // check command string and prepare servo angle
     // servo angle will only be used to flip a standard or one side of a triple switch - not for double slip switches!
     int switchCommand;
-    int servoAngle;
     if (strcmp(rr_cmd, "straight") == 0) {
       switchCommand = 1;
-      servoAngle = rr_param1;
     }
     else if (strcmp(rr_cmd, "turnout") == 0) {
       switchCommand = 0;
-      servoAngle = rr_value1;
     }
     else {
       mcLog("Switch command unknown - message disregarded.");
       return;
     }
 
-    // Check if port is between 1001 and 1004 -> special rules for trixbrix double slip switches apply!
-    if (rr_port1 >= 1001 && rr_port1 <= 1004) {
-      int servoPort1;
-      int servoPort2;
+    // Check if port is a logical port
+    if (rr_port1 >= 1001) {
+      // look for logical port in LOGICAL_SWITCHPORTS array
+      bool logicalSwitchPortFound = false;
+      for (int i = 0; i < NUM_LOGICAL_SWITCHPORTS; i++) {
+        if (rr_port1 == LOGICAL_SWITCHPORTS[i]) {
+          // logical switch port found
+          logicalSwitchPortFound = true;
 
-      // port 1001 -> double slip switch 1 / side A / ports 1 and 2
-      if (rr_port1 == 1001) {
-        servoPort1 = 1;
-        servoPort2 = 2;
-        // port 1002 -> double slip switch 1 / side B / ports 3 and 4
-      }
-      else if (rr_port1 == 1002) {
-        servoPort1 = 3;
-        servoPort2 = 4;
-        // port 1003 -> double slip switch 2 / side A / ports 5 and 6
-      }
-      else if (rr_port1 == 1003) {
-        servoPort1 = 5;
-        servoPort2 = 6;
-        // port 1004 -> double slip switch 2 / side B / ports 7 and 8
-      }
-      else if (rr_port1 == 1004) {
-        servoPort1 = 7;
-        servoPort2 = 8;
+          int servoPort1 = LOGICAL_SWITCHPORT_MAPPINGS[i * 2];
+          int servoPort2 = LOGICAL_SWITCHPORT_MAPPINGS[i * 2 + 1];
+          int servoAngle1 = (switchCommand == 1) ? rr_param1 : rr_value1;
+          int servoAngle2 = (switchCommand == 1 ^ LOGICAL_SWITCHPORT_REV_2ND_PORT[i]) ? rr_param1 : rr_value1;
+
+          mcLog("Turning servos on logical port " + String(rr_port1) + "...");
+          setServoAngle(servoPort1, servoAngle1);
+          setServoAngle(servoPort2, servoAngle2);
+        }
       }
 
-      mcLog("Turning double slip switch servos on port " + String(servoPort1) + " and " + String(servoPort2) + " to angle " + String(servoAngle));
-      setServoAngle(servoPort1 - 1, servoAngle);
-      setServoAngle(servoPort2 - 1, servoAngle);
+      if (!logicalSwitchPortFound) {
+        mcLog("Error: logical port " + String(rr_port1) + " unknown.");
+      }
     }
     else {
-      mcLog("Turning servo on port " + String(rr_port1) + " to angle " + String(servoAngle));
-      setServoAngle(rr_port1 - 1, servoAngle);
+      setServoAngle(rr_port1 - 1, (switchCommand == 1) ? rr_param1 : rr_value1);
     }
     return;
     // end of switch command handling
@@ -369,6 +359,7 @@ void monitorSensors() {
 
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle) {
+  mcLog("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle));
   if (servoIndex >= 0 && servoIndex < NUM_SWITCHPORTS) {
     if (SWITCHPORT_PIN_TYPE[servoIndex] == 0) {
       servo[servoIndex].write(servoAngle);
