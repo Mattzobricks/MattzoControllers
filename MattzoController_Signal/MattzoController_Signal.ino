@@ -73,7 +73,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
+  // query cmd attribute. This is the desired signal LED setting and can either be "on" or "off".
   const char * rr_cmd = "-unknown-";
   if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
     mcLog("cmd attribute not found or wrong type.");
