@@ -33,6 +33,7 @@ const char* WIFI_PASSWORD = "born2rail";
 // MQTT settings
 // *************
 // The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
+// The MQTT_BROKER_IP parameter will also accept hostnames (e.g. "mattzohub").
 const char* MQTT_BROKER_IP = "192.168.178.57";
 const int MQTT_BROKER_PORT = 1883;
 
