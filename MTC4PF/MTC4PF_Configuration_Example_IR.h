@@ -131,7 +131,7 @@ int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0 };
 const bool AUTO_LIGHTS = true;
 
 // Digital output PIN to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = false;  // set to false if no LED is installed
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;
 
 // Report battery level
