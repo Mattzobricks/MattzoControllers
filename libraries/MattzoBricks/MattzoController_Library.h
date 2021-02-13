@@ -61,6 +61,7 @@ using namespace tinyxml2;
 // ********************
 
 void mcLog(String msg);
+void mcLog2(String msg, int severity)
 
 
 // ****************
@@ -334,8 +335,10 @@ void setupSysLog(char *deviceHostname) {
 
 // log a message with a specific severity
 void mcLog2(String msg, int severity) {
-  Serial.println(msg);
-  if (SYSLOG_ENABLED) {
+  if (severity >= LOGLEVEL_SERIAL) {
+    Serial.println(msg);
+  }
+  if (SYSLOG_ENABLED && severity >= LOGLEVEL_SYSLOG) {
     syslog.log(severity, msg);
     delay(1);
     // delay a microsecond as udp packets get dropped on an esp8266 if they happen too close together

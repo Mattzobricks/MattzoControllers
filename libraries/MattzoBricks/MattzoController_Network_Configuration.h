@@ -22,6 +22,7 @@
 // *************
 // WiFi settings
 // *************
+
 // The SSID of your WiFi network
 const char* WIFI_SSID = "railnet";
 
@@ -32,6 +33,7 @@ const char* WIFI_PASSWORD = "born2rail";
 // *************
 // MQTT settings
 // *************
+
 // The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
 // The MQTT_BROKER_IP parameter will also accept hostnames (e.g. "mattzohub").
 const char* MQTT_BROKER_IP = "192.168.178.57";
@@ -45,6 +47,7 @@ const int MQTT_KEEP_ALIVE_INTERVAL = 10;
 // Ping settings
 // *************
 // Attention: pings were deprecated with issue #9 and replaced by MQTT last will messages
+
 // Set to true if pings should be sent
 const boolean SEND_PING = false;
 
@@ -52,10 +55,24 @@ const boolean SEND_PING = false;
 const int SEND_PING_INTERVAL = 5000;
 
 
-// ***************
-// Syslog settings
-// ***************
-// Set to true if sys log shall be enabled
+// ************
+// Log settings
+// ************
+// The log levels are defined in Syslog.h of the Syslog library:
+// LOG_EMERG 0 /* system is unusable */
+// LOG_ALERT 1 /* action must be taken immediately */
+// LOG_CRIT  2 /* critical conditions */
+// LOG_ERR   3 /* error conditions */
+// LOG_WARNING 4 /* warning conditions */
+// LOG_NOTICE  5 /* normal but significant condition */
+// LOG_INFO  6 /* informational */
+// LOG_DEBUG 7 /* debug-level messages */
+// Log level for serial output. Only message with a priority of the log level or greater will be logged.
+
+const int LOGLEVEL_SERIAL = LOG_INFO;
+// Log level for syslog output. Only message with a priority of the log level or greater will be logged.
+const int LOGLEVEL_SYSLOG = LOG_INFO;
+// Set to true if syslog shall be enabled
 const bool SYSLOG_ENABLED = true;
 // IP or hostname of the syslog server
 const char* SYSLOG_SERVER = MQTT_BROKER_IP;
@@ -66,6 +83,7 @@ const int SYSLOG_PORT = 514;
 // ************
 // OTA settings
 // ************
+
 // Password for over-the-air firmware updates
 // PLEASE CHANGE THE PASSWORD AND KEEP IT SECRET FROM EVIL PLAYMOBIL FANS!
 const char* OTA_PASSWORD = "mattzobricks";
