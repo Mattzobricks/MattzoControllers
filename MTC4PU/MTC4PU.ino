@@ -133,12 +133,12 @@ public:
   void initHub() {
     char macAddress_char[18];
     if (_macAddress.length() != 17) {
-      mcLog("Can not initialize hub " + getNiceName() + ": error in mac address");
+      mcLog2("Can not initialize hub " + getNiceName() + ": error in mac address", LOG_CRIT);
     }
     _macAddress.toCharArray(macAddress_char, 18);
-    mcLog("Initializing hub " + getNiceName() + "...");
+    mcLog2("Initializing hub " + getNiceName() + "...", LOG_INFO);
     legoinoHub.init(macAddress_char, PU_SCAN_DURATION);
-    delay(10);
+    delay(DELAY);
   }
 
   bool isConnecting() {
@@ -151,9 +151,9 @@ public:
 
   void requestBatteryReport(HubPropertyChangeCallback hubPropertyChangeCallback) {
     if (isConnected()) {
-      mcLog("Requesting battery level for hub " + getNiceName() + "...");
+      mcLog2("Requesting battery level for hub " + getNiceName() + "...", LOG_DEBUG);
       legoinoHub.activateHubPropertyUpdate(HubPropertyReference::BATTERY_VOLTAGE, hubPropertyChangeCallback);
-      delay(10);
+      delay(DELAY);
     }
   }
 
@@ -220,7 +220,7 @@ String discoveryHubAddress;   // Will be send to MQTT as soon connection to MQTT
 int initializedHub = -1;   // The presently initialized hub. Only one hub can be initialized at once. :-(
 
 // Send battery level
-const bool REPORT_BATTERYLEVEL = true;          // set to true or false to allow or omit battery level reports
+const bool REPORT_BATTERYLEVEL = false;          // set to true or false to allow or omit battery level reports
 const int SEND_BATTERYLEVEL_INTERVAL = 60000;   // interval for sending battery level in milliseconds (60000 = 60 seconds)
 unsigned long lastBatteryLevelMsg = millis();   // time of the last sent battery level
 int nextBatteryLevelReportingHub = 0;           // index of the last hubs for which a battery report was requested
@@ -263,7 +263,7 @@ void setup() {
 
 
 int getMattzoLocoIndexByLocoAddress(int locoAddress) {
-  // mcLog("getMattzoLocoIndexByLocoAddress is checking if this controller handles loco " + String(locoAddress) + "...");
+  mcLog2("getMattzoLocoIndexByLocoAddress is checking if this controller handles loco " + String(locoAddress) + "...", LOG_DEBUG);
   for (int l = 0; l < NUM_LOCOS; l++) {
     if (myLocos[l]._locoAddress == locoAddress) {
       return l;
@@ -273,7 +273,6 @@ int getMattzoLocoIndexByLocoAddress(int locoAddress) {
 }
 
 
-
 void discoverPoweredUpHub() {
   // Just after booting, the ESP-32 checks if there is a Powered Up hub that is ready to connect
   // Purpose is just to read out its MAC address at publish it via MQTT.
@@ -281,17 +280,17 @@ void discoverPoweredUpHub() {
 
   Lpf2Hub discoveryHub;  // Hub used for discovering new PU hubs
 
-  mcLog("Discovering Powered Up Hubs...");
+  mcLog2("Discovering Powered Up Hubs...", LOG_INFO);
   discoveryHub.init();
   unsigned long timeStart = millis();
   while (millis() - timeStart < 5000) {  // wait 5 seconds for a hub to show up
     if (discoveryHub.isConnecting()) {
       discoveryHubAddress = discoveryHub.getHubAddress().toString().c_str();
-      mcLog("Powered Up Hub found. MAC Address: " + discoveryHubAddress);
+      mcLog2("Powered Up Hub found. MAC Address: " + discoveryHubAddress, LOG_INFO);
       return;
     }
   }
-  mcLog("No Powered Up Hub found. Discovering new Powered Up hubs terminated.");
+  mcLog2("No Powered Up Hub found. Discovering new Powered Up hubs terminated.", LOG_INFO);
 }
 
 void connectPoweredUpHubs() {
@@ -317,7 +316,7 @@ void connectPoweredUpHubs() {
           myHubs[i].lastKnownConnectionStatus = true;
         }
         else {
-          mcLog("Connection attempt to hub " + String(i) + " refused.");
+          mcLog2("Connection attempt to hub " + String(i) + " refused.", LOG_ERR);
           myHubs[i].initHub();
         }
       }
@@ -343,7 +342,7 @@ void requestPoweredUpBatteryLevel() {
       lastBatteryLevelMsg = millis();
 
       if (myHubs[nextBatteryLevelReportingHub].isConnected()) {
-        // mcLog("Requesting battery level for hub " + String(nextBatteryLevelReportingHub));
+        mcLog2("Requesting battery level for hub " + String(nextBatteryLevelReportingHub), LOG_DEBUG);
         myHubs[nextBatteryLevelReportingHub].requestBatteryReport(hubPropertyChangeCallback);
         delay(10);
       }
@@ -375,7 +374,6 @@ void hubPropertyChangeCallback(void* hub, HubPropertyReference hubProperty, uint
 }
 
 
-
 void sendMQTTMessage(String topic, String message) {
   const int MAX_MQTT_TOPIC_SIZE = 255;
   const int MAX_MQTT_MESSAGE_SIZE = 255;
@@ -383,20 +381,20 @@ void sendMQTTMessage(String topic, String message) {
   char message_char[MAX_MQTT_MESSAGE_SIZE + 1];
 
   if (topic.length() + 1 > MAX_MQTT_TOPIC_SIZE) {
-    mcLog("ERROR: MQTT topic string too long - message not sent.");
+    mcLog2("ERROR: MQTT topic string too long - message not sent.", LOG_CRIT);
     return;
   }
 
   message = String(mattzoControllerName) + " " + message;
   if (message.length() + 1 > MAX_MQTT_MESSAGE_SIZE) {
-    mcLog("ERROR: MQTT message string too long - message not sent.");
+    mcLog2("ERROR: MQTT message string too long - message not sent.", LOG_CRIT);
     return;
   }
 
   topic.toCharArray(topic_char, topic.length() + 1);
   message.toCharArray(message_char, message.length() + 1);
 
-  mcLog("sending mqtt: " + topic + " " + message);
+  mcLog2("sending mqtt: " + topic + " " + message, LOG_CRIT);
   mqttClient.publish(topic_char, message_char);
 }
 
@@ -417,15 +415,15 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   msg[length] = '\0';
 
-  mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
+  mcLog2("Received MQTT message [" + String(topic) + "]: " + String(msg), LOG_DEBUG);
 
   XMLDocument xmlDocument;
   if (xmlDocument.Parse(msg) != XML_SUCCESS) {
-    mcLog("Error parsing.");
+    mcLog2("Error parsing.", LOG_ERR);
     return;
   }
 
-  // mcLog("Parsing XML successful.");
+  mcLog2("Parsing XML successful.", LOG_DEBUG);
 
   const char* rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
   int rr_addr = 0;
@@ -433,76 +431,76 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   // check for lc message
   XMLElement* element = xmlDocument.FirstChildElement("lc");
   if (element != NULL) {
-    mcLog("<lc> node found. Processing loco message...");
+    mcLog2("<lc> node found. Processing loco message...", LOG_DEBUG);
 
     // -> process lc (loco) message
 
     // query id attribute. This is the loco name.
     // The id is a mandatory field. If not found, the message is discarded.
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
-      mcLog("id attribute not found or wrong type.");
+      mcLog2("id attribute not found or wrong type.", LOG_ERR);
       return;
     }
-    mcLog("loco id: " + String(rr_id));
+    mcLog2("loco id: " + String(rr_id), LOG_DEBUG);
 
     // query addr attribute. This is the address of the loco as specified in Rocrail.
     // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-      mcLog("addr attribute not found or wrong type. Message disregarded.");
+      mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
-    mcLog("addr: " + String(rr_addr));
+    mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
 
     int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
     if (locoIndex < 0) {
-      mcLog("Message disregarded, as this controller does not handle train " + String(rr_addr));
+      mcLog2("Message disregarded, as this controller does not handle train " + String(rr_addr), LOG_DEBUG);
       return;
     }
     MattzoLoco& loco = myLocos[locoIndex];
-    mcLog("Consuming message for train " + loco.getNiceName());
+    mcLog2("Consuming message for train " + loco.getNiceName(), LOG_DEBUG);
 
     // query dir attribute. This is the direction information for the loco (forward, reverse)
     const char* rr_dir = "xxxxxx";  // expected values are "true" or "false"
     int dir;
     if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
-      mcLog("dir attribute not found or wrong type.");
+      mcLog2("dir attribute not found or wrong type.", LOG_ERR);
       return;
     }
-    mcLog("dir (raw): " + String(rr_dir));
+    mcLog2("dir (raw): " + String(rr_dir), LOG_DEBUG);
     if (strcmp(rr_dir, "true") == 0) {
-      mcLog("direction: forward");
+      mcLog2("direction: forward", LOG_DEBUG);
       dir = 1;
     }
     else if (strcmp(rr_dir, "false") == 0) {
-      mcLog("direction: backward");
+      mcLog2("direction: backward", LOG_DEBUG);
       dir = -1;
     }
     else {
-      mcLog("unknown dir value - disregarding message.");
+      mcLog2("unknown dir value - disregarding message.", LOG_ERR);
       return;
     }
 
     // query V attribute. This is the speed information for the loco and ranges from 0 to V_max (see below).
     int rr_v = 0;
     if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
-      mcLog("V attribute not found or wrong type. Message disregarded.");
+      mcLog2("V attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
-    mcLog("V: " + String(rr_v));
+    mcLog2("V: " + String(rr_v), LOG_DEBUG);
 
     // query V_max attribute. This is maximum speed of the loco. It must be set in the loco settings in Rocrail as percentage value.
     // The V_max attribute is required to map to loco speed from rocrail to a power setting in the MattzoController.
     int rr_vmax = 0;
     if (element->QueryIntAttribute("V_max", &rr_vmax) != XML_SUCCESS) {
-      mcLog("V_max attribute not found or wrong type. Message disregarded.");
+      mcLog2("V_max attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
-    mcLog("V_max: " + String(rr_vmax));
+    mcLog2("V_max: " + String(rr_vmax), LOG_DEBUG);
 
     // set target train speed
     loco._targetTrainSpeed = rr_v * dir;
     loco._maxTrainSpeed = rr_vmax;
-    mcLog("Message parsing complete, target speed set to " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")");
+    mcLog2("Loco " + loco.getNiceName() + ": Target speed set to " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")", LOG_INFO);
 
     return;
   }
@@ -510,72 +508,72 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   // Check for fn message
   element = xmlDocument.FirstChildElement("fn");
   if (element != NULL) {
-    mcLog("<fn> node found. Processing fn message...");
+    mcLog2("<fn> node found. Processing fn message...", LOG_DEBUG);
 
     // -> process fn (function) message
 
     // query id attribute. This is the loco name.
     // The id is a mandatory field. If not found, the message is discarded.
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
-      mcLog("id attribute not found or wrong type.");
+      mcLog2("id attribute not found or wrong type.", LOG_ERR);
       return;
     }
-    mcLog("function id: " + String(rr_id));
+    mcLog2("function id: " + String(rr_id), LOG_DEBUG);
 
     // query addr attribute. This is the address of the loco as specified in Rocrail.
     // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-      mcLog("addr attribute not found or wrong type. Message disregarded.");
+      mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
-    mcLog("addr: " + String(rr_addr));
+    mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
 
     int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
     if (locoIndex < 0) {
-      mcLog("Message disregarded, as this controller does not handle train " + String(rr_addr));
+      mcLog2("Message disregarded, as this controller does not handle train " + String(rr_addr), LOG_DEBUG);
       return;
     }
     MattzoLoco& loco = myLocos[locoIndex];
-    mcLog("Consuming message for train " + loco.getNiceName());
+    mcLog2("Consuming message for train " + loco.getNiceName(), LOG_DEBUG);
 
     // query fnchanged attribute. This is information which function shall be set.
     int rr_functionNo;
     if (element->QueryIntAttribute("fnchanged", &rr_functionNo) != XML_SUCCESS) {
-      mcLog("fnchanged attribute not found or wrong type. Message disregarded.");
+      mcLog2("fnchanged attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
-    mcLog("fnchanged: " + String(rr_functionNo));
+    mcLog2("fnchanged: " + String(rr_functionNo), LOG_DEBUG);
 
     if (rr_functionNo < 1 || rr_functionNo > NUM_FUNCTIONS) {
-      mcLog("fnchanged out of range. Message disregarded.");
+      mcLog2("fnchanged out of range. Message disregarded.", LOG_ERR);
       return;
     }
     int functionPinId = rr_functionNo - 1;
-    mcLog("Function PIN Id: " + String(functionPinId));
+    mcLog2("Function PIN Id: " + String(functionPinId), LOG_DEBUG);
 
     // Check if the function is associated with the loco
     if (FUNCTION_PIN_LOCO_ADDRESS[functionPinId] != loco._locoAddress) {
-      mcLog("Function PIN is associated with loco " + String(FUNCTION_PIN_LOCO_ADDRESS[functionPinId]) + ", not with " + String(loco._locoAddress) + ". Disregarding message.");
+      mcLog2("Function PIN is associated with loco " + String(FUNCTION_PIN_LOCO_ADDRESS[functionPinId]) + ", not with " + String(loco._locoAddress) + ". Disregarding message.", LOG_DEBUG);
       return;
     }
 
     // query fnchangedstate attribute. This is value if the function shall be set on or off
     const char* rr_state = "xxxxxx";  // expected values are "true" or "false"
     if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
-      mcLog("fnchangedstate attribute not found or wrong type.");
+      mcLog2("fnchangedstate attribute not found or wrong type.", LOG_ERR);
       return;
     }
-    mcLog("fnchangedstate (raw): " + String(rr_state));
+    mcLog2("fnchangedstate (raw): " + String(rr_state), LOG_DEBUG);
     if (strcmp(rr_state, "true") == 0) {
-      mcLog("fnchangedstate: true");
+      mcLog2("Loco " + loco.getNiceName() + ": setting function id " + String(functionPinId) + " to true", LOG_INFO);
       functionCommand[functionPinId] = true;
     }
     else if (strcmp(rr_state, "false") == 0) {
-      mcLog("fnchangedstate: false");
+      mcLog2("Loco " + loco.getNiceName() + ": setting function id " + String(functionPinId) + " to false", LOG_INFO);
       functionCommand[functionPinId] = false;
     }
     else {
-      mcLog("unknown fnchangedstate value - disregarding message.");
+      mcLog2("unknown fnchangedstate value - disregarding message.", LOG_ERR);
       return;
     }
 
@@ -585,37 +583,37 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   // Check for sys message
   element = xmlDocument.FirstChildElement("sys");
   if (element != NULL) {
-    mcLog("<sys> node found. Processing sys message...");
+    mcLog2("<sys> node found. Processing sys message...", LOG_DEBUG);
 
     const char* rr_cmd = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
 
     // query cmd attribute. This is the system message type.
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-      mcLog("cmd attribute not found or wrong type.");
+      mcLog2("cmd attribute not found or wrong type.", LOG_DEBUG);
       return;
     }
 
     String rr_cmd_s = String(rr_cmd);
-    mcLog("rocrail system command: " + String(rr_cmd_s));
+    mcLog2("rocrail system command: " + String(rr_cmd_s), LOG_DEBUG);
 
     // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
     // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
 
     if (rr_cmd_s == "ebreak" || rr_cmd_s == "stop" || rr_cmd_s == "shutdown") {
-      mcLog("received ebreak, stop or shutdown command. Stopping train.");
+      mcLog2("received ebreak, stop or shutdown command. Stopping train.", LOG_INFO);
       ebreak = true;
     }
     else if (rr_cmd_s == "go") {
-      mcLog("received go command. Releasing emergency break.");
+      mcLog2("received go command. Releasing emergency break.", LOG_INFO);
       ebreak = false;
     }
     else {
-      mcLog("received other system command, disregarded.");
+      mcLog2("received other system command, disregarded.", LOG_DEBUG);
     }
     return;
   }
 
-  mcLog("Unknown message, disregarded.");
+  mcLog2("Unknown message, disregarded.", LOG_DEBUG);
 }
 
 // set powered up motor speed
@@ -624,7 +622,7 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
 
   // set motor power
   int power = map(newTrainSpeed, 0, loco._maxTrainSpeed, 0, MattzoPUHub::MAX_PU_POWER);
-  mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")");
+  mcLog2("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ")", LOG_DEBUG);
   for (int i = 0; i < NUM_HUBS; i++) {
     myHubs[i].setMotorSpeed(power, loco._locoAddress);
   }
@@ -713,18 +711,18 @@ void lightEvent(LightEventType le, int locoIndex) {
     if (locoIndex == 0 || locoIndex == FUNCTION_PIN_LOCO_ADDRESS[i]) {
       switch (le) {
       case LightEventType::STOP:
-        mcLog("Light event stop");
+        mcLog2("Light event stop", LOG_DEBUG);
         // switch all functions off
         // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
         functionCommand[i] = false;
         break;
       case LightEventType::FORWARD:
-        mcLog("Light event forward");
+        mcLog2("Light event forward", LOG_DEBUG);
         // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
         functionCommand[i] = (i % 2) == 0;
         break;
       case LightEventType::REVERSE:
-        mcLog("Light event reverse");
+        mcLog2("Light event reverse", LOG_DEBUG);
         // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
         functionCommand[i] = (i % 2) == 1;
         break;
@@ -748,7 +746,7 @@ void setLights() {
     }
 
     if (onOff != functionState[i]) {
-      mcLog("Flipping function " + String(i + 1) + " to " + String(onOff));
+      mcLog2("Flipping function " + String(i + 1) + " to " + String(onOff), LOG_DEBUG);
       functionState[i] = onOff;
       switch (FUNCTION_PIN[i]) {
       case PU_LIGHT:
@@ -801,6 +799,7 @@ void debugInfo() {
   // return;  // if not commented out, connection information is put out every 10 seconds
 
   if (millis() - timeLastHubReport < 10000) return;
+  timeLastHubReport = millis();
 
   mcLog("*** DEBUG-INFO ***");
   mcLog("WiFi + MQTT connection Status: " + String(getConnectionStatus() == MCConnectionStatus::CONNECTED));
@@ -811,6 +810,5 @@ void debugInfo() {
   for (int i = 0; i < NUM_HUBS; i++) {
     mcLog("Hub " + String(i) + ": macAddress=" + myHubs[i]._macAddress + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubs[i].lastKnownConnectionStatus));
   }
-  timeLastHubReport = millis();
   mcLog("******************");
 }
