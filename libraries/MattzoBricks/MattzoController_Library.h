@@ -61,7 +61,7 @@ using namespace tinyxml2;
 // ********************
 
 void mcLog(String msg);
-void mcLog2(String msg, int severity)
+void mcLog2(String msg, int severity);
 
 
 // ****************
