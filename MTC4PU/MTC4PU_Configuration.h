@@ -24,7 +24,7 @@
 // ***********
 
 // Number of locos (aka. MattzoLocos) controlled by this controller
-const int NUM_LOCOS = 3;
+const int NUM_LOCOS = 4;
 
 // List of MattzoLocos
 // The parameters have the following meaning:
@@ -36,7 +36,15 @@ const int NUM_LOCOS = 3;
 MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-  locoConf[0] = (MattzoLocoConfiguration) {
+  locoConf[0] = (MattzoLocoConfiguration){
+  .locoName = "BROCO",
+  .locoAddress = 10277,
+  .accelerationInterval = 100,
+  .accelerateStep = 2,
+  .brakeStep = 2
+  };
+
+  locoConf[1] = (MattzoLocoConfiguration) {
     .locoName = "ICE",
     .locoAddress = 6051,
     .accelerationInterval = 100,
@@ -44,7 +52,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
     .brakeStep = 3
   };
 
-  locoConf[1] = (MattzoLocoConfiguration) {
+  locoConf[2] = (MattzoLocoConfiguration) {
   .locoName = "EST",
   .locoAddress = 6197,
   .accelerationInterval = 100,
@@ -52,9 +60,9 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   .brakeStep = 3
   };
 
-  locoConf[2] = (MattzoLocoConfiguration) {
-  .locoName = "BROCO",
-  .locoAddress = 10277,
+  locoConf[3] = (MattzoLocoConfiguration) {
+  .locoName = "BUS",
+  .locoAddress = 98,
   .accelerationInterval = 100,
   .accelerateStep = 2,
   .brakeStep = 2
@@ -69,7 +77,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 // ***************
 
 // Number of Powered Up hubs that shall connect to this controller
-const int NUM_HUBS = 5;
+const int NUM_HUBS = 6;
 
 // List of Powered Up hubs that shall connect to this controller
 MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
@@ -86,7 +94,7 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
   };
 
   hubConf[1] = (MattzoPUHubConfiguration){
-      .hubName = "ICE1",
+      .hubName = "ICE1", 
       .macAddress = "90:84:2b:16:15:f8",
       .devicePortA = MattzoPUDevice::PU_MOTOR,
       .configMotorA = 1,
@@ -125,6 +133,16 @@ MattzoPUHubConfiguration* getMattzoPUHubConfiguration() {
       .locoAddress = 6197
     };
 
+  hubConf[5] = (MattzoPUHubConfiguration){
+    .hubName = "BUS",
+    .macAddress = "90:84:2b:21:71:46",
+    .devicePortA = MattzoPUDevice::PU_MOTOR,
+    .configMotorA = 1,
+    .devicePortB = MattzoPUDevice::NONE,
+    .configMotorB = 0,
+    .locoAddress = 98
+  };
+
   return hubConf;
 }
 
@@ -148,7 +166,7 @@ int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 6051, 6051, 6051, 6051 };
 
 // Automatic lights. If set to true, the lights are switched on when loco is moving forward, and switched off if the train stops or goes backwards.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PU code and change it as desired.
-const bool AUTO_LIGHTS = true;
+const bool AUTO_LIGHTS = false;
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to true if LED is installed (if not: false)
