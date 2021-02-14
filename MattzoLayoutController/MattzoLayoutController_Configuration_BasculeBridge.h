@@ -128,16 +128,38 @@ uint8_t STATUS_LED_PIN = D8;
 
 // BASCULE BRIDGE CONFIGURATION
 
+// General switch for bascule bridge (false = no bridge connected; true = bridge connected)
 bool BASCULE_BRIDGE_CONNECTED = true;
-const int BASCULE_BRIDGE_RR_PORT = 0;  // Port configured for the bascule bridge in Rocrail
-const int BASCULE_BRIDGE_MS_in1 = D0;  // pin for bridge motor direction control (forward).
-const int BASCULE_BRIDGE_MS_in2 = D1;  // pin for bridge motor direction control (reverse).
+
+// Port configured for the bascule bridge in Rocrail
+const int BASCULE_BRIDGE_RR_PORT = 1;
+
+// Motor shield pins for bridge motor direction control
+const int BASCULE_BRIDGE_MS_IN1 = D0;  // forward
+const int BASCULE_BRIDGE_MS_IN2 = D1;  // reverse
+
+// Motor power settings for bridge operations
+const int BASCULE_BRIDGE_POWER_UP = 1023;  // Motor power for pulling the bridge up (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_DOWN = 786;  // Motor power for letting the bridge down (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_DOWN2 = 512;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 1023)
+
+// Signal ports (set to -1 for "not connected")
 const int BASCULE_BRIDGE_SIGNAL_RIVER_STOP = 0;  // signal port that is activated when bridge is not in the "up" position (index in the SIGNALPORT_PIN array)
 const int BASCULE_BRIDGE_SIGNAL_RIVER_PREP = 1;  // signal port that is activated in addition to the "stop" port when bridge is opening (index in the SIGNALPORT_PIN array)
 const int BASCULE_BRIDGE_SIGNAL_RIVER_GO = 2;  // signal port that is activated when bridge has reached the "up" position (index in the SIGNALPORT_PIN array)
 const int BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT = 3;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
+
+// Sensor ports
 const int BASCULE_BRIDGE_SENSOR_DOWN = 0;  // sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
 const int BASCULE_BRIDGE_SENSOR_UP = 1;  // sensor that indicates "bridge up" (index in the SENSOR_PIN array)
+
+// Timings (in milli seconds)
+// Maximum allowed time for opening the bridge until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
+const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 10000;
+// Maximum allowed time for closing the bridge until the closing sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
+const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 10000;
+// Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 0;
 
 
 // ****************
