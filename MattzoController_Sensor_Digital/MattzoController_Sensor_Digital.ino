@@ -15,7 +15,7 @@
 const int SENSOR_RELEASE_TICKS = 100;
 bool sensorState[NUM_SENSORS];
 int sensorTriggerState[NUM_SENSORS];
-int lastSensorContactMillis[NUM_SENSORS];
+unsigned long lastSensorContact_ms[NUM_SENSORS];
 
 
 
@@ -76,10 +76,10 @@ void monitorSensors() {
         sendSensorEvent2MQTT(i, true);
         sensorState[i] = true;
       }
-      lastSensorContactMillis[i] = millis();
+      lastSensorContact_ms[i] = millis();
     } else {
       // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
-      if (sensorState[i] && (millis() > lastSensorContactMillis[i] + SENSOR_RELEASE_TICKS)) {
+      if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS)) {
         mcLog("Sensor " + String(i) + " released.");
         sendSensorEvent2MQTT(i, false);
         sensorState[i] = false;
