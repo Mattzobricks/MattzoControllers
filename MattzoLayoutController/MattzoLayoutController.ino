@@ -572,6 +572,9 @@ void setBridgeLights() {
 
 // main bridge control loop
 void basculeBridgeLoop() {
+  if (!BASCULE_BRIDGE_CONNECTED)
+    return;
+
   // 1. Determine if bridge state change is required
   BridgeStatus newBridgeStatus;
 
