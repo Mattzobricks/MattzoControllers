@@ -159,7 +159,7 @@ const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 10000;
 // Maximum allowed time for closing the bridge until the closing sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
 const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 10000;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 0;
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 2000;
 
 
 // ****************

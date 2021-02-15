@@ -66,7 +66,7 @@ enum struct BridgeStatus
   OPEN = 0x4,
   CLOSING = 0x5,
   CLOSING2 = 0x6,
-  ERROR = 0x7,             // error condition
+  ERRoR = 0x7,             // error condition
   NO_TIMED_EVENT = 0x10,   // for timed events: no timed event pending
   COMMAND_PENDING = 0x11   // a bridge command was received, which has not been used to set a new bridge state
 };
@@ -78,11 +78,10 @@ enum struct BridgeCommand
 };
 
 struct Bridge {
-  BridgeStatus bridgeStatus = BridgeStatus:COMMAND_PENDING;
-  BridgeStatus nextBridgeStatus = BridgeStatus:NO_TIMED_EVENT;
+  BridgeStatus bridgeStatus = BridgeStatus::COMMAND_PENDING;
+  BridgeStatus nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
   unsigned long nextEventTime_ms;
   BridgeCommand bridgeCommand = BridgeCommand::DOWN;
-  int motorPower = 0;
 } bridge;
 
 
@@ -133,6 +132,12 @@ void setup() {
 
   // load config from EEPROM, initialize Wifi, MQTT etc.
   setupMattzoController();
+
+  // initialize motor shield pins for bascule bridge
+  if (BASCULE_BRIDGE_CONNECTED) {
+    pinMode(BASCULE_BRIDGE_MS_IN1, OUTPUT);
+    pinMode(BASCULE_BRIDGE_MS_IN2, OUTPUT);
+  }
 }
 
 #if USE_PCA9685
@@ -250,6 +255,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // Check if port is used to control a bascule bridge
     if (BASCULE_BRIDGE_CONNECTED && (rr_port1 == BASCULE_BRIDGE_RR_PORT)) {
       basculeBridgeCommand(switchCommand);
+      return;
     }
 
     // Check if port is a logical port
@@ -323,9 +329,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // set signal LED for the port on/off
     if (strcmp(rr_cmd, "on") == 0) {
+      mcLog2("Setting signal LED " + String(rr_port - 1) + " on.", LOG_DEBUG);
       setSignalLED(rr_port - 1, true);
     }
     else if (strcmp(rr_cmd, "off") == 0) {
+      mcLog2("Setting signal LED " + String(rr_port - 1) + " off.", LOG_DEBUG);
       setSignalLED(rr_port - 1, false);
     }
     else {
@@ -456,7 +464,6 @@ void checkEnableServoSleepMode() {
 
 // switches a signal on or off
 void setSignalLED(int signalIndex, bool ledState) {
-  mcLog("Setting signal LED " + String(signalIndex) + " to " + String(ledState));
   if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
     digitalWrite(SIGNALPORT_PIN[signalIndex], ledState ? LOW : HIGH);
   }
@@ -484,12 +491,12 @@ void basculeBridgeCommand(int bridgeCommand) {
   if (bridgeCommand == 0) { // up
     mcLog2("Bascule bridge command UP.", LOG_DEBUG);
     bridge.bridgeCommand = BridgeCommand::UP;
-    bridge.bridgeStatus = case BridgeStatus::COMMAND_PENDING:
+    bridge.bridgeStatus = BridgeStatus::COMMAND_PENDING;
   }
   else if (bridgeCommand == 1) { // down
     mcLog2("Bascule bridge command DOWN.", LOG_DEBUG);
     bridge.bridgeCommand = BridgeCommand::DOWN;
-    bridge.bridgeStatus = case BridgeStatus::COMMAND_PENDING:
+    bridge.bridgeStatus = BridgeStatus::COMMAND_PENDING;
   }
   else {
     mcLog2("Unkown bascule bridge command.", LOG_CRIT);
@@ -498,17 +505,25 @@ void basculeBridgeCommand(int bridgeCommand) {
 
 // set bridge motor power
 void setBridgeMotorPower(int motorPower) {
-  bridge.motorPower = motorPower;
   mcLog2("Setting bridge motor power to " + String(motorPower), LOG_DEBUG);
+
+  if (motorPower >= 0) {
+    analogWrite(BASCULE_BRIDGE_MS_IN1, motorPower);
+    analogWrite(BASCULE_BRIDGE_MS_IN2, 0);
+  }
+  else {
+    analogWrite(BASCULE_BRIDGE_MS_IN1, 0);
+    analogWrite(BASCULE_BRIDGE_MS_IN2, -motorPower);
+  }
 }
 
 // set bridge lights
 void setBridgeLights() {
   // set bridge lights
-  bool blinkState = (millis() / 1000) >= 500;
-  bool flashState = (millis() / 417) >= 208;
+  bool blinkState = (millis() % 1000) >= 500;
+  bool flashState = (millis() % 417) >= 208;
 
-  switch (newBridgeStatus) {
+  switch (bridge.bridgeStatus) {
   case BridgeStatus::STOPPED:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, blinkState);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, blinkState);
@@ -540,12 +555,12 @@ void setBridgeLights() {
     setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, blinkState);
     break;
   case BridgeStatus::CLOSING2:
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, false);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, true);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, flashState);
     break;
-  case BridgeStatus::ERROR:
+  case BridgeStatus::ERRoR:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, flashState);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, !flashState);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, blinkState);
@@ -561,14 +576,16 @@ void basculeBridgeLoop() {
   BridgeStatus newBridgeStatus;
 
   // Timed state change?
-  if (bridge.bridgeStatus != bridge.nextBridgeStatus && bridge.nextBridgeStatus != NO_TIMED_EVENT && millis() >= bridge.nextEventTime_ms) {
+  if ((bridge.bridgeStatus != bridge.nextBridgeStatus) && (bridge.nextBridgeStatus != BridgeStatus::NO_TIMED_EVENT) && (millis() >= bridge.nextEventTime_ms)) {
+    mcLog2("Executing timed bridge state change.", LOG_DEBUG);
     newBridgeStatus = bridge.nextBridgeStatus;
+    bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
   } else {
     // no timed state change required.
     // Check if a state change is required due to sensor event or bridge command.
     newBridgeStatus = bridge.bridgeStatus;
 
-    if (bridge.bridgeCommand = BridgeCommand::UP) {
+    if (bridge.bridgeCommand == BridgeCommand::UP) {
       // Bridge command: UP!
 
       switch (bridge.bridgeStatus) {
@@ -580,6 +597,7 @@ void basculeBridgeLoop() {
         if (sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
           mcLog2("Bridge was already open.", LOG_DEBUG);
           newBridgeStatus = BridgeStatus::OPEN;
+          bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
         }
         // Open bridge!
         else {
@@ -595,10 +613,17 @@ void basculeBridgeLoop() {
         if (sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
           mcLog2("Bridge is now open.", LOG_DEBUG);
           newBridgeStatus = BridgeStatus::OPEN;
+          bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
         }
         break;
+
+      case BridgeStatus::OPEN:
+      case BridgeStatus::STOPPED:
+      case BridgeStatus::ERRoR:
+        break;
+
       default:
-        mcLog2("Unknown bridge status.", LOG_CRIT);
+        mcLog2("Unknown bridge status #1.", LOG_CRIT);
       }
     }
     else {
@@ -609,13 +634,16 @@ void basculeBridgeLoop() {
         if (sensorState[BASCULE_BRIDGE_SENSOR_DOWN]) {
           if (BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS > 0) {
             // continue closing for BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS milliseconds
+            mcLog2("Bridge almost closed...", LOG_DEBUG);
             newBridgeStatus = BridgeStatus::CLOSING2;
             // add timed state change
             bridge.nextBridgeStatus = BridgeStatus::CLOSED;
             bridge.nextEventTime_ms = millis() + BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS;
           }
           else {
+            mcLog2("Bridge closed.", LOG_DEBUG);
             newBridgeStatus = BridgeStatus::CLOSED;
+            bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
           }
         }
         break;
@@ -627,6 +655,7 @@ void basculeBridgeLoop() {
         if (sensorState[BASCULE_BRIDGE_SENSOR_DOWN]) {
           mcLog2("Bridge was already down.", LOG_DEBUG);
           newBridgeStatus = BridgeStatus::CLOSED;
+          bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
         }
         // Close bridge!
         else {
@@ -637,8 +666,15 @@ void basculeBridgeLoop() {
           bridge.nextEventTime_ms = millis() + BASCULE_BRIDGE_MAX_CLOSING_TIME_MS;
         }
         break;
+
+      case BridgeStatus::CLOSED:
+      case BridgeStatus::CLOSING2:
+      case BridgeStatus::STOPPED:
+      case BridgeStatus::ERRoR:
+        break;
+
       default:
-        mcLog2("Unknown bridge status.", LOG_CRIT);
+        mcLog2("Unknown bridge status #2.", LOG_CRIT);
       }
     }
   }
@@ -650,34 +686,47 @@ void basculeBridgeLoop() {
 
     switch (newBridgeStatus) {
     case BridgeStatus::STOPPED:
+      mcLog2("Setting new bridge status STOPPED.", LOG_DEBUG);
+      setBridgeMotorPower(0);
+      break;
     case BridgeStatus::CLOSED:
+      mcLog2("Setting new bridge status CLOSED.", LOG_DEBUG);
+      setBridgeMotorPower(0);
+      break;
     case BridgeStatus::OPEN:
-    case BridgeStatus::ERROR:
+      mcLog2("Setting new bridge status OPEN.", LOG_DEBUG);
+      setBridgeMotorPower(0);
+      break;
+    case BridgeStatus::ERRoR:
+      mcLog2("Setting new bridge status ERROR.", LOG_DEBUG);
       setBridgeMotorPower(0);
       break;
     case BridgeStatus::OPENING:
+      mcLog2("Setting new bridge status OPENING.", LOG_DEBUG);
       setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP);
       break;
     case BridgeStatus::CLOSING:
-      setBridgeMotorPower(BASCULE_BRIDGE_POWER_DOWN);
+      mcLog2("Setting new bridge status CLOSING.", LOG_DEBUG);
+      setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN);
       break;
     case BridgeStatus::CLOSING2:
-      setBridgeMotorPower(BASCULE_BRIDGE_POWER_DOWN2);
+      mcLog2("Setting new bridge status CLOSING2.", LOG_DEBUG);
+      setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN2);
       break;
     default:
-      mcLog2("Unknown bridge status.", LOG_CRIT);
+      mcLog2("Unknown bridge status #3.", LOG_CRIT);
     }
   }
 
   // 3. Check if an emergency brake situation exists
   if (bridge.bridgeStatus == BridgeStatus::CLOSED) {
     if (!sensorState[BASCULE_BRIDGE_SENSOR_DOWN]) {
-      bridge.bridgeStatus = BridgeStatus::ERROR;
+      bridge.bridgeStatus = BridgeStatus::ERRoR;
       mcLog2("Alert: Bridge open!", LOG_ALERT);
       sendEmergencyBrake2MQTT("bridge open");
     }
     else if (sensorState[BASCULE_BRIDGE_SENSOR_DOWN] && sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
-      bridge.bridgeStatus = BridgeStatus::ERROR;
+      bridge.bridgeStatus = BridgeStatus::ERRoR;
       mcLog2("Alert: Bridge sensors triggered concurrently!", LOG_ALERT);
       sendEmergencyBrake2MQTT("bridge sensors triggered concurrently");
     }
