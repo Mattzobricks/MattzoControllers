@@ -336,9 +336,11 @@ void setupSysLog(char *deviceHostname) {
 // log a message with a specific severity
 void mcLog2(String msg, int severity) {
   if (severity <= LOGLEVEL_SERIAL) {
+#if defined(ESP32)
     Serial.print("[");
     Serial.print(xPortGetCoreID());
     Serial.print("] ");
+#endif
     Serial.println(msg);
   }
   if (SYSLOG_ENABLED && severity <= LOGLEVEL_SYSLOG) {
