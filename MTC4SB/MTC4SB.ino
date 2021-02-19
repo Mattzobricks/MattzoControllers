@@ -11,6 +11,9 @@
 // MattzoControllerType
 #define MATTZO_CONTROLLER_TYPE "MTC4SB"
 
+// Trigger emergency brake upon disconnect
+#define TRIGGER_EBREAK_UPON_DISCONNECT false
+
 //#include <NimBLEDevice.h>
 
 #include "MattzoMQTTPublisher.h"

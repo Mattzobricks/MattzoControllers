@@ -1,6 +1,14 @@
+// PubSubClient library by Nick O'Leary
+// Install via the built-in Library Manager of the Arduino IDE
+// Tested with Version V2.8.0
+#include <PubSubClient.h>
+
 #include "MattzoWifiClient.h"
 
 static QueueHandle_t msg_queue;
+
+WiFiClient wifiPublisherClient;
+PubSubClient mqttPublisherClient(wifiPublisherClient);
 
 /// <summary>
 /// Class used to publish messages to an MQTT broker.
@@ -9,6 +17,11 @@ class MattzoMQTTPublisher {
 
 public:
   // Public static members
+
+  /// <summary>
+  /// Reconnect delay in milliseconds. This configures the delay between reconnect attempts.
+  /// </summary>
+  static int ReconnectDelayInMilliseconds;
 
   /// <summary>
   /// Ping delay in milliseconds. This configures the delay between ping messages (0 = don't send ping messages).
@@ -58,6 +71,10 @@ public:
     // Setup and connect to WiFi.
     MattzoWifiClient::Setup();
 
+    // Setup MQTT client.
+    mqttPublisherClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
+    mqttPublisherClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);
+
     // Create a queue with a fixed length that will hold pointers to MQTT messages.
     msg_queue = xQueueCreate(messageQueueLength, sizeof(char*));
 
@@ -93,6 +110,9 @@ private:
 
   static bool setupCompleted;
 
+  // Time of the last sent ping.
+  static unsigned long lastPing;
+
   /// <summary>
   /// Sends all messages that are currently queued to the MQTT broker.
   /// </summary>
@@ -102,7 +122,7 @@ private:
     // See if there's a message in the queue (do not block).
     while (xQueueReceive(msg_queue, (void*)&message, (TickType_t)0) == pdTRUE) {
       // Send queued message to broker.
-      sendMessage(message);
+      sendMessage("rocrail/service/command", message);
 
       // Erase message from memory by freeing it.
       free(message);
@@ -113,10 +133,42 @@ private:
   /// Sends the given message to the MQTT broker.
   /// </summary>
   /// <param name="parm">Message to send.</param>
-  static void sendMessage(const char* message) {
-    Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: " + message);
+  static void sendMessage(const char* topic, const char* message) {
+    Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: [" + topic + "] " + message);
+    mqttPublisherClient.publish(topic, message);
   }
   
+  /// <summary>
+  /// Reconnects the MQTT client to the broker (blocking).
+  /// </summary>
+  static void reconnect() {
+    while (!mqttPublisherClient.connected()) {
+      Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Attempting to connect...");
+
+      String lastWillMessage;
+      if (TRIGGER_EBREAK_UPON_DISCONNECT) {
+        lastWillMessage = "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"" + mattzoControllerName + "\"/>";
+      }
+      else {
+        lastWillMessage = "<info msg=\"mc_disconnected\" source=\"lastwill\" mc=\"" + mattzoControllerName + "\"/>";
+      }
+      char lastWillMessage_char[lastWillMessage.length() + 1];
+      lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
+
+      if (mqttPublisherClient.connect(mattzoControllerName_char, "rocrail/service/command", 0, false, lastWillMessage_char)) {
+        Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Connected");
+      }
+      else {
+        Serial.print("[" + String(xPortGetCoreID()) + "] MQTT: Connect failed, rc=");
+        Serial.print(mqttPublisherClient.state());
+        Serial.println(". Try again in a few seconds...");
+        
+        // Wait w litte while before retrying.
+        vTaskDelay(ReconnectDelayInMilliseconds / portTICK_PERIOD_MS);
+      }
+    }
+  }
+
   /// <summary>
   /// The main (endless) task loop.
   /// </summary>
@@ -128,19 +180,27 @@ private:
 
     // Loop forever
     while (1) {
-      // Wait for connection to Wifi (because we need it to send messages to the broker).
+      // Wait for connection to Wifi (because we need it to contact the broker).
       MattzoWifiClient::Assert();
 
-      // Wait for connection to MQTT.
-      //checkMQTT();
+      // Wait for connection to MQTT (because we need it to send messages to the broker).
+      if (!mqttPublisherClient.connected())
+      {
+        reconnect();
+      }
 
-      if (PingDelayInMilliseconds > 0) {
+      if (PingDelayInMilliseconds > 0 && millis() - lastPing >= PingDelayInMilliseconds) {
+        lastPing = millis();
+
         // Send a ping message.
-        sendMessage("<PING>");
+        sendMessage("roc2bricks/ping", mattzoControllerName_char);
       }
 
       // Send any queued messages.
       sendMessages();
+
+      // Allow the MQTT client to process incoming messages (not relevant for a publisher) and maintain its connection to the server.
+      mqttPublisherClient.loop();
 
       // Wait a while before trying again (allowing other tasks to do their work).
       vTaskDelay(SendMessageDelayInMilliseconds / portTICK_PERIOD_MS);
@@ -149,9 +209,11 @@ private:
 };
 
 // Initialize static members.
+int MattzoMQTTPublisher::ReconnectDelayInMilliseconds = 5000;
 int MattzoMQTTPublisher::PingDelayInMilliseconds = 1000;
 int MattzoMQTTPublisher::SendMessageDelayInMilliseconds = 500;
 uint8_t MattzoMQTTPublisher::TaskPriority = 1;
 int8_t MattzoMQTTPublisher::CoreID = 0;
 uint32_t MattzoMQTTPublisher::StackDepth = 2048;
 bool MattzoMQTTPublisher::setupCompleted = false;
+unsigned long MattzoMQTTPublisher::lastPing = millis();
