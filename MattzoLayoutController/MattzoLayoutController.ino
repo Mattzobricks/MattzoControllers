@@ -63,10 +63,11 @@ enum struct BridgeStatus
   STOPPED = 0x1,
   CLOSED = 0x2,
   OPENING = 0x3,
-  OPEN = 0x4,
-  CLOSING = 0x5,
-  CLOSING2 = 0x6,
-  ERRoR = 0x7,             // error condition
+  OPENING2 = 0x4,
+  OPEN = 0x5,
+  CLOSING = 0x6,
+  CLOSING2 = 0x7,
+  ERRoR = 0x8,             // error condition
   NO_TIMED_EVENT = 0x10,   // for timed events: no timed event pending
   COMMAND_PENDING = 0x11   // a bridge command was received, which has not been used to set a new bridge state
 };
@@ -542,6 +543,12 @@ void setBridgeLights() {
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, blinkState);
     break;
+  case BridgeStatus::OPENING2:
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, false);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, true);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, flashState);
+    break;
   case BridgeStatus::OPEN:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
@@ -614,12 +621,23 @@ void basculeBridgeLoop() {
 
       case BridgeStatus::OPENING:
         if (sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
-          mcLog2("Bridge is now open.", LOG_DEBUG);
-          newBridgeStatus = BridgeStatus::OPEN;
-          bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
+          if (BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS > 0) {
+            // continue opening for BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS milliseconds
+            mcLog2("Bridge almost opening...", LOG_DEBUG);
+            newBridgeStatus = BridgeStatus::OPENING2;
+            // add timed state change
+            bridge.nextBridgeStatus = BridgeStatus::OPEN;
+            bridge.nextEventTime_ms = millis() + BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS;
+          }
+          else {
+            mcLog2("Bridge open.", LOG_DEBUG);
+            newBridgeStatus = BridgeStatus::OPEN;
+            bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
+          }
         }
         break;
 
+      case BridgeStatus::OPENING2:
       case BridgeStatus::OPEN:
       case BridgeStatus::STOPPED:
       case BridgeStatus::ERRoR:
@@ -707,6 +725,10 @@ void basculeBridgeLoop() {
     case BridgeStatus::OPENING:
       mcLog2("Setting new bridge status OPENING.", LOG_DEBUG);
       setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP);
+      break;
+    case BridgeStatus::OPENING2:
+      mcLog2("Setting new bridge status OPENING2.", LOG_DEBUG);
+      setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP2);
       break;
     case BridgeStatus::CLOSING:
       mcLog2("Setting new bridge status CLOSING.", LOG_DEBUG);
