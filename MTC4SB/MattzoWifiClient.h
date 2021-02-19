@@ -21,11 +21,6 @@
 // Included libraries
 // ******************
 
-// MattzoController network configuration
-// the following file needs to be moved into the Arduino library folder
-#include <MattzoController_Network_Configuration.h>
-#include "MattzoController_Library.h"
-
 // Arduino OTA library
 // Install via the built-in Library Manager of the Arduino IDE
 // Tested with Version V1.0.5
@@ -48,8 +43,16 @@ public:
   //static void Setup(const char* hostName) {
   static void Setup() {
     if (setupCompleted) {
-      Serial.println("Setup already completed!");
+      Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup already completed!");
       return;
+    }
+
+    if (setupInitiated) {
+      Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup already initiated!");
+      return;
+    }
+    else {
+      setupInitiated = true;
     }
 
 #if defined(ESP8266)
@@ -113,10 +116,12 @@ public:
 
 private:
 
+  static bool setupInitiated;
   static bool setupCompleted;
   static bool wasConnected;
 };
 
 // Initialize static members.
+bool MattzoWifiClient::setupInitiated = false;
 bool MattzoWifiClient::setupCompleted = false;
 bool MattzoWifiClient::wasConnected = false;

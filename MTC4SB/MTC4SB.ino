@@ -16,7 +16,13 @@
 
 //#include <NimBLEDevice.h>
 
+// MattzoController network configuration (the following file needs to be moved into the Arduino library folder):
+#include <MattzoController_Network_Configuration.h>
+
+#include "MattzoController_Library.h"
+#include "MattzoWifiClient.h"
 #include "MattzoMQTTPublisher.h"
+#include "MattzoMQTTSubscriber.h"
 #include "SBrickConst.h"
 #include "SBrick.h"
 
@@ -45,6 +51,16 @@ void connectSBricks() {
   }
 }
 
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  char msg[length + 1];
+  for (int i = 0; i < length; i++) {
+    msg[i] = (char)payload[i];
+  }
+  msg[length] = '\0';
+
+  Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message [" + String(topic) + "]: " + String(msg));
+}
+
 void setup() {
   // Configure Serial.
   Serial.begin(115200);
@@ -54,8 +70,14 @@ void setup() {
   Serial.println();
   Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Starting MattzoTrainController for SBrick...");
 
+  // Setup Mattzo controller.
+  setupMattzoController();
+
   // Setup MQTT publisher.
   MattzoMQTTPublisher::Setup(12);
+
+  // Setup MQTT subscriber.
+  MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
 
   /** Initialize SBrick, device address specified as we are advertising */
   //sbrick.init(SBRICK_ADDRESS);
@@ -75,7 +97,7 @@ void loop() {
   }
 
   // Wait before trying again.
-  vTaskDelay(325 / portTICK_PERIOD_MS);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
   //connectSBricks();
 }

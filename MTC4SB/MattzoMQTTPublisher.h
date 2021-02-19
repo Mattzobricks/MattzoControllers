@@ -3,8 +3,6 @@
 // Tested with Version V2.8.0
 #include <PubSubClient.h>
 
-#include "MattzoWifiClient.h"
-
 static QueueHandle_t msg_queue;
 
 WiFiClient wifiPublisherClient;
@@ -75,11 +73,15 @@ public:
     mqttPublisherClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
     mqttPublisherClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);
 
+    // Construct publisher name.
+    publisherName = String(mattzoControllerName_char);
+    publisherName.concat("Publisher");
+    
     // Create a queue with a fixed length that will hold pointers to MQTT messages.
     msg_queue = xQueueCreate(messageQueueLength, sizeof(char*));
 
     // Start task loop.
-    xTaskCreatePinnedToCore(taskLoop, "Publish Messages", StackDepth, NULL, TaskPriority, NULL, CoreID);
+    xTaskCreatePinnedToCore(taskLoop, "MQTTPublisher", StackDepth, NULL, TaskPriority, NULL, CoreID);
 
     // Setup completed.
     setupCompleted = true;
@@ -109,6 +111,7 @@ public:
 private:
 
   static bool setupCompleted;
+  static String publisherName;
 
   // Time of the last sent ping.
   static unsigned long lastPing;
@@ -143,7 +146,7 @@ private:
   /// </summary>
   static void reconnect() {
     while (!mqttPublisherClient.connected()) {
-      Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Attempting to connect...");
+      Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Publisher attempting to connect...");
 
       String lastWillMessage;
       if (TRIGGER_EBREAK_UPON_DISCONNECT) {
@@ -155,11 +158,11 @@ private:
       char lastWillMessage_char[lastWillMessage.length() + 1];
       lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-      if (mqttPublisherClient.connect(mattzoControllerName_char, "rocrail/service/command", 0, false, lastWillMessage_char)) {
-        Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Connected");
+      if (mqttPublisherClient.connect(publisherName.c_str(), "rocrail/service/command", 0, false, lastWillMessage_char)) {
+        Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Publisher connected");
       }
       else {
-        Serial.print("[" + String(xPortGetCoreID()) + "] MQTT: Connect failed, rc=");
+        Serial.print("[" + String(xPortGetCoreID()) + "] MQTT: Publisher connect failed, rc=");
         Serial.print(mqttPublisherClient.state());
         Serial.println(". Try again in a few seconds...");
         
@@ -193,7 +196,7 @@ private:
         lastPing = millis();
 
         // Send a ping message.
-        sendMessage("roc2bricks/ping", mattzoControllerName_char);
+        sendMessage("roc2bricks/ping", publisherName.c_str());
       }
 
       // Send any queued messages.
@@ -217,3 +220,4 @@ int8_t MattzoMQTTPublisher::CoreID = 0;
 uint32_t MattzoMQTTPublisher::StackDepth = 2048;
 bool MattzoMQTTPublisher::setupCompleted = false;
 unsigned long MattzoMQTTPublisher::lastPing = millis();
+String MattzoMQTTPublisher::publisherName = String("Unknown");
