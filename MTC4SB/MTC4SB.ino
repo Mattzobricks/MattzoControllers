@@ -73,8 +73,8 @@ void setup() {
   // Setup Mattzo controller.
   setupMattzoController();
 
-  // Setup MQTT publisher.
-  MattzoMQTTPublisher::Setup(12);
+  // Setup MQTT publisher (with a queue that can hold 1000 messages).
+  MattzoMQTTPublisher::Setup(1000);
 
   // Setup MQTT subscriber.
   MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);

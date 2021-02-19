@@ -166,7 +166,7 @@ private:
         Serial.print(mqttPublisherClient.state());
         Serial.println(". Try again in a few seconds...");
         
-        // Wait w litte while before retrying.
+        // Wait a litte while before retrying.
         vTaskDelay(ReconnectDelayInMilliseconds / portTICK_PERIOD_MS);
       }
     }
@@ -212,7 +212,7 @@ private:
 };
 
 // Initialize static members.
-int MattzoMQTTPublisher::ReconnectDelayInMilliseconds = 5000;
+int MattzoMQTTPublisher::ReconnectDelayInMilliseconds = 1000;
 int MattzoMQTTPublisher::PingDelayInMilliseconds = 1000;
 int MattzoMQTTPublisher::SendMessageDelayInMilliseconds = 500;
 uint8_t MattzoMQTTPublisher::TaskPriority = 1;
