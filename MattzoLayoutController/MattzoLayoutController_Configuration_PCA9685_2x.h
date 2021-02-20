@@ -27,7 +27,7 @@
 // Usage:
 // - If a USE_PCA9685 port expander is connected to your ESP8266, set USE_PCA9685 to true.
 // Wiring:
-// - PCA9685 is usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
+// - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - V+ is sourced from VIN of the ESP8266
 // -- VIN should be between 5 and 6 Volts.
@@ -60,6 +60,37 @@ const uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 2
+
+
+// Infos for I/O port expander MCP23017
+// Usage:
+// - If a MCP23017 I/O port expander is connected to your ESP8266, set USE_MCP23017 to true.
+// Wiring:
+// - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
+// - VCC is sourced from V3V of the ESP8266.
+// - GND is connected to GND of the ESP8266 (mandatory!).
+// - RESET ís connected with an 10K resistor to VCC
+// - Address ports A0, A1 and A2 according to the desired address (0x20, 0x21, ...). All connected to GND means address 0x20.
+// Ports:
+// - The ports of the are numbered as follows:
+// - A0..A7: 0..7
+// - B0..B7: 8..15
+// Chaining:
+// - Both MCP23017 and the firmware support chaining.
+// - Board 1 has the address 0x20, the second one 0x21 etc.
+// - Up to 8 boards can be connected.
+// Sensors:
+// - Connecting sensors to the MCP23017 is simple.
+// - Just connect one of of the cable pair to GND, the other one to one of the ports of the MCP23017.
+
+
+// MCP23017 WIRING CONFIGURATION
+
+// MCP23017 port expander used?
+#define USE_MCP23017 false
+
+// Number of chained PCA9685 port extenders
+#define NUM_MCP23017s 1
 
 
 // SWITCH WIRING CONFIGURATION
@@ -109,10 +140,14 @@ boolean LOGICAL_SWITCHPORT_REV_2ND_PORT[NUM_LOGICAL_SWITCHPORTS] = { false, fals
 // Number of signal ports (the number of signal LEDs, not the number of signals!)
 const int NUM_SIGNALPORTS = 16;
 
-// Digital pins for signal LEDs
+// Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
 uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 8, 9, 10, 11, 12, 13, 14, 15, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-// Type of digital output pins for signal LEDs (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
+// Type of digital output pins for signal LEDs
+// 0   : pins on the ESP-8266
+// 0x40: ports on the 1st PCA9685
+// 0x41: ports on the 2nd PCA9685
+// 0x42: ports on the 3rd PCA9685 etc.
 uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41 };
 
 

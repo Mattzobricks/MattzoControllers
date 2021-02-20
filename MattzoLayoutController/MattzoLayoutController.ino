@@ -9,12 +9,11 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration_MCP23017.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
 #include <Wire.h>                                 // Built-in library for I2C
-#include <Adafruit_PWMServoDriver.h>              // Adafruit PWM Servo Driver Library for PCA9685 port expander. Tested with version 2.4.0.
 #endif
 
 // SERVO VARIABLES AND CONSTANTS
@@ -24,8 +23,14 @@ Servo servo[NUM_SWITCHPORTS];
 
 // Create PWM Servo Driver object (for PCA9685)
 #if USE_PCA9685
+#include <Adafruit_PWMServoDriver.h>              // Adafruit PWM Servo Driver Library for PCA9685 port expander. Tested with version 2.4.0.
 Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+#endif
+
+#if USE_MCP23017
+#include "Adafruit_MCP23017.h"
+Adafruit_MCP23017 mcp23017[NUM_MCP23017s];
 #endif
 
 
@@ -98,6 +103,10 @@ void setup() {
   }
 #endif
 
+#if USE_MCP23017
+  setupMCP23017();
+#endif
+
   // initialize servo pins and turn servos to start position
   for (int i = 0; i < NUM_SWITCHPORTS; i++) {
     if (SWITCHPORT_PIN_TYPE[i] == 0) {
@@ -126,9 +135,21 @@ void setup() {
 
   // initialize sensor pins
   for (int i = 0; i < NUM_SENSORS; i++) {
-    pinMode(SENSOR_PIN[i], INPUT_PULLUP);
+    if (SENSOR_PIN_TYPE[i] == 0) {
+      // sensor connected directly to the controller
+      pinMode(SENSOR_PIN[i], INPUT_PULLUP);
+      sensorTriggerState[i] = (SENSOR_PIN[i] == D8) ? HIGH : LOW;
+    }
+    else if (SENSOR_PIN_TYPE[i] >= 0x20) {
+      // sensor connected to MCP23017
+#if USE_MCP23017
+      int m = SENSOR_PIN_TYPE[i] - 0x20;  // index of the MCP23017
+      mcp23017[m].pinMode(SENSOR_PIN[i], INPUT);
+      mcp23017[m].pullUp(SENSOR_PIN[i], HIGH); // turn on a 100K pull-up resistor internally
+      sensorTriggerState[i] = LOW;
+#endif
+    }
     sensorState[i] = false;
-    sensorTriggerState[i] = (SENSOR_PIN[i] == D8) ? HIGH : LOW;
   }
 
   // load config from EEPROM, initialize Wifi, MQTT etc.
@@ -154,6 +175,15 @@ void setupPCA9685() {
 }
 #endif
 
+#if USE_MCP23017
+void setupMCP23017() {
+  for (int m = 0; m < NUM_MCP23017s; m++) {
+    mcp23017[m] = Adafruit_MCP23017();
+    mcp23017[m].begin();
+  }
+}
+#endif
+
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length + 1];
   for (int i = 0; i < length; i++) {
@@ -161,19 +191,19 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   msg[length] = '\0';
 
-  mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
+  mcLog2("Received MQTT message [" + String(topic) + "]: " + String(msg), LOG_DEBUG);
 
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS){
-    mcLog("Error parsing.");
+    mcLog2("Error parsing XML: " + String(msg), LOG_ERR);
     return;
   }
-  mcLog("Parsing XML successful.");
+  mcLog2("Parsing XML successful.", LOG_DEBUG);
 
   XMLElement *element;
   element = xmlDocument.FirstChildElement("sw");
   if (element != NULL) {
-    mcLog("<sw> node found.");
+    mcLog2("<sw> node found.", LOG_DEBUG);
 
     // query addr1 attribute. This is the MattzoController id.
     // If this does not equal the mattzoControllerId of this controller, the message is disregarded.
@@ -182,7 +212,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog("addr1 attribute not found or wrong type. Message disregarded.");
       return;
     }
-    mcLog("addr1: " + String(rr_addr1));
+    mcLog2("addr1: " + String(rr_addr1), LOG_DEBUG);
     if (rr_addr1 != mattzoControllerId) {
       mcLog("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")");
       return;
@@ -192,55 +222,55 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // If the controller does not have such a port, the message is disregarded.
     int rr_port1 = 0;
     if (element->QueryIntAttribute("port1", &rr_port1) != XML_SUCCESS) {
-      mcLog("port1 attribute not found or wrong type. Message disregarded.");
+      mcLog2("port1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
     mcLog("port1: " + String(rr_port1));
     if (BASCULE_BRIDGE_CONNECTED && (rr_port1 == BASCULE_BRIDGE_RR_PORT)) {
-      mcLog("This is a bascule bridge command.");
+      mcLog2("This is a bascule bridge command.", LOG_DEBUG);
     }
     else if ((rr_port1 < 1 || rr_port1 > NUM_SWITCHPORTS) && (rr_port1 < 1001)) {
-      mcLog("Message disgarded, this controller does not have such a port.");
+      mcLog2("Message disgarded, this controller does not have such a port.", LOG_DEBUG);
       return;
     }
 
     // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
     const char* rr_cmd = "-unknown-";
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-      mcLog("cmd attribute not found or wrong type.");
+      mcLog2("cmd attribute not found or wrong type.", LOG_ERR);
       return;
     }
-    mcLog("cmd: " + String(rr_cmd));
+    mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
 
     // query param1 attribute. This is the "straight" position of the switch servo motor.
     // defaults to SERVO_MIN
     int rr_param1 = SERVO_MIN;
     if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
-      mcLog("param1 attribute not found or wrong type. Using default value.");
+      mcLog2("param1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
     }
     if (rr_param1 < SERVO_MIN_ALLOWED || rr_param1 > SERVO_MAX_ALLOWED) {
       // Reset angle back to standard if angle is too small
       // User has obviously forgotten to configure servo angle in Rocrail properly
       // To protect the servo, the default value is used
-      mcLog("param1 attribute out of bounds. Using default value.");
+      mcLog2("param1 attribute out of bounds. Using default value.", LOG_DEBUG);
       rr_param1 = SERVO_MIN;
     }
-    mcLog("param1: " + String(rr_param1));
+    mcLog2("param1: " + String(rr_param1), LOG_DEBUG);
 
     // query value1 attribute. This is the "turnout" position of the switch servo motor.
     // defaults to SERVO_MAX
     int rr_value1 = SERVO_MAX;
     if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
-      mcLog("value1 attribute not found or wrong type. Using default value.");
+      mcLog2("value1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
     }
     if (rr_value1 < SERVO_MIN_ALLOWED || rr_value1 > SERVO_MAX_ALLOWED) {
       // Reset angle back to standard if angle is too small
       // User has obviously forgotten to configure servo angle in Rocrail properly
       // To protect the servo, the default value is used
-      mcLog("value1 attribute out of bounds. Using default value.");
+      mcLog2("value1 attribute out of bounds. Using default value.", LOG_DEBUG);
       rr_value1 = SERVO_MAX;
     }
-    mcLog("value1: " + String(rr_value1));
+    mcLog2("value1: " + String(rr_value1), LOG_DEBUG);
 
     // check command string and prepare servo angle
     // servo angle will only be used to flip a standard or one side of a triple switch - not for double slip switches!
@@ -252,7 +282,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       switchCommand = 0;
     }
     else {
-      mcLog("Switch command unknown - message disregarded.");
+      mcLog2("Switch command unknown - message disregarded.", LOG_ERR);
       return;
     }
 
@@ -283,7 +313,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       }
 
       if (!logicalSwitchPortFound) {
-        mcLog("Error: logical port " + String(rr_port1) + " unknown.");
+        mcLog2("Error: logical port " + String(rr_port1) + " unknown.", LOG_ERR);
       }
     }
     else {
@@ -295,41 +325,41 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   element = xmlDocument.FirstChildElement("co");
   if (element != NULL) {
-    mcLog("<co> node found.");
+    mcLog2("<co> node found.", LOG_DEBUG);
 
     // query addr attribute. This is the MattzoController id.
     // If this does not equal the ControllerNo of this controller, the message is disregarded.
     int rr_addr = 0;
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-      mcLog("addr attribute not found or wrong type. Message disregarded.");
+      mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
-    mcLog("addr: " + String(rr_addr));
+    mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
     if (rr_addr != mattzoControllerId) {
-      mcLog("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")");
+      mcLog2("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")", LOG_ERR);
       return;
     }
 
-    // query port attribute. This is port id of the port to which the switch is connected.
+    // query port attribute. This is port id of the port to which the signal is connected.
     // If the controller does not have such a port, the message is disregarded.
     int rr_port = 0;
     if (element->QueryIntAttribute("port", &rr_port) != XML_SUCCESS) {
-      mcLog("port attribute not found or wrong type. Message disregarded.");
+      mcLog2("port attribute not found or wrong type. Message disregarded.", LOG_DEBUG);
       return;
     }
     mcLog("port: " + String(rr_port));
     if (rr_port < 1 || rr_port > NUM_SIGNALPORTS) {
-      mcLog("Message disgarded, as this controller does not have such a port.");
+      mcLog2("Message disgarded, as this controller does not have such a port.", LOG_DEBUG);
       return;
     }
 
     // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
     const char* rr_cmd = "-unknown-";
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-      mcLog("cmd attribute not found or wrong type.");
+      mcLog2("cmd attribute not found or wrong type.", LOG_ERR);
       return;
     }
-    mcLog("cmd: " + String(rr_cmd));
+    mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
 
     // set signal LED for the port on/off
     if (strcmp(rr_cmd, "on") == 0) {
@@ -341,13 +371,13 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       setSignalLED(rr_port - 1, false);
     }
     else {
-      mcLog("Signal port command unknown - message disregarded.");
+      mcLog2("Signal port command unknown - message disregarded.", LOG_ERR);
     }
     return;
     // end of signal handling
   }
 
-  mcLog("No <sw> or <co> node found. Message disregarded.");
+  mcLog2("No <sw> or <co> node found. Message disregarded.", LOG_DEBUG);
 }
 
 void sendSensorEvent2MQTT(int sensorPort, int sensorState) {
@@ -389,7 +419,18 @@ void setLEDBySensorStates() {
 
 void monitorSensors() {
   for (int i = 0; i < NUM_SENSORS; i++) {
-    int sensorValue = digitalRead(SENSOR_PIN[i]);
+    int sensorValue;
+    if (SENSOR_PIN_TYPE[i] == 0) {
+      // sensor directly connected to ESP8266
+      sensorValue = digitalRead(SENSOR_PIN[i]);
+    }
+    else if (SENSOR_PIN_TYPE[i] >= 0x20) {
+      // sensor connected to MCP23017
+#if USE_MCP23017
+      int m = SENSOR_PIN_TYPE[i] - 0x20;  // index of the MCP23017
+      sensorValue = mcp23017[m].digitalRead(SENSOR_PIN[i]);
+#endif
+    }
 
     if (sensorValue == sensorTriggerState[i]) {
       // Contact -> report contact immediately

@@ -62,6 +62,37 @@ const uint8_t PCA9685_OE_PIN = D0;
 #define NUM_PCA9685s 1
 
 
+// Infos for I/O port expander MCP23017
+// Usage:
+// - If a MCP23017 I/O port expander is connected to your ESP8266, set USE_MCP23017 to true.
+// Wiring:
+// - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
+// - VCC is sourced from V3V of the ESP8266.
+// - GND is connected to GND of the ESP8266 (mandatory!).
+// - RESET ís connected with an 10K resistor to VCC
+// - Address ports A0, A1 and A2 according to the desired address (0x20, 0x21, ...). All connected to GND means address 0x20.
+// Ports:
+// - The ports of the are numbered as follows:
+// - A0..A7: 0..7
+// - B0..B7: 8..15
+// Chaining:
+// - Both MCP23017 and the firmware support chaining.
+// - Board 1 has the address 0x20, the second one 0x21 etc.
+// - Up to 8 boards can be connected.
+// Sensors:
+// - Connecting sensors to the MCP23017 is simple.
+// - Just connect one of of the cable pair to GND, the other one to one of the ports of the MCP23017.
+
+
+// MCP23017 WIRING CONFIGURATION
+
+// MCP23017 port expander used?
+#define USE_MCP23017 false
+
+// Number of chained PCA9685 port extenders
+#define NUM_MCP23017s 1
+
+
 // SWITCH WIRING CONFIGURATION
 
 // PHYSICAL SWITCH PORTS
