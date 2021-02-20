@@ -58,6 +58,9 @@
 bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
 uint8_t PCA9685_OE_PIN = D0;
 
+// Number of chained PCA9685 port extenders
+#define NUM_PCA9685s 1
+
 
 // SWITCH WIRING CONFIGURATION
 
