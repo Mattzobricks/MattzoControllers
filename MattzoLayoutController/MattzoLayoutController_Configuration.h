@@ -36,7 +36,8 @@
 // - Connecting GND is mandatory.
 // - OE should also be connected. If pulled high, servo power is switched off. Good to preserve your servos. Cabling is usually easiest if pin D0 is used as OE.
 // Chaining:
-// - PCA9685 supports chaining. However, this is not supported in this firmware yet. Only board 0x40 is usable at this time.
+// - Both PCA9685 and the firmware support chaining.
+// - Board 1 has the address 0x40, the second one 0x41 etc.
 // Servos:
 // - Just connect the servos as designed. Servos connected to PCA9685 must be mapped in SWITCHPORT_PIN_PCA9685.
 // Signals:
@@ -124,6 +125,45 @@ uint8_t SENSOR_PIN[NUM_SENSORS] = { D7 };
 // Digital output pin to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;
+
+
+// BASCULE BRIDGE CONFIGURATION
+
+// General switch for bascule bridge (false = no bridge connected; true = bridge connected)
+bool BASCULE_BRIDGE_CONNECTED = false;
+
+// Port configured for the bascule bridge in Rocrail
+const int BASCULE_BRIDGE_RR_PORT = 1;
+
+// Motor shield pins for bridge motor direction control
+const int BASCULE_BRIDGE_MS_IN1 = D0;  // forward
+const int BASCULE_BRIDGE_MS_IN2 = D1;  // reverse
+
+// Motor power settings for bridge operations
+const int BASCULE_BRIDGE_POWER_UP = 1023;  // Motor power for pulling the bridge up (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_UP2 = 512;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_DOWN = 1023;  // Motor power for letting the bridge down (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_DOWN2 = 512;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 1023)
+
+// Signal ports (set to -1 for "not connected")
+const int BASCULE_BRIDGE_SIGNAL_RIVER_STOP = 0;  // signal port that is activated when bridge is not in the "up" position (index in the SIGNALPORT_PIN array)
+const int BASCULE_BRIDGE_SIGNAL_RIVER_PREP = 1;  // signal port that is activated in addition to the "stop" port when bridge is opening (index in the SIGNALPORT_PIN array)
+const int BASCULE_BRIDGE_SIGNAL_RIVER_GO = 2;  // signal port that is activated when bridge has reached the "up" position (index in the SIGNALPORT_PIN array)
+const int BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT = 3;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
+
+// Sensor ports
+const int BASCULE_BRIDGE_SENSOR_DOWN = 0;  // sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_UP = 1;  // sensor that indicates "bridge up" (index in the SENSOR_PIN array)
+
+// Timings (in milli seconds)
+// Maximum allowed time for opening the bridge until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
+const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 45000;
+// Maximum allowed time for closing the bridge until the closing sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
+const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 45000;
+// Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 2000;
+// Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 
 
 // ****************

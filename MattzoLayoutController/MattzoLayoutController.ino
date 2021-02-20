@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration_BasculeBridge.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -24,7 +24,7 @@ Servo servo[NUM_SWITCHPORTS];
 
 // Create PWM Servo Driver object (for PCA9685)
 #if USE_PCA9685
-Adafruit_PWMServoDriver pca9685 = Adafruit_PWMServoDriver();  // only board 0x40 is supported in this version of the firmware
+Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #endif
 
@@ -106,7 +106,7 @@ void setup() {
       servo[i].write(SERVO_START);
       delay(SWITCH_DELAY);
     }
-    else if (SWITCHPORT_PIN_TYPE[i] == 0x40) {
+    else if (SWITCHPORT_PIN_TYPE[i] >= 0x40) {
       // servo connected to PCA9685
       // no action required
     }
@@ -118,7 +118,7 @@ void setup() {
       // signal connected directly to the controller
       pinMode(SIGNALPORT_PIN[i], OUTPUT);
     }
-    else if (SIGNALPORT_PIN_TYPE[i] == 0x40) {
+    else if (SIGNALPORT_PIN_TYPE[i] >= 0x40) {
       // signal connected to PCA9685
       // no action required
     }
@@ -144,10 +144,13 @@ void setup() {
 #if USE_PCA9685
 void setupPCA9685() {
   // Initialize PWM Servo Driver object (for PCA9685)
-  pca9685.begin();
-  pca9685.setOscillatorFrequency(27000000);
-  pca9685.setPWMFreq(SERVO_FREQ);
-  delay(10);
+  for (int p = 0; p < NUM_PCA9685s; p++) {
+    pca9685[p] = Adafruit_PWMServoDriver(0x40 + p);
+    pca9685[p].begin();
+    pca9685[p].setOscillatorFrequency(27000000);
+    pca9685[p].setPWMFreq(SERVO_FREQ);
+    delay(10);
+  }
 }
 #endif
 
@@ -418,9 +421,9 @@ void setServoAngle(int servoIndex, int servoAngle) {
       servo[servoIndex].write(servoAngle);
     }
 #if USE_PCA9685
-    else if (SWITCHPORT_PIN_TYPE[servoIndex] == 0x40) {
+    else if (SWITCHPORT_PIN_TYPE[servoIndex] >= 0x40) {
       setServoSleepMode(false);
-      pca9685.setPWM(SWITCHPORT_PIN[servoIndex], 0, mapAngle2PulseLength(servoAngle));
+      pca9685[SWITCHPORT_PIN_TYPE[servoIndex] - 0x40].setPWM(SWITCHPORT_PIN[servoIndex], 0, mapAngle2PulseLength(servoAngle));
     }
 #endif
     delay(SWITCH_DELAY);
@@ -431,7 +434,7 @@ void setServoAngle(int servoIndex, int servoAngle) {
   }
 }
 
-// converts a desired servo angle (0� - 180�) into a pwm pulse length (required for PCA9685)
+// converts a desired servo angle (0 .. 180 degrees) into a pwm pulse length (required for PCA9685)
 int mapAngle2PulseLength(int angle) {
   const int PULSE_MIN = 0;
   const int PULSE_MAX = 600;
@@ -469,18 +472,18 @@ void setSignalLED(int signalIndex, bool ledState) {
     digitalWrite(SIGNALPORT_PIN[signalIndex], ledState ? LOW : HIGH);
   }
 #if USE_PCA9685
-  else if (SIGNALPORT_PIN_TYPE[signalIndex] == 0x40) {
+  else if (SIGNALPORT_PIN_TYPE[signalIndex] >= 0x40) {
     if (ledState) {
       // full bright
-      pca9685.setPWM(SIGNALPORT_PIN[signalIndex], 4096, 0);
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 4096, 0);
       // half bright (strongly dimmed)
-      // pca9685.setPWM(SIGNALPORT_PIN[signalIndex], 0, 2048);
+      // pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 2048);
       // 3/4 bright (slightly dimmed)
-      // pca9685.setPWM(SIGNALPORT_PIN[signalIndex], 0, 3072);
+      // pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 3072);
     }
     else {
       // off
-      pca9685.setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096);
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096);
     }
   }
 #endif
