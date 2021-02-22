@@ -101,11 +101,13 @@ const int NUM_SWITCHPORTS = 4;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
 uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3 };
-// uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
-// Type of digital output pins for switch servos (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
+// Type of digital output pins for switch servos
+// 0   : pins on the ESP-8266
+// 0x40: ports on the 1st PCA9685
+// 0x41: ports on the 2nd PCA9685
+// 0x42: ports on the 3rd PCA9685 etc.
 uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0 };
-// uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -136,22 +138,24 @@ boolean LOGICAL_SWITCHPORT_REV_2ND_PORT[NUM_LOGICAL_SWITCHPORTS] = { false, fals
 // Number of signal ports (the number of signal LEDs, not the number of signals!)
 const int NUM_SIGNALPORTS = 2;
 
-// Digital pins for signal LEDs
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D5, D6 };
-// uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 8, 9, 10, 11, 12, 13, 14, 15 };
+// Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
 
-// Type of digital output pins for signal LEDs (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
+// Type of digital output pins for signal LEDs
+// 0   : pins on the ESP-8266
+// 0x40: ports on the 1st PCA9685
+// 0x41: ports on the 2nd PCA9685
+// 0x42: ports on the 3rd PCA9685 etc.
 uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
-// uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
 
 
 // SENSOR WIRING CONFIGURATION
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 1;
+const int NUM_SENSORS = 2;
 
 // Digital input PINs for hall, reed or other digital sensors
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D7 };
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7 };
 
 
 // STATUS LED WIRING CONFIGURATION
