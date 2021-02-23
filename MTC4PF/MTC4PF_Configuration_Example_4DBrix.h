@@ -103,6 +103,14 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 const int NUM_MOTORSHIELDS = 6;
 
 // List of motor shields that are controlled by this controller
+// The parameters have the following meaning:
+// - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
+// - motorShieldType: motor shield type
+// - minArduinoPower: minimum power setting for Arduino based motor shields
+// - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023)
+// - configMotorA: turning direction of motor A
+// - configMotorB: turning direction of motor B
+// - locoAddress: loco that this motor shields is attached to
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
