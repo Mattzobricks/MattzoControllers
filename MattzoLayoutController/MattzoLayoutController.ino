@@ -556,6 +556,31 @@ void setSignalLED(int signalIndex, bool ledState) {
 #endif
 }
 
+// fades a signal. "brightness" is a value between 0 (off) and 1023 (full bright)
+void fadeSignalLED(int signalIndex, int brightness) {
+  if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
+    analogWrite(SIGNALPORT_PIN[signalIndex], 1023 - brightness);
+  }
+#if USE_PCA9685
+  // WARNING: UNTESTED CODE (begin)!
+  else if (SIGNALPORT_PIN_TYPE[signalIndex] >= 0x40) {
+    if (brightness == 1023) {
+      // full bright
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096);
+    }
+    else if (brightness == 0) {
+      // off
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 4096, 0);
+    }
+    else {
+      // some other brightness value
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096 - brightness * 4);
+    }
+  }
+  // WARNING: UNTESTED CODE (end)!
+#endif
+}
+
 
 // copy level crossing command to level crossing object
 void levelCrossingCommand(int levelCrossingCommand) {
@@ -569,14 +594,14 @@ void levelCrossingCommand(int levelCrossingCommand) {
     levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
     levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
     levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
-    mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS) + " deg/ms.", LOG_INFO);
+    mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
   }
   else if (levelCrossingCommand == 1) { // closed
     levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
     levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
     levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
     levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_CLOSING_PERIOD_MS;
-    mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS) + " deg/ms.", LOG_INFO);
+    mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
   }
 
   levelCrossing.lastStatusChangeTime_ms = millis();
@@ -601,7 +626,7 @@ void boomBarrierLoop() {
     else {
       newServoAnglePrimaryBooms = max(levelCrossing.servoAnglePrimaryBooms - servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
     }
-    mcLog2("Primary booms angle: " + String(newServoAnglePrimaryBooms), LOG_INFO);
+    mcLog2("Primary booms angle: " + String(newServoAnglePrimaryBooms), LOG_DEBUG);
 
     levelCrossing.servoAnglePrimaryBooms = newServoAnglePrimaryBooms;
   }
@@ -615,7 +640,7 @@ void boomBarrierLoop() {
     else if (levelCrossing.servoAngleSecondaryBooms > levelCrossing.servoTargetAngleSecondaryBooms) {
       newServoAngleSecondaryBooms = max(levelCrossing.servoAngleSecondaryBooms - servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
     }
-    mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_INFO);
+    mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_DEBUG);
 
     levelCrossing.servoAngleSecondaryBooms = newServoAngleSecondaryBooms;
   }
@@ -629,19 +654,31 @@ void boomBarrierLoop() {
 
 void levelCrossingLightLoop() {
   // alternate all signal LEDs every LC_SIGNAL_FLASH_PERIOD_MS / 2 milliseconds
-  bool alternate = (millis() % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
+  unsigned long now = millis();
+  bool alternate = (now % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
+
   for (int s = 0; s < NUM_LC_SIGNALS; s++) {
-    setSignalLED(LC_SIGNAL_PIN[s], levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && ((s % 2) == 0) ^ alternate);
+    bool onOff = ((s % 2) == 0) ^ alternate;
+
+    if (LC_SIGNALS_FADING) {
+      int brightness = 0;
+      if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) {
+        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -1023, 1023);
+        brightness = max(brightness, 0);
+      }
+      fadeSignalLED(LC_SIGNAL_PIN[s], brightness);
+    } else {
+      setSignalLED(LC_SIGNAL_PIN[s], levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && onOff);
+    }
   }
 }
 
 // main level crossing control loop
 void levelCrossingLoop() {
-  if (!LEVEL_CROSSING_CONNECTED)
-    return;
-
-  boomBarrierLoop();
-  levelCrossingLightLoop();
+  if (LEVEL_CROSSING_CONNECTED) {
+    boomBarrierLoop();
+    levelCrossingLightLoop();
+  }
 }
 
 

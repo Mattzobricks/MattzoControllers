@@ -212,7 +212,10 @@ const int NUM_LC_SIGNALS = 4;
 uint8_t LC_SIGNAL_PIN[NUM_LC_SIGNALS] = { 0, 1, 2, 3 };
 
 // Signal flash period in milliseconds (full cycle).
-const unsigned int LC_SIGNAL_FLASH_PERIOD_MS = 1000;
+const unsigned int LC_SIGNAL_FLASH_PERIOD_MS = 2000;
+
+// Set to true to enable signal fading (brightens and fades lights gradully for enhanced realism)
+const bool LC_SIGNALS_FADING = true;
 
 
 // BASCULE BRIDGE CONFIGURATION
