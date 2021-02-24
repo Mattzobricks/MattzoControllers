@@ -154,8 +154,15 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 // Number of sensors connected or connectable to the controller
 const int NUM_SENSORS = 2;
 
-// Digital input PINs for hall, reed or other digital sensors
+// Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7 };
+
+// Type of digital input pins for sensors
+// 0   : pins on the ESP-8266
+// 0x20: ports on the 1st MCP23017
+// 0x21: ports on the 2nd MCP23017
+// 0x22: ports on the 3rd MCP23017 etc.
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0 };
 
 
 // STATUS LED WIRING CONFIGURATION

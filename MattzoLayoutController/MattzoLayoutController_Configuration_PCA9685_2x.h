@@ -159,6 +159,13 @@ const int NUM_SENSORS = 5;
 // Digital input PINs for hall, reed or other digital sensors
 uint8_t SENSOR_PIN[NUM_SENSORS] = { D3, D4, D5, D6, D7 };
 
+// Type of digital input pins for sensors
+// 0   : pins on the ESP-8266
+// 0x20: ports on the 1st MCP23017
+// 0x21: ports on the 2nd MCP23017
+// 0x22: ports on the 3rd MCP23017 etc.
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, 0 };
+
 
 // STATUS LED WIRING CONFIGURATION
 
