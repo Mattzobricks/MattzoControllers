@@ -558,6 +558,8 @@ void setSignalLED(int signalIndex, bool ledState) {
 
 // fades a signal. "brightness" is a value between 0 (off) and 1023 (full bright)
 void fadeSignalLED(int signalIndex, int brightness) {
+  brightness = min(max(brightness, 0), 1023);
+  
   if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
     analogWrite(SIGNALPORT_PIN[signalIndex], 1023 - brightness);
   }
@@ -663,7 +665,7 @@ void levelCrossingLightLoop() {
     if (LC_SIGNALS_FADING) {
       int brightness = 0;
       if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) {
-        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -1023, 1023);
+        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -768, 1280);
         brightness = max(brightness, 0);
       }
       fadeSignalLED(LC_SIGNAL_PIN[s], brightness);
