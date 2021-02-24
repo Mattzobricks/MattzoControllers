@@ -27,7 +27,7 @@
 // Usage:
 // - If a USE_PCA9685 port expander is connected to your ESP8266, set USE_PCA9685 to true.
 // Wiring:
-// - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
+// - PCA9685 is usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - V+ is sourced from VIN of the ESP8266
 // -- VIN should be between 5 and 6 Volts.
@@ -52,14 +52,14 @@
 // PCA9685 WIRING CONFIGURATION
 
 // PCA9685 port expander used?
-#define USE_PCA9685 true
+#define USE_PCA9685 false
 
 // PCA9685 OE pin supported?
-const bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
-const uint8_t PCA9685_OE_PIN = D0;
+bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
+uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained PCA9685 port extenders
-#define NUM_PCA9685s 2
+#define NUM_PCA9685s 1
 
 
 // Infos for I/O port expander MCP23017
@@ -69,7 +69,7 @@ const uint8_t PCA9685_OE_PIN = D0;
 // - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - GND is connected to GND of the ESP8266 (mandatory!).
-// - RESET ís connected with an 10K resistor to VCC
+// - RESET ï¿½s connected with an 10K resistor to VCC
 // - Address ports A0, A1 and A2 according to the desired address (0x20, 0x21, ...). All connected to GND means address 0x20.
 // Ports:
 // - The ports of the are numbered as follows:
@@ -97,19 +97,17 @@ const uint8_t PCA9685_OE_PIN = D0;
 
 // PHYSICAL SWITCH PORTS
 // Number of physical switch ports
-const int NUM_SWITCHPORTS = 16;
+const int NUM_SWITCHPORTS = 4;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-// uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3, D4, D5, D6, D7 };
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7 };
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3 };
 
 // Type of digital output pins for switch servos
 // 0   : pins on the ESP-8266
 // 0x40: ports on the 1st PCA9685
 // 0x41: ports on the 2nd PCA9685
 // 0x42: ports on the 3rd PCA9685 etc.
-// uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41 };
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0 };
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -138,33 +136,33 @@ boolean LOGICAL_SWITCHPORT_REV_2ND_PORT[NUM_LOGICAL_SWITCHPORTS] = { false, fals
 // SIGNAL WIRING CONFIGURATION
 
 // Number of signal ports (the number of signal LEDs, not the number of signals!)
-const int NUM_SIGNALPORTS = 16;
+const int NUM_SIGNALPORTS = 4;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 8, 9, 10, 11, 12, 13, 14, 15, 8, 9, 10, 11, 12, 13, 14, 15 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5, D6, D7 };
 
 // Type of digital output pins for signal LEDs
 // 0   : pins on the ESP-8266
 // 0x40: ports on the 1st PCA9685
 // 0x41: ports on the 2nd PCA9685
 // 0x42: ports on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41 };
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 0, 0 };
 
 
 // SENSOR WIRING CONFIGURATION
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 5;
+const int NUM_SENSORS = 0;
 
-// Digital input PINs for hall, reed or other digital sensors
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D3, D4, D5, D6, D7 };
+// Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
+uint8_t SENSOR_PIN[NUM_SENSORS] = { };
 
 // Type of digital input pins for sensors
 // 0   : pins on the ESP-8266
 // 0x20: ports on the 1st MCP23017
 // 0x21: ports on the 2nd MCP23017
 // 0x22: ports on the 3rd MCP23017 etc.
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, 0 };
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { };
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -177,7 +175,7 @@ uint8_t STATUS_LED_PIN = D8;
 // LEVEL CROSSING CONFIGURATION
 
 // General switch for level crossing (false = no level crossing connected; true = level crossing connected)
-bool LEVEL_CROSSING_CONNECTED = false;
+bool LEVEL_CROSSING_CONNECTED = true;
 
 // Port configured for the level crossing in Rocrail
 const int LEVEL_CROSSING_RR_PORT = 1;
@@ -264,11 +262,11 @@ const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 // ****************
 
 // Trigger emergency brake upon disconnect
-#define TRIGGER_EBREAK_UPON_DISCONNECT true
+#define TRIGGER_EBREAK_UPON_DISCONNECT false
 
 
 // ***************
 // Syslog settings
 // ***************
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MLC";
+const char* SYSLOG_APP_NAME = "MLCC";

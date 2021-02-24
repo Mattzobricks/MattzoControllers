@@ -163,13 +163,57 @@ uint8_t SENSOR_PIN[NUM_SENSORS] = { D3, D4, D5, D6, D7, 0, 1, 2, 3, 4, 5, 6, 7, 
 uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, 0, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
 
 
-
-
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;
+
+
+// LEVEL CROSSING CONFIGURATION
+
+// General switch for level crossing (false = no level crossing connected; true = level crossing connected)
+bool LEVEL_CROSSING_CONNECTED = false;
+
+// Port configured for the level crossing in Rocrail
+const int LEVEL_CROSSING_RR_PORT = 1;
+
+// Number of boom barriers configured for the level crossing
+const int NUM_BOOM_BARRIERS = 4;
+
+// Servo ports (indices in the SWITCHPORT_PIN array)
+uint8_t BOOM_BARRIER_SERVO_PIN[NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
+
+// Closing timespan for all boom barriers
+const unsigned int BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;
+// Delay until boom barriers index 2 and following start closing
+const unsigned int BOOM_BARRIER2_CLOSING_DELAY_MS = 1500;
+// Opening timespan for all boom barriers
+const unsigned int BOOM_BARRIER_OPENING_PERIOD_MS = 3000;
+
+// Servo angles for "up" and "down" positions (primary booms)
+const unsigned int BOOM_BARRIER_ANGLE_PRIMARY_UP = 0;
+const unsigned int BOOM_BARRIER_ANGLE_PRIMARY_DOWN = 87;
+
+// Servo angles for "up" and "down" positions (secondary booms)
+const unsigned int BOOM_BARRIER_ANGLE_SECONDARY_UP = 180;
+const unsigned int BOOM_BARRIER_ANGLE_SECONDARY_DOWN = 90;
+
+// set to true if there is left hand traffic on your roads.
+// If set to true, the primary booms can be placed on the left side of your level crossing
+const bool LEFT_HAND_TRAFFIC = false;
+
+// Number of signals configured for the level crossing
+const int NUM_LC_SIGNALS = 4;
+
+// Signal ports (indices in the SIGNALPORT_PIN array)
+uint8_t LC_SIGNAL_PIN[NUM_LC_SIGNALS] = { 0, 1, 2, 3 };
+
+// Signal flash period in milliseconds (full cycle).
+const unsigned int LC_SIGNAL_FLASH_PERIOD_MS = 2000;
+
+// Set to true to enable signal fading (brightens and fades lights gradully for enhanced realism)
+const bool LC_SIGNALS_FADING = true;
 
 
 // BASCULE BRIDGE CONFIGURATION

@@ -62,6 +62,26 @@ int sensorTriggerState[NUM_SENSORS];
 unsigned long lastSensorContact_ms[NUM_SENSORS];
 
 
+// LEVEL CROSSING VARIABLES AND CONSTANTS
+enum struct LevelCrossingStatus
+{
+  OPEN = 0x1,
+  CLOSED = 0x2,
+};
+
+struct LevelCrossing {
+  LevelCrossingStatus levelCrossingStatus = LevelCrossingStatus::OPEN;
+  unsigned long lastStatusChangeTime_ms = 0;
+
+  float servoAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
+  float servoAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
+  float servoAngleIncrementPerMS = 0;
+  float servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
+  float servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
+  unsigned long lastBoomBarrierTick_ms = 0;
+} levelCrossing;
+
+
 // BASCULE BRIDGE VARIABLES AND CONSTANTS
 enum struct BridgeStatus
 {
@@ -209,12 +229,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // If this does not equal the mattzoControllerId of this controller, the message is disregarded.
     int rr_addr1 = 0;
     if (element->QueryIntAttribute("addr1", &rr_addr1) != XML_SUCCESS) {
-      mcLog("addr1 attribute not found or wrong type. Message disregarded.");
+      mcLog2("addr1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
     mcLog2("addr1: " + String(rr_addr1), LOG_DEBUG);
     if (rr_addr1 != mattzoControllerId) {
-      mcLog("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")");
+      mcLog2("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")", LOG_DEBUG);
       return;
     }
 
@@ -225,7 +245,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog2("port1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
-    mcLog("port1: " + String(rr_port1));
+    mcLog2("port1: " + String(rr_port1), LOG_DEBUG);
     if (BASCULE_BRIDGE_CONNECTED && (rr_port1 == BASCULE_BRIDGE_RR_PORT)) {
       mcLog2("This is a bascule bridge command.", LOG_DEBUG);
     }
@@ -286,6 +306,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       return;
     }
 
+    // Check if port is used to control a level crossing
+    if (LEVEL_CROSSING_CONNECTED && (rr_port1 == LEVEL_CROSSING_RR_PORT)) {
+      levelCrossingCommand(switchCommand);
+      return;
+    }
+
     // Check if port is used to control a bascule bridge
     if (BASCULE_BRIDGE_CONNECTED && (rr_port1 == BASCULE_BRIDGE_RR_PORT)) {
       basculeBridgeCommand(switchCommand);
@@ -306,7 +332,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
           int servoAngle1 = (switchCommand == 1) ? rr_param1 : rr_value1;
           int servoAngle2 = (switchCommand == 1 ^ LOGICAL_SWITCHPORT_REV_2ND_PORT[i]) ? rr_param1 : rr_value1;
 
-          mcLog("Turning servos on logical port " + String(rr_port1) + "...");
+          mcLog2("Turning servos on logical port " + String(rr_port1) + "...", LOG_DEBUG);
           setServoAngle(servoPort1, servoAngle1);
           setServoAngle(servoPort2, servoAngle2);
         }
@@ -347,7 +373,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog2("port attribute not found or wrong type. Message disregarded.", LOG_DEBUG);
       return;
     }
-    mcLog("port: " + String(rr_port));
+    mcLog2("port: " + String(rr_port), LOG_DEBUG);
     if (rr_port < 1 || rr_port > NUM_SIGNALPORTS) {
       mcLog2("Message disgarded, as this controller does not have such a port.", LOG_DEBUG);
       return;
@@ -390,7 +416,7 @@ void sendSensorEvent2MQTT(int sensorPort, int sensorState) {
   //   address: port number (internal port number plus 1)
   // both id or bus/address can be used in Rocrail. If id is used, it superseeds the combination of bus and address
   String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(mattzoControllerId) + "\" addr=\"" + String(sensorPort + 1) + "\" state=\"" + stateString + "\"/>";
-  mcLog("Sending MQTT message: " + mqttMessage);
+  mcLog2("Sending MQTT message: " + mqttMessage, LOG_DEBUG);
   char mqttMessage_char[255];   // message is usually 61 chars, so 255 chars should be enough
   mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
   mqttClient.publish("rocrail/service/client", mqttMessage_char);
@@ -398,7 +424,7 @@ void sendSensorEvent2MQTT(int sensorPort, int sensorState) {
 
 void sendEmergencyBrake2MQTT(String emergencyBrakeReason) {
   String mqttMessage = "<sys cmd=\"ebreak\" reason=\"" + emergencyBrakeReason + "\"/>";
-  mcLog("Sending emergency brake message via MQTT: " + mqttMessage);
+  mcLog2("Sending emergency brake message via MQTT: " + mqttMessage, LOG_ERR);
   char mqttMessage_char[255];   // message with reason "bridge open" is 44 chars, so 255 chars should be enough
   mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
   mqttClient.publish("rocrail/service/client", mqttMessage_char);
@@ -456,7 +482,7 @@ void monitorSensors() {
 
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle) {
-  mcLog("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle));
+  mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
   if (servoIndex >= 0 && servoIndex < NUM_SWITCHPORTS) {
     if (SWITCHPORT_PIN_TYPE[servoIndex] == 0) {
       servo[servoIndex].write(servoAngle);
@@ -467,7 +493,7 @@ void setServoAngle(int servoIndex, int servoAngle) {
       pca9685[SWITCHPORT_PIN_TYPE[servoIndex] - 0x40].setPWM(SWITCHPORT_PIN[servoIndex], 0, mapAngle2PulseLength(servoAngle));
     }
 #endif
-    delay(SWITCH_DELAY);
+    // delay(SWITCH_DELAY);
   }
   else {
     // this should not happen
@@ -528,6 +554,131 @@ void setSignalLED(int signalIndex, bool ledState) {
     }
   }
 #endif
+}
+
+// fades a signal. "brightness" is a value between 0 (off) and 1023 (full bright)
+void fadeSignalLED(int signalIndex, int brightness) {
+  if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
+    analogWrite(SIGNALPORT_PIN[signalIndex], 1023 - brightness);
+  }
+#if USE_PCA9685
+  // WARNING: UNTESTED CODE (begin)!
+  else if (SIGNALPORT_PIN_TYPE[signalIndex] >= 0x40) {
+    if (brightness == 1023) {
+      // full bright
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096);
+    }
+    else if (brightness == 0) {
+      // off
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 4096, 0);
+    }
+    else {
+      // some other brightness value
+      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096 - brightness * 4);
+    }
+  }
+  // WARNING: UNTESTED CODE (end)!
+#endif
+}
+
+
+// copy level crossing command to level crossing object
+void levelCrossingCommand(int levelCrossingCommand) {
+  if (levelCrossingCommand < 0 || levelCrossingCommand > 1) {
+    mcLog2("Unkown levelCrossing command.", LOG_CRIT);
+    return;
+  }
+
+  if (levelCrossingCommand == 0) { // open
+    levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
+    levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
+    levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
+    levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
+    mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
+  }
+  else if (levelCrossingCommand == 1) { // closed
+    levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
+    levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
+    levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
+    levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_CLOSING_PERIOD_MS;
+    mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
+  }
+
+  levelCrossing.lastStatusChangeTime_ms = millis();
+}
+
+void boomBarrierLoop() {
+  const unsigned long BOOM_BARRIER_TICK_MS = 20;
+  unsigned long now = millis();
+
+  if (now < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS)
+    return;
+
+  float servoAngleIncrement = levelCrossing.servoAngleIncrementPerMS * (now - levelCrossing.lastBoomBarrierTick_ms);
+  float newServoAnglePrimaryBooms;
+  float newServoAngleSecondaryBooms;
+
+  // Move primary booms!
+  if (levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
+    if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {
+      newServoAnglePrimaryBooms = min(levelCrossing.servoAnglePrimaryBooms + servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
+    }
+    else {
+      newServoAnglePrimaryBooms = max(levelCrossing.servoAnglePrimaryBooms - servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
+    }
+    mcLog2("Primary booms angle: " + String(newServoAnglePrimaryBooms), LOG_DEBUG);
+
+    levelCrossing.servoAnglePrimaryBooms = newServoAnglePrimaryBooms;
+  }
+
+  // Move secondary booms?
+  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || now >= levelCrossing.lastStatusChangeTime_ms + BOOM_BARRIER2_CLOSING_DELAY_MS) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
+    // Yepp, move secondary booms!
+    if (levelCrossing.servoAngleSecondaryBooms < levelCrossing.servoTargetAngleSecondaryBooms) {
+      newServoAngleSecondaryBooms = min(levelCrossing.servoAngleSecondaryBooms + servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
+    }
+    else if (levelCrossing.servoAngleSecondaryBooms > levelCrossing.servoTargetAngleSecondaryBooms) {
+      newServoAngleSecondaryBooms = max(levelCrossing.servoAngleSecondaryBooms - servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
+    }
+    mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_DEBUG);
+
+    levelCrossing.servoAngleSecondaryBooms = newServoAngleSecondaryBooms;
+  }
+
+  for (int bb = 0; bb < NUM_BOOM_BARRIERS; bb++) {
+    setServoAngle(BOOM_BARRIER_SERVO_PIN[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
+  }
+
+  levelCrossing.lastBoomBarrierTick_ms = now;
+}
+
+void levelCrossingLightLoop() {
+  // alternate all signal LEDs every LC_SIGNAL_FLASH_PERIOD_MS / 2 milliseconds
+  unsigned long now = millis();
+  bool alternate = (now % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
+
+  for (int s = 0; s < NUM_LC_SIGNALS; s++) {
+    bool onOff = ((s % 2) == 0) ^ alternate;
+
+    if (LC_SIGNALS_FADING) {
+      int brightness = 0;
+      if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) {
+        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -1023, 1023);
+        brightness = max(brightness, 0);
+      }
+      fadeSignalLED(LC_SIGNAL_PIN[s], brightness);
+    } else {
+      setSignalLED(LC_SIGNAL_PIN[s], levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && onOff);
+    }
+  }
+}
+
+// main level crossing control loop
+void levelCrossingLoop() {
+  if (LEVEL_CROSSING_CONNECTED) {
+    boomBarrierLoop();
+    levelCrossingLightLoop();
+  }
 }
 
 
@@ -810,5 +961,6 @@ void loop() {
   loopMattzoController();
   checkEnableServoSleepMode();
   monitorSensors();
+  levelCrossingLoop();
   basculeBridgeLoop();
 }
