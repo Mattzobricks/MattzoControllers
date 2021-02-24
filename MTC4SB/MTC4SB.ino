@@ -24,32 +24,14 @@
 #include "MattzoMQTTPublisher.h"
 #include "MattzoMQTTSubscriber.h"
 #include "SBrickConst.h"
-#include "SBrick.h"
+#include "MattzoSBrickHub.h"
+//#include "SBrick.h"
 
 #define SBRICK_ADDRESS "00:07:80:d0:47:43"
 
 // Globals
-SBrick sbrick;
-
-void connectSBricks() {
-  if (!sbrick.isConnected()) {
-    if (sbrick.isConnecting()) {
-      sbrick.connectHub();
-
-      if (sbrick.isConnected()) {
-        Serial.print("Connected to SBrick '");
-        Serial.print(sbrick.getHubName().c_str());
-        Serial.print("' (");
-        Serial.print(sbrick.getHubAddress().toString().c_str());
-        Serial.println(")");
-      }
-      else {
-        Serial.println("Connection attempt to SBrick refused.");
-        //myHubs[i].initHub();
-      }
-    }
-  }
-}
+BLEScan* scanner;
+SBrickHubClient* sbrick;
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length + 1];
@@ -74,30 +56,51 @@ void setup() {
   setupMattzoController();
 
   // Setup MQTT publisher (with a queue that can hold 1000 messages).
-  MattzoMQTTPublisher::Setup(1000);
+//  MattzoMQTTPublisher::Setup(1000);
 
   // Setup MQTT subscriber.
-  MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
+//  MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
 
-  /** Initialize SBrick, device address specified as we are advertising */
-  //sbrick.init(SBRICK_ADDRESS);
+  // Initialize BLE client.
+  BLEDevice::init("");
+
+  // Configure a BLE scanner.
+  scanner = BLEDevice::getScan();
+  scanner->setInterval(1349);
+  scanner->setWindow(449);
+  scanner->setActiveScan(true);
+
+  // Initialize SBrick, device address specified as we are advertising.
+  sbrick = new SBrickHubClient("<device_name>", SBRICK_ADDRESS);
 }
 
 void loop() {
+  if (!sbrick->IsConnected()) {
+    if (!sbrick->IsDiscovered()) {
+        sbrick->StartDiscovery(scanner);
+    }
+
+    if(sbrick->IsDiscovered()) {
+      sbrick->Connect();
+    }
+  }
+  
   // Construct message.
-  String message = String("Hello world @ ");
-  message.concat(millis());
+  //String message = String("Hello world @ ");
+  //message.concat(millis());
 
   // Print message we are about to queue.
-  Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queing message (" + message + ").");
+  //Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queing message (" + message + ").");
 
-  // Try to add message to queue, fails if queue is full.
-  if (!MattzoMQTTPublisher::QueueMessage(message.c_str())) {
-    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queue full");
-  }
+  // Try to add message to queue (fails if queue is full).
+//  if (!MattzoMQTTPublisher::QueueMessage(message.c_str())) {
+//    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queue full");
+//  }
 
+  // Print available heap space.
+  Serial.print("Available heap: ");
+  Serial.println(xPortGetFreeHeapSize());
+  
   // Wait before trying again.
-  vTaskDelay(100 / portTICK_PERIOD_MS);
-
-  //connectSBricks();
+  vTaskDelay(3000 / portTICK_PERIOD_MS);
 }

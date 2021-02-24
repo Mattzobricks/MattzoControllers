@@ -40,7 +40,6 @@ public:
   /// <summary>
   /// Setup the WiFi client.
   /// </summary>
-  //static void Setup(const char* hostName) {
   static void Setup() {
     if (setupCompleted) {
       Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup already completed!");
@@ -89,19 +88,29 @@ public:
     setupCompleted = true;
   }
 
+  /// <summary>
+  /// Blocking call waiting for a WiFi connection. It also handles OTA updates.
+  /// </summary>
   static void Assert() {
     if (!setupCompleted) {
       Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup not completed. Execute .Setup() first.");
       return;
     }
 
-    if (WiFi.status() != WL_CONNECTED && wasConnected) {
-      wasConnected = false;
-      Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Connection " + String(WIFI_SSID) + " lost. Reconnecting...");
+    if (WiFi.status() == WL_CONNECTED) {
+      // Handle any OTA updates.
+      ArduinoOTA.handle();
+      return;
     }
 
     // Loop until we reconnect.
     while (WiFi.status() != WL_CONNECTED) {
+      if (wasConnected) {
+        wasConnected = false;
+        Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Connection " + String(WIFI_SSID) + " lost. Reconnecting...");
+      }
+
+      // Re-test connection in half a second.
       delay(500);
     }
 
@@ -109,19 +118,17 @@ public:
       wasConnected = true;
       Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Connected (IPv4: " + WiFi.localIP().toString() + ").");
     }
-
-    // Handle any OTA updates.
-    ArduinoOTA.handle();
   }
 
 private:
-
+  
+  // Private static members.
   static bool setupInitiated;
   static bool setupCompleted;
   static bool wasConnected;
 };
 
-// Initialize static members.
+// Initialize private static members.
 bool MattzoWifiClient::setupInitiated = false;
 bool MattzoWifiClient::setupCompleted = false;
 bool MattzoWifiClient::wasConnected = false;

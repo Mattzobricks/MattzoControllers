@@ -39,7 +39,7 @@ int getMattzoControllerId() {
     controllerNoHiByte = EEPROM.read(paramsStartingPosition);
     controllerNoLowByte = EEPROM.read(paramsStartingPosition + 1);
     mattzoControllerId = controllerNoHiByte * 256 + controllerNoLowByte;
-    Serial.println("Loaded mattzoControllerId from EEPROM: " + String(mattzoControllerId));
+    Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Loaded MattzoControllerId from EEPROM: " + String(mattzoControllerId));
   }
   else {
     // this runs only a single time when starting the controller for the first time
@@ -48,7 +48,7 @@ int getMattzoControllerId() {
     delay(5000);
 
     // store EEPROM ID String in EEPROM
-    Serial.println("Initializing controller preferences on first start-up...");
+    Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Initializing controller preferences on first start-up...");
     for (i = 0; i < eepromIDString.length(); i++) {
       EEPROM.write(i, eepromIDString.charAt(i));
     }
@@ -63,7 +63,7 @@ int getMattzoControllerId() {
     // Commit EEPROM write operation
     EEPROM.commit();
 
-    Serial.println("Assigned random controller no " + String(mattzoControllerId) + " and stored to EEPROM");
+    Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Assigned random controller no " + String(mattzoControllerId) + " and stored to EEPROM");
   }
 
   return mattzoControllerId;
