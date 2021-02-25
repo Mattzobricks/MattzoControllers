@@ -201,10 +201,6 @@ const unsigned int BOOM_BARRIER_ANGLE_PRIMARY_DOWN = 87;
 const unsigned int BOOM_BARRIER_ANGLE_SECONDARY_UP = 180;
 const unsigned int BOOM_BARRIER_ANGLE_SECONDARY_DOWN = 90;
 
-// set to true if there is left hand traffic on your roads.
-// If set to true, the primary booms can be placed on the left side of your level crossing
-const bool LEFT_HAND_TRAFFIC = false;
-
 // Number of signals configured for the level crossing
 const int NUM_LC_SIGNALS = 4;
 
