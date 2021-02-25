@@ -592,21 +592,25 @@ void levelCrossingCommand(int levelCrossingCommand) {
   }
 
   if (levelCrossingCommand == 0) { // open
-    levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
-    levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
-    levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
-    levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
-    mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
+    if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::OPEN) {
+      levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
+      levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
+      levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
+      levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
+      mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
+      levelCrossing.lastStatusChangeTime_ms = millis();
+    }
   }
   else if (levelCrossingCommand == 1) { // closed
-    levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
-    levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
-    levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
-    levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_CLOSING_PERIOD_MS;
-    mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
+    if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::CLOSED) {
+      levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
+      levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
+      levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
+      levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_CLOSING_PERIOD_MS;
+      mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
+      levelCrossing.lastStatusChangeTime_ms = millis();
+    }
   }
-
-  levelCrossing.lastStatusChangeTime_ms = millis();
 }
 
 void boomBarrierLoop() {
