@@ -657,20 +657,20 @@ void boomBarrierLoop() {
 void levelCrossingLightLoop() {
   // alternate all signal LEDs every LC_SIGNAL_FLASH_PERIOD_MS / 2 milliseconds
   unsigned long now = millis();
-  bool alternate = (now % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
+  bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || (levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms);
+  bool alternatePeriod = (now % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
 
   for (int s = 0; s < NUM_LC_SIGNALS; s++) {
-    bool onOff = ((s % 2) == 0) ^ alternate;
-
     if (LC_SIGNALS_FADING) {
+      // fading lights
       int brightness = 0;
-      if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) {
+      if (lightsActive) {
         brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -768, 1280);
-        brightness = max(brightness, 0);
       }
       fadeSignalLED(LC_SIGNAL_PIN[s], brightness);
     } else {
-      setSignalLED(LC_SIGNAL_PIN[s], levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && onOff);
+      // flashing lights
+      setSignalLED(LC_SIGNAL_PIN[s], lightsActive && (((s % 2) == 0) ^ alternatePeriod));
     }
   }
 }
