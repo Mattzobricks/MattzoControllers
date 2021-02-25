@@ -189,7 +189,7 @@ uint8_t BOOM_BARRIER_SERVO_PIN[NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
 // Closing timespan for all boom barriers
 const unsigned int BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;
 // Delay until boom barriers index 2 and following start closing
-const unsigned int BOOM_BARRIER2_CLOSING_DELAY_MS = 1500;
+const unsigned int BOOM_BARRIER2_CLOSING_DELAY_MS = 3000;
 // Opening timespan for all boom barriers
 const unsigned int BOOM_BARRIER_OPENING_PERIOD_MS = 3000;
 
