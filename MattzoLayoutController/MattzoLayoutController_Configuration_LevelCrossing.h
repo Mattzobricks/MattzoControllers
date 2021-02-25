@@ -194,16 +194,14 @@ const unsigned int BOOM_BARRIER2_CLOSING_DELAY_MS = 1500;
 const unsigned int BOOM_BARRIER_OPENING_PERIOD_MS = 3000;
 
 // Servo angles for "up" and "down" positions (primary booms)
+// For left hand traffic, set BOOM_BARRIER_ANGLE_PRIMARY_UP to appr. 180!
 const unsigned int BOOM_BARRIER_ANGLE_PRIMARY_UP = 0;
 const unsigned int BOOM_BARRIER_ANGLE_PRIMARY_DOWN = 87;
 
 // Servo angles for "up" and "down" positions (secondary booms)
+// For left hand traffic, set BOOM_BARRIER_ANGLE_SECONDARY_UP to appr. 0!
 const unsigned int BOOM_BARRIER_ANGLE_SECONDARY_UP = 180;
 const unsigned int BOOM_BARRIER_ANGLE_SECONDARY_DOWN = 90;
-
-// set to true if there is left hand traffic on your roads.
-// If set to true, the primary booms can be placed on the left side of your level crossing
-const bool LEFT_HAND_TRAFFIC = false;
 
 // Number of signals configured for the level crossing
 const int NUM_LC_SIGNALS = 4;
@@ -214,7 +212,7 @@ uint8_t LC_SIGNAL_PIN[NUM_LC_SIGNALS] = { 0, 1, 2, 3 };
 // Signal flash period in milliseconds (full cycle).
 const unsigned int LC_SIGNAL_FLASH_PERIOD_MS = 2000;
 
-// Set to true to enable signal fading (brightens and fades lights gradully for enhanced realism)
+// Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism)
 const bool LC_SIGNALS_FADING = true;
 
 
