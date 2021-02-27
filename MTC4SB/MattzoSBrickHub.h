@@ -28,34 +28,40 @@ public:
   }
   
   class SBrickClientCallback : public BLEClientCallbacks {
-    SBrickHubClient* _sbrick;
+    SBrickHubClient* _psbrick;
 
   public:
     SBrickClientCallback(SBrickHubClient* sbrick) : BLEClientCallbacks()
     {
-      _sbrick = sbrick;
+      _psbrick = sbrick;
     }
 
     void onConnect(BLEClient* pclient) {
-      Serial.println("onConnect");
-      _sbrick->_isConnected = true;
+      if(pclient->getPeerAddress().equals(*_psbrick->_address)) {
+        Serial.print("onConnect: ");
+        Serial.println(pclient->getPeerAddress().toString().c_str());
+        _psbrick->_isConnected = true;
+      }
     }
 
     void onDisconnect(BLEClient* pclient) {
-      Serial.println("onDisconnect");
-      _sbrick->_isDiscovered = false;
-      _sbrick->_isConnected = false;
-      pclient->disconnect();
+      if(pclient->getPeerAddress().equals(*_psbrick->_address)) {
+        Serial.print("onDisconnect: ");
+        Serial.println(_psbrick->_address->toString().c_str());
+        _psbrick->_isDiscovered = false;
+        _psbrick->_isConnected = false;
+        pclient->disconnect();
+      }
     }
   };
 
   class SBrickAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
-    SBrickHubClient *_sbrick;
+    SBrickHubClient* _psbrick;
   
   public:
-    SBrickAdvertisedDeviceCallbacks(SBrickHubClient *sbrick) : BLEAdvertisedDeviceCallbacks()
+    SBrickAdvertisedDeviceCallbacks(SBrickHubClient* sbrick) : BLEAdvertisedDeviceCallbacks()
     {
-      _sbrick = sbrick;
+      _psbrick = sbrick;
     }
       
      /**
@@ -63,13 +69,13 @@ public:
        */
     void onResult(BLEAdvertisedDevice advertisedDevice) {
       // We have found a device, let us now see if it has the address we are looking for.
-      if (advertisedDevice.getAddress().equals(*_sbrick->_address)) {
+      if (advertisedDevice.getAddress().equals(*_psbrick->_address)) {
         // Stop active scan.
         BLEDevice::getScan()->stop();
 
         //Serial.print("Discovered our device: ");
         //Serial.println(advertisedDevice.toString().c_str());
-        _sbrick->_isDiscovered = true;
+        _psbrick->_isDiscovered = true;
       }
     }
   };
@@ -113,6 +119,62 @@ public:
     return _isConnected;
   }
 
+  std::string getDeviceName() {
+    return _deviceName;
+  }
+
+  /// <summary>
+  /// Sets the watchdog timeout (0D &lt; timeout in 0.1 secs, 1 byte &gt;)
+  /// The purpose of the watchdog is to stop driving in case of an application failure.
+  /// Watchdog starts when the first DRIVE command is issued during a connection.
+  /// Watchdog is stopped when all channels are either set to zero drive, or are braking.
+  /// The value is saved to the persistent store.
+  /// The recommended watchdog frequency is 0.2-0.5 seconds, but a smaller and many larger settings are also available.
+  /// Writing a zero disables the watchdog.
+  /// By default watchdog is set to 5, which means a 0.5 second timeout.
+  /// </summary>
+  //void SetWatchdogTimeout(float seconds)
+  //{
+  //  if (attachCharacteristic(sbrickRemoteControlServiceUUID, sbrickRemoteControlCharacteristicUUID) &&
+  //    _remoteControlCharacteristic->canWrite()) {
+  //
+  //  }
+  //
+  //  // Safety check before writing anything (not needed though).
+  //  if (_characteristic.CharacteristicProperties.HasFlag(GattCharacteristicProperties.Write))
+  //  {
+  //    var setWatchDogCommand = new List<byte>{ (byte)Command.SetWatchDogTimeOut, (byte)(seconds * 10) };
+  //
+  //    try
+  //    {
+  //      var status = await _characteristic.WriteValueAsync(setWatchDogCommand.ToArray().AsBuffer());
+  //
+  //      if (status == GattCommunicationStatus.Success)
+  //      {
+  //        // ...
+  //      }
+  //
+  //      if (status == GattCommunicationStatus.Unreachable)
+  //      {
+  //        // ...
+  //      }
+  //    }
+  //    catch (Exception ex)
+  //    {
+  //      throw;
+  //      //// TODO: Signal error
+  //    }
+  //  }
+  //}
+
+//  void Drive() {
+//
+//  }
+//
+//  void EmergencyBreak() {
+//    // Reset all channels.
+//    Drive(0, 0, 0, 0);
+//  }
 private:
 
   bool connectToServer() {
@@ -136,7 +198,7 @@ private:
     }
     //Serial.println(" - Connected to server");
 
-    // Try obtain a reference to the remote control characteristic in the remote control service of the BLE server.
+    // Try to obtain a reference to the remote control characteristic in the remote control service of the BLE server.
     if (!attachCharacteristic(sbrickRemoteControlServiceUUID, sbrickRemoteControlCharacteristicUUID)) {
       // Failed to find the remote control service or characteristic.
       _sbrick->disconnect();
@@ -168,6 +230,10 @@ private:
 
   // Private members.
   bool attachCharacteristic(BLEUUID serviceUUID, BLEUUID characteristicUUID) {
+    if (_remoteControlCharacteristic != nullptr) {
+      return true;
+    }
+
     // Obtain a reference to the service remote control service in the BLE server.
     _remoteControlService = _sbrick->getService(serviceUUID);
     if (_remoteControlService == nullptr) {
@@ -189,7 +255,7 @@ private:
   boolean _isDiscovered = false;
   boolean _isConnected = false;
   BLERemoteService* _remoteControlService = nullptr;
-  BLERemoteCharacteristic* _remoteControlCharacteristic;
-  BLERemoteCharacteristic* _genericAccessCharacteristic;
-  BLERemoteCharacteristic* _deviceInformationCharacteristic;
+  BLERemoteCharacteristic* _remoteControlCharacteristic = nullptr;
+  BLERemoteCharacteristic* _genericAccessCharacteristic = nullptr;
+  BLERemoteCharacteristic* _deviceInformationCharacteristic = nullptr;
 };

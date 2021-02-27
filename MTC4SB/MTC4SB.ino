@@ -27,11 +27,15 @@
 #include "MattzoSBrickHub.h"
 //#include "SBrick.h"
 
-#define SBRICK_ADDRESS "00:07:80:d0:47:43"
+#define SBRICK_ADDRESS "88:6b:0f:23:78:10"
 
 // Globals
 BLEScan* scanner;
-SBrickHubClient* sbrick;
+//SBrickHubClient* sbrick;
+SBrickHubClient* mySBricks[2] = {
+    new SBrickHubClient("YC66405", "00:07:80:d0:47:43"),
+    new SBrickHubClient("BC60052", "88:6b:0f:23:78:10")
+};
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length + 1];
@@ -71,17 +75,29 @@ void setup() {
   scanner->setActiveScan(true);
 
   // Initialize SBrick, device address specified as we are advertising.
-  sbrick = new SBrickHubClient("<device_name>", SBRICK_ADDRESS);
+  //sbrick = new SBrickHubClient("<device_name>", SBRICK_ADDRESS);
+
+  Serial.println(sizeof(mySBricks)/sizeof(mySBricks[0]));
 }
 
-void loop() {
-  if (!sbrick->IsConnected()) {
-    if (!sbrick->IsDiscovered()) {
-        sbrick->StartDiscovery(scanner);
-    }
+void loop() {  
+  for (int i = 0; i < sizeof(mySBricks)/sizeof(mySBricks[0]); i++) {
+    SBrickHubClient* sbrick = mySBricks[i];
 
-    if(sbrick->IsDiscovered()) {
-      sbrick->Connect();
+    Serial.print(sbrick->getDeviceName().c_str());
+    Serial.print(": discovered=");
+    Serial.print(sbrick->IsDiscovered());
+    Serial.print(", connected=");
+    Serial.println(sbrick->IsConnected());
+    
+    if (!sbrick->IsConnected()) {
+      if (!sbrick->IsDiscovered()) {
+          sbrick->StartDiscovery(scanner);
+      }
+  
+      if(sbrick->IsDiscovered()) {
+        sbrick->Connect();
+      }
     }
   }
   
@@ -98,8 +114,8 @@ void loop() {
 //  }
 
   // Print available heap space.
-  Serial.print("Available heap: ");
-  Serial.println(xPortGetFreeHeapSize());
+//  Serial.print("Available heap: ");
+//  Serial.println(xPortGetFreeHeapSize());
   
   // Wait before trying again.
   vTaskDelay(3000 / portTICK_PERIOD_MS);
