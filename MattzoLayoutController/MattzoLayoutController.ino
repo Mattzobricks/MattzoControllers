@@ -588,11 +588,6 @@ void fadeSignalLED(int signalIndex, int brightness) {
 
 // copy level crossing command to level crossing object
 void levelCrossingCommand(int levelCrossingCommand) {
-  if (levelCrossingCommand < 0 || levelCrossingCommand > 1) {
-    mcLog2("Unkown levelCrossing command.", LOG_CRIT);
-    return;
-  }
-
   if (levelCrossingCommand == 0) { // open
     if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::OPEN) {
       levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
@@ -612,6 +607,9 @@ void levelCrossingCommand(int levelCrossingCommand) {
       mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
       levelCrossing.lastStatusChangeTime_ms = millis();
     }
+  }
+  else {
+    mcLog2("Unkown levelCrossing command.", LOG_CRIT);
   }
 }
 
