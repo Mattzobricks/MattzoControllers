@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration_LC_Chaos.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -73,12 +73,15 @@ struct LevelCrossing {
   LevelCrossingStatus levelCrossingStatus = LevelCrossingStatus::OPEN;
   unsigned long lastStatusChangeTime_ms = 0;
 
-  float servoAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
-  float servoAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
+  float servoAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
+  float servoAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
   float servoAngleIncrementPerMS = 0;
-  float servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
-  float servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
+  float servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
+  float servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
   unsigned long lastBoomBarrierTick_ms = 0;
+
+  unsigned int lcSensorEventCounter[LC_NUM_TRACKS][2][2];
+  unsigned long lcAutonomousModeTrackTimeout_ms[LC_NUM_TRACKS];
 } levelCrossing;
 
 
@@ -461,16 +464,17 @@ void monitorSensors() {
     if (sensorValue == sensorTriggerState[i]) {
       // Contact -> report contact immediately
       if (!sensorState[i]) {
-        mcLog("Sensor " + String(i) + " triggered.");
+        mcLog2("Sensor " + String(i) + " triggered.", LOG_INFO);
         sendSensorEvent2MQTT(i, true);
         sensorState[i] = true;
+        handleLevelCrossingSensorEvent(i);
       }
       lastSensorContact_ms[i] = millis();
     }
     else {
       // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
       if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS)) {
-        mcLog("Sensor " + String(i) + " released.");
+        mcLog2("Sensor " + String(i) + " released.", LOG_INFO);
         sendSensorEvent2MQTT(i, false);
         sensorState[i] = false;
       }
@@ -564,7 +568,6 @@ void fadeSignalLED(int signalIndex, int brightness) {
     analogWrite(SIGNALPORT_PIN[signalIndex], 1023 - brightness);
   }
 #if USE_PCA9685
-  // WARNING: UNTESTED CODE (begin)!
   else if (SIGNALPORT_PIN_TYPE[signalIndex] >= 0x40) {
     if (brightness == 1023) {
       // full bright
@@ -579,7 +582,6 @@ void fadeSignalLED(int signalIndex, int brightness) {
       pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096 - brightness * 4);
     }
   }
-  // WARNING: UNTESTED CODE (end)!
 #endif
 }
 
@@ -593,19 +595,18 @@ void levelCrossingCommand(int levelCrossingCommand) {
 
   if (levelCrossingCommand == 0) { // open
     levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
-    levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
-    levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
-    levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
+    levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
+    levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
+    levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_OPENING_PERIOD_MS;
     mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
   }
   else if (levelCrossingCommand == 1) { // closed
     levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
-    levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
-    levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
-    levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_CLOSING_PERIOD_MS;
+    levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
+    levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
+    levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_CLOSING_PERIOD_MS;
     mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
   }
-
   levelCrossing.lastStatusChangeTime_ms = millis();
 }
 
@@ -634,7 +635,7 @@ void boomBarrierLoop() {
   }
 
   // Move secondary booms?
-  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || now >= levelCrossing.lastStatusChangeTime_ms + BOOM_BARRIER2_CLOSING_DELAY_MS) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
+  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || now >= levelCrossing.lastStatusChangeTime_ms + LC_BOOM_BARRIER2_CLOSING_DELAY_MS) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
     // Yepp, move secondary booms!
     if (levelCrossing.servoAngleSecondaryBooms < levelCrossing.servoTargetAngleSecondaryBooms) {
       newServoAngleSecondaryBooms = min(levelCrossing.servoAngleSecondaryBooms + servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
@@ -647,8 +648,8 @@ void boomBarrierLoop() {
     levelCrossing.servoAngleSecondaryBooms = newServoAngleSecondaryBooms;
   }
 
-  for (int bb = 0; bb < NUM_BOOM_BARRIERS; bb++) {
-    setServoAngle(BOOM_BARRIER_SERVO_PIN[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
+  for (int bb = 0; bb < LC_NUM_BOOM_BARRIERS; bb++) {
+    setServoAngle(LC_BOOM_BARRIER_SERVO_PIN[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
   }
 
   levelCrossing.lastBoomBarrierTick_ms = now;
@@ -660,7 +661,7 @@ void levelCrossingLightLoop() {
   bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || (levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms);
   bool alternatePeriod = (now % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
 
-  for (int s = 0; s < NUM_LC_SIGNALS; s++) {
+  for (int s = 0; s < LC_NUM_SIGNALS; s++) {
     if (LC_SIGNALS_FADING) {
       // fading lights
       int brightness = 0;
@@ -675,11 +676,105 @@ void levelCrossingLightLoop() {
   }
 }
 
+// Handle level crossing sensor events
+void handleLevelCrossingSensorEvent(int triggeredSensor) {
+  if (!LEVEL_CROSSING_CONNECTED || !LC_AUTONOMOUS_MODE) return;
+
+  mcLog2("Checking if sensor " + String(triggeredSensor) + " is a level crossing sensor...", LOG_DEBUG);
+
+  // Iterate level crossing sensors
+  for (int lcs = 0; lcs < LC_NUM_SENSORS; lcs++) {
+    // Check if triggered sensors is level crossing sensor
+    if (LC_SENSORS_INDEX[lcs] == triggeredSensor) {
+      int track = LC_SENSORS_TRACK[lcs];
+      int purposeConfig = LC_SENSORS_PURPOSE[lcs];
+      int orientation = LC_SENSORS_ORIENTATION[lcs];
+
+      mcLog2("> Sensor " + String(triggeredSensor) + " is a level crossing sensor, track " + String(track) + ", purpose " + String(purposeConfig) + ", orientation " + (String(orientation) ? "-" : "+"), LOG_DEBUG);
+
+      int purposeFrom = purposeConfig;
+      int purposeTo = purposeConfig;
+
+      // sensor purpose "both" (inbound and outbound)?
+      if (purposeConfig == 2) {
+        purposeFrom = 0;
+        purposeTo = 1;
+      }
+
+      for (int purpose = purposeFrom; purpose <= purposeTo; purpose++) {
+        int count = ++(levelCrossing.lcSensorEventCounter[track][purpose][orientation]);
+
+        // Inbound event?
+        if (purpose == 0) {
+          // Check if inbound counter is greater than inbound counter on the other side
+          // -> train is approaching
+          if (count > levelCrossing.lcSensorEventCounter[track][0][1 - orientation]) {
+            // close level crossing!
+            levelCrossingCommand(1);
+          }
+        }
+        // Outbound event?
+        if (purpose == 1) {
+          // Check if outbound counter equals the inbound counter on the other side
+          // -> last car has passed the level crossing
+          if (count == levelCrossing.lcSensorEventCounter[track][0][1 - orientation]) {
+            // open level crossing!
+            levelCrossingCommand(0);
+          }
+        }
+      }
+
+      levelCrossing.lcAutonomousModeTrackTimeout_ms[track] = millis() + LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS;
+      writeLevelCrossingStatusInfo();
+    }
+  }
+}
+
+// Check if track timeout for Autonomous Mode has been reached. If reached, reset track counters and open level crossing.
+void checkLevelCrossingTrackTimeouts() {
+  for (int track = 0; track < LC_NUM_TRACKS; track++) {
+    if (levelCrossing.lcAutonomousModeTrackTimeout_ms[track] > 0) {
+      if (millis() > levelCrossing.lcAutonomousModeTrackTimeout_ms[track]) {
+        // disable timeout for this track
+        levelCrossing.lcAutonomousModeTrackTimeout_ms[track] = 0;
+        // reset counters for this track
+        for (int purpose = 0; purpose < 2; purpose++) {
+          for (int orientation = 0; orientation < 2; orientation++) {
+            levelCrossing.lcSensorEventCounter[track][purpose][orientation] = 0;
+          }
+        }
+        // open level crossing
+        levelCrossingCommand(0);
+        writeLevelCrossingStatusInfo();
+      }
+    }
+  }
+}
+
+// write level crossing status to serial
+void writeLevelCrossingStatusInfo() {
+  if (LOGLEVEL_SERIAL >= LOG_DEBUG) {
+    Serial.println("Trk|IB+|OB+|OB-|IB-");
+    Serial.println("---+---+---+---+---");
+    for (int track = 0; track < LC_NUM_TRACKS; track++) {
+      Serial.print(" " + String(track + 1));
+      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][0][0]));
+      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][1][0]));
+      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][1][1]));
+      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][0][1]));
+      Serial.println();
+    }
+  }
+}
+
 // main level crossing control loop
 void levelCrossingLoop() {
   if (LEVEL_CROSSING_CONNECTED) {
     boomBarrierLoop();
     levelCrossingLightLoop();
+    if (LC_AUTONOMOUS_MODE) {
+      checkLevelCrossingTrackTimeouts();
+    }
   }
 }
 
