@@ -80,8 +80,9 @@ struct LevelCrossing {
   float servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
   unsigned long lastBoomBarrierTick_ms = 0;
 
-  unsigned int lcSensorEventCounter[LC_NUM_TRACKS][2][2];
-  unsigned long lcAutonomousModeTrackTimeout_ms[LC_NUM_TRACKS];
+  unsigned int sensorEventCounter[LC_NUM_TRACKS][2][2];
+  bool trackOccupied[LC_NUM_TRACKS];
+  unsigned long trackOccupiedTimeout_ms[LC_NUM_TRACKS];
 } levelCrossing;
 
 
@@ -590,12 +591,15 @@ void fadeSignalLED(int signalIndex, int brightness) {
 void levelCrossingCommand(int levelCrossingCommand) {
   if (levelCrossingCommand == 0) { // open
     if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::OPEN) {
-      levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
-      levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
-      levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
-      levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
-      mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
-      levelCrossing.lastStatusChangeTime_ms = millis();
+      // If level crossing operates in autonomous mode, check if a track is occupied
+      if (!LC_AUTONOMOUS_MODE || !lcIsOccupied()) {
+        levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
+        levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
+        levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
+        levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
+        mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
+        levelCrossing.lastStatusChangeTime_ms = millis();
+      }
     }
   }
   else if (levelCrossingCommand == 1) { // closed
@@ -705,13 +709,15 @@ void handleLevelCrossingSensorEvent(int triggeredSensor) {
       }
 
       for (int purpose = purposeFrom; purpose <= purposeTo; purpose++) {
-        int count = ++(levelCrossing.lcSensorEventCounter[track][purpose][orientation]);
+        int count = ++(levelCrossing.sensorEventCounter[track][purpose][orientation]);
 
         // Inbound event?
         if (purpose == 0) {
           // Check if inbound counter is greater than inbound counter on the other side
           // -> train is approaching
-          if (count > levelCrossing.lcSensorEventCounter[track][0][1 - orientation]) {
+          if (count > levelCrossing.sensorEventCounter[track][0][1 - orientation]) {
+            // lock track
+            levelCrossing.trackOccupied[track] = true;
             // close level crossing!
             levelCrossingCommand(1);
           }
@@ -720,33 +726,47 @@ void handleLevelCrossingSensorEvent(int triggeredSensor) {
         if (purpose == 1) {
           // Check if outbound counter equals the inbound counter on the other side
           // -> last car has passed the level crossing
-          if (count == levelCrossing.lcSensorEventCounter[track][0][1 - orientation]) {
-            // open level crossing!
+          if (count == levelCrossing.sensorEventCounter[track][0][1 - orientation]) {
+            // release track
+            levelCrossing.trackOccupied[track] = false;
+            // try to open level crossing
             levelCrossingCommand(0);
           }
         }
       }
 
-      levelCrossing.lcAutonomousModeTrackTimeout_ms[track] = millis() + LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS;
+      levelCrossing.trackOccupiedTimeout_ms[track] = millis() + LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS;
       writeLevelCrossingStatusInfo();
     }
   }
 }
 
+// Returns if level crossing is occupied. Only relevant for autonomous mode
+bool lcIsOccupied() {
+  for (t = 0; t < LC_NUM_TRACKS; t++) {
+    if (levelCrossing.trackOccupied[t]) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Check if track timeout for Autonomous Mode has been reached. If reached, reset track counters and open level crossing.
 void checkLevelCrossingTrackTimeouts() {
   for (int track = 0; track < LC_NUM_TRACKS; track++) {
-    if (levelCrossing.lcAutonomousModeTrackTimeout_ms[track] > 0) {
-      if (millis() > levelCrossing.lcAutonomousModeTrackTimeout_ms[track]) {
+    if (levelCrossing.trackOccupiedTimeout_ms[track] > 0) {
+      if (millis() > levelCrossing.trackOccupiedTimeout_ms[track]) {
         // disable timeout for this track
-        levelCrossing.lcAutonomousModeTrackTimeout_ms[track] = 0;
+        levelCrossing.trackOccupiedTimeout_ms[track] = 0;
         // reset counters for this track
         for (int purpose = 0; purpose < 2; purpose++) {
           for (int orientation = 0; orientation < 2; orientation++) {
-            levelCrossing.lcSensorEventCounter[track][purpose][orientation] = 0;
+            levelCrossing.sensorEventCounter[track][purpose][orientation] = 0;
           }
         }
-        // open level crossing
+        // release track
+        levelCrossing.trackOccupied[track] = false;
+        // try to open level crossing
         levelCrossingCommand(0);
         writeLevelCrossingStatusInfo();
       }
@@ -761,10 +781,10 @@ void writeLevelCrossingStatusInfo() {
     Serial.println("---+---+---+---+---");
     for (int track = 0; track < LC_NUM_TRACKS; track++) {
       Serial.print(" " + String(track + 1));
-      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][0][0]));
-      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][1][0]));
-      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][1][1]));
-      Serial.print(" | " + String(levelCrossing.lcSensorEventCounter[track][0][1]));
+      Serial.print(" | " + String(levelCrossing.sensorEventCounter[track][0][0]));
+      Serial.print(" | " + String(levelCrossing.sensorEventCounter[track][1][0]));
+      Serial.print(" | " + String(levelCrossing.sensorEventCounter[track][1][1]));
+      Serial.print(" | " + String(levelCrossing.sensorEventCounter[track][0][1]));
       Serial.println();
     }
   }
