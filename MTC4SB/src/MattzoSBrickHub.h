@@ -1,4 +1,4 @@
-#include "BLEDevice.h"
+#include "NimBLEDevice.h"
 #include "SBrickConst.h"
 
 /*
@@ -24,30 +24,30 @@ public:
 
   SBrickHubClient(std::string deviceName, std::string deviceAddress) {
     _deviceName = deviceName;
-    _address = new BLEAddress(deviceAddress);
+    _address = new NimBLEAddress(deviceAddress);
   }
   
-  class SBrickClientCallback : public BLEClientCallbacks {
+  class SBrickClientCallback : public NimBLEClientCallbacks {
     SBrickHubClient* _psbrick;
 
   public:
-    SBrickClientCallback(SBrickHubClient* sbrick) : BLEClientCallbacks()
+    SBrickClientCallback(SBrickHubClient* sbrick) : NimBLEClientCallbacks()
     {
       _psbrick = sbrick;
     }
 
-    void onConnect(BLEClient* pclient) {
+    void onConnect(NimBLEClient* pclient) {
       if(pclient->getPeerAddress().equals(*_psbrick->_address)) {
-        Serial.print("onConnect: ");
-        Serial.println(pclient->getPeerAddress().toString().c_str());
+        // Serial.print("onConnect: ");
+        // Serial.println(pclient->getPeerAddress().toString().c_str());
         _psbrick->_isConnected = true;
       }
     }
 
-    void onDisconnect(BLEClient* pclient) {
+    void onDisconnect(NimBLEClient* pclient) {
       if(pclient->getPeerAddress().equals(*_psbrick->_address)) {
-        Serial.print("onDisconnect: ");
-        Serial.println(_psbrick->_address->toString().c_str());
+        // Serial.print("onDisconnect: ");
+        // Serial.println(_psbrick->_address->toString().c_str());
         _psbrick->_isDiscovered = false;
         _psbrick->_isConnected = false;
         pclient->disconnect();
@@ -55,11 +55,11 @@ public:
     }
   };
 
-  class SBrickAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
+  class SBrickAdvertisedDeviceCallbacks: public NimBLEAdvertisedDeviceCallbacks {
     SBrickHubClient* _psbrick;
   
   public:
-    SBrickAdvertisedDeviceCallbacks(SBrickHubClient* sbrick) : BLEAdvertisedDeviceCallbacks()
+    SBrickAdvertisedDeviceCallbacks(SBrickHubClient* sbrick) : NimBLEAdvertisedDeviceCallbacks()
     {
       _psbrick = sbrick;
     }
@@ -67,11 +67,11 @@ public:
      /**
        * Called for each advertising BLE server.
        */
-    void onResult(BLEAdvertisedDevice advertisedDevice) {
+    void onResult(NimBLEAdvertisedDevice* advertisedDevice) {
       // We have found a device, let us now see if it has the address we are looking for.
-      if (advertisedDevice.getAddress().equals(*_psbrick->_address)) {
+      if (advertisedDevice->getAddress().equals(*_psbrick->_address)) {
         // Stop active scan.
-        BLEDevice::getScan()->stop();
+        NimBLEDevice::getScan()->stop();
 
         //Serial.print("Discovered our device: ");
         //Serial.println(advertisedDevice.toString().c_str());
@@ -83,7 +83,7 @@ public:
   /// <summary>
   /// Start SBrick Hub discovery. 
   /// </summary>
-  void StartDiscovery(BLEScan* scanner, const uint32_t scanDurationInSeconds = 3) {
+  void StartDiscovery(NimBLEScan* scanner, const uint32_t scanDurationInSeconds = 3) {
     if (_isDiscovering) {
       return;
     }
@@ -92,14 +92,14 @@ public:
     _isDiscovering = true;
     _isDiscovered = false;
 
-    Serial.println("Scan started");
+    // Serial.println("Scan started");
     // Set the callback we want to use to be informed when we have detected a new device.
     if(_advertisedDeviceCallback == nullptr) {
       _advertisedDeviceCallback = new SBrickAdvertisedDeviceCallbacks(this);
     }
     scanner->setAdvertisedDeviceCallbacks(_advertisedDeviceCallback);
     scanner->start(scanDurationInSeconds, false);
-    Serial.println("Scan stopped");
+    // Serial.println("Scan stopped");
 
     _isDiscovering = false;
   }
@@ -178,11 +178,11 @@ public:
 private:
 
   bool connectToServer() {
-    Serial.print("Connecting to ");
-    Serial.println(_address->toString().c_str());
+    // Serial.print("Connecting to ");
+    // Serial.println(_address->toString().c_str());
 
     if(_sbrick == nullptr) {
-      _sbrick = BLEDevice::createClient();
+      _sbrick = NimBLEDevice::createClient(*_address);
       //Serial.println(" - Created client");
     }
 
@@ -192,8 +192,8 @@ private:
     _sbrick->setClientCallbacks(_clientCallback);
 
     // Connect to the remote BLE Server.
-    if(!_sbrick->connect(*_address)) {
-      Serial.println("- Failed to connect to server");
+    if(!_sbrick->connect(false)) {
+      // Serial.println("- Failed to connect to server");
       return false;
     }
     //Serial.println(" - Connected to server");
@@ -219,17 +219,17 @@ private:
     return true;
   }
 
-  static void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
-    Serial.print("Notify callback for characteristic ");
-    Serial.print(pBLERemoteCharacteristic->getUUID().toString().c_str());
-    Serial.print(" of data length ");
-    Serial.println(length);
-    Serial.print("data: ");
-    Serial.println((char*)pData);
+  static void notifyCallback(NimBLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
+    // Serial.print("Notify callback for characteristic ");
+    // Serial.print(pBLERemoteCharacteristic->getUUID().toString().c_str());
+    // Serial.print(" of data length ");
+    // Serial.println(length);
+    // Serial.print("data: ");
+    // Serial.println((char*)pData);
   }
 
   // Private members.
-  bool attachCharacteristic(BLEUUID serviceUUID, BLEUUID characteristicUUID) {
+  bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID) {
     if (_remoteControlCharacteristic != nullptr) {
       return true;
     }
@@ -247,15 +247,15 @@ private:
   }
 
   std::string _deviceName;
-  BLEAddress* _address = nullptr;
-  BLEClient* _sbrick = nullptr;
-  BLEAdvertisedDeviceCallbacks* _advertisedDeviceCallback = nullptr;
+  NimBLEAddress* _address = nullptr;
+  NimBLEClient* _sbrick = nullptr;
+  NimBLEAdvertisedDeviceCallbacks* _advertisedDeviceCallback = nullptr;
   SBrickClientCallback* _clientCallback = nullptr;
-  boolean _isDiscovering = false;
-  boolean _isDiscovered = false;
-  boolean _isConnected = false;
-  BLERemoteService* _remoteControlService = nullptr;
-  BLERemoteCharacteristic* _remoteControlCharacteristic = nullptr;
-  BLERemoteCharacteristic* _genericAccessCharacteristic = nullptr;
-  BLERemoteCharacteristic* _deviceInformationCharacteristic = nullptr;
+  bool _isDiscovering = false;
+  bool _isDiscovered = false;
+  bool _isConnected = false;
+  NimBLERemoteService* _remoteControlService = nullptr;
+  NimBLERemoteCharacteristic* _remoteControlCharacteristic = nullptr;
+  NimBLERemoteCharacteristic* _genericAccessCharacteristic = nullptr;
+  NimBLERemoteCharacteristic* _deviceInformationCharacteristic = nullptr;
 };
