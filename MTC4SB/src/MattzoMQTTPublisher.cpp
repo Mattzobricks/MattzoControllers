@@ -9,6 +9,9 @@
 
 static QueueHandle_t msg_queue;
 
+WiFiClient wifiPublisherClient;
+PubSubClient mqttPublisherClient(wifiPublisherClient);
+
 /// <summary>
 /// Class used to publish messages to an MQTT broker.
 /// </summary>
@@ -174,3 +177,15 @@ void MattzoMQTTPublisher::taskLoop(void *parm)
     vTaskDelay(SendMessageDelayInMilliseconds / portTICK_PERIOD_MS);
   }
 }
+
+// Initialize static members.
+bool MattzoMQTTPublisher::TriggerBreakOnDisconnect = false;
+int MattzoMQTTPublisher::ReconnectDelayInMilliseconds = 1000;
+int MattzoMQTTPublisher::PingDelayInMilliseconds = 1000;
+int MattzoMQTTPublisher::SendMessageDelayInMilliseconds = 500;
+uint8_t MattzoMQTTPublisher::TaskPriority = 1;
+int8_t MattzoMQTTPublisher::CoreID = 0;
+uint32_t MattzoMQTTPublisher::StackDepth = 2048;
+bool MattzoMQTTPublisher::_setupCompleted = false;
+unsigned long MattzoMQTTPublisher::lastPing = millis();
+String MattzoMQTTPublisher::publisherName = String("Unknown");

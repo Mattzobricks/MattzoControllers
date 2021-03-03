@@ -51,7 +51,7 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
   _isDiscovering = true;
   _isDiscovered = false;
 
-  Serial.println("Scan started");
+  Serial.println("[" + String(xPortGetCoreID()) + "] SBrick: Scan started");
   // Set the callback we want to use to be informed when we have detected a new device.
   if (_advertisedDeviceCallback == nullptr)
   {
@@ -59,7 +59,7 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
   }
   scanner->setAdvertisedDeviceCallbacks(_advertisedDeviceCallback);
   scanner->start(scanDurationInSeconds, false);
-  Serial.println("Scan stopped");
+  Serial.println("[" + String(xPortGetCoreID()) + "] SBrick: Scan stopped");
 
   _isDiscovering = false;
 }
@@ -142,7 +142,7 @@ std::string SBrickHubClient::getDeviceName()
 
 bool SBrickHubClient::connectToServer()
 {
-  Serial.print("Connecting to ");
+  Serial.print("[" + String(xPortGetCoreID()) + "] SBrick: Connecting to ");
   Serial.println(_address->toString().c_str());
 
   if (_sbrick == nullptr)

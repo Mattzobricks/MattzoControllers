@@ -17,7 +17,7 @@ void SBrickAdvertisedDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertise
     // Stop active scan.
     NimBLEDevice::getScan()->stop();
 
-    Serial.print("Discovered our device: ");
+    Serial.print("[" + String(xPortGetCoreID()) + "] SBrick: Discovered our device: ");
     Serial.println(advertisedDevice->toString().c_str());
     _psbrick->_isDiscovered = true;
   }

@@ -10,8 +10,8 @@
 // WiFi library for ESP-32
 #include <Wifi.h>
 
-WiFiClient wifiSubscriberClient;
-PubSubClient mqttSubscriberClient(wifiSubscriberClient);
+extern WiFiClient wifiSubscriberClient;
+extern PubSubClient mqttSubscriberClient;
 
 /// <summary>
 /// Class used to publish messages to an MQTT broker.
@@ -71,7 +71,7 @@ public:
   static void Setup(char *topic, void (*callback)(char *, uint8_t *, unsigned int));
 
 private:
-  static char *_subscriberName;
+  static String _subscriberName;
   static char *_topic;
   static bool _setupCompleted;
 
@@ -95,16 +95,3 @@ private:
   /// <param name="parm"></param>
   static void taskLoop(void *parm);
 };
-
-// Initialize static members.
-bool MattzoMQTTSubscriber::TriggerBreakOnDisconnect = false;
-int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
-int MattzoMQTTSubscriber::PingDelayInMilliseconds = 1000;
-int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 100;
-uint8_t MattzoMQTTSubscriber::TaskPriority = 1;
-int8_t MattzoMQTTSubscriber::CoreID = 0;
-uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
-bool MattzoMQTTSubscriber::_setupCompleted = false;
-unsigned long MattzoMQTTSubscriber::lastPing = millis();
-char *MattzoMQTTSubscriber::_subscriberName = (char *)"Unknown";
-char *MattzoMQTTSubscriber::_topic = (char *)"Unknown";

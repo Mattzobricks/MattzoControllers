@@ -11,7 +11,7 @@ void SBrickClientCallback::onConnect(NimBLEClient *pclient)
 {
     if (pclient->getPeerAddress().equals(*_psbrick->_address))
     {
-        Serial.print("onConnect: ");
+        Serial.print("[" + String(xPortGetCoreID()) + "] SBrick: onConnect: ");
         Serial.println(pclient->getPeerAddress().toString().c_str());
         _psbrick->_isConnected = true;
     }
@@ -21,7 +21,7 @@ void SBrickClientCallback::onDisconnect(NimBLEClient *pclient)
 {
     if (pclient->getPeerAddress().equals(*_psbrick->_address))
     {
-        Serial.print("onDisconnect: ");
+        Serial.print("[" + String(xPortGetCoreID()) + "] SBrick: onDisconnect: ");
         Serial.println(_psbrick->_address->toString().c_str());
         _psbrick->_isDiscovered = false;
         _psbrick->_isConnected = false;

@@ -7,6 +7,9 @@
 #include "MattzoController_Library.h"
 #include "MattzoController_Network_Configuration.h"
 
+WiFiClient wifiSubscriberClient;
+PubSubClient mqttSubscriberClient(wifiSubscriberClient);
+
 /// <summary>
 /// Setup the MQTT Subscriber.
 /// </summary>
@@ -36,9 +39,8 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
   mqttSubscriberClient.setCallback(callback);
 
   // Construct subscriber name.
-  String subscriberName = String(mattzoControllerName_char);
-  subscriberName.concat("Subscriber");
-  _subscriberName = (char*) subscriberName.c_str();
+  String _subscriberName = String(mattzoControllerName_char);
+  _subscriberName.concat("Subscriber");
 
   // Start task loop.
   xTaskCreatePinnedToCore(taskLoop, "MQTTSubscriber", StackDepth, NULL, TaskPriority, NULL, CoreID);
@@ -78,7 +80,7 @@ void MattzoMQTTSubscriber::reconnect()
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-    if (mqttSubscriberClient.connect(_subscriberName, "rocrail/service/command", 0, false, lastWillMessage_char))
+    if (mqttSubscriberClient.connect(_subscriberName.c_str(), "rocrail/service/command", 0, false, lastWillMessage_char))
     {
       Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Subscriber connected");
       mqttSubscriberClient.subscribe(_topic);
@@ -124,7 +126,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
       lastPing = millis();
 
       // Send a ping message.
-      sendMessage("roc2bricks/ping", _subscriberName);
+      sendMessage("roc2bricks/ping", _subscriberName.c_str());
     }
 
     // Allow the MQTT client to process incoming messages and maintain its connection to the server.
@@ -134,3 +136,16 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
     vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
   }
 }
+
+// Initialize static members.
+bool MattzoMQTTSubscriber::TriggerBreakOnDisconnect = false;
+int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
+int MattzoMQTTSubscriber::PingDelayInMilliseconds = 1000;
+int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 100;
+uint8_t MattzoMQTTSubscriber::TaskPriority = 1;
+int8_t MattzoMQTTSubscriber::CoreID = 0;
+uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
+bool MattzoMQTTSubscriber::_setupCompleted = false;
+unsigned long MattzoMQTTSubscriber::lastPing = millis();
+String MattzoMQTTSubscriber::_subscriberName = String("Unknown");
+char *MattzoMQTTSubscriber::_topic = (char *)"Unknown";
