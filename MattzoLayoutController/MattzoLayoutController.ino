@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration_LevelCrossing_PCA9685.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -227,6 +227,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   XMLElement *element;
   element = xmlDocument.FirstChildElement("sw");
   if (element != NULL) {
+    // handle switch, level crossing or bascule bridge message
     mcLog2("<sw> node found.", LOG_DEBUG);
 
     // query addr1 attribute. This is the MattzoController id.
@@ -254,7 +255,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog2("This is a bascule bridge command.", LOG_DEBUG);
     }
     else if ((rr_port1 < 1 || rr_port1 > NUM_SWITCHPORTS) && (rr_port1 < 1001)) {
-      mcLog2("Message disgarded, this controller does not have such a port.", LOG_DEBUG);
+      mcLog2("Message disgarded, this controller does not have such a port.", LOG_ERR);
       return;
     }
 
@@ -322,7 +323,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       return;
     }
 
-    // Check if port is a logical port
+    // Check if port is a logical switch port
     if (rr_port1 >= 1001) {
       // look for logical port in LOGICAL_SWITCHPORTS array
       bool logicalSwitchPortFound = false;
@@ -347,6 +348,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       }
     }
     else {
+      // Port was a plain, simple switch port
       setServoAngle(rr_port1 - 1, (switchCommand == 1) ? rr_param1 : rr_value1);
     }
     return;
@@ -355,6 +357,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   element = xmlDocument.FirstChildElement("co");
   if (element != NULL) {
+    // handle signal message
     mcLog2("<co> node found.", LOG_DEBUG);
 
     // query addr attribute. This is the MattzoController id.
@@ -374,12 +377,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // If the controller does not have such a port, the message is disregarded.
     int rr_port = 0;
     if (element->QueryIntAttribute("port", &rr_port) != XML_SUCCESS) {
-      mcLog2("port attribute not found or wrong type. Message disregarded.", LOG_DEBUG);
+      mcLog2("port attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
     mcLog2("port: " + String(rr_port), LOG_DEBUG);
     if (rr_port < 1 || rr_port > NUM_SIGNALPORTS) {
-      mcLog2("Message disgarded, as this controller does not have such a port.", LOG_DEBUG);
+      mcLog2("Message disgarded, as this controller does not have such a port.", LOG_ERR);
       return;
     }
 
@@ -407,7 +410,52 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // end of signal handling
   }
 
-  mcLog2("No <sw> or <co> node found. Message disregarded.", LOG_DEBUG);
+  if (REMOTE_SENSORS_ENABLED) {
+    element = xmlDocument.FirstChildElement("fb");
+    if (element != NULL) {
+      // handle feedback message. Used for remote sensors
+      mcLog2("<fb> node found.", LOG_DEBUG);
+
+      // query bus attribute. This MattzoControllerId to which the sensor is connected
+      // If the bus attribute is not found, the message is discarded.
+      int rr_bus = 0;
+      if (element->QueryIntAttribute("bus", &rr_bus) != XML_SUCCESS) {
+        mcLog2("bus attribute not found or wrong type. Message disregarded.", LOG_ERR);
+        return;
+      }
+      mcLog2("bus: " + String(rr_bus), LOG_DEBUG);
+      // If the received MattzoControllerId equals the Id of this controller, the message is discarded as it was originated by this controller in the first place.
+      if (rr_bus == mattzoControllerId) {
+        mcLog2("Message disregarded as it was originated by this controller.", LOG_DEBUG);
+        return;
+      }
+
+      // query addr attribute. This is the number of the sensor on the remote controller.
+      // If this does not equal the ControllerNo of this controller, the message is disregarded.
+      int rr_addr = 0;
+      if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
+        mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
+        return;
+      }
+
+      // query state attribute. This is the sensor state and can either be "true" (triggered) or "false" (not triggered).
+      const char* rr_state = "xXxXx";
+      if (element->QueryStringAttribute("state", &rr_state) != XML_SUCCESS) {
+        mcLog2("state attribute not found or wrong type.", LOG_ERR);
+        return;
+      }
+      mcLog2("state: " + String(rr_state), LOG_DEBUG);
+      bool sensorState = strcmp(rr_state, "true") == 0;
+
+      // handle remote sensor event
+      handleRemoteSensorEvent(rr_bus, rr_addr, sensorState);
+
+      // end of remote sensor handling
+    }
+    return;
+  }
+
+  mcLog2("Unhandled message type. Message disregarded.", LOG_DEBUG);
 }
 
 void sendSensorEvent2MQTT(int sensorPort, int sensorState) {
@@ -449,35 +497,38 @@ void setLEDBySensorStates() {
 
 void monitorSensors() {
   for (int i = 0; i < NUM_SENSORS; i++) {
-    int sensorValue;
-    if (SENSOR_PIN_TYPE[i] == 0) {
-      // sensor directly connected to ESP8266
-      sensorValue = digitalRead(SENSOR_PIN[i]);
-    }
-    else if (SENSOR_PIN_TYPE[i] >= 0x20) {
-      // sensor connected to MCP23017
-#if USE_MCP23017
-      int m = SENSOR_PIN_TYPE[i] - 0x20;  // index of the MCP23017
-      sensorValue = mcp23017[m].digitalRead(SENSOR_PIN[i]);
-#endif
-    }
-
-    if (sensorValue == sensorTriggerState[i]) {
-      // Contact -> report contact immediately
-      if (!sensorState[i]) {
-        mcLog2("Sensor " + String(i) + " triggered.", LOG_INFO);
-        sendSensorEvent2MQTT(i, true);
-        sensorState[i] = true;
-        handleLevelCrossingSensorEvent(i);
+    // monitor only local sensors
+    if (SENSOR_PIN_TYPE[i] != REMOTE_SENSOR_PIN_TYPE) {
+      int sensorValue;
+      if (SENSOR_PIN_TYPE[i] == 0) {
+        // sensor directly connected to ESP8266
+        sensorValue = digitalRead(SENSOR_PIN[i]);
       }
-      lastSensorContact_ms[i] = millis();
-    }
-    else {
-      // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
-      if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS)) {
-        mcLog2("Sensor " + String(i) + " released.", LOG_INFO);
-        sendSensorEvent2MQTT(i, false);
-        sensorState[i] = false;
+      else if (SENSOR_PIN_TYPE[i] >= 0x20) {
+        // sensor connected to MCP23017
+  #if USE_MCP23017
+        int m = SENSOR_PIN_TYPE[i] - 0x20;  // index of the MCP23017
+        sensorValue = mcp23017[m].digitalRead(SENSOR_PIN[i]);
+  #endif
+      }
+  
+      if (sensorValue == sensorTriggerState[i]) {
+        // Contact -> report contact immediately
+        if (!sensorState[i]) {
+          mcLog2("Sensor " + String(i) + " triggered.", LOG_INFO);
+          sendSensorEvent2MQTT(i, true);
+          sensorState[i] = true;
+          handleLevelCrossingSensorEvent(i);
+        }
+        lastSensorContact_ms[i] = millis();
+      }
+      else {
+        // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
+        if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS)) {
+          mcLog2("Sensor " + String(i) + " released.", LOG_INFO);
+          sendSensorEvent2MQTT(i, false);
+          sensorState[i] = false;
+        }
       }
     }
   }
@@ -485,9 +536,30 @@ void monitorSensors() {
   setLEDBySensorStates();
 }
 
+// handle a remote sensor event.
+// remote sensor events are used for level crossings in Autonomous Mode
+void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState) {
+  // find sensor in sensor array
+  // if found, handle level crossing sensor event
+  for (int s = 0; s < NUM_SENSORS; s++) {
+    if (SENSOR_PIN_TYPE[s] == REMOTE_SENSOR_PIN_TYPE) {
+      if (SENSOR_REMOTE_MATTZECONTROLLER_ID[s] == mcId) {
+        if (SENSOR_PIN[s] == sensorAddress) {
+          mcLog2("Remote sensor " + String(mcId) + ":" + String(sensorAddress) + " found.", LOG_DEBUG);
+          if (sensorState) {
+            handleLevelCrossingSensorEvent(s);
+          }
+          return;
+        }
+      }
+    }
+  }
+  mcLog2("Remote sensor " + String(mcId) + ":" + String(sensorAddress) + " not found.", LOG_DEBUG);
+}
+
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle) {
-  mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+  // mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
   if (servoIndex >= 0 && servoIndex < NUM_SWITCHPORTS) {
     if (SWITCHPORT_PIN_TYPE[servoIndex] == 0) {
       servo[servoIndex].write(servoAngle);
@@ -594,9 +666,9 @@ void levelCrossingCommand(int levelCrossingCommand) {
       // If level crossing operates in autonomous mode, check if a track is occupied
       if (!LC_AUTONOMOUS_MODE || !lcIsOccupied()) {
         levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
-        levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_UP;
-        levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_UP;
-        levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_OPENING_PERIOD_MS;
+        levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
+        levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
+        levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_OPENING_PERIOD_MS;
         mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
         levelCrossing.lastStatusChangeTime_ms = millis();
       }
@@ -605,9 +677,9 @@ void levelCrossingCommand(int levelCrossingCommand) {
   else if (levelCrossingCommand == 1) { // closed
     if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::CLOSED) {
       levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
-      levelCrossing.servoTargetAnglePrimaryBooms = BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
-      levelCrossing.servoTargetAngleSecondaryBooms = BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
-      levelCrossing.servoAngleIncrementPerMS = (float)abs(BOOM_BARRIER_ANGLE_PRIMARY_UP - BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / BOOM_BARRIER_CLOSING_PERIOD_MS;
+      levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
+      levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
+      levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_CLOSING_PERIOD_MS;
       mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
       levelCrossing.lastStatusChangeTime_ms = millis();
     }
@@ -743,7 +815,7 @@ void handleLevelCrossingSensorEvent(int triggeredSensor) {
 
 // Returns if level crossing is occupied. Only relevant for autonomous mode
 bool lcIsOccupied() {
-  for (t = 0; t < LC_NUM_TRACKS; t++) {
+  for (int t = 0; t < LC_NUM_TRACKS; t++) {
     if (levelCrossing.trackOccupied[t]) {
       return true;
     }

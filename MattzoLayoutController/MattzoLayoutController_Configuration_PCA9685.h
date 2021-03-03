@@ -69,7 +69,7 @@ const uint8_t PCA9685_OE_PIN = D0;
 // - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - GND is connected to GND of the ESP8266 (mandatory!).
-// - RESET ís connected with an 10K resistor to VCC
+// - RESET ï¿½s connected with an 10K resistor to VCC
 // - Address ports A0, A1 and A2 according to the desired address (0x20, 0x21, ...). All connected to GND means address 0x20.
 // Ports:
 // - The ports of the are numbered as follows:
@@ -183,7 +183,7 @@ const int LC_NUM_BOOM_BARRIERS = 4;
 
 // Servo ports (indices in the SWITCHPORT_PIN array)
 // servo 1 and 2 represents primary barriers, servo 3 and subsequent servos represents secondary barriers
-uint8_t LC_BOOM_BARRIER_SERVO_PIN[NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
+uint8_t LC_BOOM_BARRIER_SERVO_PIN[LC_NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
 
 // Closing timespan for all boom barriers
 const unsigned int LC_BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;

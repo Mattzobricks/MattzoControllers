@@ -69,7 +69,7 @@ uint8_t PCA9685_OE_PIN = D0;
 // - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - GND is connected to GND of the ESP8266 (mandatory!).
-// - RESET �s connected with an 10K resistor to VCC
+// - RESET is connected with an 10K resistor to VCC
 // - Address ports A0, A1 and A2 according to the desired address (0x20, 0x21, ...). All connected to GND means address 0x20.
 // Ports:
 // - The ports of the are numbered as follows:
@@ -103,10 +103,10 @@ const int NUM_SWITCHPORTS = 4;
 uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3 };
 
 // Type of digital output pins for switch servos
-// 0   : pins on the ESP-8266
-// 0x40: ports on the 1st PCA9685
-// 0x41: ports on the 2nd PCA9685
-// 0x42: ports on the 3rd PCA9685 etc.
+// 0   : pin on the ESP-8266
+// 0x40: port on the 1st PCA9685
+// 0x41: port on the 2nd PCA9685
+// 0x42: port on the 3rd PCA9685 etc.
 uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40 };
 
 // LOGICAL SWITCH PORTS
@@ -139,30 +139,44 @@ boolean LOGICAL_SWITCHPORT_REV_2ND_PORT[NUM_LOGICAL_SWITCHPORTS] = { false, fals
 const int NUM_SIGNALPORTS = 4;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 4, 5, 6, 7 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 12, 13, 14, 15 };
 
 // Type of digital output pins for signal LEDs
-// 0   : pins on the ESP-8266
-// 0x40: ports on the 1st PCA9685
-// 0x41: ports on the 2nd PCA9685
-// 0x42: ports on the 3rd PCA9685 etc.
+// 0   : pin on the ESP-8266
+// 0x40: port on the 1st PCA9685
+// 0x41: port on the 2nd PCA9685
+// 0x42: port on the 3rd PCA9685 etc.
 uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40 };
 
 
 // SENSOR WIRING CONFIGURATION
 
+// Set to true to enable remote sensors.
+// Remote sensors are not electrically connected to this controller.
+// They are triggered via Rocrail commands.
+// Remote sensors can be used for level crossings in Autonomous Mode
+// If you do not control a level crossing in Autonomous Mode with this controller, set to false!
+const bool REMOTE_SENSORS_ENABLED = true;
+
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 4;
+const int NUM_SENSORS = 8;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D4, D5, D6, D7 };
+// If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D4, D5, D6, D7, 1, 2, 3, 4 };
 
 // Type of digital input pins for sensors
-// 0   : pins on the ESP-8266
-// 0x20: ports on the 1st MCP23017
-// 0x21: ports on the 2nd MCP23017
-// 0x22: ports on the 3rd MCP23017 etc.
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0 };
+// 0   : pin on the ESP-8266
+// 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
+// 0x20: port on the 1st MCP23017
+// 0x21: port on the 2nd MCP23017
+// 0x22: port on the 3rd MCP23017 etc.
+const int REMOTE_SENSOR_PIN_TYPE = 0x10;
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE };
+
+// If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
+// If sensor is local, the value has no meaning
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 12345, 12345, 12345, 12345 };
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -222,7 +236,7 @@ const unsigned int LC_BOOM_BARRIER_ANGLE_SECONDARY_DOWN = 87;
 const int LC_NUM_SIGNALS = 4;
 
 // Signal ports (indices in the SIGNALPORT_PIN array)
-uint8_t LC_SIGNAL_PIN[LC_NUM_SIGNALS] = { 4, 5, 6, 7 };
+uint8_t LC_SIGNAL_PIN[LC_NUM_SIGNALS] = { 0, 1, 2, 3 };
 
 // Signal flash period in milliseconds (full cycle).
 const unsigned int LC_SIGNAL_FLASH_PERIOD_MS = 1500;
@@ -239,20 +253,20 @@ const bool LC_AUTONOMOUS_MODE = true;
 const int LC_NUM_TRACKS = 2;
 
 // Number of level crossing sensors
-const int LC_NUM_SENSORS = 4;
+const int LC_NUM_SENSORS = 8;
 
 // Sensor array (indices within the SENSOR_PIN array)
 // Sensors may occur twice (if sensor is used both as inbound and outbound sensor)
-const int LC_SENSORS_INDEX[LC_NUM_SENSORS] = { 0, 1, 2, 3 };
+const int LC_SENSORS_INDEX[LC_NUM_SENSORS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
 // Track index of the sensor (0: track 1, 1: track 2 etc.)
-const int LC_SENSORS_TRACK[LC_NUM_SENSORS] = { 0, 0, 1, 1 };
+const int LC_SENSORS_TRACK[LC_NUM_SENSORS] = { 0, 1, 0, 1, 0, 1, 0, 1 };
 
 // Purpose of the sensor (0: inbound / 1: outbound / 2: both)
-const int LC_SENSORS_PURPOSE[LC_NUM_SENSORS] = { 2, 2, 2, 2 };
+const int LC_SENSORS_PURPOSE[LC_NUM_SENSORS] = { 1, 1, 1, 1, 0, 0, 0, 0 };
 
 // Orientation of the sensor (0: plus side / 1: minus side)
-const int LC_SENSORS_ORIENTATION[LC_NUM_SENSORS] = { 0, 1, 0, 1 };
+const int LC_SENSORS_ORIENTATION[LC_NUM_SENSORS] = { 0, 0, 1, 1, 0, 0, 1, 1 };
 
 // Timeout after which axle counters are reset and the track is released (in milliseconds)
 const unsigned int LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS = 30000;
