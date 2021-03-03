@@ -51,7 +51,7 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
   _isDiscovering = true;
   _isDiscovered = false;
 
-  Serial.println("[" + String(xPortGetCoreID()) + "] SBrick: Scan started");
+  Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scan started");
   // Set the callback we want to use to be informed when we have detected a new device.
   if (_advertisedDeviceCallback == nullptr)
   {
@@ -59,7 +59,7 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
   }
   scanner->setAdvertisedDeviceCallbacks(_advertisedDeviceCallback);
   scanner->start(scanDurationInSeconds, false);
-  Serial.println("[" + String(xPortGetCoreID()) + "] SBrick: Scan stopped");
+  Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scan stopped");
 
   _isDiscovering = false;
 }
@@ -142,7 +142,7 @@ std::string SBrickHubClient::getDeviceName()
 
 bool SBrickHubClient::connectToServer()
 {
-  Serial.print("[" + String(xPortGetCoreID()) + "] SBrick: Connecting to ");
+  Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Connecting to ");
   Serial.println(_address->toString().c_str());
 
   if (_sbrick == nullptr)
@@ -157,10 +157,21 @@ bool SBrickHubClient::connectToServer()
   }
   _sbrick->setClientCallbacks(_clientCallback);
 
+  /** Set initial connection parameters: These settings are 15ms interval, 0 latency, 120ms timout.
+   *  These settings are safe for 3 clients to connect reliably, can go faster if you have less connections. 
+   *  Timeout should be a multiple of the interval, minimum is 100ms.
+   *  Min interval: 12 * 1.25ms = 15, Max interval: 12 * 1.25ms = 15, 0 latency, 51 * 10ms = 510ms timeout
+   */
+  //_sbrick->setConnectionParams(12, 12, 0, 51);
+
+  /** Set how long we are willing to wait for the connection to complete (seconds), default is 30. */
+  _sbrick->setConnectTimeout(5);
+
   // Connect to the remote BLE Server.
   if (!_sbrick->connect(false))
   {
     // Serial.println("- Failed to connect to server");
+    _isDiscovered = false;
     return false;
   }
   //Serial.println(" - Connected to server");

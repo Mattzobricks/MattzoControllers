@@ -78,7 +78,7 @@ public:
 private:
 
   static bool _setupCompleted;
-  static String publisherName;
+  static char _publisherName[60];
 
   // Time of the last sent ping.
   static unsigned long lastPing;

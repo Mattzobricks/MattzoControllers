@@ -71,7 +71,7 @@ public:
   static void Setup(char *topic, void (*callback)(char *, uint8_t *, unsigned int));
 
 private:
-  static String _subscriberName;
+  static char _subscriberName[60];
   static char *_topic;
   static bool _setupCompleted;
 

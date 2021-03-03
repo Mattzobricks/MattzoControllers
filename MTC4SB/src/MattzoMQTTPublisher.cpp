@@ -35,8 +35,8 @@ void MattzoMQTTPublisher::Setup(const int messageQueueLength)
   mqttPublisherClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);
 
   // Construct publisher name.
-  publisherName = String(mattzoControllerName_char);
-  publisherName.concat("Publisher");
+  strcpy(_publisherName, mattzoControllerName_char);
+  strcat(_publisherName, "Publisher");
 
   // Create a queue with a fixed length that will hold pointers to MQTT messages.
   msg_queue = xQueueCreate(messageQueueLength, sizeof(char *));
@@ -120,7 +120,7 @@ void MattzoMQTTPublisher::reconnect()
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-    if (mqttPublisherClient.connect(publisherName.c_str(), "rocrail/service/command", 0, false, lastWillMessage_char))
+    if (mqttPublisherClient.connect(_publisherName, "rocrail/service/command", 0, false, lastWillMessage_char))
     {
       Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Publisher connected");
     }
@@ -164,7 +164,7 @@ void MattzoMQTTPublisher::taskLoop(void *parm)
       lastPing = millis();
 
       // Send a ping message.
-      sendMessage("roc2bricks/ping", publisherName.c_str());
+      sendMessage("roc2bricks/ping", _publisherName);
     }
 
     // Send any queued messages.
@@ -188,4 +188,4 @@ int8_t MattzoMQTTPublisher::CoreID = 0;
 uint32_t MattzoMQTTPublisher::StackDepth = 2048;
 bool MattzoMQTTPublisher::_setupCompleted = false;
 unsigned long MattzoMQTTPublisher::lastPing = millis();
-String MattzoMQTTPublisher::publisherName = String("Unknown");
+char MattzoMQTTPublisher::_publisherName[60] = "Unknown";

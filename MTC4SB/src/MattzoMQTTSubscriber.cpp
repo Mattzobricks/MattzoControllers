@@ -39,8 +39,8 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
   mqttSubscriberClient.setCallback(callback);
 
   // Construct subscriber name.
-  String _subscriberName = String(mattzoControllerName_char);
-  _subscriberName.concat("Subscriber");
+  strcpy(_subscriberName, mattzoControllerName_char);
+  strcat(_subscriberName, "Subscriber");
 
   // Start task loop.
   xTaskCreatePinnedToCore(taskLoop, "MQTTSubscriber", StackDepth, NULL, TaskPriority, NULL, CoreID);
@@ -80,7 +80,7 @@ void MattzoMQTTSubscriber::reconnect()
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-    if (mqttSubscriberClient.connect(_subscriberName.c_str(), "rocrail/service/command", 0, false, lastWillMessage_char))
+    if (mqttSubscriberClient.connect(_subscriberName, "rocrail/service/command", 0, false, lastWillMessage_char))
     {
       Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Subscriber connected");
       mqttSubscriberClient.subscribe(_topic);
@@ -126,7 +126,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
       lastPing = millis();
 
       // Send a ping message.
-      sendMessage("roc2bricks/ping", _subscriberName.c_str());
+      sendMessage("roc2bricks/ping", _subscriberName);
     }
 
     // Allow the MQTT client to process incoming messages and maintain its connection to the server.
@@ -147,5 +147,5 @@ int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
 bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();
-String MattzoMQTTSubscriber::_subscriberName = String("Unknown");
+char MattzoMQTTSubscriber::_subscriberName[60] ="Unknown";
 char *MattzoMQTTSubscriber::_topic = (char *)"Unknown";
