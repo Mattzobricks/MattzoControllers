@@ -1,5 +1,3 @@
-#pragma once
-
 // MattzoController Network Configuration
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
@@ -20,51 +18,51 @@
 // 4. Move this file into the MattzoBricks folder that you just created.
 // 5. Go through the settings below and update the settings as required.
 
+#include "MattzoController_Network_Configuration.h"
 
 // *************
 // WiFi settings
 // *************
 // The SSID of your WiFi network
-extern const char* WIFI_SSID;
+const char* WIFI_SSID = "railnet";
 
 // The passphrase of your WiFi network
-extern const char* WIFI_PASSWORD;
+const char* WIFI_PASSWORD = "born2rail";
 
 // *************
 // MQTT settings
 // *************
 // The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
 // The MQTT_BROKER_IP parameter will also accept hostnames (e.g. "mattzohub").
-extern const char* MQTT_BROKER_IP;
-extern const int MQTT_BROKER_PORT;
+const char* MQTT_BROKER_IP = "192.168.178.57";
+const int MQTT_BROKER_PORT = 1883;
 
 // MQTT keep alive interval (in seconds)
-extern const int MQTT_KEEP_ALIVE_INTERVAL;
-
+const int MQTT_KEEP_ALIVE_INTERVAL = 10;
 
 // *************
 // Ping settings
 // *************
 // Attention: pings were deprecated with issue #9 and replaced by MQTT last will messages
 // Set to true if pings should be sent
-extern const bool SEND_PING;
+const bool SEND_PING = false;
 
 // Interval for sending pings in milliseconds (5000 ^= 5 seconds)
-extern const int SEND_PING_INTERVAL;
+const int SEND_PING_INTERVAL = 5000;
 
 // ***************
 // Syslog settings
 // ***************
 // Set to true if sys log shall be enabled
-extern const bool SYSLOG_ENABLED;
+const bool SYSLOG_ENABLED = true;
 // IP or hostname of the syslog server
-extern const char* SYSLOG_SERVER;
+const char* SYSLOG_SERVER = MQTT_BROKER_IP;
 // Port of the syslog server
-extern const int SYSLOG_PORT;
+const int SYSLOG_PORT = 514;
 
 // ************
 // OTA settings
 // ************
 // Password for over-the-air firmware updates
 // PLEASE CHANGE THE PASSWORD AND KEEP IT SECRET FROM EVIL PLAYMOBIL FANS!
-extern const char* OTA_PASSWORD;
+const char* OTA_PASSWORD = "mattzobricks";

@@ -1,0 +1,30 @@
+#include "NimBLEDevice.h"
+#include "SBrickHubClient.h"
+#include "SBrickClientCallback.h"
+
+SBrickClientCallback::SBrickClientCallback(SBrickHubClient *sbrick) : NimBLEClientCallbacks()
+{
+    _psbrick = sbrick;
+}
+
+void SBrickClientCallback::onConnect(NimBLEClient *pclient)
+{
+    if (pclient->getPeerAddress().equals(*_psbrick->_address))
+    {
+        Serial.print("onConnect: ");
+        Serial.println(pclient->getPeerAddress().toString().c_str());
+        _psbrick->_isConnected = true;
+    }
+}
+
+void SBrickClientCallback::onDisconnect(NimBLEClient *pclient)
+{
+    if (pclient->getPeerAddress().equals(*_psbrick->_address))
+    {
+        Serial.print("onDisconnect: ");
+        Serial.println(_psbrick->_address->toString().c_str());
+        _psbrick->_isDiscovered = false;
+        _psbrick->_isConnected = false;
+        pclient->disconnect();
+    }
+}

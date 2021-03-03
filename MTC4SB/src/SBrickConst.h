@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * SBrickConst.h - definition of enum types and constants
  * 

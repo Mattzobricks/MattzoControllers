@@ -1,31 +1,25 @@
 #include <Arduino.h>
-
-#include "NimBLEDevice.h"
+#include <NimBLEDevice.h>
 
 // MattzoControllerType
 #define MATTZO_CONTROLLER_TYPE "MTC4SB"
 
-// Trigger emergency brake upon disconnect
-#define TRIGGER_EBREAK_UPON_DISCONNECT false
-
-//#include <NimBLEDevice.h>
-
 // MattzoController network configuration (the following file needs to be moved into the Arduino library folder):
-#include <MattzoController_Network_Configuration.h>
+//#include <MattzoController_Network_Configuration.h>
 
 #include "MattzoController_Library.h"
 #include "MattzoWifiClient.h"
 //#include "MattzoMQTTPublisher.h"
 //#include "MattzoMQTTSubscriber.h"
 #include "SBrickConst.h"
-#include "MattzoSBrickHub.h"
+#include "SBrickHubClient.h"
 
 // Globals
 NimBLEScan* scanner;
-SBrickHubClient* mySBricks[3] = {
-    new SBrickHubClient("YC66405", "00:07:80:d0:47:43"),
+SBrickHubClient* mySBricks[1] = {
+    // new SBrickHubClient("YC66405", "00:07:80:d0:47:43"),
     new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2"),
-    new SBrickHubClient("BC60052", "88:6b:0f:23:78:10")
+    // new SBrickHubClient("BC60052", "88:6b:0f:23:78:10")
 };
 
 void setup()
@@ -39,7 +33,7 @@ void setup()
   Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Starting MattzoTrainController for SBrick...");
 
   // Setup Mattzo controller.
-  setupMattzoController();
+  setupMattzoController(MATTZO_CONTROLLER_TYPE);
 
   // Initialize BLE client.
   NimBLEDevice::init("");
@@ -77,8 +71,8 @@ void loop()
   }
 
   // Print available heap space.
-  Serial.print("Available heap: ");
-  Serial.println(xPortGetFreeHeapSize());
+  // Serial.print("Available heap: ");
+  // Serial.println(xPortGetFreeHeapSize());
   
   // Wait before trying again.
   vTaskDelay(3000 / portTICK_PERIOD_MS);
