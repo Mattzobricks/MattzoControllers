@@ -8,13 +8,15 @@ class SBrickHubClient
 public:
   SBrickHubClient(std::string deviceName, std::string deviceAddress);
   void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
-  bool Connect();
+  bool Connect(const uint32_t watchdogTimeOutInMs);
   bool IsDiscovered();
   bool IsConnected();
+  bool Drive(const int8_t powerA, const int8_t powerB, const int8_t powerC, const int8_t powerD);
   std::string getDeviceName();
 
 private:
-  bool connectToServer();
+  bool connectToServer(const uint8_t watchdogTimeOutInMs);
+  bool setWatchdogTimeout(const uint8_t watchdogTimeOutInMs);
   // static void notifyCallback(NimBLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify);
   bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
 
