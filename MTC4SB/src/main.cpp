@@ -19,7 +19,7 @@ NimBLEScan *scanner;
 SBrickHubClient *mySBricks[2] = {
     new SBrickHubClient("YC66405", "00:07:80:d0:47:43"),
     new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2"),
-    //new SBrickHubClient("BC60052", "88:6b:0f:23:78:10")
+    // new SBrickHubClient("BC60052", "88:6b:0f:23:78:10")
 };
 
 /// <summary>
@@ -60,10 +60,10 @@ void setup()
   setupMattzoController(MATTZO_CONTROLLER_TYPE);
 
   // Setup MQTT publisher (with a queue that can hold 1000 messages).
-  MattzoMQTTPublisher::Setup(1000);
+  // MattzoMQTTPublisher::Setup(1000);
 
   // Setup MQTT subscriber.
-  MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
+  // MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
 
   Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Initializing BLE...");
 
@@ -86,17 +86,17 @@ void loop()
   {
     SBrickHubClient *sbrick = mySBricks[i];
 
-    Serial.print("[" + String(xPortGetCoreID()) + "] Loop: ");
-    Serial.print(sbrick->getDeviceName().c_str());
-    Serial.print(": discovered=");
-    Serial.print(sbrick->IsDiscovered());
-    Serial.print(", connected=");
-    Serial.println(sbrick->IsConnected());
+    // Serial.print("[" + String(xPortGetCoreID()) + "] Loop: ");
+    // Serial.print(sbrick->getDeviceName().c_str());
+    // Serial.print(": discovered=");
+    // Serial.print(sbrick->IsDiscovered());
+    // Serial.print(", connected=");
+    // Serial.println(sbrick->IsConnected());
 
     if (sbrick->IsConnected())
     {
       // Drive at medium speed (range: 0-255) on all channels.
-      sbrick->Drive(100, 100, 100, 100);
+      sbrick->Drive(-75, -75, 75, 75);
     }
     else
     {
@@ -115,22 +115,23 @@ void loop()
     }
 
     // Construct message.
-    String message = String("Hello world @ ");
-    message.concat(millis());
+    // String message = String("Hello world @ ");
+    // message.concat(millis());
 
     // Print message we are about to queue.
-    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queing message (" + message + ").");
+    // Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queing message (" + message + ").");
 
     // Try to add message to queue (fails if queue is full).
-    if (!MattzoMQTTPublisher::QueueMessage(message.c_str()))
-    {
-      Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queue full");
-    }
+    // if (!MattzoMQTTPublisher::QueueMessage(message.c_str()))
+    // {
+    //   Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queue full");
+    // }
 
     // Print available heap space.
-    Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
-    Serial.println(xPortGetFreeHeapSize());
+    // Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
+    // Serial.println(xPortGetFreeHeapSize());
 
     // Wait half the watchdog timeout (yes, by multiplying by 50 as watchdog timeout is in s/10 ;-) before driving again.
     delay(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS * 50 / portTICK_PERIOD_MS);
   }
+}

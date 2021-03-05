@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "SBrickHubClient.h"
+#include "SBrickHubChannel.h"
 #include "NimBLEDevice.h"
 #include "SBrickConst.h"
 #include "SBrickClientCallback.h"
@@ -10,24 +11,24 @@
 *   - subscribeToNotifications(callback)
 *       pMyRemoteCharacteristic->registerForNotify(notifyCallback)
 *       void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* data, size_t length, bool isNotify)
-* SBrickHub.DriveChannel(channel, command)
 * SBrickHub.EmergencyBreak()
 */
 
 static BLEUUID sbrickRemoteControlServiceUUID(SBRICK_REMOTECONTROL_SERVICE_UUID);
 static BLEUUID sbrickRemoteControlCharacteristicUUID(SBRICK_REMOTECONTROL_CHARACTERISTIC_UUID);
 
-const int8_t BRAKE = 0;
-const int8_t DRIVE = 1;
-const int8_t SET_WATCHDOG_TIMEOUT = 13;
-const int8_t GET_WATCHDOG_TIMEOUT = 14;
-const int8_t BREAK_WITH_PM = 19;
-const int8_t GET_CHANNEL_STATUS = 34;
+const int8_t CMD_BRAKE = 0;
+const int8_t CMD_DRIVE = 1;
+const int8_t CMD_SET_WATCHDOG_TIMEOUT = 13;
+const int8_t CMD_GET_WATCHDOG_TIMEOUT = 14;
+const int8_t CMD_BREAK_WITH_PM = 19;
+const int8_t CMD_GET_CHANNEL_STATUS = 34;
 
 // Public members
 
 SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress)
 {
+  _driveTaskHandle = NULL;
   _deviceName = deviceName;
   _address = new NimBLEAddress(deviceAddress);
   _sbrick = nullptr;
@@ -56,7 +57,7 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
   _isDiscovering = true;
   _isDiscovered = false;
 
-  Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scan started");
+  Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scanning for " + _deviceName.c_str() + "...");
   // Set the callback we want to use to be informed when we have detected a new device.
   if (_advertisedDeviceCallback == nullptr)
   {
@@ -64,7 +65,7 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
   }
   scanner->setAdvertisedDeviceCallbacks(_advertisedDeviceCallback);
   scanner->start(scanDurationInSeconds, false);
-  Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scan stopped");
+  Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scanning for " + _deviceName.c_str() + " aborted.");
 
   _isDiscovering = false;
 }
@@ -87,22 +88,25 @@ bool SBrickHubClient::IsConnected()
   return _isConnected;
 }
 
-bool SBrickHubClient::Drive(const int8_t powerA, const int8_t powerB, const int8_t powerC, const int8_t powerD) {
-  if (!attachCharacteristic(sbrickRemoteControlServiceUUID, sbrickRemoteControlCharacteristicUUID)){
-    return false;
-  }
+void SBrickHubClient::Drive(const int16_t a, const int16_t b, const int16_t c, const int16_t d)
+{
+  // Set each channel target speeds.
+  _channels[SBrickHubChannel::A]->SetTargetSpeed(a);
+  _channels[SBrickHubChannel::B]->SetTargetSpeed(b);
+  _channels[SBrickHubChannel::C]->SetTargetSpeed(c);
+  _channels[SBrickHubChannel::D]->SetTargetSpeed(d);
+}
 
-  if(!_remoteControlCharacteristic->canWrite()) {
-    return false;
-  }
+// void SBrickHubClient::DriveChannel(const SBrickHubChannel channel, const int8_t speed) {
+//   _channels[channel]->SetTargetSpeed(speed);
+// }
 
-  uint8_t byteWrite[13] = { DRIVE, 0, 1, powerA, 1, 1, powerB, 2, 1, powerC, 3, 1, powerD };
-  if(!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false)) {
-    return false;
-  }
-  Serial.println("success");
-  
-  return true;
+void SBrickHubClient::EmergencyBreak() {
+  // Set each channel speed to zero.
+  _channels[SBrickHubChannel::A]->SetSpeed(0);
+  _channels[SBrickHubChannel::B]->SetSpeed(0);
+  _channels[SBrickHubChannel::C]->SetSpeed(0);
+  _channels[SBrickHubChannel::D]->SetSpeed(0);
 }
 
 std::string SBrickHubClient::getDeviceName()
@@ -110,7 +114,7 @@ std::string SBrickHubClient::getDeviceName()
   return _deviceName;
 }
 
-bool SBrickHubClient::connectToServer(const uint8_t watchdogTimeOutInMs)
+bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInMs)
 {
   Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Connecting to ");
   Serial.println(_address->toString().c_str());
@@ -118,7 +122,6 @@ bool SBrickHubClient::connectToServer(const uint8_t watchdogTimeOutInMs)
   if (_sbrick == nullptr)
   {
     _sbrick = NimBLEDevice::createClient(*_address);
-    //Serial.println(" - Created client");
   }
 
   if (_clientCallback == nullptr)
@@ -135,7 +138,7 @@ bool SBrickHubClient::connectToServer(const uint8_t watchdogTimeOutInMs)
   //_sbrick->setConnectionParams(12, 12, 0, 51);
 
   /** Set how long we are willing to wait for the connection to complete (seconds), default is 30. */
-  _sbrick->setConnectTimeout(5);
+  _sbrick->setConnectTimeout(ConnectDelayInSeconds);
 
   // Connect to the remote BLE Server.
   if (!_sbrick->connect(false))
@@ -159,7 +162,8 @@ bool SBrickHubClient::connectToServer(const uint8_t watchdogTimeOutInMs)
   //  _remoteControlCharacteristic->registerForNotify(notifyCallback);
   //}
 
-  return true;
+  // Start drive task loop.  
+  return startDriveTask();
 }
 
 // static void notifyCallback(NimBLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
@@ -181,22 +185,27 @@ bool SBrickHubClient::connectToServer(const uint8_t watchdogTimeOutInMs)
 /// Writing a zero disables the watchdog.
 /// By default watchdog is set to 5, which means a 0.5 second timeout.
 /// </summary>
-bool SBrickHubClient::setWatchdogTimeout(const uint8_t watchdogTimeOutInMs) {
-  if (!attachCharacteristic(sbrickRemoteControlServiceUUID, sbrickRemoteControlCharacteristicUUID)){
+bool SBrickHubClient::setWatchdogTimeout(const uint16_t watchdogTimeOutInMs)
+{
+  if (!attachCharacteristic(sbrickRemoteControlServiceUUID, sbrickRemoteControlCharacteristicUUID))
+  {
     return false;
   }
 
-  if(!_remoteControlCharacteristic->canWrite()) {
+  if (!_remoteControlCharacteristic->canWrite())
+  {
     return false;
   }
 
-  uint8_t byteWrite[2] = { SET_WATCHDOG_TIMEOUT, watchdogTimeOutInMs };
-  if(!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false)) {
+  uint8_t byteWrite[2] = {CMD_SET_WATCHDOG_TIMEOUT, watchdogTimeOutInMs};
+  if (!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false))
+  {
     return false;
   }
 
-  uint8_t byteRead[1] = { GET_WATCHDOG_TIMEOUT };
-  if(!_remoteControlCharacteristic->writeValue(byteRead, sizeof(byteRead), false)) {
+  uint8_t byteRead[1] = {CMD_GET_WATCHDOG_TIMEOUT};
+  if (!_remoteControlCharacteristic->writeValue(byteRead, sizeof(byteRead), false))
+  {
     return false;
   }
 
@@ -204,6 +213,78 @@ bool SBrickHubClient::setWatchdogTimeout(const uint8_t watchdogTimeOutInMs) {
   Serial.println(_remoteControlCharacteristic->readValue<uint8_t>());
 
   return true;
+}
+
+BaseType_t SBrickHubClient::startDriveTask()
+{
+  // Determine drive task name.
+  // char* taskName = "DT_";
+  // strcat(taskName, _deviceName.c_str());
+
+  // Attempt to run drive task, return result.
+  return xTaskCreatePinnedToCore(this->driveTaskImpl, "DriveTask", StackDepth, this, TaskPriority, &_driveTaskHandle, CoreID) == pdPASS;
+}
+
+void SBrickHubClient::driveTaskImpl(void *_this)
+{
+  ((SBrickHubClient *)_this)->driveTaskLoop();
+}
+
+void SBrickHubClient::driveTaskLoop()
+{
+  for (;;)
+  {
+    for (int channel = SBrickHubChannel::A; channel != SBrickHubChannel::D + 1; channel++)
+    {
+      // Serial.print("Channel ");
+      // Serial.print(channel);
+      // Serial.print(": dir=");
+      // Serial.print(_channels[channel]->GetCurrentTargetDirection());
+      // Serial.print(" cur=");
+      // Serial.print(_channels[channel]->GetCurrentTargetSpeed());
+
+      int8_t dirMultiplier = _channels[channel]->GetCurrentTargetDirection() ? 1 : -1;
+      int16_t newTargetSpeed = (_channels[channel]->GetCurrentTargetSpeed() + 10) * dirMultiplier;
+
+      // Serial.print(" stp=");
+      // Serial.print(speedStep);
+
+      if (!_channels[channel]->IsAtSetTargetSpeed())
+      {
+        // Adjust channel target speed with one speed step towards the set target speed.
+        // Serial.print(" tar=");
+        // Serial.print(newTargetSpeed);
+        _channels[channel]->SetCurrentTargetSpeed(newTargetSpeed);
+      }
+
+      // Serial.println();
+    }
+
+    // Construct drive command.
+    uint8_t byteCmd[13] = {
+        CMD_DRIVE,
+        SBrickHubChannel::A,
+        _channels[SBrickHubChannel::A]->GetCurrentTargetDirection(),
+        _channels[SBrickHubChannel::A]->GetCurrentTargetSpeed(),
+        SBrickHubChannel::B,
+        _channels[SBrickHubChannel::B]->GetCurrentTargetDirection(),
+        _channels[SBrickHubChannel::B]->GetCurrentTargetSpeed(),
+        SBrickHubChannel::C,
+        _channels[SBrickHubChannel::C]->GetCurrentTargetDirection(),
+        _channels[SBrickHubChannel::C]->GetCurrentTargetSpeed(),
+        SBrickHubChannel::D,
+        _channels[SBrickHubChannel::D]->GetCurrentTargetDirection(),
+        _channels[SBrickHubChannel::D]->GetCurrentTargetSpeed()};
+
+    // Send drive command.
+    if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
+    {
+      Serial.println("Drive failed");
+    }
+
+    // TODO: Wait half the watchdog timeout.
+    vTaskDelay(500);
+  }
 }
 
 bool SBrickHubClient::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID)
@@ -225,3 +306,9 @@ bool SBrickHubClient::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID ch
 
   return _remoteControlCharacteristic != nullptr;
 }
+
+// Initialize static members.
+uint8_t SBrickHubClient::TaskPriority = 1;
+int8_t SBrickHubClient::CoreID = 1;
+uint32_t SBrickHubClient::StackDepth = 2048;
+uint8_t SBrickHubClient::ConnectDelayInSeconds = 30;
