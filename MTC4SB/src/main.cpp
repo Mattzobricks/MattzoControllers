@@ -23,6 +23,26 @@ SBrickHubClient *mySBricks[2] = {
 };
 
 /// <summary>
+/// Boolean value indicating whether the MQTT Publisher and Subscriber are enabled.
+/// </summary>
+bool ENABLE_MQTT = false;
+
+/// <summary>
+/// Number of message to send the MQTT queue can hold before we start dropping them.
+/// </summary>
+int MQTT_QUEUE_LENGTH = 1000;
+
+/// <summary>
+/// BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
+/// </summary>
+uint32_t BLE_SCAN_DURATION_IN_SECONDS = 1;
+
+/// <summary>
+/// Duration between BLE discovery and connect attempts in seconds.
+/// </summary>
+uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 5;
+
+/// <summary>
 /// Sets the watchdog timeout (0D &lt; timeout in 0.1 secs, 1 byte &gt;)
 /// The purpose of the watchdog is to stop driving in case of an application failure.
 /// Watchdog starts when the first DRIVE command is issued during a connection.
@@ -59,11 +79,13 @@ void setup()
   // Setup Mattzo controller.
   setupMattzoController(MATTZO_CONTROLLER_TYPE);
 
-  // Setup MQTT publisher (with a queue that can hold 1000 messages).
-  // MattzoMQTTPublisher::Setup(1000);
+  if(ENABLE_MQTT) {
+    // Setup MQTT publisher (with a queue that can hold 1000 messages).
+    MattzoMQTTPublisher::Setup(MQTT_QUEUE_LENGTH);
 
-  // Setup MQTT subscriber.
-  // MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
+    // Setup MQTT subscriber.
+    MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
+  }
 
   Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Initializing BLE...");
 
@@ -86,52 +108,50 @@ void loop()
   {
     SBrickHubClient *sbrick = mySBricks[i];
 
-    // Serial.print("[" + String(xPortGetCoreID()) + "] Loop: ");
-    // Serial.print(sbrick->getDeviceName().c_str());
-    // Serial.print(": discovered=");
-    // Serial.print(sbrick->IsDiscovered());
-    // Serial.print(", connected=");
-    // Serial.println(sbrick->IsConnected());
-
     if (sbrick->IsConnected())
     {
-      // Drive at medium speed (range: 0-255) on all channels.
+      // Drive at avarage speed (supported range: 0-255) on all channels either forwards or backwards.
       sbrick->Drive(-75, -75, 75, 75);
     }
     else
     {
       if (!sbrick->IsDiscovered())
       {
-        sbrick->StartDiscovery(scanner);
+        // SBrick not discovered yet, first discover it.
+        sbrick->StartDiscovery(scanner, BLE_SCAN_DURATION_IN_SECONDS);
       }
 
       if (sbrick->IsDiscovered())
       {
+        // SBrick discovered, try to connect now.
         if (!sbrick->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
         {
+          // Connect attempt failed. Will retry in next loop.
           Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Connect failed");
         }
       }
     }
+  }
 
+  if(ENABLE_MQTT) {
     // Construct message.
-    // String message = String("Hello world @ ");
-    // message.concat(millis());
+    String message = String("Hello world @ ");
+    message.concat(millis());
 
     // Print message we are about to queue.
-    // Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queing message (" + message + ").");
+    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queing message (" + message + ").");
 
     // Try to add message to queue (fails if queue is full).
-    // if (!MattzoMQTTPublisher::QueueMessage(message.c_str()))
-    // {
-    //   Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queue full");
-    // }
-
-    // Print available heap space.
-    // Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
-    // Serial.println(xPortGetFreeHeapSize());
-
-    // Wait half the watchdog timeout (yes, by multiplying by 50 as watchdog timeout is in s/10 ;-) before driving again.
-    delay(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS * 50 / portTICK_PERIOD_MS);
+    if (!MattzoMQTTPublisher::QueueMessage(message.c_str()))
+    {
+      Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queue full");
+    }
   }
+
+  // Print available heap space.
+  // Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
+  // Serial.println(xPortGetFreeHeapSize());
+
+  // Delay next scan/connect attempt for a while, allowing the background drive tasks of already connected SBricks to send their periodic commands.
+  delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
 }
