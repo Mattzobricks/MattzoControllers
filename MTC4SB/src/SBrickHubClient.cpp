@@ -26,7 +26,7 @@ const int8_t CMD_GET_CHANNEL_STATUS = 34;
 
 // Public members
 
-SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress)
+SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress, bool enabled)
 {
   _driveTaskHandle = NULL;
   _deviceName = deviceName;
@@ -34,6 +34,7 @@ SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddre
   _sbrick = nullptr;
   _advertisedDeviceCallback = nullptr;
   _clientCallback = nullptr;
+  _isEnabled = enabled;
   _isDiscovering = false;
   _isDiscovered = false;
   _isConnected = false;
@@ -41,6 +42,14 @@ SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddre
   _remoteControlCharacteristic = nullptr;
   _genericAccessCharacteristic = nullptr;
   _deviceInformationCharacteristic = nullptr;
+}
+
+/// <summary>
+/// Returns a boolean value indicating whether we should attempt to discover and connect to this SBrick Hub.
+/// </summary>
+bool SBrickHubClient::IsEnabled()
+{
+  return _isEnabled;
 }
 
 /// <summary>

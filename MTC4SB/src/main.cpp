@@ -15,22 +15,27 @@
 #include "SBrickHubClient.h"
 
 // Globals
+static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
-SBrickHubClient *mySBricks[2] = {
-    new SBrickHubClient("YC66405", "00:07:80:d0:47:43"),
-    new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2"),
-    // new SBrickHubClient("BC60052", "88:6b:0f:23:78:10")
-};
+SBrickHubClient *mySBricks[] = {
+    new SBrickHubClient("YC66405", "00:07:80:d0:47:43", false),
+    new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2", false),
+    new SBrickHubClient("BC60052", "88:6b:0f:23:78:10", false)};
 
 /// <summary>
 /// Boolean value indicating whether the MQTT Publisher and Subscriber are enabled.
 /// </summary>
-bool ENABLE_MQTT = false;
+bool ENABLE_MQTT = true;
+
+/// <summary>
+/// Number of message received the MQTT queue can hold before we start dropping them.
+/// </summary>
+const int MQTT_INCOMING_QUEUE_LENGTH = 100;
 
 /// <summary>
 /// Number of message to send the MQTT queue can hold before we start dropping them.
 /// </summary>
-int MQTT_QUEUE_LENGTH = 1000;
+const int MQTT_OUTGOING_QUEUE_LENGTH = 1000;
 
 /// <summary>
 /// BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
@@ -40,7 +45,7 @@ uint32_t BLE_SCAN_DURATION_IN_SECONDS = 1;
 /// <summary>
 /// Duration between BLE discovery and connect attempts in seconds.
 /// </summary>
-uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 5;
+uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 2;
 
 /// <summary>
 /// Sets the watchdog timeout (0D &lt; timeout in 0.1 secs, 1 byte &gt;)
@@ -56,6 +61,7 @@ const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 20;
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
+  // Read the message.
   char msg[length + 1];
   for (int i = 0; i < length; i++)
   {
@@ -63,7 +69,23 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   }
   msg[length] = '\0';
 
-  Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message [" + String(topic) + "]: " + String(msg));
+  // Allocate memory to hold the message.
+  char *messagePtr = (char *)malloc(strlen(msg) + 1);
+
+  // Copy the message to the allocated memory block.
+  strcpy(messagePtr, msg);
+
+  // Store pointer to message in queue (don't block if the queue is full).
+  if (xQueueSendToBack(msg_queue, (void *)&messagePtr, (TickType_t)0) == pdTRUE)
+  {
+    Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(msg));
+  }
+  else
+  {
+    // Free the allocated memory block as we couldn't queue the message anyway.
+    free(messagePtr);
+    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Incoming MQTT message queue full");
+  }
 }
 
 void setup()
@@ -79,9 +101,13 @@ void setup()
   // Setup Mattzo controller.
   setupMattzoController(MATTZO_CONTROLLER_TYPE);
 
-  if(ENABLE_MQTT) {
+  if (ENABLE_MQTT)
+  {
+    // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
+    msg_queue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
+
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
-    MattzoMQTTPublisher::Setup(MQTT_QUEUE_LENGTH);
+    MattzoMQTTPublisher::Setup(MQTT_OUTGOING_QUEUE_LENGTH);
 
     // Setup MQTT subscriber.
     MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
@@ -107,10 +133,15 @@ void loop()
   for (int i = 0; i < sizeof(mySBricks) / sizeof(mySBricks[0]); i++)
   {
     SBrickHubClient *sbrick = mySBricks[i];
+    if (!sbrick->IsEnabled())
+    {
+      // Skip to the next SBrick Hub.
+      continue;
+    }
 
     if (sbrick->IsConnected())
     {
-      // Drive at avarage speed (supported range: 0-255) on all channels either forwards or backwards.
+      // Drive at average speed (supported range: -255 <> 255) on all channels either forwards or backwards.
       sbrick->Drive(-75, -75, 75, 75);
     }
     else
@@ -133,24 +164,25 @@ void loop()
     }
   }
 
-  if(ENABLE_MQTT) {
+  if (ENABLE_MQTT)
+  {
     // Construct message.
     String message = String("Hello world @ ");
     message.concat(millis());
 
     // Print message we are about to queue.
-    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queing message (" + message + ").");
+    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queueing outgoing message (" + message + ").");
 
     // Try to add message to queue (fails if queue is full).
     if (!MattzoMQTTPublisher::QueueMessage(message.c_str()))
     {
-      Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Queue full");
+      Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Outgoing MQTT message queue full");
     }
   }
 
   // Print available heap space.
-  // Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
-  // Serial.println(xPortGetFreeHeapSize());
+  Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
+  Serial.println(xPortGetFreeHeapSize());
 
   // Delay next scan/connect attempt for a while, allowing the background drive tasks of already connected SBricks to send their periodic commands.
   delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);

@@ -34,7 +34,8 @@ public:
   /// </summary>
   static uint8_t ConnectDelayInSeconds;
 
-  SBrickHubClient(std::string deviceName, std::string deviceAddress);
+  SBrickHubClient(std::string deviceName, std::string deviceAddress, bool enabled = true);
+  bool IsEnabled();
   void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
   bool Connect(const uint32_t watchdogTimeOutInMs);
   bool IsDiscovered();
@@ -60,6 +61,7 @@ private:
   NimBLEClient* _sbrick;
   NimBLEAdvertisedDeviceCallbacks* _advertisedDeviceCallback;
   NimBLEClientCallbacks* _clientCallback;
+  bool _isEnabled;
   bool _isDiscovering;
   bool _isDiscovered;
   bool _isConnected;
