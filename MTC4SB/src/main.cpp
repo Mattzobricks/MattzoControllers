@@ -29,11 +29,13 @@ bool ENABLE_MQTT = true;
 
 /// <summary>
 /// Number of message received the MQTT queue can hold before we start dropping them.
+/// Please note the more messages allowed to be queued, the more (heap) memory we consume.
 /// </summary>
 const int MQTT_INCOMING_QUEUE_LENGTH = 100;
 
 /// <summary>
 /// Number of message to send the MQTT queue can hold before we start dropping them.
+/// Please note the more messages allowed to be queued, the more (heap) memory we consume.
 /// </summary>
 const int MQTT_OUTGOING_QUEUE_LENGTH = 1000;
 
@@ -88,6 +90,26 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   }
 }
 
+void handleMQTTMessages(void *parm)
+{
+  for (;;)
+  {
+    char *message;
+
+    // See if there's a message in the queue (do not block).
+    while (xQueueReceive(msg_queue, (void *)&message, (TickType_t)0) == pdTRUE)
+    {
+      // Output message to serial for now.
+      Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Dequeued incoming MQTT message; " + message);
+
+      // TODO: parse message and translate to a BLE command for a loco here.
+
+      // Erase message from memory by freeing it.
+      free(message);
+    }
+  }
+}
+
 void setup()
 {
   // Configure Serial.
@@ -105,6 +127,9 @@ void setup()
   {
     // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
     msg_queue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
+
+    // Start task loop to handle queued MQTT messages.
+    xTaskCreate(handleMQTTMessages, "MQTTHandler", 2048, NULL, 1, NULL);
 
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
     MattzoMQTTPublisher::Setup(MQTT_OUTGOING_QUEUE_LENGTH);
