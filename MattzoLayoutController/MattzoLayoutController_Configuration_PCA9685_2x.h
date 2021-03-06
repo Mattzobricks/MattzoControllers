@@ -100,15 +100,13 @@ const uint8_t PCA9685_OE_PIN = D0;
 const int NUM_SWITCHPORTS = 16;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-// uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3, D4, D5, D6, D7 };
 uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7 };
 
 // Type of digital output pins for switch servos
-// 0   : pins on the ESP-8266
-// 0x40: ports on the 1st PCA9685
-// 0x41: ports on the 2nd PCA9685
-// 0x42: ports on the 3rd PCA9685 etc.
-// uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+// 0   : pin on the ESP-8266
+// 0x40: port on the 1st PCA9685
+// 0x41: port on the 2nd PCA9685
+// 0x42: port on the 3rd PCA9685 etc.
 uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41 };
 
 // LOGICAL SWITCH PORTS
@@ -144,27 +142,40 @@ const int NUM_SIGNALPORTS = 16;
 uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 8, 9, 10, 11, 12, 13, 14, 15, 8, 9, 10, 11, 12, 13, 14, 15 };
 
 // Type of digital output pins for signal LEDs
-// 0   : pins on the ESP-8266
-// 0x40: ports on the 1st PCA9685
-// 0x41: ports on the 2nd PCA9685
-// 0x42: ports on the 3rd PCA9685 etc.
+// 0   : pin on the ESP-8266
+// 0x40: port on the 1st PCA9685
+// 0x41: port on the 2nd PCA9685
+// 0x42: port on the 3rd PCA9685 etc.
 uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41 };
 
 
 // SENSOR WIRING CONFIGURATION
 
+// Set to true to enable remote sensors.
+// Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
+// Remote sensors can be used for level crossings in Autonomous Mode
+// If you do not control a level crossing in Autonomous Mode with this controller, set to false!
+const bool REMOTE_SENSORS_ENABLED = false;
+
 // Number of sensors connected or connectable to the controller
 const int NUM_SENSORS = 5;
 
 // Digital input PINs for hall, reed or other digital sensors
+// If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
 uint8_t SENSOR_PIN[NUM_SENSORS] = { D3, D4, D5, D6, D7 };
 
 // Type of digital input pins for sensors
-// 0   : pins on the ESP-8266
-// 0x20: ports on the 1st MCP23017
-// 0x21: ports on the 2nd MCP23017
-// 0x22: ports on the 3rd MCP23017 etc.
+// 0   : pin on the ESP-8266
+// 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
+// 0x20: port on the 1st MCP23017
+// 0x21: port on the 2nd MCP23017
+// 0x22: port on the 3rd MCP23017 etc.
+const int REMOTE_SENSOR_PIN_TYPE = 0x10;
 uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, 0 };
+
+// If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
+// If sensor is local, the value has no meaning (e.g. set to zero)
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 0 };
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -191,7 +202,7 @@ const int LC_NUM_BOOM_BARRIERS = 4;
 
 // Servo ports (indices in the SWITCHPORT_PIN array)
 // servo 1 and 2 represents primary barriers, servo 3 and subsequent servos represents secondary barriers
-uint8_t LC_BOOM_BARRIER_SERVO_PIN[NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
+uint8_t LC_BOOM_BARRIER_SERVO_PIN[LC_NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
 
 // Closing timespan for all boom barriers
 const unsigned int LC_BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;
