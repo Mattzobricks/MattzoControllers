@@ -28,6 +28,16 @@ SBrickHubClient *mySBricks[] = {
 bool ENABLE_MQTT = true;
 
 /// <summary>
+/// MQTT task priority.
+/// </summary>
+const uint8_t MQTT_TASK_PRIORITY = 1;
+
+/// <summary>
+/// The size of the MQTT task stack specified as the number of bytes.
+/// </summary>
+const uint32_t MQTT_TASK_STACK_DEPTH = 2048;
+
+/// <summary>
 /// Number of message received the MQTT queue can hold before we start dropping them.
 /// Please note the more messages allowed to be queued, the more (heap) memory we consume.
 /// </summary>
@@ -129,7 +139,7 @@ void setup()
     msg_queue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
 
     // Start task loop to handle queued MQTT messages.
-    xTaskCreate(handleMQTTMessages, "MQTTHandler", 2048, NULL, 1, NULL);
+    xTaskCreate(handleMQTTMessages, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL);
 
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
     MattzoMQTTPublisher::Setup(MQTT_OUTGOING_QUEUE_LENGTH);
