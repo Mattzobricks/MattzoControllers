@@ -90,7 +90,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   // Store pointer to message in queue (don't block if the queue is full).
   if (xQueueSendToBack(msg_queue, (void *)&messagePtr, (TickType_t)0) == pdTRUE)
   {
-    Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(msg));
+    // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(msg));
   }
   else
   {
@@ -110,13 +110,16 @@ void handleMQTTMessages(void *parm)
     while (xQueueReceive(msg_queue, (void *)&message, (TickType_t)0) == pdTRUE)
     {
       // Output message to serial for now.
-      Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Dequeued incoming MQTT message; " + message);
+      Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
       // TODO: parse message and translate to a BLE command for a loco here.
 
       // Erase message from memory by freeing it.
       free(message);
     }
+    
+    // Wait a while before trying again (allowing other tasks to do their work).
+    // vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
 
@@ -139,10 +142,10 @@ void setup()
     msg_queue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
 
     // Start task loop to handle queued MQTT messages.
-    xTaskCreate(handleMQTTMessages, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL);
+    xTaskCreatePinnedToCore(handleMQTTMessages, "MQTTHandler", 3072, NULL, MQTT_TASK_PRIORITY, NULL, 1);
 
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
-    MattzoMQTTPublisher::Setup(MQTT_OUTGOING_QUEUE_LENGTH);
+    // MattzoMQTTPublisher::Setup(MQTT_OUTGOING_QUEUE_LENGTH);
 
     // Setup MQTT subscriber.
     MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
@@ -199,7 +202,7 @@ void loop()
     }
   }
 
-  if (ENABLE_MQTT)
+  if (ENABLE_MQTT && false)
   {
     // Construct message.
     String message = String("Hello world @ ");
