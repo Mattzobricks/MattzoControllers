@@ -61,6 +61,12 @@ public:
   /// </summary>
   static uint32_t StackDepth;
 
+  /// <summary>
+  /// The maximum message size, including header, specified as the number of bytes.
+  /// Messages larger than this are ignored!
+  /// </summary>
+  static uint16_t MaxBufferSize;
+
   // Methods
 
   /// <summary>

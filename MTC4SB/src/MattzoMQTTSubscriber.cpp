@@ -36,6 +36,7 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
   // Setup MQTT client.
   mqttSubscriberClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
   mqttSubscriberClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);
+  mqttSubscriberClient.setBufferSize(MaxBufferSize);
   mqttSubscriberClient.setCallback(callback);
 
   // Construct subscriber name.
@@ -55,7 +56,7 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
 /// <param name="parm">Message to send.</param>
 void MattzoMQTTSubscriber::sendMessage(char *topic, const char *message)
 {
-  Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: [" + topic + "] " + message);
+  // Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: [" + topic + "] " + message);
   mqttSubscriberClient.publish(topic, message);
 }
 
@@ -80,7 +81,7 @@ void MattzoMQTTSubscriber::reconnect()
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-    if (mqttSubscriberClient.connect(_subscriberName, "rocrail/service/command", 0, false, lastWillMessage_char))
+    if (mqttSubscriberClient.connect(_subscriberName, _topic, 0, false, lastWillMessage_char))
     {
       Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Subscriber connected");
       mqttSubscriberClient.subscribe(_topic);
@@ -141,10 +142,11 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 bool MattzoMQTTSubscriber::TriggerBreakOnDisconnect = false;
 int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
 int MattzoMQTTSubscriber::PingDelayInMilliseconds = 1000;
-int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 100;
+int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 250;
 uint8_t MattzoMQTTSubscriber::TaskPriority = 1;
 int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
+uint16_t MattzoMQTTSubscriber::MaxBufferSize = 1024;
 bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();
 char MattzoMQTTSubscriber::_subscriberName[60] ="Unknown";
