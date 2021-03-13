@@ -11,6 +11,9 @@ class MattzoSBrickMQTTHandler
 {
 
 public:
+    static const int16_t LIGHT_ON_SPEED = 100;
+    static const int16_t LIGHT_OFF_SPEED = 0;
+
     // Methods
 
     /// <summary>
@@ -26,5 +29,6 @@ private:
     static bool isNodeType(const String message, const char *nodeName);
     static void handleSys(const String message, ulong numSBricks, SBrickHubClient *sbricks[]);
     static void handleLc(const String message, ulong numSBricks, SBrickHubClient *sbricks[]);
+    static void handleFn(const String message, ulong numSBricks, SBrickHubClient *sbricks[]);
     static String getAttr(const String message, const String attrName);
 };
