@@ -66,7 +66,7 @@ public:
   /// Setup the MQTT Publisher.
   /// </summary>
   /// <param name="messageQueueLength">Message queue length. This configures the number of messages the queue can hold, before the publisher starts dropping them.</param>
-  static void Setup(const int messageQueueLength = 10);
+  static void Setup(char *topic, const int messageQueueLength = 10);
 
   /// <summary>
   /// Puts the given message on the queue.
@@ -79,6 +79,7 @@ private:
 
   static bool _setupCompleted;
   static char _publisherName[60];
+  static char *_topic;
 
   // Time of the last sent ping.
   static unsigned long lastPing;

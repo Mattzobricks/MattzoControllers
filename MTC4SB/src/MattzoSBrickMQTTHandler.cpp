@@ -63,8 +63,8 @@ void MattzoSBrickMQTTHandler::handleLc(const String message, ulong numSBricks, S
         {
             // Get channel index (0=A, 1=B, 2=C, 3=D).
             String addrStr = getAttr(message, "addr");
-            int addrInt = std::atoi(addrStr.c_str());
-            SBrickHubChannel::SBrickChannel channel = static_cast<SBrickHubChannel::SBrickChannel>(addrInt);
+            int motorChannelIndex = std::atoi(addrStr.c_str());
+            SBrickHubChannel::SBrickChannel motorChannel = static_cast<SBrickHubChannel::SBrickChannel>(motorChannelIndex);
 
             // Get direction (true=forward, false=backward).
             String dirStr = getAttr(message, "dir");
@@ -80,8 +80,33 @@ void MattzoSBrickMQTTHandler::handleLc(const String message, ulong numSBricks, S
             int16_t targetSpeed = speed * speedMultiplier;
 
             // Execute drive command.
-            sbricks[i]->DriveChannel(channel, targetSpeed);
-            break;
+            if (sbricks[i]->getAutoLightsEnabled())
+            {
+                for (int channel = SBrickHubChannel::A; channel != SBrickHubChannel::D + 1; channel++)
+                {
+                    if (channel == motorChannelIndex)
+                    {
+                        // Drive the motor channel.
+                        sbricks[i]->DriveChannel(motorChannel, targetSpeed);
+                    }
+                    else
+                    {
+                        // Determine lights on or off based on target motor speed.
+                        int16_t lightSpeed = targetSpeed != 0 ? LIGHT_ON_SPEED : LIGHT_OFF_SPEED;
+
+                        // Drive the light channel.
+                        SBrickHubChannel::SBrickChannel lightChannel = static_cast<SBrickHubChannel::SBrickChannel>(channel);
+                        sbricks[i]->DriveChannel(lightChannel, lightSpeed);
+                    }
+                }
+            }
+            else
+            {
+                // Just drive the motor channel.
+                sbricks[i]->DriveChannel(motorChannel, targetSpeed);
+            }
+
+            return;
         }
     }
 }
@@ -93,13 +118,19 @@ void MattzoSBrickMQTTHandler::handleFn(const String message, ulong numSBricks, S
     {
         if (sbricks[i]->getDeviceName().compare(lcId.c_str()) == 0)
         {
+            if (sbricks[i]->getAutoLightsEnabled())
+            {
+                // Found the loco the command is for, but it uses automatic lights (on while driving). Ignore command.
+                return;
+            }
+
             // Get motor channel index (0=A, 1=B, 2=C, 3=D).
             String addrStr = getAttr(message, "addr");
-            int motorChannel = std::atoi(addrStr.c_str());
+            int motorChannelIndex = std::atoi(addrStr.c_str());
 
             for (int channel = SBrickHubChannel::A; channel != SBrickHubChannel::D + 1; channel++)
             {
-                if (channel == motorChannel)
+                if (channel == motorChannelIndex)
                 {
                     // We don't need to change the motor channel. Skip it.
                     continue;

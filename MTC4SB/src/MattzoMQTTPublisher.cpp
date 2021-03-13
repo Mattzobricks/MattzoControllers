@@ -15,7 +15,7 @@ PubSubClient mqttPublisherClient(wifiPublisherClient);
 /// <summary>
 /// Class used to publish messages to an MQTT broker.
 /// </summary>
-void MattzoMQTTPublisher::Setup(const int messageQueueLength)
+void MattzoMQTTPublisher::Setup(char *topic, const int messageQueueLength)
 {
 #if !defined(ESP32)
 #error "Error: this sketch is designed for ESP32 only."
@@ -26,6 +26,9 @@ void MattzoMQTTPublisher::Setup(const int messageQueueLength)
     Serial.println("Setup already completed!");
     return;
   }
+
+  // Keep the topic, so we can know where to send our messages to.
+  _topic = topic;
 
   // Setup and connect to WiFi.
   MattzoWifiClient::Setup();
@@ -82,7 +85,7 @@ void MattzoMQTTPublisher::sendMessages()
   while (xQueueReceive(msg_queue, (void *)&message, (TickType_t)0) == pdTRUE)
   {
     // Send queued message to broker.
-    sendMessage("rocrail/service/command", message);
+    sendMessage(_topic, message);
 
     // Erase message from memory by freeing it.
     free(message);
@@ -120,7 +123,7 @@ void MattzoMQTTPublisher::reconnect()
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
-    if (mqttPublisherClient.connect(_publisherName, "rocrail/service/command", 0, false, lastWillMessage_char))
+    if (mqttPublisherClient.connect(_publisherName, _topic, 0, false, lastWillMessage_char))
     {
       Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Publisher connected");
     }

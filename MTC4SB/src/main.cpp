@@ -15,15 +15,23 @@
 #include "SBrickConst.h"
 #include "SBrickHubClient.h"
 
+#define SBRICK_ENABLED true
+#define SBRICK_DISABLED false
+
+#define AUTO_LIGHTS_ENABLED true
+#define AUTO_LIGHTS_DISABLED false
+
 // Globals
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 SBrickHubClient *mySBricks[] = {
-    new SBrickHubClient("YC7939", "00:07:80:d0:47:43", true),
-    new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2", false),
-    new SBrickHubClient("BC60052", "88:6b:0f:23:78:10", false)};
-  
-#define numSBricks (sizeof(mySBricks)/sizeof(SBrickHubClient *))
+    new SBrickHubClient("YC7939", "00:07:80:d0:47:43", AUTO_LIGHTS_ENABLED),
+    new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2", AUTO_LIGHTS_ENABLED, SBRICK_DISABLED),
+    new SBrickHubClient("BC60052", "88:6b:0f:23:78:10", AUTO_LIGHTS_ENABLED, SBRICK_DISABLED)};
+
+#define numSBricks (sizeof(mySBricks) / sizeof(SBrickHubClient *))
+
+#define ROCRAIL_COMMAND_TOPIC "rocrail/service/command"
 
 /// <summary>
 /// Boolean value indicating whether the MQTT Publisher and Subscriber are enabled.
@@ -34,6 +42,11 @@ bool ENABLE_MQTT = true;
 /// MQTT task priority.
 /// </summary>
 const uint8_t MQTT_TASK_PRIORITY = 1;
+
+/// <summary>
+/// MQTT handle message task core ID.
+/// </summary>
+const uint8_t MQTT_HANDLE_MESSAGE_TASK_COREID = 1;
 
 /// <summary>
 /// The size of the MQTT task stack specified as the number of bytes.
@@ -93,7 +106,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   // Store pointer to message in queue (don't block if the queue is full).
   if (xQueueSendToBack(msg_queue, (void *)&messagePtr, (TickType_t)0) == pdTRUE)
   {
-    // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(msg));    
+    // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(msg));
   }
   else
   {
@@ -112,7 +125,7 @@ void handleMQTTMessages(void *parm)
     // See if there's a message in the queue (do not block).
     while (xQueueReceive(msg_queue, (void *)&message, (TickType_t)0) == pdTRUE)
     {
-      // Output message to serial for now.
+      // Output message to serial for debug.
       // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
       // Parse message and translate to a BLE command for SBrick(s).
@@ -121,7 +134,7 @@ void handleMQTTMessages(void *parm)
       // Erase message from memory by freeing it.
       free(message);
     }
-    
+
     // Wait a while before trying again (allowing other tasks to do their work)?
     // vTaskDelay(100 / portTICK_PERIOD_MS);
   }
@@ -146,13 +159,13 @@ void setup()
     msg_queue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
 
     // Start task loop to handle queued MQTT messages.
-    xTaskCreatePinnedToCore(handleMQTTMessages, "MQTTHandler", 3072, NULL, MQTT_TASK_PRIORITY, NULL, 1);
+    xTaskCreatePinnedToCore(handleMQTTMessages, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
 
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
-    // MattzoMQTTPublisher::Setup(MQTT_OUTGOING_QUEUE_LENGTH);
+    // MattzoMQTTPublisher::Setup(ROCRAIL_COMMAND_QUEUE, MQTT_OUTGOING_QUEUE_LENGTH);
 
     // Setup MQTT subscriber.
-    MattzoMQTTSubscriber::Setup("rocrail/service/command", mqttCallback);
+    MattzoMQTTSubscriber::Setup(ROCRAIL_COMMAND_TOPIC, mqttCallback);
   }
 
   Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Initializing BLE...");

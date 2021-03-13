@@ -34,7 +34,7 @@ public:
   /// </summary>
   static uint8_t ConnectDelayInSeconds;
 
-  SBrickHubClient(std::string deviceName, std::string deviceAddress, bool enabled = true);
+  SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsOnEnabled = false, bool enabled = true);
   bool IsEnabled();
   void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
   bool Connect(const uint32_t watchdogTimeOutInTensOfSeconds);
@@ -44,6 +44,7 @@ public:
   void DriveChannel(const SBrickHubChannel::SBrickChannel channel, const int16_t speed);
   void EmergencyBreak(const bool enabled);
   std::string getDeviceName();
+  bool getAutoLightsEnabled();
 
 private:
   bool connectToServer(const uint16_t watchdogTimeOutInMs);
@@ -62,6 +63,7 @@ private:
   NimBLEAdvertisedDeviceCallbacks* _advertisedDeviceCallback;
   NimBLEClientCallbacks* _clientCallback;
   bool _isEnabled;
+  bool _autoLightsEnabled;
   bool _ebreak;
   bool _isDiscovering;
   bool _isDiscovered;

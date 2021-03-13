@@ -26,7 +26,7 @@ const int8_t CMD_GET_CHANNEL_STATUS = 34;
 
 // Public members
 
-SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress, bool enabled)
+SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsEnabled, bool enabled)
 {
   _driveTaskHandle = NULL;
   _deviceName = deviceName;
@@ -35,6 +35,7 @@ SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddre
   _advertisedDeviceCallback = nullptr;
   _clientCallback = nullptr;
   _isEnabled = enabled;
+  _autoLightsEnabled = autoLightsEnabled;
   _ebreak = false;
   _isDiscovering = false;
   _isDiscovered = false;
@@ -129,6 +130,11 @@ void SBrickHubClient::EmergencyBreak(const bool enabled)
 std::string SBrickHubClient::getDeviceName()
 {
   return _deviceName;
+}
+
+bool SBrickHubClient::getAutoLightsEnabled()
+{
+  return _autoLightsEnabled;
 }
 
 bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInTensOfSeconds)
