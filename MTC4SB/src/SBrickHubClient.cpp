@@ -35,6 +35,7 @@ SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddre
   _advertisedDeviceCallback = nullptr;
   _clientCallback = nullptr;
   _isEnabled = enabled;
+  _ebreak = false;
   _isDiscovering = false;
   _isDiscovered = false;
   _isConnected = false;
@@ -82,9 +83,9 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
 /// <summary>
 /// Connect to the SBrick Hub.
 /// </summary>
-bool SBrickHubClient::Connect(const uint32_t watchdogTimeOutInMs)
+bool SBrickHubClient::Connect(const uint32_t watchdogTimeOutInTensOfSeconds)
 {
-  return connectToServer(watchdogTimeOutInMs);
+  return connectToServer(watchdogTimeOutInTensOfSeconds);
 }
 
 bool SBrickHubClient::IsDiscovered()
@@ -106,16 +107,23 @@ void SBrickHubClient::Drive(const int16_t a, const int16_t b, const int16_t c, c
   DriveChannel(SBrickHubChannel::D, d);
 }
 
-void SBrickHubClient::DriveChannel(const SBrickHubChannel::SBrickChannel channel, const int16_t speed) {
+void SBrickHubClient::DriveChannel(const SBrickHubChannel::SBrickChannel channel, const int16_t speed)
+{
   _channels[channel]->SetTargetSpeed(speed);
 }
 
-void SBrickHubClient::EmergencyBreak() {
-  // Set each channel speed to zero.
-  _channels[SBrickHubChannel::A]->SetSpeed(0);
-  _channels[SBrickHubChannel::B]->SetSpeed(0);
-  _channels[SBrickHubChannel::C]->SetSpeed(0);
-  _channels[SBrickHubChannel::D]->SetSpeed(0);
+void SBrickHubClient::EmergencyBreak(const bool enabled)
+{
+  _ebreak = enabled;
+
+  if (_ebreak)
+  {
+    // Immediately set each channel speed to zero.
+    _channels[SBrickHubChannel::A]->SetSpeed(0);
+    _channels[SBrickHubChannel::B]->SetSpeed(0);
+    _channels[SBrickHubChannel::C]->SetSpeed(0);
+    _channels[SBrickHubChannel::D]->SetSpeed(0);
+  }
 }
 
 std::string SBrickHubClient::getDeviceName()
@@ -123,7 +131,7 @@ std::string SBrickHubClient::getDeviceName()
   return _deviceName;
 }
 
-bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInMs)
+bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInTensOfSeconds)
 {
   Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Connecting to ");
   Serial.println(_address->toString().c_str());
@@ -160,7 +168,7 @@ bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInMs)
 
   // Try to obtain a reference to the remote control characteristic in the remote control service of the BLE server.
   // If we can set the watchdog timeout, we consider our connection attempt a success.
-  if (!setWatchdogTimeout(watchdogTimeOutInMs))
+  if (!setWatchdogTimeout(watchdogTimeOutInTensOfSeconds))
   {
     // Failed to find the remote control service or characteristic or write/read the value.
     _sbrick->disconnect();
@@ -171,7 +179,7 @@ bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInMs)
   //  _remoteControlCharacteristic->registerForNotify(notifyCallback);
   //}
 
-  // Start drive task loop.  
+  // Start drive task loop.
   return startDriveTask();
 }
 
@@ -194,8 +202,10 @@ bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInMs)
 /// Writing a zero disables the watchdog.
 /// By default watchdog is set to 5, which means a 0.5 second timeout.
 /// </summary>
-bool SBrickHubClient::setWatchdogTimeout(const uint16_t watchdogTimeOutInMs)
+bool SBrickHubClient::setWatchdogTimeout(const uint16_t watchdogTimeOutInTensOfSeconds)
 {
+  _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
+
   if (!attachCharacteristic(sbrickRemoteControlServiceUUID, sbrickRemoteControlCharacteristicUUID))
   {
     return false;
@@ -206,7 +216,7 @@ bool SBrickHubClient::setWatchdogTimeout(const uint16_t watchdogTimeOutInMs)
     return false;
   }
 
-  uint8_t byteWrite[2] = {CMD_SET_WATCHDOG_TIMEOUT, watchdogTimeOutInMs};
+  uint8_t byteWrite[2] = {CMD_SET_WATCHDOG_TIMEOUT, watchdogTimeOutInTensOfSeconds};
   if (!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false))
   {
     return false;
@@ -243,56 +253,59 @@ void SBrickHubClient::driveTaskLoop()
 {
   for (;;)
   {
-    for (int channel = SBrickHubChannel::A; channel != SBrickHubChannel::D + 1; channel++)
+    if (!_ebreak)
     {
-      // Serial.print("Channel ");
-      // Serial.print(channel);
-      // Serial.print(": dir=");
-      // Serial.print(_channels[channel]->GetCurrentTargetDirection());
-      // Serial.print(" cur=");
-      // Serial.print(_channels[channel]->GetCurrentTargetSpeed());
-
-      int8_t dirMultiplier = _channels[channel]->GetCurrentTargetDirection() ? 1 : -1;
-      int16_t newTargetSpeed = (_channels[channel]->GetCurrentTargetSpeed() + 10) * dirMultiplier;
-
-      // Serial.print(" stp=");
-      // Serial.print(speedStep);
-
-      if (!_channels[channel]->IsAtSetTargetSpeed())
+      for (int channel = SBrickHubChannel::A; channel != SBrickHubChannel::D + 1; channel++)
       {
-        // Adjust channel target speed with one speed step towards the set target speed.
-        // Serial.print(" tar=");
-        // Serial.print(newTargetSpeed);
-        _channels[channel]->SetCurrentTargetSpeed(newTargetSpeed);
+        // Serial.print("Channel ");
+        // Serial.print(channel);
+        // Serial.print(": dir=");
+        // Serial.print(_channels[channel]->GetCurrentTargetDirection());
+        // Serial.print(" cur=");
+        // Serial.print(_channels[channel]->GetCurrentTargetSpeed());
+
+        int8_t dirMultiplier = _channels[channel]->GetCurrentTargetDirection() ? 1 : -1;
+        int16_t newTargetSpeed = (_channels[channel]->GetCurrentTargetSpeed() + 10) * dirMultiplier;
+
+        // Serial.print(" stp=");
+        // Serial.print(speedStep);
+
+        if (!_channels[channel]->IsAtSetTargetSpeed())
+        {
+          // Adjust channel target speed with one speed step towards the set target speed.
+          // Serial.print(" tar=");
+          // Serial.print(newTargetSpeed);
+          _channels[channel]->SetCurrentTargetSpeed(newTargetSpeed);
+        }
+
+        // Serial.println();
       }
 
-      // Serial.println();
+      // Construct drive command.
+      uint8_t byteCmd[13] = {
+          CMD_DRIVE,
+          SBrickHubChannel::A,
+          _channels[SBrickHubChannel::A]->GetCurrentTargetDirection(),
+          _channels[SBrickHubChannel::A]->GetCurrentTargetSpeed(),
+          SBrickHubChannel::B,
+          _channels[SBrickHubChannel::B]->GetCurrentTargetDirection(),
+          _channels[SBrickHubChannel::B]->GetCurrentTargetSpeed(),
+          SBrickHubChannel::C,
+          _channels[SBrickHubChannel::C]->GetCurrentTargetDirection(),
+          _channels[SBrickHubChannel::C]->GetCurrentTargetSpeed(),
+          SBrickHubChannel::D,
+          _channels[SBrickHubChannel::D]->GetCurrentTargetDirection(),
+          _channels[SBrickHubChannel::D]->GetCurrentTargetSpeed()};
+
+      // Send drive command.
+      if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
+      {
+        Serial.println("Drive failed");
+      }
     }
 
-    // Construct drive command.
-    uint8_t byteCmd[13] = {
-        CMD_DRIVE,
-        SBrickHubChannel::A,
-        _channels[SBrickHubChannel::A]->GetCurrentTargetDirection(),
-        _channels[SBrickHubChannel::A]->GetCurrentTargetSpeed(),
-        SBrickHubChannel::B,
-        _channels[SBrickHubChannel::B]->GetCurrentTargetDirection(),
-        _channels[SBrickHubChannel::B]->GetCurrentTargetSpeed(),
-        SBrickHubChannel::C,
-        _channels[SBrickHubChannel::C]->GetCurrentTargetDirection(),
-        _channels[SBrickHubChannel::C]->GetCurrentTargetSpeed(),
-        SBrickHubChannel::D,
-        _channels[SBrickHubChannel::D]->GetCurrentTargetDirection(),
-        _channels[SBrickHubChannel::D]->GetCurrentTargetSpeed()};
-
-    // Send drive command.
-    if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
-    {
-      Serial.println("Drive failed");
-    }
-
-    // TODO: Wait half the watchdog timeout.
-    vTaskDelay(500);
+    // Wait half the watchdog timeout (converted from s/10 to s/1000).
+    vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
   }
 }
 

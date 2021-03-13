@@ -25,7 +25,7 @@ void SBrickClientCallback::onDisconnect(NimBLEClient *pclient)
         Serial.println(_psbrick->_address->toString().c_str());
         _psbrick->_isDiscovered = false;
         _psbrick->_isConnected = false;
-        _psbrick->EmergencyBreak();
+        _psbrick->Drive(0, 0, 0, 0);
         if (_psbrick->_driveTaskHandle != NULL)
         {
             vTaskDelete(_psbrick->_driveTaskHandle);

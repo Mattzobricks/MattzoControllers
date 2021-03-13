@@ -37,12 +37,12 @@ public:
   SBrickHubClient(std::string deviceName, std::string deviceAddress, bool enabled = true);
   bool IsEnabled();
   void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
-  bool Connect(const uint32_t watchdogTimeOutInMs);
+  bool Connect(const uint32_t watchdogTimeOutInTensOfSeconds);
   bool IsDiscovered();
   bool IsConnected();
   void Drive(const int16_t a, const int16_t b, const int16_t c, const int16_t d);
   void DriveChannel(const SBrickHubChannel::SBrickChannel channel, const int16_t speed);
-  void EmergencyBreak();
+  void EmergencyBreak(const bool enabled);
   std::string getDeviceName();
 
 private:
@@ -62,9 +62,11 @@ private:
   NimBLEAdvertisedDeviceCallbacks* _advertisedDeviceCallback;
   NimBLEClientCallbacks* _clientCallback;
   bool _isEnabled;
+  bool _ebreak;
   bool _isDiscovering;
   bool _isDiscovered;
   bool _isConnected;
+  uint16_t _watchdogTimeOutInTensOfSeconds;
   NimBLERemoteService* _remoteControlService;
   NimBLERemoteCharacteristic* _remoteControlCharacteristic;
   NimBLERemoteCharacteristic* _genericAccessCharacteristic;

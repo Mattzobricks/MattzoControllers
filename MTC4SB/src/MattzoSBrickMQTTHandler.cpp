@@ -3,15 +3,44 @@
 void MattzoSBrickMQTTHandler::Handle(const char *message, ulong numSBricks, SBrickHubClient *sbricks[])
 {
     String strMessage = String(message);
+
+    if (isNodeType(strMessage, "sys"))
+    {
+        handleSys(message, numSBricks, sbricks);
+        return;
+    }
+
     if (isNodeType(strMessage, "lc"))
     {
         handleLc(message, numSBricks, sbricks);
+        return;
     }
 }
 
 bool MattzoSBrickMQTTHandler::isNodeType(String message, const char *nodeName)
 {
     return message.substring(1, message.indexOf(" ")).equals(nodeName);
+}
+
+void MattzoSBrickMQTTHandler::handleSys(const String message, ulong numSBricks, SBrickHubClient *sbricks[]) {
+    String cmd = getAttr(message, "cmd");
+    if(cmd.equals("ebreak") || cmd.equals("stop") || cmd.equals("shutdown")) {
+        // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
+        for (int i = 0; i < numSBricks; i++) {
+            sbricks[i]->EmergencyBreak(true);
+        }
+
+        return;
+    }
+
+    if(cmd.equals("go")) {
+        // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
+        for (int i = 0; i < numSBricks; i++) {
+            sbricks[i]->EmergencyBreak(false);
+        }
+
+        return;
+    }
 }
 
 void MattzoSBrickMQTTHandler::handleLc(const String message, ulong numSBricks, SBrickHubClient *sbricks[])

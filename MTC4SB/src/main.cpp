@@ -19,7 +19,7 @@
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 SBrickHubClient *mySBricks[] = {
-    new SBrickHubClient("YC7939", "00:07:80:d0:47:43", false),
+    new SBrickHubClient("YC7939", "00:07:80:d0:47:43", true),
     new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2", false),
     new SBrickHubClient("BC60052", "88:6b:0f:23:78:10", false)};
   
@@ -72,7 +72,7 @@ uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 2;
 /// Writing a zero disables the watchdog.
 /// By default watchdog is set to 5, which means a 0.5 second timeout.
 /// </summary>
-const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 20;
+const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
@@ -113,7 +113,7 @@ void handleMQTTMessages(void *parm)
     while (xQueueReceive(msg_queue, (void *)&message, (TickType_t)0) == pdTRUE)
     {
       // Output message to serial for now.
-      Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
+      // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
       // Parse message and translate to a BLE command for SBrick(s).
       MattzoSBrickMQTTHandler::Handle(message, numSBricks, mySBricks);
@@ -122,7 +122,7 @@ void handleMQTTMessages(void *parm)
       free(message);
     }
     
-    // Wait a while before trying again (allowing other tasks to do their work).
+    // Wait a while before trying again (allowing other tasks to do their work)?
     // vTaskDelay(100 / portTICK_PERIOD_MS);
   }
 }
@@ -218,8 +218,8 @@ void loop()
   }
 
   // Print available heap space.
-  Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
-  Serial.println(xPortGetFreeHeapSize());
+  // Serial.print("[" + String(xPortGetCoreID()) + "] Loop: Available heap: ");
+  // Serial.println(xPortGetFreeHeapSize());
 
   // Delay next scan/connect attempt for a while, allowing the background drive tasks of already connected SBricks to send their periodic commands.
   delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);

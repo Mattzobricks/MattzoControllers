@@ -24,6 +24,7 @@ private:
     // Methods
 
     static bool isNodeType(const String message, const char *nodeName);
+    static void handleSys(const String message, ulong numSBricks, SBrickHubClient *sbricks[]);
     static void handleLc(const String message, ulong numSBricks, SBrickHubClient *sbricks[]);
     static String getAttr(const String message, const String attrName);
 };
