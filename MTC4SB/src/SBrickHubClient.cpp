@@ -100,15 +100,15 @@ bool SBrickHubClient::IsConnected()
 void SBrickHubClient::Drive(const int16_t a, const int16_t b, const int16_t c, const int16_t d)
 {
   // Set each channel target speeds.
-  _channels[SBrickHubChannel::A]->SetTargetSpeed(a);
-  _channels[SBrickHubChannel::B]->SetTargetSpeed(b);
-  _channels[SBrickHubChannel::C]->SetTargetSpeed(c);
-  _channels[SBrickHubChannel::D]->SetTargetSpeed(d);
+  DriveChannel(SBrickHubChannel::A, a);
+  DriveChannel(SBrickHubChannel::B, b);
+  DriveChannel(SBrickHubChannel::C, c);
+  DriveChannel(SBrickHubChannel::D, d);
 }
 
-// void SBrickHubClient::DriveChannel(const SBrickHubChannel channel, const int8_t speed) {
-//   _channels[channel]->SetTargetSpeed(speed);
-// }
+void SBrickHubClient::DriveChannel(const SBrickHubChannel::SBrickChannel channel, const int16_t speed) {
+  _channels[channel]->SetTargetSpeed(speed);
+}
 
 void SBrickHubClient::EmergencyBreak() {
   // Set each channel speed to zero.

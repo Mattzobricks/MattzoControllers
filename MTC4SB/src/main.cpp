@@ -11,6 +11,7 @@
 #include "MattzoWifiClient.h"
 #include "MattzoMQTTPublisher.h"
 #include "MattzoMQTTSubscriber.h"
+#include "MattzoSBrickMQTTHandler.h"
 #include "SBrickConst.h"
 #include "SBrickHubClient.h"
 
@@ -18,9 +19,11 @@
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 SBrickHubClient *mySBricks[] = {
-    new SBrickHubClient("YC66405", "00:07:80:d0:47:43", false),
+    new SBrickHubClient("YC7939", "00:07:80:d0:47:43", false),
     new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2", false),
     new SBrickHubClient("BC60052", "88:6b:0f:23:78:10", false)};
+  
+#define numSBricks (sizeof(mySBricks)/sizeof(SBrickHubClient *))
 
 /// <summary>
 /// Boolean value indicating whether the MQTT Publisher and Subscriber are enabled.
@@ -90,7 +93,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
   // Store pointer to message in queue (don't block if the queue is full).
   if (xQueueSendToBack(msg_queue, (void *)&messagePtr, (TickType_t)0) == pdTRUE)
   {
-    // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(msg));
+    // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(msg));    
   }
   else
   {
@@ -112,7 +115,8 @@ void handleMQTTMessages(void *parm)
       // Output message to serial for now.
       Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
-      // TODO: parse message and translate to a BLE command for a loco here.
+      // Parse message and translate to a BLE command for SBrick(s).
+      MattzoSBrickMQTTHandler::Handle(message, numSBricks, mySBricks);
 
       // Erase message from memory by freeing it.
       free(message);
@@ -156,7 +160,7 @@ void setup()
   // Initialize BLE client.
   NimBLEDevice::init("");
 
-  // Configure a BLE scanner.
+  // Configure BLE scanner.
   scanner = NimBLEDevice::getScan();
   scanner->setInterval(1349);
   scanner->setWindow(449);
@@ -168,7 +172,7 @@ void setup()
 
 void loop()
 {
-  for (int i = 0; i < sizeof(mySBricks) / sizeof(mySBricks[0]); i++)
+  for (int i = 0; i < numSBricks; i++)
   {
     SBrickHubClient *sbrick = mySBricks[i];
     if (!sbrick->IsEnabled())
@@ -177,12 +181,7 @@ void loop()
       continue;
     }
 
-    if (sbrick->IsConnected())
-    {
-      // Drive at average speed (supported range: -255 <> 255) on all channels either forwards or backwards.
-      sbrick->Drive(-75, -75, 75, 75);
-    }
-    else
+    if (!sbrick->IsConnected())
     {
       if (!sbrick->IsDiscovered())
       {

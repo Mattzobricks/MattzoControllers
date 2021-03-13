@@ -41,7 +41,7 @@ public:
   bool IsDiscovered();
   bool IsConnected();
   void Drive(const int16_t a, const int16_t b, const int16_t c, const int16_t d);
-  // void DriveChannel(const SBrickHubChannel *channel, const int8_t speed);
+  void DriveChannel(const SBrickHubChannel::SBrickChannel channel, const int16_t speed);
   void EmergencyBreak();
   std::string getDeviceName();
 
