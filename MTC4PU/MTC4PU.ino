@@ -168,7 +168,7 @@ public:
     if (!isConnected()) return;
 
     legoinoHub.setLedColor(ledColor);
-    delay(DELAY);
+    // delay(DELAY);
   }
 
   // Set motor power
@@ -179,11 +179,11 @@ public:
 
     if (_devicePortA == MattzoPUDevice::PU_MOTOR) {
       legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::A, power * _configMotorA);
-      delay(DELAY);
+      // delay(DELAY);
     }
     if (_devicePortB == MattzoPUDevice::PU_MOTOR) {
       legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::B, power * _configMotorB);
-      delay(DELAY);
+      // delay(DELAY);
     }
   }
 
@@ -195,11 +195,11 @@ public:
 
     if (_devicePortA == MattzoPUDevice::PU_LIGHT) {
       legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::A, lightPower);
-      delay(DELAY);
+      // delay(DELAY);
     }
     if (_devicePortB == MattzoPUDevice::PU_LIGHT) {
       legoinoHub.setBasicMotorSpeed((byte)PoweredUpHubPort::B, lightPower);
-      delay(DELAY);
+      // delay(DELAY);
     }
   }
 } myHubs[NUM_HUBS];  // Objects for Powered Up Hubs
@@ -228,6 +228,8 @@ int nextBatteryLevelReportingHub = 0;           // index of the last hubs for wh
 // Global emergency brake flag.
 boolean ebreak = false;
 
+// Debug code
+int mqttCallBackInOutCounter = 0;
 
 
 void setup() {
@@ -409,6 +411,15 @@ void sendDiscoveredHub2mqtt() {
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
+
+  if (mqttCallBackInOutCounter != 0) {
+    mcLog2("*****************************************", LOG_CRIT);
+    mcLog2("* MQTT CALLBACK RACE CONDITION DETECTED *", LOG_CRIT);
+    mcLog2("*****************************************", LOG_CRIT);
+    delay(5000);
+  }
+  mqttCallBackInOutCounter++;
+
   char msg[length + 1];
   for (int i = 0; i < length; i++) {
     msg[i] = (char)payload[i];
@@ -420,6 +431,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   XMLDocument xmlDocument;
   if (xmlDocument.Parse(msg) != XML_SUCCESS) {
     mcLog2("Error parsing.", LOG_ERR);
+    mqttCallBackInOutCounter--;
     return;
   }
 
@@ -439,6 +451,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // The id is a mandatory field. If not found, the message is discarded.
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
       mcLog2("id attribute not found or wrong type.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("loco id: " + String(rr_id), LOG_DEBUG);
@@ -447,6 +460,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
@@ -454,6 +468,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
     if (locoIndex < 0) {
       mcLog2("Message disregarded, as this controller does not handle train " + String(rr_addr), LOG_DEBUG);
+      mqttCallBackInOutCounter--;
       return;
     }
     MattzoLoco& loco = myLocos[locoIndex];
@@ -464,6 +479,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int dir;
     if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
       mcLog2("dir attribute not found or wrong type.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("dir (raw): " + String(rr_dir), LOG_DEBUG);
@@ -477,6 +493,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
     else {
       mcLog2("unknown dir value - disregarding message.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
 
@@ -484,6 +501,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int rr_v = 0;
     if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
       mcLog2("V attribute not found or wrong type. Message disregarded.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("V: " + String(rr_v), LOG_DEBUG);
@@ -493,6 +511,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int rr_vmax = 0;
     if (element->QueryIntAttribute("V_max", &rr_vmax) != XML_SUCCESS) {
       mcLog2("V_max attribute not found or wrong type. Message disregarded.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("V_max: " + String(rr_vmax), LOG_DEBUG);
@@ -502,6 +521,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     loco._maxTrainSpeed = rr_vmax;
     mcLog2("Loco " + loco.getNiceName() + ": Target speed set to " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")", LOG_INFO);
 
+    mqttCallBackInOutCounter--;
     return;
   }
 
@@ -516,6 +536,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // The id is a mandatory field. If not found, the message is discarded.
     if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
       mcLog2("id attribute not found or wrong type.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("function id: " + String(rr_id), LOG_DEBUG);
@@ -524,6 +545,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
       mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
@@ -531,6 +553,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
     if (locoIndex < 0) {
       mcLog2("Message disregarded, as this controller does not handle train " + String(rr_addr), LOG_DEBUG);
+      mqttCallBackInOutCounter--;
       return;
     }
     MattzoLoco& loco = myLocos[locoIndex];
@@ -540,12 +563,14 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     int rr_functionNo;
     if (element->QueryIntAttribute("fnchanged", &rr_functionNo) != XML_SUCCESS) {
       mcLog2("fnchanged attribute not found or wrong type. Message disregarded.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("fnchanged: " + String(rr_functionNo), LOG_DEBUG);
 
     if (rr_functionNo < 1 || rr_functionNo > NUM_FUNCTIONS) {
       mcLog2("fnchanged out of range. Message disregarded.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     int functionPinId = rr_functionNo - 1;
@@ -554,6 +579,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // Check if the function is associated with the loco
     if (FUNCTION_PIN_LOCO_ADDRESS[functionPinId] != loco._locoAddress) {
       mcLog2("Function PIN is associated with loco " + String(FUNCTION_PIN_LOCO_ADDRESS[functionPinId]) + ", not with " + String(loco._locoAddress) + ". Disregarding message.", LOG_DEBUG);
+      mqttCallBackInOutCounter--;
       return;
     }
 
@@ -561,6 +587,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     const char* rr_state = "xxxxxx";  // expected values are "true" or "false"
     if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
       mcLog2("fnchangedstate attribute not found or wrong type.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
     mcLog2("fnchangedstate (raw): " + String(rr_state), LOG_DEBUG);
@@ -574,9 +601,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
     else {
       mcLog2("unknown fnchangedstate value - disregarding message.", LOG_ERR);
+      mqttCallBackInOutCounter--;
       return;
     }
 
+    mqttCallBackInOutCounter--;
     return;
   }
 
@@ -590,6 +619,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // query cmd attribute. This is the system message type.
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
       mcLog2("cmd attribute not found or wrong type.", LOG_DEBUG);
+      mqttCallBackInOutCounter--;
       return;
     }
 
@@ -610,10 +640,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     else {
       mcLog2("received other system command, disregarded.", LOG_DEBUG);
     }
+    mqttCallBackInOutCounter--;
     return;
   }
 
   mcLog2("Unknown message, disregarded.", LOG_DEBUG);
+  mqttCallBackInOutCounter--;
 }
 
 // set powered up motor speed
