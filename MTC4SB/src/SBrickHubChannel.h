@@ -18,15 +18,18 @@ public:
 
   SBrickHubChannel(SBrickChannel channel);
   
+  int16_t GetTargetSpeed();
   void SetTargetSpeed(int16_t speed);
   void SetSpeed(int16_t speed);
-  uint8_t GetCurrentTargetSpeed();
-  void SetCurrentTargetSpeed(int16_t speed);
-  bool GetCurrentTargetDirection();
-  bool IsAtSetTargetSpeed();
+  uint16_t GetCurrentSpeed();
+  uint8_t GetAbsCurrentSpeed();
+  void SetCurrentSpeed(int16_t speed);
+  bool GetTargetDirection();
+  bool GetCurrentDirection();
+  bool IsAtTargetSpeed();
 
 private:
   SBrickChannel _channel;
-  int16_t _setTargetSpeed;
-  int16_t _currentTargetSpeed;
+  int16_t _targetSpeed;
+  int16_t _currentSpeed;
 };

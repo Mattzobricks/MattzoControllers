@@ -5,70 +5,85 @@
 SBrickHubChannel::SBrickHubChannel(SBrickChannel channel)
 {
   _channel = channel;
-  _setTargetSpeed = 0;
-  _currentTargetSpeed = 0;
+  _targetSpeed = 0;
+  _currentSpeed = 0;
+}
+
+int16_t SBrickHubChannel::GetTargetSpeed() {
+  return _targetSpeed;
 }
 
 void SBrickHubChannel::SetTargetSpeed(int16_t speed)
 {
   if (speed < MIN_CHANNEL_SPEED)
   {
-    _setTargetSpeed = MIN_CHANNEL_SPEED;
+    _targetSpeed = MIN_CHANNEL_SPEED;
     return;
   }
 
   if (speed > MAX_CHANNEL_SPEED)
   {
-    _setTargetSpeed = MAX_CHANNEL_SPEED;
+    _targetSpeed = MAX_CHANNEL_SPEED;
     return;
   }
 
-  _setTargetSpeed = speed;
+  _targetSpeed = speed;
 }
 
 void SBrickHubChannel::SetSpeed(int16_t speed)
 {
-  _currentTargetSpeed = speed;
+  _currentSpeed = speed;
 }
 
-uint8_t SBrickHubChannel::GetCurrentTargetSpeed()
+uint16_t SBrickHubChannel::GetCurrentSpeed()
 {
-  return abs(_currentTargetSpeed);
+  return _currentSpeed;
 }
 
-bool SBrickHubChannel::GetCurrentTargetDirection()
+uint8_t SBrickHubChannel::GetAbsCurrentSpeed()
 {
-  return _setTargetSpeed >= 0;
+  return abs(_currentSpeed);
 }
 
-void SBrickHubChannel::SetCurrentTargetSpeed(int16_t speed)
+void SBrickHubChannel::SetCurrentSpeed(int16_t speed)
 {
   // We are not allowed to go beyond the set target speed.
-  if ((_setTargetSpeed < 0 && speed < _setTargetSpeed) ||
-      (_setTargetSpeed >= 0 && speed > _setTargetSpeed))
+  // TODO: Causes issue where speed is adjusted immediately when decelarating!!!
+  if ((_targetSpeed < 0 && speed < _targetSpeed && speed < _currentSpeed) ||
+      (_targetSpeed >= 0 && speed > _targetSpeed && speed > _currentSpeed))
   {
-    _currentTargetSpeed = _setTargetSpeed;
+    _currentSpeed = _targetSpeed;
     return;
   }
 
   // We can never go beyond the SBrick min speed.
   if (speed < SBrickHubChannel::MIN_CHANNEL_SPEED)
   {
-    _currentTargetSpeed = SBrickHubChannel::MIN_CHANNEL_SPEED;
+    _currentSpeed = SBrickHubChannel::MIN_CHANNEL_SPEED;
     return;
   }
 
   // We can never go beyond the SBrick max speed.
   if (speed > SBrickHubChannel::MAX_CHANNEL_SPEED)
   {
-    _currentTargetSpeed = SBrickHubChannel::MAX_CHANNEL_SPEED;
+    _currentSpeed = SBrickHubChannel::MAX_CHANNEL_SPEED;
     return;
   }
 
-  _currentTargetSpeed = speed;
+  _currentSpeed = speed;
 }
 
-bool SBrickHubChannel::IsAtSetTargetSpeed()
+bool SBrickHubChannel::GetTargetDirection()
 {
-  return _setTargetSpeed == _currentTargetSpeed;
+  return _targetSpeed >= 0;
+}
+
+bool SBrickHubChannel::GetCurrentDirection()
+{
+  return _currentSpeed >= 0;
+}
+
+bool SBrickHubChannel::IsAtTargetSpeed()
+{
+  return _currentSpeed == _targetSpeed;
 }

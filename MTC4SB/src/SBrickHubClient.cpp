@@ -26,16 +26,18 @@ const int8_t CMD_GET_CHANNEL_STATUS = 34;
 
 // Public members
 
-SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsEnabled, bool enabled)
+SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsEnabled, uint8_t speedStep, bool enabled)
 {
-  _driveTaskHandle = NULL;
   _deviceName = deviceName;
   _address = new NimBLEAddress(deviceAddress);
+  _autoLightsEnabled = autoLightsEnabled;
+  _speedStep = speedStep; 
+  _isEnabled = enabled;
+
+  _driveTaskHandle = NULL;
   _sbrick = nullptr;
   _advertisedDeviceCallback = nullptr;
   _clientCallback = nullptr;
-  _isEnabled = enabled;
-  _autoLightsEnabled = autoLightsEnabled;
   _ebreak = false;
   _isDiscovering = false;
   _isDiscovered = false;
@@ -110,7 +112,14 @@ void SBrickHubClient::Drive(const int16_t a, const int16_t b, const int16_t c, c
 
 void SBrickHubClient::DriveChannel(const SBrickHubChannel::SBrickChannel channel, const int16_t speed)
 {
+  // Adjust speed slowly towards the requested speed.
   _channels[channel]->SetTargetSpeed(speed);
+
+  if (speed == 0)
+  {
+    // Immediately set channel speed to zero.
+    _channels[channel]->SetSpeed(0);
+  }
 }
 
 void SBrickHubClient::EmergencyBreak(const bool enabled)
@@ -263,45 +272,45 @@ void SBrickHubClient::driveTaskLoop()
     {
       for (int channel = SBrickHubChannel::A; channel != SBrickHubChannel::D + 1; channel++)
       {
-        // Serial.print("Channel ");
-        // Serial.print(channel);
-        // Serial.print(": dir=");
-        // Serial.print(_channels[channel]->GetCurrentTargetDirection());
-        // Serial.print(" cur=");
-        // Serial.print(_channels[channel]->GetCurrentTargetSpeed());
-
-        int8_t dirMultiplier = _channels[channel]->GetCurrentTargetDirection() ? 1 : -1;
-        int16_t newTargetSpeed = (_channels[channel]->GetCurrentTargetSpeed() + 10) * dirMultiplier;
-
-        // Serial.print(" stp=");
-        // Serial.print(speedStep);
-
-        if (!_channels[channel]->IsAtSetTargetSpeed())
+        if (!_channels[channel]->IsAtTargetSpeed())
         {
-          // Adjust channel target speed with one speed step towards the set target speed.
-          // Serial.print(" tar=");
-          // Serial.print(newTargetSpeed);
-          _channels[channel]->SetCurrentTargetSpeed(newTargetSpeed);
-        }
+          // Adjust channel speed with one speed step towards the set target speed.
+          int16_t curSpeed = _channels[channel]->GetCurrentSpeed();
+          int16_t tarSpeed = _channels[channel]->GetTargetSpeed();
+          int16_t multiplier = tarSpeed > curSpeed ? 1 : -1;
+          int16_t speedStep = _speedStep * multiplier;
+          int16_t newSpeed = curSpeed + speedStep;
 
-        // Serial.println();
+          // Serial.print(channel);
+          // Serial.print(": curspd=");
+          // Serial.print(curSpeed);
+          // Serial.print(" tarspd=");
+          // Serial.print(tarSpeed);
+          // Serial.print(" step=");
+          // Serial.print(speedStep);
+          // Serial.print(" newspd=");
+          // Serial.print(newSpeed);
+          // Serial.println();
+
+          _channels[channel]->SetCurrentSpeed(newSpeed);
+        }
       }
 
       // Construct drive command.
       uint8_t byteCmd[13] = {
           CMD_DRIVE,
           SBrickHubChannel::A,
-          _channels[SBrickHubChannel::A]->GetCurrentTargetDirection(),
-          _channels[SBrickHubChannel::A]->GetCurrentTargetSpeed(),
+          _channels[SBrickHubChannel::A]->GetCurrentDirection(),
+          _channels[SBrickHubChannel::A]->GetAbsCurrentSpeed(),
           SBrickHubChannel::B,
-          _channels[SBrickHubChannel::B]->GetCurrentTargetDirection(),
-          _channels[SBrickHubChannel::B]->GetCurrentTargetSpeed(),
+          _channels[SBrickHubChannel::B]->GetCurrentDirection(),
+          _channels[SBrickHubChannel::B]->GetAbsCurrentSpeed(),
           SBrickHubChannel::C,
-          _channels[SBrickHubChannel::C]->GetCurrentTargetDirection(),
-          _channels[SBrickHubChannel::C]->GetCurrentTargetSpeed(),
+          _channels[SBrickHubChannel::C]->GetCurrentDirection(),
+          _channels[SBrickHubChannel::C]->GetAbsCurrentSpeed(),
           SBrickHubChannel::D,
-          _channels[SBrickHubChannel::D]->GetCurrentTargetDirection(),
-          _channels[SBrickHubChannel::D]->GetCurrentTargetSpeed()};
+          _channels[SBrickHubChannel::D]->GetCurrentDirection(),
+          _channels[SBrickHubChannel::D]->GetAbsCurrentSpeed()};
 
       // Send drive command.
       if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))

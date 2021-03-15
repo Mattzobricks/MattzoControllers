@@ -25,9 +25,9 @@
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 SBrickHubClient *mySBricks[] = {
-    new SBrickHubClient("YC7939", "00:07:80:d0:47:43", AUTO_LIGHTS_ENABLED),
-    new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2", AUTO_LIGHTS_ENABLED, SBRICK_DISABLED),
-    new SBrickHubClient("BC60052", "88:6b:0f:23:78:10", AUTO_LIGHTS_ENABLED, SBRICK_DISABLED)};
+    new SBrickHubClient("YC7939", "00:07:80:d0:47:43", AUTO_LIGHTS_ENABLED, 10, SBRICK_DISABLED),
+    new SBrickHubClient("HE10233", "00:07:80:d0:3a:f2", AUTO_LIGHTS_ENABLED),
+    new SBrickHubClient("BC60052", "88:6b:0f:23:78:10")};
 
 #define numSBricks (sizeof(mySBricks) / sizeof(SBrickHubClient *))
 

@@ -34,7 +34,7 @@ public:
   /// </summary>
   static uint8_t ConnectDelayInSeconds;
 
-  SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsOnEnabled = false, bool enabled = true);
+  SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsOnEnabled = false, uint8_t speedStep = 10, bool enabled = true);
   bool IsEnabled();
   void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
   bool Connect(const uint32_t watchdogTimeOutInTensOfSeconds);
@@ -56,14 +56,16 @@ private:
   static void driveTaskImpl(void*);
   void driveTaskLoop();
 
-  TaskHandle_t _driveTaskHandle;
   std::string _deviceName;
   NimBLEAddress* _address;
+  bool _autoLightsEnabled;
+  uint8_t _speedStep;
+  bool _isEnabled;
+
+  TaskHandle_t _driveTaskHandle;
   NimBLEClient* _sbrick;
   NimBLEAdvertisedDeviceCallbacks* _advertisedDeviceCallback;
   NimBLEClientCallbacks* _clientCallback;
-  bool _isEnabled;
-  bool _autoLightsEnabled;
   bool _ebreak;
   bool _isDiscovering;
   bool _isDiscovered;
@@ -73,6 +75,7 @@ private:
   NimBLERemoteCharacteristic* _remoteControlCharacteristic;
   NimBLERemoteCharacteristic* _genericAccessCharacteristic;
   NimBLERemoteCharacteristic* _deviceInformationCharacteristic;
+
   SBrickHubChannel *_channels[4] = {
     new SBrickHubChannel(SBrickHubChannel::SBrickChannel::A),
     new SBrickHubChannel(SBrickHubChannel::SBrickChannel::B),
