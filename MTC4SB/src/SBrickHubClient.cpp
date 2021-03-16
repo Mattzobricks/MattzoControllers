@@ -26,13 +26,13 @@ const int8_t CMD_GET_CHANNEL_STATUS = 34;
 
 // Public members
 
-SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsEnabled, uint8_t speedStep, uint8_t breakStep, bool enabled)
+SBrickHubClient::SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsEnabled, uint8_t speedStep, uint8_t brakeStep, bool enabled)
 {
   _deviceName = deviceName;
   _address = new NimBLEAddress(deviceAddress);
   _autoLightsEnabled = autoLightsEnabled;
   _speedStep = speedStep; 
-  _breakStep = breakStep;
+  _brakeStep = brakeStep;
   _isEnabled = enabled;
 
   _driveTaskHandle = NULL;
@@ -273,7 +273,7 @@ void SBrickHubClient::driveTaskLoop()
           int16_t curSpeed = _channels[channel]->GetCurrentSpeed();
           int16_t tarSpeed = _channels[channel]->GetTargetSpeed();
           int16_t dirMultiplier = tarSpeed > curSpeed ? 1 : -1;
-          int16_t speedStep = (_channels[channel]->IsAccelarating() ? _speedStep : _breakStep) * dirMultiplier;
+          int16_t speedStep = (_channels[channel]->IsAccelarating() ? _speedStep : _brakeStep) * dirMultiplier;
           int16_t newSpeed = curSpeed + speedStep;
 
           // Serial.print(channel);
