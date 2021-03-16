@@ -34,7 +34,7 @@ public:
   /// </summary>
   static uint8_t ConnectDelayInSeconds;
 
-  SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsOnEnabled = false, uint8_t speedStep = 10, bool enabled = true);
+  SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsOnEnabled = false, uint8_t speedStep = 10, uint8_t breakStep = 20, bool enabled = true);
   bool IsEnabled();
   void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
   bool Connect(const uint32_t watchdogTimeOutInTensOfSeconds);
@@ -60,6 +60,7 @@ private:
   NimBLEAddress* _address;
   bool _autoLightsEnabled;
   uint8_t _speedStep;
+  uint8_t _breakStep;
   bool _isEnabled;
 
   TaskHandle_t _driveTaskHandle;

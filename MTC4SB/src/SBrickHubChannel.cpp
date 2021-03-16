@@ -9,7 +9,8 @@ SBrickHubChannel::SBrickHubChannel(SBrickChannel channel)
   _currentSpeed = 0;
 }
 
-int16_t SBrickHubChannel::GetTargetSpeed() {
+int16_t SBrickHubChannel::GetTargetSpeed()
+{
   return _targetSpeed;
 }
 
@@ -30,6 +31,11 @@ void SBrickHubChannel::SetTargetSpeed(int16_t speed)
   _targetSpeed = speed;
 }
 
+bool SBrickHubChannel::GetTargetDirection()
+{
+  return _targetSpeed >= 0;
+}
+
 void SBrickHubChannel::SetSpeed(int16_t speed)
 {
   _currentSpeed = speed;
@@ -48,7 +54,6 @@ uint8_t SBrickHubChannel::GetAbsCurrentSpeed()
 void SBrickHubChannel::SetCurrentSpeed(int16_t speed)
 {
   // We are not allowed to go beyond the set target speed.
-  // TODO: Causes issue where speed is adjusted immediately when decelarating!!!
   if ((_targetSpeed < 0 && speed < _targetSpeed && speed < _currentSpeed) ||
       (_targetSpeed >= 0 && speed > _targetSpeed && speed > _currentSpeed))
   {
@@ -73,14 +78,23 @@ void SBrickHubChannel::SetCurrentSpeed(int16_t speed)
   _currentSpeed = speed;
 }
 
-bool SBrickHubChannel::GetTargetDirection()
-{
-  return _targetSpeed >= 0;
-}
-
 bool SBrickHubChannel::GetCurrentDirection()
 {
   return _currentSpeed >= 0;
+}
+
+bool SBrickHubChannel::IsAccelarating()
+{
+  // Current speed equals target speed.
+  if (IsAtTargetSpeed())
+    return false;
+
+  // Current speed and target speed in opposite directions means we must be decelerating first.
+  if (_currentSpeed * _targetSpeed < 0)
+    return false;
+
+  // Current speed and target speed in same direction.
+  return abs(_targetSpeed) > abs(_currentSpeed);
 }
 
 bool SBrickHubChannel::IsAtTargetSpeed()
