@@ -62,6 +62,7 @@ using namespace tinyxml2;
 
 void mcLog(String msg);
 void mcLog2(String msg, int severity);
+void checkWifi();
 
 
 // ****************
@@ -199,7 +200,7 @@ bool lastKnownWifiConnectedStatus = false;
 // Setup wifi parameters and initiate connection process
 void setupWifi() {
   delay(10);
-  Serial.println("Connecting as " + String(mattzoControllerName_char) + " to Wifi " + String(WIFI_SSID) + "...");
+  Serial.print("Connecting as " + String(mattzoControllerName_char) + " to Wifi " + String(WIFI_SSID));
 #if defined(ESP8266)
   WiFi.hostname(mattzoControllerName_char);
 #elif defined(ESP32)
@@ -212,10 +213,26 @@ void setupWifi() {
 #else
 #error "Error: this sketch is designed for ESP8266 or ESP32 only."
 #endif
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+
+  while (!lastKnownWifiConnectedStatus) {
+    checkWifi();
+  }
+}
+
+unsigned long lastWiFiBegin_ms = 0;
+const unsigned long WAIT_BETWEEN_WIFI_CONNECTS_MS = 500;
+
+// (re)connect to WiFi. Called by checkWifi().
+void reconnectWiFi() {
+  if (millis() > lastWiFiBegin_ms + WAIT_BETWEEN_WIFI_CONNECTS_MS) {
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    Serial.println(".");
+    lastWiFiBegin_ms = millis();
+  }
 }
 
 // Check and monitor wifi connection status changes
+// If not connected, (re)connect!
 void checkWifi() {
   if (WiFi.status() != WL_CONNECTED && lastKnownWifiConnectedStatus) {
     lastKnownWifiConnectedStatus = false;
@@ -229,6 +246,10 @@ void checkWifi() {
     ArduinoOTA.setHostname(mattzoControllerName_char);
     ArduinoOTA.setPassword(OTA_PASSWORD);
     ArduinoOTA.begin();
+  }
+
+  if (!lastKnownWifiConnectedStatus) {
+    reconnectWiFi();
   }
 }
 
