@@ -842,5 +842,8 @@ void debugInfo() {
   for (int i = 0; i < NUM_HUBS; i++) {
     mcLog("Hub " + String(i) + ": macAddress=" + myHubs[i]._macAddress + ": isConnecting()=" + String(myHubs[i].isConnecting()) + " isConnected()=" + String(myHubs[i].isConnected()) + " status=" + String(myHubs[i].lastKnownConnectionStatus));
   }
+  mcLog("Free heap size: " + String(xPortGetFreeHeapSize()));
+  mcLog("Leargest free heap block: " + String(heap_caps_get_largest_free_block(MALLOC_CAP_8BIT)));
+  mcLog("Minimm free heap size since boot: " + String(xPortGetMinimumEverFreeHeapSize()));
   mcLog("******************");
 }
