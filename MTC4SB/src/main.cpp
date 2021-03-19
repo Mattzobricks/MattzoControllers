@@ -175,8 +175,8 @@ void setup()
 
   // Configure BLE scanner.
   scanner = NimBLEDevice::getScan();
-  scanner->setInterval(1349);
-  scanner->setWindow(449);
+  scanner->setInterval(45);
+  scanner->setWindow(15);
   scanner->setActiveScan(true);
 
   Serial.print("[" + String(xPortGetCoreID()) + "] Setup: Number of SBrick(s) to discover: ");
