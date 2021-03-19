@@ -22,7 +22,7 @@ public:
   void SetTargetSpeed(int16_t speed);
   bool GetTargetDirection();
   void SetSpeed(int16_t speed);
-  uint16_t GetCurrentSpeed();
+  int16_t GetCurrentSpeed();
   uint8_t GetAbsCurrentSpeed();
   void SetCurrentSpeed(int16_t speed);
   bool GetCurrentDirection();

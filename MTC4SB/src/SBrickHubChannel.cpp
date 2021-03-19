@@ -41,7 +41,7 @@ void SBrickHubChannel::SetSpeed(int16_t speed)
   _currentSpeed = speed;
 }
 
-uint16_t SBrickHubChannel::GetCurrentSpeed()
+int16_t SBrickHubChannel::GetCurrentSpeed()
 {
   return _currentSpeed;
 }
