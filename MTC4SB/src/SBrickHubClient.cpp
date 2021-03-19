@@ -274,7 +274,18 @@ void SBrickHubClient::driveTaskLoop()
           int16_t tarSpeed = _channels[channel]->GetTargetSpeed();
           int16_t dirMultiplier = tarSpeed > curSpeed ? 1 : -1;
           int16_t speedStep = (_channels[channel]->IsAccelarating() ? _speedStep : _brakeStep) * dirMultiplier;
-          int16_t newSpeed = curSpeed + speedStep;
+          int16_t newSpeed;
+
+          if (!_channels[channel]->IsAccelarating() && abs(speedStep) > abs(curSpeed))
+          {
+            // We can't switch from one drive direction to the other directly. We must stop first.
+            newSpeed = 0;
+          }
+          else
+          {
+            // Adjust speed with one step.
+            newSpeed = curSpeed + speedStep;
+          }
 
           // Serial.print(channel);
           // Serial.print(": curspd=");
