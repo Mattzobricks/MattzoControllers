@@ -47,8 +47,8 @@ public:
   bool getAutoLightsEnabled();
 
 private:
-  bool connectToServer(const uint8_t _watchdogTimeOutInTensOfSeconds);
-  bool setWatchdogTimeout(const uint8_t _watchdogTimeOutInTensOfSeconds);
+  bool connectToServer(const uint8_t watchdogTimeOutInTensOfSeconds);
+  bool setWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
   // static void notifyCallback(NimBLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify);
   bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
 
