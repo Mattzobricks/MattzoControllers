@@ -87,7 +87,7 @@ void SBrickHubClient::StartDiscovery(NimBLEScan *scanner, const uint32_t scanDur
 /// <summary>
 /// Connect to the SBrick Hub.
 /// </summary>
-bool SBrickHubClient::Connect(const uint32_t watchdogTimeOutInTensOfSeconds)
+bool SBrickHubClient::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
   return connectToServer(watchdogTimeOutInTensOfSeconds);
 }
@@ -141,7 +141,7 @@ bool SBrickHubClient::getAutoLightsEnabled()
   return _autoLightsEnabled;
 }
 
-bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInTensOfSeconds)
+bool SBrickHubClient::connectToServer(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
   Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Connecting to ");
   Serial.println(_address->toString().c_str());
@@ -212,7 +212,7 @@ bool SBrickHubClient::connectToServer(const uint16_t watchdogTimeOutInTensOfSeco
 /// Writing a zero disables the watchdog.
 /// By default watchdog is set to 5, which means a 0.5 second timeout.
 /// </summary>
-bool SBrickHubClient::setWatchdogTimeout(const uint16_t watchdogTimeOutInTensOfSeconds)
+bool SBrickHubClient::setWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
   _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
 

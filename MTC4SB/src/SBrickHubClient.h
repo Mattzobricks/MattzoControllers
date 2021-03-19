@@ -37,7 +37,7 @@ public:
   SBrickHubClient(std::string deviceName, std::string deviceAddress, bool autoLightsOnEnabled = false, uint8_t speedStep = 10, uint8_t brakeStep = 20, bool enabled = true);
   bool IsEnabled();
   void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
-  bool Connect(const uint32_t watchdogTimeOutInTensOfSeconds);
+  bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
   bool IsDiscovered();
   bool IsConnected();
   void Drive(const int16_t a, const int16_t b, const int16_t c, const int16_t d);
@@ -47,8 +47,8 @@ public:
   bool getAutoLightsEnabled();
 
 private:
-  bool connectToServer(const uint16_t watchdogTimeOutInMs);
-  bool setWatchdogTimeout(const uint16_t watchdogTimeOutInMs);
+  bool connectToServer(const uint8_t _watchdogTimeOutInTensOfSeconds);
+  bool setWatchdogTimeout(const uint8_t _watchdogTimeOutInTensOfSeconds);
   // static void notifyCallback(NimBLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify);
   bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
 
