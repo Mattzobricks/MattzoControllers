@@ -7,13 +7,6 @@
 #include "SBrickClientCallback.h"
 #include "SBrickAdvertisedDeviceCallbacks.h"
 
-/*
-*   - subscribeToNotifications(callback)
-*       pMyRemoteCharacteristic->registerForNotify(notifyCallback)
-*       void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* data, size_t length, bool isNotify)
-* SBrickHub.EmergencyBreak()
-*/
-
 static BLEUUID sbrickRemoteControlServiceUUID(SBRICK_REMOTECONTROL_SERVICE_UUID);
 static BLEUUID sbrickRemoteControlCharacteristicUUID(SBRICK_REMOTECONTROL_CHARACTERISTIC_UUID);
 
