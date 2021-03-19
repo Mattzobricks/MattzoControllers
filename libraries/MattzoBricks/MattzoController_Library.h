@@ -62,6 +62,7 @@ using namespace tinyxml2;
 
 void mcLog(String msg);
 void mcLog2(String msg, int severity);
+void reconnectWiFi();
 void checkWifi();
 
 
@@ -214,9 +215,7 @@ void setupWifi() {
 #error "Error: this sketch is designed for ESP8266 or ESP32 only."
 #endif
 
-  while (!lastKnownWifiConnectedStatus) {
-    checkWifi();
-  }
+  reconnectWiFi();
 }
 
 unsigned long lastWiFiBegin_ms = 0;
@@ -248,9 +247,11 @@ void checkWifi() {
     ArduinoOTA.begin();
   }
 
+#if defined(ESP32)
   if (!lastKnownWifiConnectedStatus) {
     reconnectWiFi();
   }
+#endif
 }
 
 
