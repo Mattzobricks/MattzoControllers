@@ -201,7 +201,7 @@ bool lastKnownWifiConnectedStatus = false;
 // Setup wifi parameters and initiate connection process
 void setupWifi() {
   delay(10);
-  Serial.print("Connecting as " + String(mattzoControllerName_char) + " to Wifi " + String(WIFI_SSID));
+  Serial.println("Connecting as " + String(mattzoControllerName_char) + " to Wifi " + String(WIFI_SSID));
 #if defined(ESP8266)
   WiFi.hostname(mattzoControllerName_char);
 #elif defined(ESP32)
