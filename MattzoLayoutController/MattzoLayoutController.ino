@@ -691,12 +691,12 @@ void levelCrossingCommand(int levelCrossingCommand) {
 
 void boomBarrierLoop() {
   const unsigned long BOOM_BARRIER_TICK_MS = 20;
-  unsigned long now = millis();
+  unsigned long now_ms = millis();
 
-  if (now < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS)
+  if (now_ms < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS)
     return;
 
-  float servoAngleIncrement = levelCrossing.servoAngleIncrementPerMS * (now - levelCrossing.lastBoomBarrierTick_ms);
+  float servoAngleIncrement = levelCrossing.servoAngleIncrementPerMS * (now_ms - levelCrossing.lastBoomBarrierTick_ms);
   float newServoAnglePrimaryBooms;
   float newServoAngleSecondaryBooms;
 
@@ -714,7 +714,7 @@ void boomBarrierLoop() {
   }
 
   // Move secondary booms?
-  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || now >= levelCrossing.lastStatusChangeTime_ms + LC_BOOM_BARRIER2_CLOSING_DELAY_MS) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
+  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || now_ms >= levelCrossing.lastStatusChangeTime_ms + LC_BOOM_BARRIER2_CLOSING_DELAY_MS) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
     // Yepp, move secondary booms!
     if (levelCrossing.servoAngleSecondaryBooms < levelCrossing.servoTargetAngleSecondaryBooms) {
       newServoAngleSecondaryBooms = min(levelCrossing.servoAngleSecondaryBooms + servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
@@ -731,21 +731,21 @@ void boomBarrierLoop() {
     setServoAngle(LC_BOOM_BARRIER_SERVO_PIN[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
   }
 
-  levelCrossing.lastBoomBarrierTick_ms = now;
+  levelCrossing.lastBoomBarrierTick_ms = now_ms;
 }
 
 void levelCrossingLightLoop() {
   // alternate all signal LEDs every LC_SIGNAL_FLASH_PERIOD_MS / 2 milliseconds
-  unsigned long now = millis();
+  unsigned long now_ms = millis();
   bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || (levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms);
-  bool alternatePeriod = (now % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
+  bool alternatePeriod = (now_ms % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
 
   for (int s = 0; s < LC_NUM_SIGNALS; s++) {
     if (LC_SIGNALS_FADING) {
       // fading lights
       int brightness = 0;
       if (lightsActive) {
-        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -768, 1280);
+        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now_ms + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -768, 1280);
       }
       fadeSignalLED(LC_SIGNAL_PIN[s], brightness);
     } else {
