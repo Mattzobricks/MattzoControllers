@@ -301,10 +301,16 @@ const int BASCULE_BRIDGE_SIGNAL_RIVER_GO = 2;  // signal port that is activated 
 const int BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT = 3;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
 
 // Sensor ports
-const int BASCULE_BRIDGE_SENSOR_DOWN = 0;  // local sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
-const int BASCULE_BRIDGE_SENSOR_UP = 1;  // local sensor that indicates "bridge up" (index in the SENSOR_PIN array)
-const int BASCULE_BRIDGE_SENSOR_FULLY_DOWN = 2;  // virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
-const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 3;  // virtual sensor that indicates "bridge fully up" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after opened".
+// local sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_DOWN = 0;
+// local sensor that indicates "bridge up" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_UP = 1;
+// virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
+// Set to -1 to skip virtual "bridge fully down" sensor events
+const int BASCULE_BRIDGE_SENSOR_FULLY_DOWN = 2;
+// virtual sensor that indicates "bridge fully up" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after opened".
+// Set to -1 to skip virtual "bridge fully up" sensor events
+const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 3;
 
 // Timings (in milli seconds)
 // Maximum allowed time for opening the bridge until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.

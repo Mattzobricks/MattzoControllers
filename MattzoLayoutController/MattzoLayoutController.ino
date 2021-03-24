@@ -459,6 +459,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 void sendSensorEvent2MQTT(int sensorPort, bool sensorState) {
+  if (sensorPort < 0) {
+    mcLog2("Sensor message skipped (sensorPort = " + sensorPort + ")", LOG_DEBUG);
+    return;
+  }
+
   String sensorRocId = MATTZO_CONTROLLER_TYPE + String(mattzoControllerId) + "-" + String(sensorPort + 1);  // e.g. "MattzoController12345-3"
   String stateString = sensorState ? "true" : "false";
 
