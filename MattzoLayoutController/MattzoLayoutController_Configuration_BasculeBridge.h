@@ -69,7 +69,7 @@ uint8_t PCA9685_OE_PIN = D0;
 // - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - GND is connected to GND of the ESP8266 (mandatory!).
-// - RESET ís connected with an 10K resistor to VCC
+// - RESET is connected with an 10K resistor to VCC
 // - Address ports A0, A1 and A2 according to the desired address (0x20, 0x21, ...). All connected to GND means address 0x20.
 // Ports:
 // - The ports of the are numbered as follows:
@@ -285,9 +285,9 @@ const int BASCULE_BRIDGE_MS_IN2 = D1;  // reverse
 
 // Motor power settings for bridge operations
 const int BASCULE_BRIDGE_POWER_UP = 1023;  // Motor power for pulling the bridge up (0 .. 1023)
-const int BASCULE_BRIDGE_POWER_UP2 = 512;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_UP2 = 768;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 1023)
 const int BASCULE_BRIDGE_POWER_DOWN = 1023;  // Motor power for letting the bridge down (0 .. 1023)
-const int BASCULE_BRIDGE_POWER_DOWN2 = 512;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_DOWN2 = 1023;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 1023)
 
 // Signal ports (set to -1 for "not connected")
 const int BASCULE_BRIDGE_SIGNAL_RIVER_STOP = 0;  // signal port that is activated when bridge is not in the "up" position (index in the SIGNALPORT_PIN array)
@@ -305,9 +305,9 @@ const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 45000;
 // Maximum allowed time for closing the bridge until the closing sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
 const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 45000;
 // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 2000;
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 3000;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 5000;
 
 
 // ****************
