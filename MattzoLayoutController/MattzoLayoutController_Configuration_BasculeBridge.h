@@ -250,6 +250,13 @@ const bool LC_SIGNALS_FADING = true;
 
 // LEVEL CROSSING SENSORS
 
+// Virtual sensor for "booms closed" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have closed.
+// Must be set to -1 to skip virtual "booms closed" sensor event
+const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = -1;
+// Virtual sensor for "booms opened" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have opened.
+// Must be set to -1 to skip virtual "booms opened" sensor event
+const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = -1;
+
 // Autonomous Mode enabled?
 const bool LC_AUTONOMOUS_MODE = false;
 
@@ -306,10 +313,10 @@ const int BASCULE_BRIDGE_SENSOR_DOWN = 0;
 // local sensor that indicates "bridge up" (index in the SENSOR_PIN array)
 const int BASCULE_BRIDGE_SENSOR_UP = 1;
 // virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
-// Set to -1 to skip virtual "bridge fully down" sensor events
+// Must be set to -1 to skip virtual "bridge fully down" sensor events
 const int BASCULE_BRIDGE_SENSOR_FULLY_DOWN = 2;
 // virtual sensor that indicates "bridge fully up" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after opened".
-// Set to -1 to skip virtual "bridge fully up" sensor events
+// Must be set to -1 to skip virtual "bridge fully up" sensor events
 const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 3;
 
 // Timings (in milli seconds)

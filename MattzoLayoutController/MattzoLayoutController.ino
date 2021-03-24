@@ -73,6 +73,7 @@ struct LevelCrossing {
   LevelCrossingStatus levelCrossingStatus = LevelCrossingStatus::OPEN;
   unsigned long lastStatusChangeTime_ms = 0;
 
+  bool boomBarrierActionInProgress = true;
   float servoAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
   float servoAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
   float servoAngleIncrementPerMS = 0;
@@ -676,6 +677,8 @@ void levelCrossingCommand(int levelCrossingCommand) {
         levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_OPENING_PERIOD_MS;
         mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
         levelCrossing.lastStatusChangeTime_ms = millis();
+        levelCrossing.boomBarrierActionInProgress = true;
+        sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_CLOSED, false);
       }
     }
   }
@@ -687,6 +690,8 @@ void levelCrossingCommand(int levelCrossingCommand) {
       levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_CLOSING_PERIOD_MS;
       mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
       levelCrossing.lastStatusChangeTime_ms = millis();
+      levelCrossing.boomBarrierActionInProgress = true;
+      sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_OPENED, false);
     }
   }
   else {
@@ -698,14 +703,16 @@ void boomBarrierLoop() {
   const unsigned long BOOM_BARRIER_TICK_MS = 20;
   unsigned long now_ms = millis();
 
-  if (now_ms < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS)
+  if (now_ms < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS || !levelCrossing.boomBarrierActionInProgress)
     return;
 
   float servoAngleIncrement = levelCrossing.servoAngleIncrementPerMS * (now_ms - levelCrossing.lastBoomBarrierTick_ms);
   float newServoAnglePrimaryBooms;
   float newServoAngleSecondaryBooms;
 
-  // Move primary booms!
+  levelCrossing.lastBoomBarrierTick_ms = now_ms;
+
+  // Move primary booms?
   if (levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
     if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {
       newServoAnglePrimaryBooms = min(levelCrossing.servoAnglePrimaryBooms + servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
@@ -736,7 +743,16 @@ void boomBarrierLoop() {
     setServoAngle(LC_BOOM_BARRIER_SERVO_PIN[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
   }
 
-  levelCrossing.lastBoomBarrierTick_ms = now_ms;
+  // Final boom barrier position reached?
+  if ((levelCrossing.servoAnglePrimaryBooms == levelCrossing.servoTargetAnglePrimaryBooms) && (levelCrossing.servoAngleSecondaryBooms == levelCrossing.servoTargetAngleSecondaryBooms)) {
+    levelCrossing.boomBarrierActionInProgress = false;
+    if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN) {
+      sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_OPENED, true);
+    }
+    else {
+      sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_CLOSED, true);
+    }
+  }
 }
 
 void levelCrossingLightLoop() {
