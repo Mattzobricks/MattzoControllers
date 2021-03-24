@@ -162,20 +162,25 @@ const int NUM_SENSORS = 2;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7 };
+// If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7, 0, 0 };
 
 // Type of digital input pins for sensors
-// 0   : pin on the ESP-8266
+// 0   : local sensor, directly connected on a pin on the ESP-8266
 // 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
-// 0x20: port on the 1st MCP23017
-// 0x21: port on the 2nd MCP23017
-// 0x22: port on the 3rd MCP23017 etc.
+// 0x11: virtual sensor, triggered when bascule bridge is fully open or closed.
+// 0x20: local sensor, connected to a port on the 1st MCP23017
+// 0x21: local sensor, connected to a port on the 2nd MCP23017
+// 0x22: local sensor, connected to a port on the 3rd MCP23017 etc.
+const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0 };
+const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
+const int MCP23017_SENSOR_PIN_TYPE = 0x20;
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
-// If sensor is local, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
+// If sensor is local or virtual, the value has no meaning (e.g. set to zero)
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0 };
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -296,8 +301,10 @@ const int BASCULE_BRIDGE_SIGNAL_RIVER_GO = 2;  // signal port that is activated 
 const int BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT = 3;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
 
 // Sensor ports
-const int BASCULE_BRIDGE_SENSOR_DOWN = 0;  // sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
-const int BASCULE_BRIDGE_SENSOR_UP = 1;  // sensor that indicates "bridge up" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_DOWN = 0;  // local sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_UP = 1;  // local sensor that indicates "bridge up" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_FULLY_DOWN = 2;  // virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
+const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 3;  // virtual sensor that indicates "bridge fully up" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after opened".
 
 // Timings (in milli seconds)
 // Maximum allowed time for opening the bridge until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.

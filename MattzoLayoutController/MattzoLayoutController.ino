@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration_BasculeBridge.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -159,15 +159,15 @@ void setup() {
 
   // initialize sensor pins
   for (int i = 0; i < NUM_SENSORS; i++) {
-    if (SENSOR_PIN_TYPE[i] == 0) {
+    if (SENSOR_PIN_TYPE[i] == LOCAL_SENSOR_PIN_TYPE) {
       // sensor connected directly to the controller
       pinMode(SENSOR_PIN[i], INPUT_PULLUP);
       sensorTriggerState[i] = (SENSOR_PIN[i] == D8) ? HIGH : LOW;
     }
-    else if (SENSOR_PIN_TYPE[i] >= 0x20) {
+    else if (SENSOR_PIN_TYPE[i] >= MCP23017_SENSOR_PIN_TYPE) {
       // sensor connected to MCP23017
 #if USE_MCP23017
-      int m = SENSOR_PIN_TYPE[i] - 0x20;  // index of the MCP23017
+      int m = SENSOR_PIN_TYPE[i] - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
       mcp23017[m].pinMode(SENSOR_PIN[i], INPUT);
       mcp23017[m].pullUp(SENSOR_PIN[i], HIGH); // turn on a 100K pull-up resistor internally
       sensorTriggerState[i] = LOW;
@@ -458,7 +458,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   mcLog2("Unhandled message type. Message disregarded.", LOG_DEBUG);
 }
 
-void sendSensorEvent2MQTT(int sensorPort, int sensorState) {
+void sendSensorEvent2MQTT(int sensorPort, bool sensorState) {
   String sensorRocId = MATTZO_CONTROLLER_TYPE + String(mattzoControllerId) + "-" + String(sensorPort + 1);  // e.g. "MattzoController12345-3"
   String stateString = sensorState ? "true" : "false";
 
@@ -497,17 +497,17 @@ void setLEDBySensorStates() {
 
 void monitorSensors() {
   for (int i = 0; i < NUM_SENSORS; i++) {
-    // monitor only local sensors
-    if (SENSOR_PIN_TYPE[i] != REMOTE_SENSOR_PIN_TYPE) {
+    // monitor local sensors
+    if (SENSOR_PIN_TYPE[i] == LOCAL_SENSOR_PIN_TYPE || SENSOR_PIN_TYPE[i] >= MCP23017_SENSOR_PIN_TYPE) {
       int sensorValue;
-      if (SENSOR_PIN_TYPE[i] == 0) {
+      if (SENSOR_PIN_TYPE[i] == LOCAL_SENSOR_PIN_TYPE) {
         // sensor directly connected to ESP8266
         sensorValue = digitalRead(SENSOR_PIN[i]);
       }
-      else if (SENSOR_PIN_TYPE[i] >= 0x20) {
+      else if (SENSOR_PIN_TYPE[i] >= MCP23017_SENSOR_PIN_TYPE) {
         // sensor connected to MCP23017
   #if USE_MCP23017
-        int m = SENSOR_PIN_TYPE[i] - 0x20;  // index of the MCP23017
+        int m = SENSOR_PIN_TYPE[i] - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
         sensorValue = mcp23017[m].digitalRead(SENSOR_PIN[i]);
   #endif
       }
@@ -932,8 +932,8 @@ void setBridgeLights() {
     break;
   case BridgeStatus::OPENING2:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, false);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, true);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, true);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, flashState);
     break;
   case BridgeStatus::OPEN:
@@ -970,22 +970,23 @@ void basculeBridgeLoop() {
     return;
 
   // 1. Determine if bridge state change is required
-  BridgeStatus newBridgeStatus;
+  BridgeStatus oldBridgeStatus = bridge.bridgeStatus;
+  BridgeStatus newBridgeStatus = oldBridgeStatus;
 
   // Timed state change?
-  if ((bridge.bridgeStatus != bridge.nextBridgeStatus) && (bridge.nextBridgeStatus != BridgeStatus::NO_TIMED_EVENT) && (millis() >= bridge.nextEventTime_ms)) {
+  if ((oldBridgeStatus != bridge.nextBridgeStatus) && (bridge.nextBridgeStatus != BridgeStatus::NO_TIMED_EVENT) && (millis() >= bridge.nextEventTime_ms)) {
     mcLog2("Executing timed bridge state change.", LOG_DEBUG);
     newBridgeStatus = bridge.nextBridgeStatus;
     bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
   } else {
     // no timed state change required.
     // Check if a state change is required due to sensor event or bridge command.
-    newBridgeStatus = bridge.bridgeStatus;
+    newBridgeStatus = oldBridgeStatus;
 
     if (bridge.bridgeCommand == BridgeCommand::UP) {
       // Bridge command: UP!
 
-      switch (bridge.bridgeStatus) {
+      switch (oldBridgeStatus) {
       case BridgeStatus::CLOSED:
       case BridgeStatus::CLOSING:
       case BridgeStatus::CLOSING2:
@@ -1037,7 +1038,7 @@ void basculeBridgeLoop() {
     else {
       // Bridge command: DOWN!
 
-      switch (bridge.bridgeStatus) {
+      switch (oldBridgeStatus) {
       case BridgeStatus::CLOSING:
         if (sensorState[BASCULE_BRIDGE_SENSOR_DOWN]) {
           if (BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS > 0) {
@@ -1089,8 +1090,17 @@ void basculeBridgeLoop() {
 
   // 2. Execute bridge state change
   // Bridge state change pending?
-  if (newBridgeStatus != bridge.bridgeStatus) {
-    bridge.bridgeStatus = newBridgeStatus;
+  if (newBridgeStatus != oldBridgeStatus) {
+    switch (oldBridgeStatus) {
+    case BridgeStatus::CLOSED:
+      mcLog2("Leaving bridge status CLOSED.", LOG_DEBUG);
+      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, false);
+      break;
+    case BridgeStatus::OPEN:
+      mcLog2("Leaving bridge status OPEN.", LOG_DEBUG);
+      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, false);
+      break;
+    }
 
     switch (newBridgeStatus) {
     case BridgeStatus::STOPPED:
@@ -1100,10 +1110,12 @@ void basculeBridgeLoop() {
     case BridgeStatus::CLOSED:
       mcLog2("Setting new bridge status CLOSED.", LOG_DEBUG);
       setBridgeMotorPower(0);
+      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, true);
       break;
     case BridgeStatus::OPEN:
       mcLog2("Setting new bridge status OPEN.", LOG_DEBUG);
       setBridgeMotorPower(0);
+      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, true);
       break;
     case BridgeStatus::ERRoR:
       mcLog2("Setting new bridge status ERROR.", LOG_DEBUG);
@@ -1128,6 +1140,8 @@ void basculeBridgeLoop() {
     default:
       mcLog2("Unknown bridge status #3.", LOG_CRIT);
     }
+
+    bridge.bridgeStatus = newBridgeStatus;
   }
 
   // 3. Check if an emergency brake situation exists
