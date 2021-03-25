@@ -758,7 +758,7 @@ void boomBarrierLoop() {
 void levelCrossingLightLoop() {
   // alternate all signal LEDs every LC_SIGNAL_FLASH_PERIOD_MS / 2 milliseconds
   unsigned long now_ms = millis();
-  bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || (levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms);
+  bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || levelCrossing.boomBarrierActionInProgress;
   bool alternatePeriod = (now_ms % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
 
   for (int s = 0; s < LC_NUM_SIGNALS; s++) {
