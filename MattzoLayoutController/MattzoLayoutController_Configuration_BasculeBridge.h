@@ -214,7 +214,7 @@ const unsigned int LC_BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;
 // Delay until primary boom barriers start closing
 const unsigned int LC_BOOM_BARRIER1_CLOSING_DELAY_MS = 2000;
 // Delay until secondary boom barriers start closing
-const unsigned int LC_BOOM_BARRIER2_CLOSING_DELAY_MS = 5000;
+const unsigned int LC_BOOM_BARRIER2_CLOSING_DELAY_MS = 4000;
 // Opening timespan for all boom barriers
 const unsigned int LC_BOOM_BARRIER_OPENING_PERIOD_MS = 3000;
 

@@ -162,19 +162,24 @@ const int NUM_SENSORS = 21;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+// If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
 uint8_t SENSOR_PIN[NUM_SENSORS] = { D3, D4, D5, D6, D7, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
 // Type of digital input pins for sensors
 // 0   : pin on the ESP-8266
 // 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
-// 0x20: port on the 1st MCP23017
-// 0x21: port on the 2nd MCP23017
-// 0x22: port on the 3rd MCP23017 etc.
+// 0x11: virtual sensor, triggered when bascule bridge is fully open or closed.
+// 0x20: local sensor, connected to a port on the 1st MCP23017
+// 0x21: local sensor, connected to a port on the 2nd MCP23017
+// 0x22: local sensor, connected to a port on the 3rd MCP23017 etc.
+const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
+const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
+const int MCP23017_SENSOR_PIN_TYPE = 0x20;
 uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, 0, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
-// If sensor is local, the value has no meaning (e.g. set to zero)
+// If sensor is local or virtual, the value has no meaning (e.g. set to zero)
 int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 
@@ -206,8 +211,10 @@ uint8_t LC_BOOM_BARRIER_SERVO_PIN[LC_NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
 
 // Closing timespan for all boom barriers
 const unsigned int LC_BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;
+// Delay until primary boom barriers start closing
+const unsigned int LC_BOOM_BARRIER1_CLOSING_DELAY_MS = 2000;
 // Delay until secondary boom barriers start closing
-const unsigned int LC_BOOM_BARRIER2_CLOSING_DELAY_MS = 3000;
+const unsigned int LC_BOOM_BARRIER2_CLOSING_DELAY_MS = 4000;
 // Opening timespan for all boom barriers
 const unsigned int LC_BOOM_BARRIER_OPENING_PERIOD_MS = 3000;
 
@@ -244,6 +251,13 @@ const unsigned int LC_SIGNAL_FLASH_PERIOD_MS = 1500;
 const bool LC_SIGNALS_FADING = true;
 
 // LEVEL CROSSING SENSORS
+
+// Virtual sensor for "booms closed" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have closed.
+// Must be set to -1 to skip virtual "booms closed" sensor event
+const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = -1;
+// Virtual sensor for "booms opened" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have opened.
+// Must be set to -1 to skip virtual "booms opened" sensor event
+const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = -1;
 
 // Autonomous Mode enabled?
 const bool LC_AUTONOMOUS_MODE = false;
@@ -296,8 +310,16 @@ const int BASCULE_BRIDGE_SIGNAL_RIVER_GO = 2;  // signal port that is activated 
 const int BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT = 3;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
 
 // Sensor ports
-const int BASCULE_BRIDGE_SENSOR_DOWN = 0;  // sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
-const int BASCULE_BRIDGE_SENSOR_UP = 1;  // sensor that indicates "bridge up" (index in the SENSOR_PIN array)
+// local sensor that indiciates "bridge down" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_DOWN = 0;
+// local sensor that indicates "bridge up" (index in the SENSOR_PIN array)
+const int BASCULE_BRIDGE_SENSOR_UP = 1;
+// virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
+// Must be set to -1 to skip virtual "bridge fully down" sensor events
+const int BASCULE_BRIDGE_SENSOR_FULLY_DOWN = 2;
+// virtual sensor that indicates "bridge fully up" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after opened".
+// Must be set to -1 to skip virtual "bridge fully up" sensor events
+const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 3;
 
 // Timings (in milli seconds)
 // Maximum allowed time for opening the bridge until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
