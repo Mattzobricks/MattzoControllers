@@ -461,7 +461,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
 void sendSensorEvent2MQTT(int sensorPort, bool sensorState) {
   if (sensorPort < 0) {
-    mcLog2("Sensor message skipped (sensorPort = " + sensorPort + ")", LOG_DEBUG);
+    mcLog2("Sensor message skipped (sensorPort = " + String(sensorPort) + ")", LOG_DEBUG);
     return;
   }
 
@@ -1002,8 +1002,6 @@ void basculeBridgeLoop() {
   } else {
     // no timed state change required.
     // Check if a state change is required due to sensor event or bridge command.
-    newBridgeStatus = oldBridgeStatus;
-
     if (bridge.bridgeCommand == BridgeCommand::UP) {
       // Bridge command: UP!
 
@@ -1032,7 +1030,7 @@ void basculeBridgeLoop() {
         if (sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
           if (BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS > 0) {
             // continue opening for BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS milliseconds
-            mcLog2("Bridge almost opening...", LOG_DEBUG);
+            mcLog2("Bridge almost open...", LOG_DEBUG);
             newBridgeStatus = BridgeStatus::OPENING2;
             // add timed state change
             bridge.nextBridgeStatus = BridgeStatus::OPEN;
@@ -1112,17 +1110,6 @@ void basculeBridgeLoop() {
   // 2. Execute bridge state change
   // Bridge state change pending?
   if (newBridgeStatus != oldBridgeStatus) {
-    switch (oldBridgeStatus) {
-    case BridgeStatus::CLOSED:
-      mcLog2("Leaving bridge status CLOSED.", LOG_DEBUG);
-      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, false);
-      break;
-    case BridgeStatus::OPEN:
-      mcLog2("Leaving bridge status OPEN.", LOG_DEBUG);
-      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, false);
-      break;
-    }
-
     switch (newBridgeStatus) {
     case BridgeStatus::STOPPED:
       mcLog2("Setting new bridge status STOPPED.", LOG_DEBUG);
@@ -1145,6 +1132,7 @@ void basculeBridgeLoop() {
     case BridgeStatus::OPENING:
       mcLog2("Setting new bridge status OPENING.", LOG_DEBUG);
       setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP);
+      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, false);
       break;
     case BridgeStatus::OPENING2:
       mcLog2("Setting new bridge status OPENING2.", LOG_DEBUG);
@@ -1153,6 +1141,7 @@ void basculeBridgeLoop() {
     case BridgeStatus::CLOSING:
       mcLog2("Setting new bridge status CLOSING.", LOG_DEBUG);
       setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN);
+      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, false);
       break;
     case BridgeStatus::CLOSING2:
       mcLog2("Setting new bridge status CLOSING2.", LOG_DEBUG);

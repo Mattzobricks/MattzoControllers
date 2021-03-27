@@ -158,7 +158,7 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 0, 0 };
 const bool REMOTE_SENSORS_ENABLED = false;
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 2;
+const int NUM_SENSORS = 4;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
