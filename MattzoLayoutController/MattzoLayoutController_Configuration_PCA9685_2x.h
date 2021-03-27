@@ -69,7 +69,7 @@ const uint8_t PCA9685_OE_PIN = D0;
 // - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - GND is connected to GND of the ESP8266 (mandatory!).
-// - RESET ís connected with an 10K resistor to VCC
+// - RESET is connected with an 10K resistor to VCC
 // - Address ports A0, A1 and A2 according to the desired address (0x20, 0x21, ...). All connected to GND means address 0x20.
 // Ports:
 // - The ports of the are numbered as follows:
