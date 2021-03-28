@@ -703,8 +703,9 @@ void boomBarrierLoop() {
   const unsigned long BOOM_BARRIER_TICK_MS = 20;
   unsigned long now_ms = millis();
 
-  if (now_ms < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS || !levelCrossing.boomBarrierActionInProgress)
+  if (now_ms < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS) {
     return;
+  }
 
   float servoAngleIncrement = levelCrossing.servoAngleIncrementPerMS * (now_ms - levelCrossing.lastBoomBarrierTick_ms);
   float newServoAnglePrimaryBooms;
@@ -712,6 +713,10 @@ void boomBarrierLoop() {
 
   levelCrossing.lastBoomBarrierTick_ms = now_ms;
 
+  if (!levelCrossing.boomBarrierActionInProgress) {
+    return;
+  }
+  
   // Move primary booms?
   if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || now_ms >= levelCrossing.lastStatusChangeTime_ms + LC_BOOM_BARRIER1_CLOSING_DELAY_MS) && levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
     if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {

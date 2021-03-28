@@ -158,12 +158,12 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0
 const bool REMOTE_SENSORS_ENABLED = true;
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 8;
+const int NUM_SENSORS = 10;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
 // If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D4, D5, D6, D7, 1, 2, 3, 4 };
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D4, D5, D6, D7, 1, 2, 3, 4, 0, 0 };
 
 // Type of digital input pins for sensors
 // 0   : pin on the ESP-8266
@@ -176,11 +176,11 @@ const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
 const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
 const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE };
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE, REMOTE_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
 // If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 12345, 12345, 12345, 12345 };
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 12345, 12345, 12345, 12345, 0, 0 };
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -254,13 +254,13 @@ const bool LC_SIGNALS_FADING = true;
 
 // Virtual sensor for "booms closed" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have closed.
 // Must be set to -1 to skip virtual "booms closed" sensor event
-const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = -1;
+const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = 8;
 // Virtual sensor for "booms opened" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have opened.
 // Must be set to -1 to skip virtual "booms opened" sensor event
-const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = -1;
+const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = 9;
 
 // Autonomous Mode enabled?
-const bool LC_AUTONOMOUS_MODE = true;
+const bool LC_AUTONOMOUS_MODE = false;
 
 // Number of tracks leading over the level crossing
 const int LC_NUM_TRACKS = 2;
