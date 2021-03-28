@@ -329,7 +329,7 @@ const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 45000;
 // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
 const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 3000;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 5000;
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 6000;
 
 
 // ****************
