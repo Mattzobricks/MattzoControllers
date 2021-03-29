@@ -158,12 +158,12 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 0, 0 };
 const bool REMOTE_SENSORS_ENABLED = false;
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 0;
+const int NUM_SENSORS = 2;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
 // If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { };
+uint8_t SENSOR_PIN[NUM_SENSORS] = { 0, 0 };
 
 // Type of digital input pins for sensors
 // 0   : pin on the ESP-8266
@@ -176,11 +176,11 @@ const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
 const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
 const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { };
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { VIRTUAL_SENSOR_PIN_TYPE , VIRTUAL_SENSOR_PIN_TYPE };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
 // If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { };
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -212,9 +212,9 @@ uint8_t LC_BOOM_BARRIER_SERVO_PIN[LC_NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
 // Closing timespan for all boom barriers
 const unsigned int LC_BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;
 // Delay until primary boom barriers start closing
-const unsigned int LC_BOOM_BARRIER1_CLOSING_DELAY_MS = 2000;
+const unsigned int LC_BOOM_BARRIER1_CLOSING_DELAY_MS = 0;
 // Delay until secondary boom barriers start closing
-const unsigned int LC_BOOM_BARRIER2_CLOSING_DELAY_MS = 4000;
+const unsigned int LC_BOOM_BARRIER2_CLOSING_DELAY_MS = 1250;
 // Opening timespan for all boom barriers
 const unsigned int LC_BOOM_BARRIER_OPENING_PERIOD_MS = 3000;
 
@@ -254,10 +254,10 @@ const bool LC_SIGNALS_FADING = true;
 
 // Virtual sensor for "booms closed" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have closed.
 // Must be set to -1 to skip virtual "booms closed" sensor event
-const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = -1;
+const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = 0;
 // Virtual sensor for "booms opened" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have opened.
 // Must be set to -1 to skip virtual "booms opened" sensor event
-const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = -1;
+const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = 1;
 
 // Autonomous Mode enabled?
 const bool LC_AUTONOMOUS_MODE = false;
