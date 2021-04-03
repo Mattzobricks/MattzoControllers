@@ -132,6 +132,17 @@ uint8_t LOGICAL_SWITCHPORT_MAPPINGS[NUM_LOGICAL_SWITCHPORTS * 2] = { 0, 1, 2, 3,
 // Reverse second physical port?
 boolean LOGICAL_SWITCHPORT_REV_2ND_PORT[NUM_LOGICAL_SWITCHPORTS] = { false, false, false, false };
 
+// Switch feedback sensors
+// The array contains sub-array with three values.
+// The first value is the switch port as configured in Rocrail (1 is the first port, 1001 is the first logical port)
+// The second value is the index in the sensor array for the "straight" sensor.
+// The third value is the index in the sensor array for the "turnout" sensor.
+// Both referenced sensors must be virtual sensors.
+// Example: {1, 2, 3}. Rocrail port 1 triggers sensors index 2 and 3.
+// An example configuration can be found in MattzoLayoutController_Configuration_SwitchSensors.h
+const int NUM_SWITCHPORT_SENSORPAIRS = 0;
+const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
+
 
 // SIGNAL WIRING CONFIGURATION
 

@@ -27,7 +27,7 @@
 // Usage:
 // - If a USE_PCA9685 port expander is connected to your ESP8266, set USE_PCA9685 to true.
 // Wiring:
-// - SCL and SDA are usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
+// - PCA9685 is usually connected to pins D1 (clock) and D2 (data) of the ESP8266.
 // - VCC is sourced from V3V of the ESP8266.
 // - V+ is sourced from VIN of the ESP8266
 // -- VIN should be between 5 and 6 Volts.
@@ -87,7 +87,7 @@ uint8_t PCA9685_OE_PIN = D0;
 // MCP23017 WIRING CONFIGURATION
 
 // MCP23017 port expander used?
-#define USE_MCP23017 true
+#define USE_MCP23017 false
 
 // Number of chained PCA9685 port extenders
 #define NUM_MCP23017s 1
@@ -97,17 +97,17 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // PHYSICAL SWITCH PORTS
 // Number of physical switch ports
-const int NUM_SWITCHPORTS = 0;
+const int NUM_SWITCHPORTS = 4;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {};
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3 };
 
 // Type of digital output pins for switch servos
 // 0   : pin on the ESP-8266
 // 0x40: port on the 1st PCA9685
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = {};
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0 };
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -139,25 +139,28 @@ boolean LOGICAL_SWITCHPORT_REV_2ND_PORT[NUM_LOGICAL_SWITCHPORTS] = { false, fals
 // The third value is the index in the sensor array for the "turnout" sensor.
 // Both referenced sensors must be virtual sensors.
 // Example: {1, 2, 3}. Rocrail port 1 triggers sensors index 2 and 3.
-// An example configuration can be found in MattzoLayoutController_Configuration_SwitchSensors.h
-const int NUM_SWITCHPORT_SENSORPAIRS = 0;
-const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
-
+const int NUM_SWITCHPORT_SENSORPAIRS = 4;
+const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {
+	{ 1, 2, 3 },
+	{ 2, 4, 5 },
+	{ 1001, 6, 7 },
+	{ 1002, 8, 9 }
+};
 
 // SIGNAL WIRING CONFIGURATION
 
 // Number of signal ports (the number of signal LEDs, not the number of signals!)
-const int NUM_SIGNALPORTS = 0;
+const int NUM_SIGNALPORTS = 2;
 
-// Digital pins for signal LEDs
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {};
+// Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
 
-// Type of digital output pins for signal LEDs (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
+// Type of digital output pins for signal LEDs
 // 0   : pin on the ESP-8266
 // 0x40: port on the 1st PCA9685
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = {};
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 
 
 // SENSOR WIRING CONFIGURATION
@@ -169,12 +172,12 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = {};
 const bool REMOTE_SENSORS_ENABLED = false;
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 21;
+const int NUM_SENSORS = 10;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
 // If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D3, D4, D5, D6, D7, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 // Type of digital input pins for sensors
 // 0   : pin on the ESP-8266
@@ -187,11 +190,11 @@ const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
 const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
 const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, 0, 0, 0, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20 };
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { LOCAL_SENSOR_PIN_TYPE, LOCAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
 // If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 
 // STATUS LED WIRING CONFIGURATION

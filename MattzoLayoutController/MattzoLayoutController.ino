@@ -338,20 +338,34 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
           int servoAngle1 = (switchCommand == 1) ? rr_param1 : rr_value1;
           int servoAngle2 = (switchCommand == 1 ^ LOGICAL_SWITCHPORT_REV_2ND_PORT[i]) ? rr_param1 : rr_value1;
 
+          // Release virtual sensor on counterside
+          sendSwitchSensorEvent(rr_port1, 1 - switchCommand, false);
+
           mcLog2("Turning servos on logical port " + String(rr_port1) + "...", LOG_DEBUG);
           setServoAngle(servoPort1, servoAngle1);
           setServoAngle(servoPort2, servoAngle2);
+
+          // Trigger virtual sensor
+          sendSwitchSensorEvent(rr_port1, switchCommand, true);
         }
       }
 
       if (!logicalSwitchPortFound) {
         mcLog2("Error: logical port " + String(rr_port1) + " unknown.", LOG_ERR);
+        return;
       }
     }
     else {
+      // Release virtual sensor on counterside
+      sendSwitchSensorEvent(rr_port1, 1 - switchCommand, false);
+
       // Port was a plain, simple switch port
       setServoAngle(rr_port1 - 1, (switchCommand == 1) ? rr_param1 : rr_value1);
+
+      // Trigger virtual sensor
+      sendSwitchSensorEvent(rr_port1, switchCommand, true);
     }
+
     return;
     // end of switch command handling
   }
@@ -615,6 +629,31 @@ void checkEnableServoSleepMode() {
     setServoSleepMode(true);
   }
 }
+
+// Releases or triggers a virtual switch sensor
+void sendSwitchSensorEvent(int rocrailPort, int switchCommand, bool sensorState) {
+  if (NUM_SWITCHPORT_SENSORPAIRS > 0) {
+    if (switchCommand < 0 || switchCommand > 1) {
+      // This should never happen
+      mcLog2("sendSwitchSensorEvent() received switchCommand out of bounds: " + String(switchCommand), LOG_CRIT);
+      return;
+    }
+  
+    // Search for switch sensors
+    for (int s = 0; s < NUM_SWITCHPORT_SENSORPAIRS; s++) {
+      if (rocrailPort == SWITCHPORT_SENSORS[s][0]) {
+        // Sensor for switchIndex found!
+        int sensorIndex = SWITCHPORT_SENSORS[s][2 - switchCommand];
+        mcLog2("Sending switch sensor event; rocrailPort=" + String(rocrailPort) + ", switchCommand=" + String(switchCommand) + ", sensorState=" + String(sensorState), LOG_DEBUG);
+        sendSensorEvent2MQTT(sensorIndex, sensorState);
+        return;
+      }
+    }
+  
+    mcLog2("No switch sensor found for rocrailPort=" + String(rocrailPort), LOG_DEBUG);
+  }
+}
+
 
 // switches a signal on or off
 void setSignalLED(int signalIndex, bool ledState) {
