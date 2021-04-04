@@ -6,9 +6,10 @@
 #include "PUHub.h"
 
 #define AUTO_LIGHTS_ENABLED true
-#define AUTO_LIGHTS_DISABLED false
+#define HUB_DISABLED false
 
-// Configure the total number of SBrick/PU Hubs you want to use.
+// You can configure up to 9 hubs.
+// Always make sure the `numHubs` you specify here, matches the number of hubs you actually configure below.
 #define numHubs 2
 BLEHub *hubs[numHubs];
 
@@ -18,11 +19,38 @@ const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 1;
 // Duration between BLE discovery and connect attempts in seconds.
 const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 2;
 
-// Until we get this to work, we can't connect to more than 3 hubs (even when we configure more below):
-//  https://github.com/h2zero/NimBLE-Arduino/issues/99#issuecomment-667213152
-//  The solution is actually a lot simpler. Just change the defines in the sdkconfig.h file at Arduino/hardware/espressif/esp32/tools/sdk/include/config to:
-//  #define CONFIG_BTDM_CONTROLLER_BLE_MAX_CONN 9
-//  #define CONFIG_BTDM_CONTROLLER_BLE_MAX_CONN_EFF 9
+/*
+    SBrick/PU Hub constructor parameters (sequencial):
+    
+    deviceName:             This should match the @ID param of your loco in Rocrail.
+    deviceAddress:          This should match the BLE address of your SBrick or PU Hub.
+    channels:               This channel configuration should mimic the real world channel usage (more below):
+                            - SBricks have four channels (A, B, C and D).
+                            - PU Hubs have two channels (A and B).
+    lightPerc:              This configures the power level for the light channels as a percentage:
+                            - Valid values: 0 (off) - 100 (full power)
+                            - Default value: 100
+    autoLightsOnEnabled:    You can set AUTO_LIGHTS_ENABLED, if you want the light channel(s) to turn on automatically whenever the loco is driving and off when it stops:
+                            - Default value: false
+    enabled:                You can set HUB_DISABLED, if you want this hub to be disabled for now:
+                            - Default value: true
+
+    ChannelConfiguration parameters (sequencial):
+
+    channel:                This should match the channel on the SBrick or PU Hub.
+    device:                 This should match the type of device attached to the channel:
+                            - Valid values: AttachedDevice::NOTHING (0), AttachedDevice::MOTOR (1), AttachedDevice::LIGHT (2)
+    direction:              This should match the direction the motor attached to the loco:
+                            - Valid values: HubChannelDirection::FORWARD (0), HubChannelDirection::REVERSE (1)
+                            - PLEASE NOTE THIS PARAMETER IS CURRENTLY NOT USED YET!
+    speedStep:              This parameter can be used to configure the step used to increase the speed with when accerating:
+                            - Valid values: 1 - 254
+                            - Value recommended: 10-25 (lower means a smoother but slower increase of speed)
+    brakeStep:              This parameter can be used to configure the step used to decrease the speed with when decelerating:
+                            - Valid values: 1 - 254
+                            - Value recommended: 10-25 (higher means a quicker stop)
+    
+*/
 
 void configureHubs()
 {
