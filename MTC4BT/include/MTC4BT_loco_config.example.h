@@ -5,7 +5,7 @@
 #include "SBrickHub.h"
 #include "PUHub.h"
 
-#define AUTO_LIGHTS_ENABLED true
+#define AUTO_LIGHTS_ON_ENABLED true
 #define HUB_DISABLED false
 
 // You can configure up to 9 hubs.
@@ -17,20 +17,20 @@ BLEHub *hubs[numHubs];
 const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 1;
 
 // Duration between BLE discovery and connect attempts in seconds.
-const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 2;
+const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 
 /*
     SBrick/PU Hub constructor parameters (sequencial):
     
     deviceName:             This should match the @ID param of your loco in Rocrail.
     deviceAddress:          This should match the BLE address of your SBrick or PU Hub.
-    channels:               This channel configuration should mimic the real world channel usage (more below):
-                            - SBricks have four channels (A, B, C and D).
-                            - PU Hubs have two channels (A and B).
-    lightPerc:              This configures the power level for the light channels as a percentage:
+    channels:               This channel configuration should mimic the real world channel usage (more on ChannelConfiguration parameters below):
+                            - SBricks have four (unmarked) channels (A, B, C and D).
+                            - PU Hubs have two (marked) channels (A and B).
+    lightPerc:              This configures the power level for the light channels as a percentage (%) of full power:
                             - Valid values: 0 (off) - 100 (full power)
                             - Default value: 100
-    autoLightsOnEnabled:    You can set AUTO_LIGHTS_ENABLED, if you want the light channel(s) to turn on automatically whenever the loco is driving and off when it stops:
+    autoLightsOnEnabled:    You can set AUTO_LIGHTS_ON_ENABLED, if you want the light channel(s) to turn on automatically whenever the loco is driving and off when it stops:
                             - Default value: false
     enabled:                You can set HUB_DISABLED, if you want this hub to be disabled for now:
                             - Default value: true
@@ -40,6 +40,7 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 2;
     channel:                This should match the channel on the SBrick or PU Hub.
     device:                 This should match the type of device attached to the channel:
                             - Valid values: AttachedDevice::NOTHING (0), AttachedDevice::MOTOR (1), AttachedDevice::LIGHT (2)
+                            - Default value: AttachedDevice::NOTHING
     direction:              This should match the direction the motor attached to the loco:
                             - Valid values: HubChannelDirection::FORWARD (0), HubChannelDirection::REVERSE (1)
                             - PLEASE NOTE THIS PARAMETER IS CURRENTLY NOT USED YET!
