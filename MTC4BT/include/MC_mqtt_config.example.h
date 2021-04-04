@@ -10,21 +10,21 @@
 #define MQTT_KEEP_ALIVE_INTERVAL 10
 
 // MQTT task priority.
-#define MQTT_TASK_PRIORITY 1;
+#define MQTT_TASK_PRIORITY 1
 
 // MQTT handle message task core ID.
-#define MQTT_HANDLE_MESSAGE_TASK_COREID 1;
+#define MQTT_HANDLE_MESSAGE_TASK_COREID 1
 
 // The size of the MQTT task stack specified as the number of bytes.
-#define MQTT_TASK_STACK_DEPTH 2048;
+#define MQTT_TASK_STACK_DEPTH 2048
 
 // Number of message received the MQTT queue can hold before we start dropping them.
 // Please note the more messages allowed to be queued, the more (heap) memory we consume.
-#define MQTT_INCOMING_QUEUE_LENGTH 100;
+#define MQTT_INCOMING_QUEUE_LENGTH 100
 
 // Number of message to send the MQTT queue can hold before we start dropping them.
 // Please note the more messages allowed to be queued, the more (heap) memory we consume.
-#define MQTT_OUTGOING_QUEUE_LENGTH 1000;
+#define MQTT_OUTGOING_QUEUE_LENGTH 1000
 
 #define ROCRAIL_COMMAND_TOPIC "rocrail/service/command"
 
