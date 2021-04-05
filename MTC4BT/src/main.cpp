@@ -10,6 +10,7 @@
 
 #define LIGHTS_ON true
 #define LIGHTS_OFF false
+#define LIGHTS_BLINK_DELAY_ON_CONNECT_MS 250
 
 // Sets the watchdog timeout (0D &lt; timeout in 0.1 secs, 1 byte &gt;)
 // The purpose of the watchdog is to stop driving in case of an application failure.
@@ -152,15 +153,15 @@ void loop()
                 {
                     // Blink lights three times when connected.
                     hub->SetLights(LIGHTS_ON);
-                    delay(250 / portTICK_PERIOD_MS);
+                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
                     hub->SetLights(LIGHTS_OFF);
-                    delay(250 / portTICK_PERIOD_MS);
+                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
                     hub->SetLights(LIGHTS_ON);
-                    delay(250 / portTICK_PERIOD_MS);
+                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
                     hub->SetLights(LIGHTS_OFF);
-                    delay(250 / portTICK_PERIOD_MS);
+                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
                     hub->SetLights(LIGHTS_ON);
-                    delay(250 / portTICK_PERIOD_MS);
+                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
                     hub->SetLights(LIGHTS_OFF);
                 }
             }
