@@ -167,7 +167,7 @@ void BLEHub::setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t s
 {
     for (int i = 0; i < _channelControllers.size(); i++)
     {
-        HubChannel channel = static_cast<HubChannel>(i);
+        HubChannel channel = _channelControllers.at(i)->GetChannel();
         setTargetSpeedPercForChannelByAttachedDevice(channel, device, speedPerc);
     }
 }
