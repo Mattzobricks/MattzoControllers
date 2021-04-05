@@ -119,7 +119,7 @@ void PUHub::DriveTaskLoop()
   {
     for (int channel = 0; channel < _channelControllers.size(); channel++)
     {
-      // Update current channel speeds, if we're not .
+      // Update current channel speeds, if we're not emergency breaking.
       if (_ebreak || _channelControllers.at(channel)->UpdateCurrentSpeedPerc())
       {
         // Serial.print(channel);
@@ -145,16 +145,6 @@ void PUHub::DriveTaskLoop()
     // Wait half the watchdog timeout (converted from s/10 to s/1000).
     vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
   }
-}
-
-int16_t PUHub::GetMinRawChannelSpeed()
-{
-  return PU_MIN_SPEED_FORWARD;
-}
-
-int16_t PUHub::GetMaxRawChannelSpeed()
-{
-  return PU_MIN_SPEED_REVERSE;
 }
 
 int16_t PUHub::MapSpeedPercToRaw(int speedPerc)

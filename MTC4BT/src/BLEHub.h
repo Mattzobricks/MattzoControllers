@@ -73,12 +73,6 @@ public:
     // Abstract method used to periodically send drive commands to the BLE hub.
     virtual void DriveTaskLoop() = 0;
 
-    // Returns the absolute minimum raw channel speed.
-    virtual int16_t GetMinRawChannelSpeed() = 0;
-
-    // Returns the absolute maximum raw channel speed.
-    virtual int16_t GetMaxRawChannelSpeed() = 0;
-
     // Abstract method used to map a speed percentile (-100% - 100%) to a raw speed value.
     virtual int16_t MapSpeedPercToRaw(int speedPerc) = 0;
 

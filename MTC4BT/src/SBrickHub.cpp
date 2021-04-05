@@ -93,43 +93,34 @@ void SBrickHub::DriveTaskLoop()
                 //     Serial.println(rawspd);
                 // }
             }
+
+            // Construct drive command.
+            uint8_t byteCmd[13] = {
+                CMD_DRIVE,
+                // getDriveCommand(HubChannel::A),
+                HubChannel::A,
+                channelIsDrivingForward(HubChannel::A),
+                getRawChannelSpeed(HubChannel::A),
+                HubChannel::B,
+                channelIsDrivingForward(HubChannel::B),
+                getRawChannelSpeed(HubChannel::B),
+                HubChannel::C,
+                channelIsDrivingForward(HubChannel::C),
+                getRawChannelSpeed(HubChannel::C),
+                HubChannel::D,
+                channelIsDrivingForward(HubChannel::D),
+                getRawChannelSpeed(HubChannel::D)};
+
+            // Send drive command.
+            if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
+            {
+                Serial.println("Drive failed");
+            }
         }
-
-        // Construct drive command.
-        uint8_t byteCmd[13] = {
-            CMD_DRIVE,
-            HubChannel::A,
-            _channelControllers.at(HubChannel::A)->IsDrivingForward(),
-            MapSpeedPercToRaw(_channelControllers.at(HubChannel::A)->GetCurrentSpeedPerc()),
-            HubChannel::B,
-            _channelControllers.at(HubChannel::B)->IsDrivingForward(),
-            MapSpeedPercToRaw(_channelControllers.at(HubChannel::B)->GetCurrentSpeedPerc()),
-            HubChannel::C,
-            _channelControllers.at(HubChannel::C)->IsDrivingForward(),
-            MapSpeedPercToRaw(_channelControllers.at(HubChannel::C)->GetCurrentSpeedPerc()),
-            HubChannel::D,
-            _channelControllers.at(HubChannel::D)->IsDrivingForward(),
-            MapSpeedPercToRaw(_channelControllers.at(HubChannel::D)->GetCurrentSpeedPerc())};
-
-        // Send drive command.
-        if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
-        {
-            Serial.println("Drive failed");
-        }
-
+        
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
         vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
     }
-}
-
-int16_t SBrickHub::GetMinRawChannelSpeed()
-{
-    return SBRICK_MIN_CHANNEL_SPEED;
-}
-
-int16_t SBrickHub::GetMaxRawChannelSpeed()
-{
-    return SBRICK_MAX_CHANNEL_SPEED;
 }
 
 int16_t SBrickHub::MapSpeedPercToRaw(int speedPerc)
@@ -168,4 +159,28 @@ bool SBrickHub::setWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
     Serial.println(_remoteControlCharacteristic->readValue<uint8_t>());
 
     return true;
+}
+
+std::array<uint8_t, 3> SBrickHub::getDriveCommand(HubChannel channel)
+{
+    ChannelController *controller = findControllerByChannel(channel);
+
+    std::array<uint8_t, 3> cmd;
+    cmd[0] = channel;
+    cmd[1] = controller ? controller->IsDrivingForward() : false;
+    cmd[2] = controller ? MapSpeedPercToRaw(controller->GetCurrentSpeedPerc()) : 0;
+
+    return cmd;
+}
+
+bool SBrickHub::channelIsDrivingForward(HubChannel channel)
+{
+    ChannelController *controller = findControllerByChannel(channel);
+    return controller ? controller->IsDrivingForward() : false;
+}
+
+uint8_t SBrickHub::getRawChannelSpeed(HubChannel channel)
+{
+    ChannelController *controller = findControllerByChannel(channel);
+    return controller ? MapSpeedPercToRaw(controller->GetCurrentSpeedPerc()) : 0;
 }
