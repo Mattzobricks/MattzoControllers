@@ -33,9 +33,6 @@ public:
     // Returns a boolean value indicating whether this BLE hub is enabled (in use).
     bool IsEnabled();
 
-    // Starts device discovery (if not already discovering).
-    void StartDiscovery(NimBLEScan *scanner, const uint32_t scanDurationInSeconds = 3);
-
     // Returns a boolean value indicating whether we have discovered the BLE hub.
     bool IsDiscovered();
 
@@ -68,7 +65,10 @@ public:
     bool GetAutoLightsEnabled();
 
     // Abstract method used to connect to the BLE hub.
-    virtual bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds) = 0;
+    bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
+    
+    // Abstract method used to set the watchdog timeout.
+    virtual bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds) = 0;
 
     // Abstract method used to periodically send drive commands to the BLE hub.
     virtual void DriveTaskLoop() = 0;

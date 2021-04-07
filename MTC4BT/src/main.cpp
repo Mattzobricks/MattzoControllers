@@ -5,6 +5,7 @@
 #include "MattzoController_Library.h"
 #include "MattzoBLEMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
+#include "BLEHubScanner.h"
 
 #define MATTZO_CONTROLLER_TYPE "MTC4BT"
 
@@ -25,6 +26,7 @@ const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
 // Globals
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
+BLEHubScanner *hubScanner;
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
@@ -116,6 +118,7 @@ void setup()
     scanner->setInterval(45);
     scanner->setWindow(15);
     scanner->setActiveScan(true);
+    hubScanner = new BLEHubScanner();
 
     Serial.print("[" + String(xPortGetCoreID()) + "] Setup: Number of Hubs to discover: ");
     Serial.println(numHubs);
@@ -123,6 +126,8 @@ void setup()
 
 void loop()
 {
+    std::vector<BLEHub *> undiscoveredHubs;
+
     for (int i = 0; i < numHubs; i++)
     {
         BLEHub *hub = hubs[i];
@@ -137,8 +142,9 @@ void loop()
         {
             if (!hub->IsDiscovered())
             {
-                // Hub not discovered yet, first discover it.
-                hub->StartDiscovery(scanner, BLE_SCAN_DURATION_IN_SECONDS);
+                // Hub not discovered yet, add to list of hubs to discover.
+                //hub->StartDiscovery(scanner, BLE_SCAN_DURATION_IN_SECONDS);
+                undiscoveredHubs.push_back(hub);
             }
 
             if (hub->IsDiscovered())
@@ -161,11 +167,17 @@ void loop()
                     hub->SetLights(LIGHTS_OFF);
                     delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
                     hub->SetLights(LIGHTS_ON);
-                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                    hub->SetLights(LIGHTS_OFF);
+                    // delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                    // hub->SetLights(LIGHTS_OFF);
                 }
             }
         }
+    }
+
+    if (undiscoveredHubs.size() > 0)
+    {
+        // Start discovery for undiscovered hubs.
+        hubScanner->StartDiscovery(scanner, undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
     }
 
     // Delay next scan/connect attempt for a while, allowing the background drive tasks of already connected SBricks to send their periodic commands.

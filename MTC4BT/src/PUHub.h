@@ -16,10 +16,7 @@ class PUHub : public BLEHub
 {
 public:
     PUHub(std::string deviceName, std::string deviceAddress, std::vector<ChannelConfiguration> channels[], int16_t lightPerc = 100, bool autoLightsOnEnabled = false, bool enabled = true);
-    bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
+    bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
     void DriveTaskLoop();
     int16_t MapSpeedPercToRaw(int speedPerc);
-
-private:
-    bool setWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
 };

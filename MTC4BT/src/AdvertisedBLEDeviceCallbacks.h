@@ -6,10 +6,10 @@
 class AdvertisedBLEDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks
 {
 public:
-    AdvertisedBLEDeviceCallbacks(BLEHub *hub);
+    AdvertisedBLEDeviceCallbacks(std::vector<BLEHub *> hubs);
 
 private:
     void onResult(NimBLEAdvertisedDevice *advertisedDevice);
 
-    BLEHub *_hub;
+    std::vector<BLEHub *> _hubs;
 };
