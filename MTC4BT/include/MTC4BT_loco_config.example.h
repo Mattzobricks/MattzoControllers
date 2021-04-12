@@ -55,7 +55,6 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
     direction:              This should match the direction in which the motor is attached to the loco:
                             - Default value: HubChannelDirection::FORWARD.
                             - Valid values: HubChannelDirection::FORWARD (0), HubChannelDirection::REVERSE (1)
-                            - PLEASE NOTE THIS PARAMETER IS CURRENTLY NOT USED YET!
 */
 
 void configureHubs()

@@ -236,7 +236,7 @@ void BLEHub::initChannelControllers(std::vector<ChannelConfiguration> channels[]
         // Serial.print(config.brakeStep);
         // Serial.println();
 
-        _channelControllers.push_back(new ChannelController(config.channel, config.device, config.speedStep, config.brakeStep));
+        _channelControllers.push_back(new ChannelController(config.channel, config.direction, config.device, config.speedStep, config.brakeStep));
     }
 }
 

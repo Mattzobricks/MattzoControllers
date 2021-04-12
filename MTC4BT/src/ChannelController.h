@@ -26,7 +26,7 @@ enum AttachedDevice
 class ChannelController
 {
 public:
-  ChannelController(HubChannel channel, AttachedDevice device, int16_t speedStep, int16_t _brakeStep);
+  ChannelController(HubChannel channel, HubChannelDirection direction, AttachedDevice device, int16_t speedStep, int16_t _brakeStep);
 
   // Returns the controlled channel.
   HubChannel GetChannel();
@@ -63,9 +63,11 @@ private:
   int16_t normalizeSpeedPerc(int16_t speedPerc);
 
   HubChannel _channel;
+  HubChannelDirection _direction;
   AttachedDevice _device;
   int16_t _speedStep;
   int16_t _brakeStep;
+
   int16_t _targetSpeedPerc;
   int16_t _currentSpeedPerc;
 };

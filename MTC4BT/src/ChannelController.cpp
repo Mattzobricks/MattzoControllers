@@ -5,9 +5,10 @@
 #define MIN_SPEED_PERC -100
 #define MAX_SPEED_PERC 100
 
-ChannelController::ChannelController(HubChannel channel, AttachedDevice device, int16_t speedStep, int16_t brakeStep)
+ChannelController::ChannelController(HubChannel channel, HubChannelDirection direction, AttachedDevice device, int16_t speedStep, int16_t brakeStep)
 {
   _channel = channel;
+  _direction = direction;
   _device = device;
   _speedStep = speedStep;
   _brakeStep = brakeStep;
@@ -28,7 +29,8 @@ AttachedDevice ChannelController::GetAttachedDevice()
 
 void ChannelController::SetTargetSpeedPerc(int16_t speedPerc)
 {
-  _targetSpeedPerc = normalizeSpeedPerc(speedPerc);
+  int16_t newSpeedPerc = _direction == HubChannelDirection::REVERSE ? speedPerc * -1 : speedPerc;
+  _targetSpeedPerc = normalizeSpeedPerc(newSpeedPerc);
 }
 
 int16_t ChannelController::GetCurrentSpeedPerc()
@@ -56,17 +58,17 @@ bool ChannelController::UpdateCurrentSpeedPerc()
 
   int16_t dirMultiplier = _targetSpeedPerc > _currentSpeedPerc ? 1 : -1;
   int16_t speedStep = (isAccelarating() ? _speedStep : _brakeStep) * dirMultiplier;
-  int16_t speed;
+  int16_t newSpeedPerc;
 
   if (!isAccelarating() && abs(speedStep) > abs(_currentSpeedPerc))
   {
     // We can't switch from one drive direction to the other directly. We must stop first.
-    speed = 0;
+    newSpeedPerc = 0;
   }
   else
   {
     // Adjust speed with one step.
-    speed = _currentSpeedPerc + speedStep;
+    newSpeedPerc = _currentSpeedPerc + speedStep;
   }
 
   // Serial.print(_channel);
@@ -77,19 +79,19 @@ bool ChannelController::UpdateCurrentSpeedPerc()
   // Serial.print(" step=");
   // Serial.print(speedStep);
   // Serial.print(" newspd=");
-  // Serial.print(speed);
+  // Serial.print(newSpeedPerc);
   // Serial.println();
 
   // We are not allowed to go beyond the set target speed.
-  if ((_targetSpeedPerc < 0 && speed < _targetSpeedPerc && speed < _currentSpeedPerc) ||
-      (_targetSpeedPerc >= 0 && speed > _targetSpeedPerc && speed > _currentSpeedPerc))
+  if ((_targetSpeedPerc < 0 && newSpeedPerc < _targetSpeedPerc && newSpeedPerc < _currentSpeedPerc) ||
+      (_targetSpeedPerc >= 0 && newSpeedPerc > _targetSpeedPerc && newSpeedPerc > _currentSpeedPerc))
   {
     _currentSpeedPerc = _targetSpeedPerc;
     return true;
   }
 
   // We haven't reached the target speed yet.
-  _currentSpeedPerc = normalizeSpeedPerc(speed);
+  _currentSpeedPerc = normalizeSpeedPerc(newSpeedPerc);
   return true;
 }
 
