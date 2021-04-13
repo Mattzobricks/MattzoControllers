@@ -100,17 +100,17 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // PHYSICAL SWITCH PORTS
 // Number of physical switch ports
-const int NUM_SWITCHPORTS = 4;
+const int NUM_SWITCHPORTS = 0;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3 };
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {};
 
 // Type of digital output pins for switch servos
 // 0   : pin on the ESP-8266
 // 0x40: port on the 1st PCA9685
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0 };
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = {};
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -404,7 +404,7 @@ const int SM_SENSORS_INDEX[SM_NUM_SENSORS] = { 0, 1 };
 const int SM_MAX_VALUES = 20;
 
 // distance between the sensors, measuring the speed in MILLIMETER
-// SM_DISTANCE must be bigger than the distance of the magnets on the train
+// SM_DISTANCE must be larger than the distance of the magnets on the train
 const float SM_DISTANCE = 19.25;
 
 // lengthunit to calculate results (0 .. STUDS, 1 .. MILLIMETER, 2 .. CENTIMETER)
