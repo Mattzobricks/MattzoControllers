@@ -168,3 +168,37 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MTC4PF";
+
+
+
+
+/*
+// execute light event
+// IF DESIRED, YOU MAY UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+void lightEvent(LightEventType le, int locoIndex) {
+  if (!AUTO_LIGHTS)
+    return;
+
+  for (int i = 1; i < NUM_FUNCTIONS; i++) {
+    if (locoIndex == 0 || locoIndex == FUNCTION_PIN_LOCO_ADDRESS[i]) {
+      switch (le) {
+      case LightEventType::STOP:
+        mcLog("Light event stop");
+        // switch all functions off but the interior light
+        functionCommand[i] = false;
+        break;
+      case LightEventType::FORWARD:
+        mcLog("Light event forward");
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+        functionCommand[i] = (i == 2) || (i == 3);
+        break;
+      case LightEventType::REVERSE:
+        mcLog("Light event reverse");
+        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
+        functionCommand[i] = (i != 2);
+        break;
+      }
+    }
+  }
+}
+*/
