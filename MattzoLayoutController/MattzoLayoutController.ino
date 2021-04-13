@@ -33,6 +33,14 @@ Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
 Adafruit_MCP23017 mcp23017[NUM_MCP23017s];
 #endif
 
+#if USE_U8G2
+#include <Arduino.h>
+#include <U8g2lib.h>                              // Built-in library for Displays, pleas select depending of your device
+#include <Wire.h>                                 // Built-in library for I2C
+// The complete list is available here: https://github.com/olikraus/u8g2/wiki/u8g2setupcpp
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // in arduino ide pleas look at "File" - "Examples" - "U8g2" in the menue for examples
+#endif
+
 
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
 const int SERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SERVO_MIN.
@@ -116,6 +124,52 @@ struct Bridge {
 } bridge;
 
 
+
+enum struct SpeedometerStatus
+{
+  OCCUPIED,
+  FREE
+};
+enum struct SpeedometerLengthUnit
+{
+  STUDS,
+  MILLIMETERS,
+  CENTIMETERS
+};
+enum struct SpeedometerSpeedUnit
+{
+  STUDS_PER_SECOND,
+  MILLIMETERS_PER_SECOND,
+  METER_PER_MINUTE,
+  KILOMETER_PER_HOUR,
+  MILES_PER_HOUR
+};
+int test=0;
+struct Speedometer {
+  SpeedometerStatus     smStatus   = SpeedometerStatus::FREE;
+  SpeedometerLengthUnit lengthUnit = (SpeedometerLengthUnit) SM_LENGTHUNIT;
+  SpeedometerSpeedUnit  speedUnit  = (SpeedometerSpeedUnit)  SM_SPEEDUNIT;
+
+  int startSensor;
+  int endSensor;
+  int wheelcounter[SM_NUM_SENSORS] = {-1, -1};
+
+  const int startTime   = 0; /* millis()  */
+  const int endTime     = 1; /* millis()  */
+  const int trainSpeed  = 2; /* cm/second */
+  const int trainLength = 3; /* cm        */
+  float values[SM_MAX_VALUES][4];
+
+  unsigned long lastMeasurementEvent = -99999;
+  unsigned long measurementDone = -99999;
+  unsigned long animationdelay = -99999;
+
+  float actualTrainSpeed  = 0;
+  float actualTrainLength = 0;
+
+} Speedometer;
+
+
 void setup() {
   // initialize PWM Servo Driver object (for PCA9685)
 #if USE_PCA9685
@@ -131,6 +185,11 @@ void setup() {
 #if USE_MCP23017
   setupMCP23017();
 #endif
+
+#if USE_U8g2
+  setupU8g2();
+#endif
+
 
   // initialize servo pins and turn servos to start position
   for (int i = 0; i < NUM_SWITCHPORTS; i++) {
@@ -208,6 +267,14 @@ void setupMCP23017() {
   }
 }
 #endif
+
+#if USE_U8g2
+void setupU8g2() {
+  u8g2.begin();
+  u8g2.enableUTF8Print();    // enable UTF8 support for the Arduino print() function
+}
+#endif
+
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length + 1];
@@ -538,6 +605,7 @@ void monitorSensors() {
           mcLog2("Sensor " + String(i) + " triggered.", LOG_INFO);
           sendSensorEvent2MQTT(i, true);
           sensorState[i] = true;
+          handleSpeedometerSensorEvent(i);
           handleLevelCrossingSensorEvent(i);
         }
         lastSensorContact_ms[i] = millis();
@@ -1217,10 +1285,268 @@ void basculeBridgeLoop() {
 }
 
 
+
+void SpeedometerDebug(){
+  Serial.println("Speedometer Debug ----------------------------------------------------");
+  mcLog2("Speedometer Debug ----------------------------------------------------", LOG_DEBUG);
+  for (int i = 0; i <= Speedometer.wheelcounter[Speedometer.startSensor]; i++) {
+    Serial.print("Sensor ["     + String(i) + "]");
+    Serial.print(" Start: "    + String((int)Speedometer.values[i][Speedometer.startTime]));
+    Serial.print(" End: "      + String((int)Speedometer.values[i][Speedometer.endTime]));
+    Serial.print(" Speed: "    + String(Speedometer.values[i][Speedometer.trainSpeed]));
+    Serial.println(" Length: " + String(Speedometer.values[i][Speedometer.trainLength]));
+
+    mcLog2("Sensor ["  + String(i) + "] Start: "  + String(Speedometer.values[i][Speedometer.startTime]) + " End: " + String(Speedometer.values[i][Speedometer.endTime]) + " Speed: "  + String(Speedometer.values[i][Speedometer.trainSpeed]) + " Length: " + String(Speedometer.values[i][Speedometer.trainLength]), LOG_DEBUG);
+}
+  Serial.println("----------------------------------------------------------------------");
+  mcLog2("----------------------------------------------------------------------", LOG_DEBUG);
+}
+
+void updateDisplay(){
+
+  #if USE_U8G2
+
+    float trainspeed  = Speedometer.actualTrainSpeed;
+    float trainlength = Speedometer.actualTrainLength;
+    String speedUnit = "km/h";
+    String lengthUnit = "m";
+
+    u8g2.clearBuffer();
+    //u8g2.setFont(u8g2_font_unifont_t_chinese2);  // use chinese2 for all the glyphs of "你好世界"
+    u8g2.setFont(u8g2_font_unifont_t_symbols);
+    u8g2.setFontDirection(0);
+    u8g2.clearBuffer();
+
+    u8g2.setCursor(5, 25);
+
+    if (trainspeed <= 0) {
+      u8g2.print("Speed: ?" + speedUnit);
+    } else {
+      u8g2.print("Speed: " + String((int)(trainspeed + 0.5)) + " " + speedUnit);
+    }
+
+    u8g2.setCursor(5, 50);
+    if (trainlength <= 0) {
+      u8g2.print("Length: ?" + lengthUnit);
+    } else {
+      u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnit);
+    }
+
+    u8g2.sendBuffer();
+  #endif
+
+}
+
+
+void handleSpeedometerSensorEvent(int triggeredSensor) {
+  if (!SPEEDOMETER_CONNECTED) return;
+
+  mcLog2("Checking if sensor " + String(triggeredSensor) + " is a speedometer sensor...", LOG_DEBUG);
+  //Serial.println("Checking if sensor " + String(triggeredSensor) + " is a level crossing sensor...");
+
+
+  // Iterate speedometer sensors
+  // Check if triggered sensors is a speedometer sensor
+  bool test = false;
+  for (int sms = 0; sms < SM_NUM_SENSORS; sms++) {
+    if (SM_SENSORS_INDEX[sms] == triggeredSensor) {
+       //Serial.println("sensor " + String(triggeredSensor) + " is a speedometer sensor...");
+       test = true;
+    }
+  }
+
+  if (!test) return;
+
+  if (Speedometer.smStatus == SpeedometerStatus::OCCUPIED){
+
+  //-----------------------------------------------------
+  // Speedometer is occupied, handle startSensor-Events
+  //-----------------------------------------------------
+    if (Speedometer.startSensor == triggeredSensor) {
+      Speedometer.lastMeasurementEvent = millis();
+      Speedometer.wheelcounter[Speedometer.startSensor]++;
+
+      Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.startTime]   = Speedometer.lastMeasurementEvent;
+      Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.endTime]     = 0;
+      Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.trainSpeed]  = 0;
+      Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.trainLength] = 0;
+    }
+
+  //---------------------------------------------------
+  // Speedometer is occupied, handle endSensor-Events
+  //---------------------------------------------------
+    if (Speedometer.endSensor == triggeredSensor) {
+      Speedometer.lastMeasurementEvent = millis();
+      Speedometer.wheelcounter[Speedometer.endSensor]++;
+
+      // if there are missing stratSensor Events, we stay at the current line of the startSensor
+      if (Speedometer.wheelcounter[Speedometer.endSensor] > Speedometer.wheelcounter[Speedometer.startSensor]){
+        //Serial.println(String(Speedometer.wheelcounter[Speedometer.endSensor]) + " zu " + StringSpeedometer.wheelcounter[Speedometer.startSensor]));
+        Speedometer.wheelcounter[Speedometer.endSensor] = Speedometer.wheelcounter[Speedometer.startSensor];
+      }
+
+      Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.endTime] = Speedometer.lastMeasurementEvent;
+
+      float timeDiffSpeed  = (Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.endTime] - Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.startTime]) / 1000;
+      Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.trainSpeed] = SM_DISTANCE / timeDiffSpeed;
+
+      if (Speedometer.wheelcounter[Speedometer.endSensor] == 0) {
+        Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.trainLength]   = 0;
+      } else {
+        float avgSpeed       = (Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.trainSpeed] + Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor] - 1][Speedometer.trainSpeed]) / 2;
+        float timeDiffLength = (Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.endTime]    - Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor] - 1][Speedometer.endTime]) / 1000;
+        Speedometer.values[Speedometer.wheelcounter[Speedometer.endSensor]][Speedometer.trainLength] = avgSpeed * timeDiffLength;
+      }
+
+      if (Speedometer.wheelcounter[Speedometer.endSensor] == Speedometer.wheelcounter[Speedometer.startSensor]){
+        for (int i = 0; i <= Speedometer.wheelcounter[Speedometer.endSensor]; i++) {
+          Speedometer.actualTrainSpeed  += Speedometer.values[i][Speedometer.trainSpeed];
+          Speedometer.actualTrainLength += Speedometer.values[i][Speedometer.trainLength];
+        }
+        Speedometer.actualTrainSpeed = Speedometer.actualTrainSpeed / (Speedometer.wheelcounter[Speedometer.endSensor] + 1);
+
+        Serial.println("actualTrainSpeed:  " + String(Speedometer.actualTrainSpeed));
+        Serial.println("actualTrainLength: " + String(Speedometer.actualTrainLength));
+
+      }
+      
+      SpeedometerDebug();
+    }
+
+    // no length measurement or wheelcounter smilar or timeout
+    if (millis() >= Speedometer.lastMeasurementEvent + SM_TIMEOUT){
+      Serial.println("reset");
+      mcLog2("reset", LOG_DEBUG);
+      Speedometer.smStatus = SpeedometerStatus::FREE;
+      Speedometer.wheelcounter[Speedometer.startSensor] = -1;
+      Speedometer.wheelcounter[Speedometer.endSensor]   = -1;
+
+      Speedometer.measurementDone = millis();
+    }
+  }
+
+  //-------------------------------------------------
+  // Speedometer is free, handle startSensor-Events
+  //-------------------------------------------------
+  if (   Speedometer.smStatus == SpeedometerStatus::FREE
+      && millis() - Speedometer.measurementDone >= SM_TIME_BETWEEN_MEASUREMENTS
+     ){
+
+    Speedometer.lastMeasurementEvent = millis();
+
+    Speedometer.startSensor = triggeredSensor;
+    Speedometer.endSensor   = (SM_NUM_SENSORS - 1) - triggeredSensor;
+    Speedometer.smStatus = SpeedometerStatus::OCCUPIED;
+    Speedometer.wheelcounter[Speedometer.startSensor] = 0;
+    Speedometer.wheelcounter[Speedometer.endSensor]   = -1;
+
+    Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.startTime]   = Speedometer.lastMeasurementEvent;
+    Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.endTime]     = 0;
+    Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.trainSpeed]  = 0;
+    Speedometer.values[Speedometer.wheelcounter[Speedometer.startSensor]][Speedometer.trainLength] = 0;
+  }
+}
+
+
+void SpeedometerLoop(){
+  if (!SPEEDOMETER_CONNECTED){
+    return;
+  }
+
+  if (Speedometer.smStatus == SpeedometerStatus::OCCUPIED){
+
+    // no length measurement or wheelcounter smilar or timeout
+    if (millis() >= Speedometer.lastMeasurementEvent + SM_TIMEOUT){
+      Serial.println("reset");
+      mcLog2("reset", LOG_DEBUG);
+      Speedometer.smStatus = SpeedometerStatus::FREE;
+      Speedometer.wheelcounter[Speedometer.startSensor] = -1;
+      Speedometer.wheelcounter[Speedometer.endSensor]   = -1;
+      Speedometer.actualTrainSpeed  = 0;
+      Speedometer.actualTrainLength = 0;
+
+      Speedometer.measurementDone = millis();
+    }
+/*
+    if (millis() - Speedometer.lastMeasurementEvent >= 500){
+      updateDisplay();
+    }
+*/
+  }
+
+//----------------------------------------------------------------------------------------------------------------------------
+
+  unsigned long actMillis = millis();
+
+  if ( Speedometer.smStatus == SpeedometerStatus::FREE
+      && actMillis - Speedometer.measurementDone < SM_TIME_BETWEEN_MEASUREMENTS
+      && actMillis - Speedometer.lastMeasurementEvent > 1000
+     )
+    {
+      int remaningDuration = (SM_TIME_BETWEEN_MEASUREMENTS - (millis() - Speedometer.measurementDone)) / 1000;
+      if ((remaningDuration < 5 || remaningDuration % 5 == 0) && remaningDuration > 0){
+        Serial.println("Minimum time between measurements: " + String((int)(SM_TIME_BETWEEN_MEASUREMENTS - (millis() - Speedometer.measurementDone)) / 1000) + " seconds remaining");
+        mcLog2("Minimum time between measurements: " + String((int)(SM_TIME_BETWEEN_MEASUREMENTS - (millis() - Speedometer.measurementDone)) / 1000) + " seconds remaining", LOG_DEBUG);
+        Speedometer.lastMeasurementEvent = actMillis;
+      }
+  }
+
+//----------------------------------------------------------------------------------------------------------------------------
+
+  #if USE_U8G2
+
+  // do something in the display
+  if (   Speedometer.smStatus == SpeedometerStatus::FREE
+      && actMillis - Speedometer.measurementDone >= SM_TIME_TO_SHOW_RESULTS
+      && actMillis - Speedometer.animationdelay >= 100
+     ){
+
+    Serial.println("Screensaver " + String(test));
+
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_unifont_t_chinese2);  // use chinese2 for all the glyphs of "你好世界"
+    //u8g2.setFont(u8g2_font_unifont_t_symbols);
+    u8g2.setFontDirection(0);
+    u8g2.clearBuffer();
+    u8g2.setCursor(10, 35);
+
+//    u8g2.print("MattzoBricks " + getSymbol());
+
+    switch (test % 4){
+      case 0:
+        u8g2.print("MattzoBricks |");
+        break;
+      case 1:
+        u8g2.print("MattzoBricks /");
+        break;
+      case 2:
+        u8g2.print("MattzoBricks -");
+        break;
+      case 3:
+        u8g2.print("MattzoBricks \\");
+        break;
+    }
+    u8g2.print("MattzoBricks " + String(test));
+    u8g2.sendBuffer();
+
+    test++;
+    if (test >= 4){
+      test = 0;
+    }
+    
+    Speedometer.animationdelay = actMillis;
+  }
+
+  #endif
+
+}
+
 void loop() {
+ 
   loopMattzoController();
   checkEnableServoSleepMode();
   monitorSensors();
   levelCrossingLoop();
   basculeBridgeLoop();
+  SpeedometerLoop();
 }

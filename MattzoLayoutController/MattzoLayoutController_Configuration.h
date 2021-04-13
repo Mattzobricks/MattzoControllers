@@ -89,9 +89,12 @@ uint8_t PCA9685_OE_PIN = D0;
 // MCP23017 port expander used?
 #define USE_MCP23017 false
 
-// Number of chained PCA9685 port extenders
+// Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
 
+
+// U8g2 Display used?
+#define USE_U8G2 true
 
 // SWITCH WIRING CONFIGURATION
 
@@ -187,7 +190,7 @@ const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
 const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
 const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0 };
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { LOCAL_SENSOR_PIN_TYPE, LOCAL_SENSOR_PIN_TYPE };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
 // If sensor is local or virtual, the value has no meaning (e.g. set to zero)
@@ -341,6 +344,42 @@ const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 45000;
 const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 2000;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
 const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
+
+
+// SPEEDOMETER CONFIGURATION
+
+// speedometer installed?
+bool SPEEDOMETER_CONNECTED = true;
+
+// Number of sensors connected or connectable to the controller, please let on two
+const int SM_NUM_SENSORS = 2;
+
+// Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
+// If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+const int SM_SENSORS_INDEX[SM_NUM_SENSORS] = { 0, 1 };
+
+// maximum number of magnets attached to a train
+const int SM_MAX_VALUES = 20;
+
+// distance between the sensors, measuring the speed in MILLIMETER
+// SM_DISTANCE must be bigger than the distance of the magnets on the train
+const float SM_DISTANCE = 19.25;
+
+// lengthunit to calculate results (0 .. STUDS, 1 .. MILLIMETER, 2 .. CENTIMETER)
+const int SM_LENGTHUNIT = 1;
+
+// timeunit to calculate results (0 .. STUDS_PER_SECOND, 1 .. MILLIMETER_PER_SECOND, 2 .. CENTIMETER_PER_MINUTE, 3 .. KILOMETER_PER_HOUR, 4 .. MILES_PER_HOUR)
+const int SM_SPEEDUNIT = 1;
+
+// Timings (in milli seconds)
+// timeout to reset the speedometer when nothing is happening anymore
+const unsigned int SM_TIMEOUT = 10000;
+
+// minimum time in ms between two measurements
+const unsigned int SM_TIME_BETWEEN_MEASUREMENTS = 10000;
+
+// minimum time in ms to show the measurement results on the display before switching to a "Screensaver"
+const unsigned int SM_TIME_TO_SHOW_RESULTS = 20000;
 
 
 // ****************
