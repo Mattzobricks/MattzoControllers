@@ -11,6 +11,8 @@ AdvertisedBLEDeviceCallbacks::AdvertisedBLEDeviceCallbacks(std::vector<BLEHub *>
 // Called for each advertising BLE server.
 void AdvertisedBLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
 {
+    bool advertisedDeviceFound = false;
+
     // We have found a device, let's see if it has an address we are looking for.
     for (int i = 0; i < _hubs.size(); i++)
     {
@@ -23,7 +25,14 @@ void AdvertisedBLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDe
 
             hub->_advertisedDevice = advertisedDevice;
             hub->_isDiscovered = true;
+            advertisedDeviceFound = true;
         }
+    }
+
+    if (!advertisedDeviceFound)
+    {
+        Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Discovered unknown device: ");
+        Serial.println(advertisedDevice->getAddress().toString().c_str());
     }
 
     // If we have no more hubs to discover, we can stop scanning now.
