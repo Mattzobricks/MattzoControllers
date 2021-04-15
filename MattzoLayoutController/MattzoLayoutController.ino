@@ -1383,26 +1383,73 @@ void updateDisplay(){
 
     float trainspeed  = speedometer.actualTrainSpeed;
     float trainlength = speedometer.actualTrainLength;
-    String speedUnit = "km/h";
-    String lengthUnit = "m";
+    String speedUnit;
+    String lengthUnit;
+
+  switch (speedometer.speedUnit) {
+
+    case SpeedometerSpeedUnit::STUDS_PER_SECOND:
+      trainspeed = trainspeed / 8;
+      speedUnit = "studs/s";
+      break;
+
+    case SpeedometerSpeedUnit::MILLIMETERS_PER_SECOND:
+      trainspeed = trainspeed;
+      speedUnit = "mm/s";
+      break;
+
+    case SpeedometerSpeedUnit::METER_PER_MINUTE:
+      trainspeed = trainspeed * 60 / 1000;
+      speedUnit = "m/min";
+      break;
+
+    case SpeedometerSpeedUnit::KILOMETER_PER_HOUR:
+      trainspeed = trainspeed * 3600 / 1000000;
+      speedUnit = "km/h";
+      break;
+
+    case SpeedometerSpeedUnit::MILES_PER_HOUR:
+      trainspeed = trainspeed * 3600 / 621371;
+      speedUnit = "studs";
+      break;
+  }
+
+  switch (speedometer.lengthUnit) {
+
+    case SpeedometerLengthUnit::STUDS:
+      trainlength = trainlength / 8;
+      lengthUnit = "studs";
+      break;
+
+    case SpeedometerLengthUnit::MILLIMETERS:
+      //trainlength = trainlength;
+      lengthUnit = "mm";
+      break;
+
+    case SpeedometerLengthUnit::CENTIMETERS:
+      trainlength = trainlength / 10;
+      lengthUnit = "cm";
+      break;
+  }
 
     u8g2.clearBuffer();
     //u8g2.setFont(u8g2_font_unifont_t_chinese2);  // use chinese2 for all the glyphs of "你好世界"
-    u8g2.setFont(u8g2_font_unifont_t_symbols);
+    //u8g2.setFont(u8g2_font_unifont_t_symbols);
+    u8g2.setFont(u8g2_font_t0_12_me); // 8 pixel hight
     u8g2.setFontDirection(0);
     u8g2.clearBuffer();
 
     u8g2.setCursor(5, 25);
 
     if (trainspeed <= 0) {
-      u8g2.print("Speed: ?" + speedUnit);
+      u8g2.print("Speed: ? " + speedUnit);
     } else {
       u8g2.print("Speed: " + String((int)(trainspeed + 0.5)) + " " + speedUnit);
     }
 
     u8g2.setCursor(5, 50);
     if (trainlength <= 0) {
-      u8g2.print("Length: ?" + lengthUnit);
+      u8g2.print("Length: ? " + lengthUnit);
     } else {
       u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnit);
     }
@@ -1536,8 +1583,8 @@ void speedometerLoop(){
       speedometer.smStatus = SpeedometerStatus::FREE;
       speedometer.wheelcounter[speedometer.startSensor] = -1;
       speedometer.wheelcounter[speedometer.endSensor]   = -1;
-      speedometer.actualTrainSpeed  = 0;
-      speedometer.actualTrainLength = 0;
+      //speedometer.actualTrainSpeed  = 0;
+      //speedometer.actualTrainLength = 0;
 
       speedometer.measurementDone = millis();
     }
@@ -1577,7 +1624,7 @@ void speedometerLoop(){
     static byte rotor = 0;
 
     u8g2.clearBuffer();
-    u8g2.setFont(u8g2_font_ncenB08_tr);
+    u8g2.setFont(u8g2_font_unifont_t_symbols);
 
     switch (rotor % 4){
       case 0:

@@ -408,10 +408,10 @@ const int SM_MAX_VALUES = 20;
 const float SM_DISTANCE = 19.25;
 
 // lengthunit to calculate results (0 .. STUDS, 1 .. MILLIMETER, 2 .. CENTIMETER)
-const int SM_LENGTHUNIT = 1;
+const int SM_LENGTHUNIT = 0;
 
 // timeunit to calculate results (0 .. STUDS_PER_SECOND, 1 .. MILLIMETER_PER_SECOND, 2 .. CENTIMETER_PER_MINUTE, 3 .. KILOMETER_PER_HOUR, 4 .. MILES_PER_HOUR)
-const int SM_SPEEDUNIT = 1;
+const int SM_SPEEDUNIT = 0;
 
 // Timings (in milli seconds)
 // timeout to reset the speedometer when nothing is happening anymore
