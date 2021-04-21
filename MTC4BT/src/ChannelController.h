@@ -34,6 +34,9 @@ public:
   // Returns the device attached to the channel.
   AttachedDevice GetAttachedDevice();
 
+  // Set the min speed percentage. When a speed percentage is set below this value, we either set current speed to zero (when slowing down) or to the given value (when speeding up).
+  void SetMinSpeedPerc(int16_t minSpeedPerc);
+
   // Sets a new target speed percentage (sign indicates direction: >0: forward, <0: backwards).
   void SetTargetSpeedPerc(int16_t speedPerc);
 
@@ -68,6 +71,7 @@ private:
   int16_t _speedStep;
   int16_t _brakeStep;
 
+  int16_t _minSpeedPerc;
   int16_t _targetSpeedPerc;
   int16_t _currentSpeedPerc;
 };

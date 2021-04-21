@@ -61,22 +61,34 @@ void MattzoBLEMQTTHandler::handleLc(const String message, ulong hubCount, BLEHub
     {
         if (hubs[i]->GetDeviceName().compare(lcId.c_str()) == 0)
         {
-            // Get channel index (0=A, 1=B, 2=C, 3=D).
-            // String addrStr = getAttr(message, "addr");
-            // int motorChannelIndex = std::atoi(addrStr.c_str());
-            // HubChannel motorChannel = static_cast<HubChannel>(motorChannelIndex);
-
             // Get direction (true=forward, false=backward).
             String dirStr = getAttr(message, "dir");
             bool dirBool = dirStr == "true";
             int8_t dirMultiplier = dirBool ? 1 : -1;
 
-            // Get target speed (percentage of max).
+            // Get min speed percentage.
+            String vmin = getAttr(message, "V_min");
+            int minSpeedPerc = std::atoi(vmin.c_str());
+
+            // Get max speed percentage.
+            String vmax = getAttr(message, "V_max");
+            int maxSpeedPerc = std::atoi(vmax.c_str());
+
+            // Get target speed.
             String v = getAttr(message, "V");
-            int speedPerc = std::atoi(v.c_str()) * dirMultiplier;
+            int speedPerc = std::atoi(v.c_str());
+
+            if (speedPerc != 0 && speedPerc < minSpeedPerc)
+            {
+                // Requested speed is too low, we can ignore it.
+                return;
+            }
+
+            // Calculate target speed percentage (as percentage of max speed).
+            int targetSpeedPerc = (speedPerc * maxSpeedPerc) / 100 * dirMultiplier;
 
             // Execute drive command.
-            hubs[i]->Drive(speedPerc);
+            hubs[i]->Drive(minSpeedPerc, targetSpeedPerc);
 
             if (hubs[i]->GetAutoLightsEnabled())
             {

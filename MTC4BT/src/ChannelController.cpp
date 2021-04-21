@@ -13,6 +13,7 @@ ChannelController::ChannelController(HubChannel channel, HubChannelDirection dir
   _speedStep = speedStep;
   _brakeStep = brakeStep;
 
+  _minSpeedPerc = 0;
   _targetSpeedPerc = 0;
   _currentSpeedPerc = 0;
 }
@@ -25,6 +26,11 @@ HubChannel ChannelController::GetChannel()
 AttachedDevice ChannelController::GetAttachedDevice()
 {
   return _device;
+}
+
+void ChannelController::SetMinSpeedPerc(int16_t minSpeedPerc)
+{
+  _minSpeedPerc = minSpeedPerc;
 }
 
 void ChannelController::SetTargetSpeedPerc(int16_t speedPerc)
@@ -52,41 +58,51 @@ bool ChannelController::UpdateCurrentSpeedPerc()
 {
   if (isAtTargetSpeedPerc())
   {
-    // No need to update current speed if we've already reached target speed.
+    // No need to update current speed, if we've already reached target speed.
     return false;
   }
 
   int16_t dirMultiplier = _targetSpeedPerc > _currentSpeedPerc ? 1 : -1;
   int16_t speedStep = (isAccelarating() ? _speedStep : _brakeStep) * dirMultiplier;
-  int16_t newSpeedPerc;
 
   if (!isAccelarating() && abs(speedStep) > abs(_currentSpeedPerc))
   {
-    // We can't switch from one drive direction to the other directly. We must stop first.
-    newSpeedPerc = 0;
+    // We can't switch from one drive direction to the other directly. Force stop first.
+    _currentSpeedPerc = 0;
+    return true;
   }
-  else
+
+  // Adjust speed with one step.
+  int16_t newSpeedPerc = _currentSpeedPerc + speedStep;
+
+  // We are not allowed to go beyond the set target speed. Enforce target speed, if we would.
+  if ((_targetSpeedPerc < 0 && newSpeedPerc < _targetSpeedPerc && newSpeedPerc < _currentSpeedPerc) ||
+      (_targetSpeedPerc >= 0 && newSpeedPerc > _targetSpeedPerc && newSpeedPerc > _currentSpeedPerc) ||
+      (_targetSpeedPerc < 0 && newSpeedPerc > _targetSpeedPerc && newSpeedPerc > _currentSpeedPerc) ||
+      (_targetSpeedPerc >= 0 && newSpeedPerc < _targetSpeedPerc && newSpeedPerc < _currentSpeedPerc))
   {
-    // Adjust speed with one step.
-    newSpeedPerc = _currentSpeedPerc + speedStep;
+    _currentSpeedPerc = _targetSpeedPerc;
+    return true;
   }
 
   // Serial.print(_channel);
-  // Serial.print(": curspd=");
-  // Serial.print(_currentSpeedPerc);
-  // Serial.print(" tarspd=");
+  // Serial.print(": tarspd=");
   // Serial.print(_targetSpeedPerc);
+  // Serial.print(" curspd=");
+  // Serial.print(_currentSpeedPerc);
   // Serial.print(" step=");
   // Serial.print(speedStep);
   // Serial.print(" newspd=");
   // Serial.print(newSpeedPerc);
+  // Serial.print(" minspd=");
+  // Serial.print(_minSpeedPerc);
   // Serial.println();
 
-  // We are not allowed to go beyond the set target speed.
-  if ((_targetSpeedPerc < 0 && newSpeedPerc < _targetSpeedPerc && newSpeedPerc < _currentSpeedPerc) ||
-      (_targetSpeedPerc >= 0 && newSpeedPerc > _targetSpeedPerc && newSpeedPerc > _currentSpeedPerc))
+  if (abs(newSpeedPerc) < _minSpeedPerc)
   {
-    _currentSpeedPerc = _targetSpeedPerc;
+    // New speed is slower than min speed, force to min speed or stop immediately (dependend on wether we're accelarating or decelerating).
+    dirMultiplier = newSpeedPerc >= 0 ? 1 : -1;
+    _currentSpeedPerc = isAccelarating() ? _minSpeedPerc * dirMultiplier : 0;
     return true;
   }
 

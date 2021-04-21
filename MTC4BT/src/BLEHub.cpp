@@ -55,14 +55,14 @@ BaseType_t BLEHub::StartDriveTask()
     return xTaskCreatePinnedToCore(this->driveTaskImpl, "DriveTask", BLE_StackDepth, this, BLE_TaskPriority, &_driveTaskHandle, BLE_CoreID) == pdPASS;
 }
 
-void BLEHub::Drive(const int16_t speedPerc)
+void BLEHub::Drive(const int16_t minSpeedPerc, const int16_t speedPerc)
 {
-    setTargetSpeedPercByAttachedDevice(AttachedDevice::MOTOR, speedPerc);
+    setTargetSpeedPercByAttachedDevice(AttachedDevice::MOTOR, minSpeedPerc, speedPerc);
 }
 
 void BLEHub::SetLights(bool on)
 {
-    setTargetSpeedPercByAttachedDevice(AttachedDevice::LIGHT, on ? _lightPerc : 0);
+    setTargetSpeedPercByAttachedDevice(AttachedDevice::LIGHT, 0, on ? _lightPerc : 0);
 }
 
 void BLEHub::SetLights(HubChannel channel, bool on)
@@ -71,7 +71,7 @@ void BLEHub::SetLights(HubChannel channel, bool on)
     // Serial.print(on ? "on" : "off");
     // Serial.print(" for channel ");
     // Serial.println(channel);
-    setTargetSpeedPercForChannelByAttachedDevice(channel, AttachedDevice::LIGHT, on ? _lightPerc : 0);
+    setTargetSpeedPercForChannelByAttachedDevice(channel, AttachedDevice::LIGHT, 0, on ? _lightPerc : 0);
 }
 
 // If true, immediately sets the current speed for all channels to zero.
@@ -240,20 +240,21 @@ void BLEHub::initChannelControllers(std::vector<ChannelConfiguration> channels[]
     }
 }
 
-void BLEHub::setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t speedPerc)
+void BLEHub::setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc)
 {
     for (int i = 0; i < _channelControllers.size(); i++)
     {
         HubChannel channel = _channelControllers.at(i)->GetChannel();
-        setTargetSpeedPercForChannelByAttachedDevice(channel, device, speedPerc);
+        setTargetSpeedPercForChannelByAttachedDevice(channel, device, minSpeedPerc, speedPerc);
     }
 }
 
-void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t speedPerc)
+void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc)
 {
     ChannelController *controller = findControllerByChannel(channel);
     if (controller != nullptr && controller->GetAttachedDevice() == device)
     {
+        controller->SetMinSpeedPerc(minSpeedPerc);
         controller->SetTargetSpeedPerc(speedPerc);
     }
 }

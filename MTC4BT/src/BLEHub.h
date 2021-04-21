@@ -46,7 +46,7 @@ public:
     // void Drive(const int16_t channelSpeedPercs[]);
 
     // Sets the given target speed percentage for all motor channels.
-    void Drive(const int16_t speedPerc);
+    void Drive(const int16_t minSpeedPerc, const int16_t speedPerc);
 
     // Turns all light channels on/off.
     void SetLights(bool on);
@@ -78,8 +78,8 @@ public:
 
 private:
     void initChannelControllers(std::vector<ChannelConfiguration> channels[]);
-    void setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t speedPerc);
-    void setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t speedPerc);
+    void setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
+    void setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
     ChannelController *findControllerByChannel(HubChannel channel);
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
 
