@@ -73,7 +73,7 @@ void MattzoWifiClient::Setup()
   // Loop until we actually connect.
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(500);
+    delay(WAIT_BETWEEN_WIFI_CONNECTS_MS);
     Serial.print(".");
   }
 
@@ -116,7 +116,7 @@ void MattzoWifiClient::Assert()
     }
 
     // Re-test connection in half a second.
-    delay(500);
+    delay(WAIT_BETWEEN_WIFI_CONNECTS_MS);
   }
 
   if (!wasConnected)
