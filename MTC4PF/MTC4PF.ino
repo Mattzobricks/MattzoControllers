@@ -196,6 +196,7 @@ void setup() {
       // initialize motor pins for L298N
       pinMode(enA, OUTPUT);
       pinMode(enB, OUTPUT);
+      // fall through!
     case MotorShieldType::L9110:
       // initialize motor pins for L298N (continued) and L9110
       pinMode(in1, OUTPUT);
@@ -477,57 +478,59 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
 
       switch (myMattzoMotorShields[i]._motorShieldType) {
       case MotorShieldType::L298N:
-        ;
-      case MotorShieldType::L9110:
-        // motor shield types L298N and L9110
+        // motor shield type L298N
         mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[i].getNiceName());
 
-        if (MOTORSHIELD_TYPE == MotorShieldType::L298N) {
-          // motor shield type L298N
-          if (myMattzoMotorShields[i]._configMotorA != 0) {
-            if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
-              digitalWrite(in1, LOW);
-              digitalWrite(in2, HIGH);
-            }
-            else {
-              digitalWrite(in1, HIGH);
-              digitalWrite(in2, LOW);
-            }
-            analogWrite(enA, power);
+        // motor shield type L298N
+        // The preferred option to flip direction is to go via HIGH/HIGH on the input pins
+        if (myMattzoMotorShields[i]._configMotorA != 0) {
+          if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
+            digitalWrite(in2, HIGH);
+            digitalWrite(in1, LOW);
           }
-          if (myMattzoMotorShields[i]._configMotorB != 0) {
-            if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
-              digitalWrite(in3, LOW);
-              digitalWrite(in4, HIGH);
-            }
-            else {
-              digitalWrite(in3, HIGH);
-              digitalWrite(in4, LOW);
-            }
-            analogWrite(enB, power);
+          else {
+            digitalWrite(in1, HIGH);
+            digitalWrite(in2, LOW);
+          }
+          analogWrite(enA, power);
+        }
+        if (myMattzoMotorShields[i]._configMotorB != 0) {
+          if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
+            digitalWrite(in4, HIGH);
+            digitalWrite(in3, LOW);
+          }
+          else {
+            digitalWrite(in3, HIGH);
+            digitalWrite(in4, LOW);
+          }
+          analogWrite(enB, power);
+        }
+
+        break;
+
+      case MotorShieldType::L9110:
+        // motor shield type L9110
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[i].getNiceName());
+
+        // motor shield type L9110
+        if (myMattzoMotorShields[i]._configMotorA != 0) {
+          if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
+            analogWrite(in1, 0);
+            analogWrite(in2, power);
+          }
+          else {
+            analogWrite(in2, 0);
+            analogWrite(in1, power);
           }
         }
-        else if (MOTORSHIELD_TYPE == MotorShieldType::L9110) {
-          // motor shield type L9110
-          if (myMattzoMotorShields[i]._configMotorA != 0) {
-            if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
-              analogWrite(in1, 0);
-              analogWrite(in2, power);
-            }
-            else {
-              analogWrite(in1, power);
-              analogWrite(in2, 0);
-            }
+        if (myMattzoMotorShields[i]._configMotorB != 0) {
+          if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
+            analogWrite(in3, 0);
+            analogWrite(in4, power);
           }
-          if (myMattzoMotorShields[i]._configMotorB != 0) {
-            if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
-              analogWrite(in3, 0);
-              analogWrite(in4, power);
-            }
-            else {
-              analogWrite(in3, power);
-              analogWrite(in4, 0);
-            }
+          else {
+            analogWrite(in4, 0);
+            analogWrite(in3, power);
           }
         }
 
