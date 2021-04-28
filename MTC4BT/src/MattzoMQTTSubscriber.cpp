@@ -141,8 +141,8 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 // Initialize static members.
 bool MattzoMQTTSubscriber::TriggerBreakOnDisconnect = false;
 int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
-int MattzoMQTTSubscriber::PingDelayInMilliseconds = 1000;
-int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 250;
+int MattzoMQTTSubscriber::PingDelayInMilliseconds = 10000;
+int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 50;
 uint8_t MattzoMQTTSubscriber::TaskPriority = 1;
 int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
