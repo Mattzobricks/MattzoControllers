@@ -2,36 +2,44 @@
 
 void MattzoBLEMQTTHandler::Handle(const char *message, ulong hubCount, BLEHub *hubs[])
 {
-    String strMessage = String(message);
+    char *pos;
 
-    if (isNodeType(strMessage, "sys"))
+    // parse the rocrail mqtt messages, all of them,
+    if ((pos = strstr(message, "<sys ")) != nullptr)
     {
-        handleSys(message, hubCount, hubs);
-        return;
+        // found <sys
+        handleSys(pos, hubCount, hubs);
     }
-
-    if (isNodeType(strMessage, "lc"))
+    else if ((pos = strstr(message, "<lc ")) != nullptr)
     {
-        handleLc(message, hubCount, hubs);
-        return;
+        // found <lc
+        handleLc(pos, hubCount, hubs);
     }
-
-    if (isNodeType(strMessage, "fn"))
+    else if ((pos = strstr(message, "<fn ")) != nullptr)
     {
-        handleFn(message, hubCount, hubs);
-        return;
+        // found <fn
+        handleFn(pos, hubCount, hubs);
     }
+    else if ((pos = strstr(message, "<sw ")) != nullptr)
+    {
+        // first go for "<sw"
+    }
+    else if ((pos = strstr(message, "<clock ")) != nullptr)
+    {
+        // found clock
+    } // IGNORE THE REST
 }
 
-bool MattzoBLEMQTTHandler::isNodeType(String message, const char *nodeName)
+void MattzoBLEMQTTHandler::handleSys(const char *message, ulong hubCount, BLEHub *hubs[])
 {
-    return message.substring(1, message.indexOf(" ")).equals(nodeName);
-}
+    char *cmd = nullptr;
+    if (!XmlParser::tryReadCharAttr(message, "cmd", &cmd))
+    {
+        // TODO: Log error, ignore message.
+        return;
+    }
 
-void MattzoBLEMQTTHandler::handleSys(const String message, ulong hubCount, BLEHub *hubs[])
-{
-    String cmd = getAttr(message, "cmd");
-    if (cmd.equals("ebreak") || cmd.equals("stop") || cmd.equals("shutdown"))
+    if (strcmp(cmd, "ebreak") == 0 || strcmp(cmd, "stop") == 0 || strcmp(cmd, "shutdown") == 0)
     {
         // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
         for (int i = 0; i < hubCount; i++)
@@ -42,7 +50,7 @@ void MattzoBLEMQTTHandler::handleSys(const String message, ulong hubCount, BLEHu
         return;
     }
 
-    if (cmd.equals("go"))
+    if (strcmp(cmd, "go") == 0)
     {
         // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
         for (int i = 0; i < hubCount; i++)
@@ -54,46 +62,71 @@ void MattzoBLEMQTTHandler::handleSys(const String message, ulong hubCount, BLEHu
     }
 }
 
-void MattzoBLEMQTTHandler::handleLc(const String message, ulong hubCount, BLEHub *hubs[])
+void MattzoBLEMQTTHandler::handleLc(const char *message, ulong hubCount, BLEHub *hubs[])
 {
-    String lcId = getAttr(message, "id");
+    char *lcId = nullptr;
+    if (!XmlParser::tryReadCharAttr(message, "id", &lcId))
+    {
+        // TODO: Log error, ignore message.
+        return;
+    }
+
     for (int i = 0; i < hubCount; i++)
     {
-        if (hubs[i]->GetDeviceName().compare(lcId.c_str()) == 0)
+        if (hubs[i]->GetDeviceName().compare(lcId) == 0)
         {
-            // Get direction (true=forward, false=backward).
-            String dirStr = getAttr(message, "dir");
-            bool dirBool = dirStr == "true";
-            int8_t dirMultiplier = dirBool ? 1 : -1;
-
-            // Get min speed percentage.
-            String vmin = getAttr(message, "V_min");
-            int minSpeedPerc = std::atoi(vmin.c_str());
-
-            // Get max speed percentage.
-            String vmax = getAttr(message, "V_max");
-            int maxSpeedPerc = std::atoi(vmax.c_str());
-
             // Get target speed.
-            String v = getAttr(message, "V");
-            int speedPerc = std::atoi(v.c_str());
+            int speed;
+            if (!XmlParser::tryReadIntAttr(message, "V", &speed))
+            {
+                // TODO: Log error, ignore message.
+            }
 
-            if (speedPerc != 0 && speedPerc < minSpeedPerc)
+            // Get min speed.
+            int minSpeed;
+            if (!XmlParser::tryReadIntAttr(message, "V_min", &minSpeed))
+            {
+                // TODO: Log error, ignore message.
+            }
+
+            if (speed != 0 && speed < minSpeed)
             {
                 // Requested speed is too low, we can ignore it.
                 return;
             }
 
-            // Calculate target speed percentage (as percentage of max speed).
-            int targetSpeedPerc = (speedPerc * maxSpeedPerc) / 100 * dirMultiplier;
+            // Get max speed.
+            int maxSpeed;
+            if (!XmlParser::tryReadIntAttr(message, "V_max", &maxSpeed))
+            {
+                // TODO: Log error, ignore message.
+            }
+
+            // Get speed mode (percentage or km/h).
+            char *mode;
+            if (!XmlParser::tryReadCharAttr(message, "V_mode", &mode))
+            {
+                // TODO: Log error, ignore message.
+            }
+
+            // Get direction (true=forward, false=backward).
+            bool dirBool;
+            if (!XmlParser::tryReadBoolAttr(message, "dir", &dirBool))
+            {
+                // TODO: Log error, ignore message.
+            }
+
+            // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
+            int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
 
             // Execute drive command.
-            hubs[i]->Drive(minSpeedPerc, targetSpeedPerc);
+            int8_t dirMultiplier = dirBool ? 1 : -1;
+            hubs[i]->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
 
             if (hubs[i]->GetAutoLightsEnabled())
             {
                 // Determine lights on or off based on target motor speed percentage.
-                hubs[i]->SetLights(speedPerc != 0);
+                hubs[i]->SetLights(speed != 0);
             }
 
             return;
@@ -101,12 +134,18 @@ void MattzoBLEMQTTHandler::handleLc(const String message, ulong hubCount, BLEHub
     }
 }
 
-void MattzoBLEMQTTHandler::handleFn(const String message, ulong numhubs, BLEHub *hubs[])
+void MattzoBLEMQTTHandler::handleFn(const char *message, ulong numhubs, BLEHub *hubs[])
 {
-    String lcId = getAttr(message, "id");
+    char *lcId = nullptr;
+    if (!XmlParser::tryReadCharAttr(message, "id", &lcId))
+    {
+        // TODO: Log error, ignore message.
+        return;
+    }
+
     for (int i = 0; i < numhubs; i++)
     {
-        if (hubs[i]->GetDeviceName().compare(lcId.c_str()) == 0)
+        if (hubs[i]->GetDeviceName().compare(lcId) == 0)
         {
             // if (hubs[i]->GetAutoLightsEnabled())
             // {
@@ -115,30 +154,24 @@ void MattzoBLEMQTTHandler::handleFn(const String message, ulong numhubs, BLEHub 
             // }
 
             // Get channel index (f0=A, f1=B, f2=C, f3=D).
-            String fnChanged = getAttr(message, "fnchanged");
-            int channelIndex = std::atoi(fnChanged.c_str());
-            HubChannel channel = static_cast<HubChannel>(channelIndex);
+            int fnchanged;
+            if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged))
+            {
+                // TODO: Log error, ignore message.
+            }
 
-            // Query fx attribute. This is the state of the lights (true=on, false=off) of a channel.
-            String attr = "f" + String(channelIndex);
-            bool lightsOn = getAttr(message, attr) == "true";
+            // Determine actual channel.
+            HubChannel channel = static_cast<HubChannel>(fnchanged);
+
+            // Query fnchangedstate attribute. This is the new state of the lights (true=on, false=off) of a channel.
+            bool fnchangedstate;
+            if (!XmlParser::tryReadBoolAttr(message, "fnchangedstate", &fnchangedstate))
+            {
+                // TODO: Log error, ignore message.
+            }
 
             // Turn lights on for the requested channel (if channel has lights attached!).
-            hubs[i]->SetLights(channel, lightsOn);
+            hubs[i]->SetLights(channel, fnchangedstate);
         }
     }
-}
-
-String MattzoBLEMQTTHandler::getAttr(const String message, const String attrName)
-{
-    int beginIndex = message.indexOf(" " + attrName + "=\"") + attrName.length() + 3;
-    int endIndex = message.indexOf("\" ", beginIndex);
-
-    if (endIndex == -1)
-    {
-        // Maybe it's the last attribute, with a forward slash '/' after the double quote, instead of a space ' '?
-        endIndex = message.indexOf("\"/", beginIndex);
-    }
-
-    return message.substring(beginIndex, endIndex);
 }

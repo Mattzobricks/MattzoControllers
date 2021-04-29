@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <XmlParser.h>
 
 #include "BLEHub.h"
 
@@ -14,15 +15,13 @@ public:
 
     // Methods
 
-    // Handle the given MQTT message and apply it to the applicable SBrick(s).
+    // Handle the given MQTT message and apply it to the applicable BLE hub(s).
     static void Handle(const char *message, ulong hubCount, BLEHub *hubs[]);
 
 private:
     // Methods
 
-    static bool isNodeType(const String message, const char *nodeName);
-    static void handleSys(const String message, ulong hubCount, BLEHub *hubs[]);
-    static void handleLc(const String message, ulong hubCount, BLEHub *hubs[]);
-    static void handleFn(const String message, ulong hubCount, BLEHub *hubs[]);
-    static String getAttr(const String message, const String attrName);
+    static void handleSys(const char *message, ulong hubCount, BLEHub *hubs[]);
+    static void handleLc(const char *message, ulong hubCount, BLEHub *hubs[]);
+    static void handleFn(const char *message, ulong hubCount, BLEHub *hubs[]);
 };
