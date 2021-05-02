@@ -2,16 +2,19 @@
 
 #include <Arduino.h>
 
+#include "BLELocomotive.h"
 #include "SBrickHub.h"
 #include "PUHub.h"
 
 #define AUTO_LIGHTS_ON_ENABLED true
 #define HUB_DISABLED false
 
-// You can configure up to 9 hubs.
-// Always make sure the `numHubs` you specify here, matches the number of hubs you actually configure below.
-#define numHubs 2
-BLEHub *hubs[numHubs];
+// WARNING: The controller can manage up to 9 hubs in total. This is a BLE hardware limitation.
+// Always make sure the total number of hubs in all your locos together doesn't exceed this number!
+
+// Always make sure the `numLocos` you specify here, matches the number of locos you actually configure below.
+#define numLocos 1
+BLELocomotive *locos[numLocos];
 
 // BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
 const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 1;
@@ -20,6 +23,8 @@ const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 1;
 const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 
 /*
+    TODO: !!! PLEASE NOTE: DOCS BELOW ARE OUTDATED !!!
+
     SBrick/PU Hub constructor parameters (sequencial):
     
     deviceName:             This should match the @ID param of your loco in Rocrail.
@@ -57,15 +62,13 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
                             - Valid values: HubChannelDirection::FORWARD (0), HubChannelDirection::REVERSE (1)
 */
 
-void configureHubs()
+void configureLocos()
 {
-    std::vector<ChannelConfiguration> channels_YC7939;
-    channels_YC7939.push_back({HubChannel::B, AttachedDevice::LIGHT});
-    channels_YC7939.push_back({HubChannel::D, AttachedDevice::MOTOR, 10, 20, HubChannelDirection::REVERSE});
-    hubs[0] = new SBrickHub("YC7939", "00:07:80:d0:47:43", &channels_YC7939, 80);
-
-    std::vector<ChannelConfiguration> channels_PT60197;
-    channels_PT60197.push_back({HubChannel::A, AttachedDevice::LIGHT, 5, 10});
-    channels_PT60197.push_back({HubChannel::B, AttachedDevice::MOTOR, 5, 10});
-    hubs[1] = new PUHub("PT60197", "90:84:2b:07:13:7f", &channels_PT60197, 80);
+    std::vector<BLEHubConfiguration *> hubs_YC7939;
+    std::vector<ChannelConfiguration *> hub0_YC7939_channels;
+    hub0_YC7939_channels.push_back(new ChannelConfiguration(HubChannel::B, AttachedDevice::LIGHT));
+    hub0_YC7939_channels.push_back(new ChannelConfiguration(HubChannel::D, AttachedDevice::MOTOR));
+    BLEHubConfiguration *hub0_YC7939 = new BLEHubConfiguration(BLEHubType::SBrick, "00:07:80:d0:47:43", &hub0_YC7939_channels);
+    hubs_YC7939.push_back(hub0_YC7939);
+    locos[0] = new BLELocomotive(new BLELocomotiveConfiguration(1, "YC7939", hubs_YC7939));
 }

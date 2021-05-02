@@ -1,32 +1,12 @@
 #pragma once
 
 #include <Arduino.h>
-
-enum HubChannel
-{
-  A,
-  B,
-  C,
-  D
-};
-
-enum HubChannelDirection
-{
-  FORWARD,
-  REVERSE
-};
-
-enum AttachedDevice
-{
-  NOTHING,
-  MOTOR,
-  LIGHT
-};
+#include "ChannelConfiguration.h"
 
 class ChannelController
 {
 public:
-  ChannelController(HubChannel channel, HubChannelDirection direction, AttachedDevice device, int16_t speedStep, int16_t _brakeStep);
+  ChannelController(ChannelConfiguration *config);
 
   // Returns the controlled channel.
   HubChannel GetChannel();
@@ -65,11 +45,7 @@ private:
   // Return the normalized speed value, bounded by the min and max channel speed.
   int16_t normalizeSpeedPerc(int16_t speedPerc);
 
-  HubChannel _channel;
-  HubChannelDirection _direction;
-  AttachedDevice _device;
-  int16_t _speedStep;
-  int16_t _brakeStep;
+  ChannelConfiguration *_config;
 
   int16_t _minSpeedPerc;
   int16_t _targetSpeedPerc;

@@ -16,8 +16,8 @@ const int8_t CMD_GET_CHANNEL_STATUS = 34;
 const int16_t SBRICK_MAX_CHANNEL_SPEED = 254;
 const int16_t SBRICK_MIN_CHANNEL_SPEED = -254;
 
-SBrickHub::SBrickHub(std::string deviceName, std::string deviceAddress, std::vector<ChannelConfiguration> channels[], int16_t lightPerc, bool autoLightsOnEnabled, bool enabled)
-    : BLEHub(deviceName, deviceAddress, channels, lightPerc, autoLightsOnEnabled, enabled)
+SBrickHub::SBrickHub(BLEHubConfiguration *config)
+    : BLEHub(config)
 {
 }
 

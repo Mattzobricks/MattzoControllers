@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "NimBLEDevice.h"
 
+#include "BLEHubConfiguration.h"
 #include "ChannelConfiguration.h"
 #include "ChannelController.h"
 
@@ -28,7 +29,7 @@
 class BLEHub
 {
 public:
-    BLEHub(std::string deviceName, std::string deviceAddress, std::vector<ChannelConfiguration> channels[], int16_t lightPerc = 100, bool autoLightsEnabled = false, bool enabled = true);
+    BLEHub(BLEHubConfiguration *config);
 
     // Returns a boolean value indicating whether this BLE hub is enabled (in use).
     bool IsEnabled();
@@ -39,14 +40,12 @@ public:
     // Returns a boolean value indicating whether we are connected to the BLE hub.
     bool IsConnected();
 
-    BaseType_t StartDriveTask();
-
-    // Sets the given target speed percentages for the respective channels (by their index).
-    // The number of speed percentages specified should match the actual number of BLE hub channels.
+    // Sets the given target speed for the respective channels (by their index).
+    // The number of speeds specified should match the actual number of BLE hub channels.
     // void Drive(const int16_t channelSpeedPercs[]);
 
-    // Sets the given target speed percentage for all motor channels.
-    void Drive(const int16_t minSpeedPerc, const int16_t speedPerc);
+    // Sets the given target speed for all motor channels.
+    void Drive(const int16_t minSpeed, const int16_t speed);
 
     // Turns all light channels on/off.
     void SetLights(bool on);
@@ -58,15 +57,12 @@ public:
     // If false, releases the emergency break.
     void EmergencyBreak(const bool enabled);
 
-    // Returns the device name.
-    std::string GetDeviceName();
-
     // Returns a boolean value indicating whether the lights should automatically turn on when the train starts driving.
     bool GetAutoLightsEnabled();
 
-    // Abstract method used to connect to the BLE hub.
+    // Method used to connect to the BLE hub.
     bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
-    
+
     // Abstract method used to set the watchdog timeout.
     virtual bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds) = 0;
 
@@ -77,20 +73,15 @@ public:
     virtual int16_t MapSpeedPercToRaw(int speedPerc) = 0;
 
 private:
-    void initChannelControllers(std::vector<ChannelConfiguration> channels[]);
+    void initChannelControllers();
     void setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
     void setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
     ChannelController *findControllerByChannel(HubChannel channel);
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
-
+    BaseType_t startDriveTask();
     static void driveTaskImpl(void *);
 
-    std::string _deviceName;
-    NimBLEAddress *_address;
-    int16_t _lightPerc;
-    bool _autoLightsEnabled;
-    bool _isEnabled;
-
+    BLEHubConfiguration *_config;
     std::vector<ChannelController *> _channelControllers;
 
     TaskHandle_t _driveTaskHandle;

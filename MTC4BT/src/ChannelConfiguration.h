@@ -1,9 +1,10 @@
 #pragma once
 
-#include "ChannelController.h"
+#include "HubChannel.h"
 
 struct ChannelConfiguration
 {
+public:
     ChannelConfiguration(HubChannel c)
     {
         channel = c;

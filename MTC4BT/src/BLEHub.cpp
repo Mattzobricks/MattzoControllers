@@ -6,15 +6,11 @@
 #include "AdvertisedBLEDeviceCallbacks.h"
 #include "BLEClientCallback.h"
 
-BLEHub::BLEHub(std::string deviceName, std::string deviceAddress, std::vector<ChannelConfiguration> channels[], int16_t lightPerc, bool autoLightsEnabled, bool enabled)
+BLEHub::BLEHub(BLEHubConfiguration *config)
 {
-    _deviceName = deviceName;
-    _address = new NimBLEAddress(deviceAddress);
-    _lightPerc = lightPerc;
-    _autoLightsEnabled = autoLightsEnabled;
-    _isEnabled = enabled;
+    _config = config;
 
-    initChannelControllers(channels);
+    initChannelControllers();
 
     _driveTaskHandle = NULL;
     _hub = nullptr;
@@ -32,7 +28,7 @@ BLEHub::BLEHub(std::string deviceName, std::string deviceAddress, std::vector<Ch
 
 bool BLEHub::IsEnabled()
 {
-    return _isEnabled;
+    return _config->Enabled;
 }
 
 bool BLEHub::IsDiscovered()
@@ -45,24 +41,19 @@ bool BLEHub::IsConnected()
     return _isConnected;
 }
 
-BaseType_t BLEHub::StartDriveTask()
+void BLEHub::Drive(const int16_t minSpeed, const int16_t speed)
 {
-    // Determine drive task name.
-    // char* taskName = "DT_";
-    // strcat(taskName, _deviceName.c_str());
-
-    // Attempt to run drive task, return result.
-    return xTaskCreatePinnedToCore(this->driveTaskImpl, "DriveTask", BLE_StackDepth, this, BLE_TaskPriority, &_driveTaskHandle, BLE_CoreID) == pdPASS;
-}
-
-void BLEHub::Drive(const int16_t minSpeedPerc, const int16_t speedPerc)
-{
-    setTargetSpeedPercByAttachedDevice(AttachedDevice::MOTOR, minSpeedPerc, speedPerc);
+    setTargetSpeedPercByAttachedDevice(AttachedDevice::MOTOR, minSpeed, speed);
 }
 
 void BLEHub::SetLights(bool on)
 {
-    setTargetSpeedPercByAttachedDevice(AttachedDevice::LIGHT, 0, on ? _lightPerc : 0);
+    // Serial.print("Setting lights ");
+    // Serial.print(on);
+    // Serial.print(" @ ");
+    // Serial.print(_config->LightPerc);
+    // Serial.println("%");
+    setTargetSpeedPercByAttachedDevice(AttachedDevice::LIGHT, 0, on ? _config->LightPerc : 0);
 }
 
 void BLEHub::SetLights(HubChannel channel, bool on)
@@ -71,7 +62,7 @@ void BLEHub::SetLights(HubChannel channel, bool on)
     // Serial.print(on ? "on" : "off");
     // Serial.print(" for channel ");
     // Serial.println(channel);
-    setTargetSpeedPercForChannelByAttachedDevice(channel, AttachedDevice::LIGHT, 0, on ? _lightPerc : 0);
+    setTargetSpeedPercForChannelByAttachedDevice(channel, AttachedDevice::LIGHT, 0, on ? _config->LightPerc : 0);
 }
 
 // If true, immediately sets the current speed for all channels to zero.
@@ -102,22 +93,16 @@ void BLEHub::EmergencyBreak(const bool enabled)
     }
 }
 
-// Returns the device name.
-std::string BLEHub::GetDeviceName()
-{
-    return _deviceName;
-}
-
 // Returns a boolean value indicating whether the lights should automatically turn on when the train starts driving.
 bool BLEHub::GetAutoLightsEnabled()
 {
-    return _autoLightsEnabled;
+    return _config->AutoLightsEnabled;
 }
 
 bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
     Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Connecting to ");
-    Serial.println(_address->toString().c_str());
+    Serial.println(_config->DeviceAddress->toString().c_str());
 
     /** Check if we have a client we should reuse first **/
     if (NimBLEDevice::getClientListSize())
@@ -211,16 +196,16 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
     //}
 
     // Start drive task loop.
-    return StartDriveTask();
+    return startDriveTask();
 }
 
-void BLEHub::initChannelControllers(std::vector<ChannelConfiguration> channels[])
+void BLEHub::initChannelControllers()
 {
     // TODO: This method should be made more robust to prevent config errors, like configuring the same channel twice.
 
-    for (int i = 0; i < channels->size(); i++)
+    for (int i = 0; i < _config->Channels->size(); i++)
     {
-        ChannelConfiguration config = channels->at(i);
+        ChannelConfiguration *config = _config->Channels->at(i);
 
         // Serial.print("Custructing controller for channel: ");
         // Serial.print(config.channel);
@@ -236,12 +221,18 @@ void BLEHub::initChannelControllers(std::vector<ChannelConfiguration> channels[]
         // Serial.print(config.brakeStep);
         // Serial.println();
 
-        _channelControllers.push_back(new ChannelController(config.channel, config.direction, config.device, config.speedStep, config.brakeStep));
+        _channelControllers.push_back(new ChannelController(config));
     }
 }
 
 void BLEHub::setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc)
 {
+    // Serial.print("Setting ");
+    // Serial.print(device);
+    // Serial.print(" for ");
+    // Serial.print(_channelControllers.size());
+    // Serial.println(" channel(s)");
+
     for (int i = 0; i < _channelControllers.size(); i++)
     {
         HubChannel channel = _channelControllers.at(i)->GetChannel();
@@ -254,6 +245,7 @@ void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, At
     ChannelController *controller = findControllerByChannel(channel);
     if (controller != nullptr && controller->GetAttachedDevice() == device)
     {
+        // Serial.println("Found channel with device");
         controller->SetMinSpeedPerc(minSpeedPerc);
         controller->SetTargetSpeedPerc(speedPerc);
     }
@@ -290,6 +282,16 @@ bool BLEHub::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteris
     _remoteControlCharacteristic = _remoteControlService->getCharacteristic(characteristicUUID);
 
     return _remoteControlCharacteristic != nullptr;
+}
+
+BaseType_t BLEHub::startDriveTask()
+{
+    // Determine drive task name.
+    // char* taskName = "DT_";
+    // strcat(taskName, _deviceName.c_str());
+
+    // Attempt to run drive task, return result.
+    return xTaskCreatePinnedToCore(this->driveTaskImpl, "DriveTask", BLE_StackDepth, this, BLE_TaskPriority, &_driveTaskHandle, BLE_CoreID) == pdPASS;
 }
 
 void BLEHub::driveTaskImpl(void *_this)

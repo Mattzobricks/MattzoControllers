@@ -7,8 +7,8 @@
 static BLEUUID remoteControlServiceUUID(PU_REMOTECONTROL_SERVICE_UUID);
 static BLEUUID remoteControlCharacteristicUUID(PU_REMOTECONTROL_CHARACTERISTIC_UUID);
 
-PUHub::PUHub(std::string deviceName, std::string deviceAddress, std::vector<ChannelConfiguration> channels[], int16_t lightPerc, bool autoLightsOnEnabled, bool enabled)
-    : BLEHub(deviceName, deviceAddress, channels, lightPerc, autoLightsOnEnabled, enabled)
+PUHub::PUHub(BLEHubConfiguration *config)
+    : BLEHub(config)
 {
 }
 

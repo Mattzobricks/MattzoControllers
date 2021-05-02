@@ -69,8 +69,8 @@ void handleMQTTMessages(void *parm)
             // Output message to serial for debug.
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
-            // Parse message and translate to a BLE command for SBrick(s).
-            MattzoBLEMQTTHandler::Handle(message, numHubs, hubs);
+            // Parse message and translate to a BLE command for loco hub(s).
+            MattzoBLEMQTTHandler::Handle(message, numLocos, locos);
 
             // Erase message from memory by freeing it.
             free(message);
@@ -106,8 +106,8 @@ void setup()
     // Setup MQTT subscriber.
     MattzoMQTTSubscriber::Setup(ROCRAIL_COMMAND_TOPIC, mqttCallback);
 
-    // Load the hub configuration.
-    configureHubs();
+    // Load the loco/hub configuration.
+    configureLocos();
 
     // Initialize BLE client.
     Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Initializing BLE...");
@@ -120,55 +120,72 @@ void setup()
     scanner->setActiveScan(true);
     hubScanner = new BLEHubScanner();
 
-    Serial.print("[" + String(xPortGetCoreID()) + "] Setup: Number of Hubs to discover: ");
-    Serial.println(numHubs);
+    Serial.print("[" + String(xPortGetCoreID()) + "] Setup: Number of locos to discover Hubs for: ");
+    Serial.println(numLocos);
 }
 
 void loop()
 {
     std::vector<BLEHub *> undiscoveredHubs;
 
-    for (int i = 0; i < numHubs; i++)
+    for (int l = 0; l < numLocos; l++)
     {
-        BLEHub *hub = hubs[i];
+        BLELocomotive *loco = locos[l];
 
-        if (!hub->IsEnabled())
+        if (!loco->IsEnabled() || loco->AllHubsConnected())
         {
-            // Skip to the next Hub.
+            // Skip to the next loco.
             continue;
         }
 
-        if (!hub->IsConnected())
+        uint hubCount = loco->GetHubCount();
+
+        for (int h = 0; h < hubCount; h++)
         {
-            if (!hub->IsDiscovered())
+            BLEHub *hub = loco->GetHub(h);
+
+            if (!hub->IsEnabled())
             {
-                // Hub not discovered yet, add to list of hubs to discover.
-                //hub->StartDiscovery(scanner, BLE_SCAN_DURATION_IN_SECONDS);
-                undiscoveredHubs.push_back(hub);
+                // Skip to the next Hub.
+                continue;
             }
 
-            if (hub->IsDiscovered())
+            if (!hub->IsConnected())
             {
-                // Hub discovered, try to connect now.
-                if (!hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
+                if (!hub->IsDiscovered())
                 {
-                    // Connect attempt failed. Will retry in next loop.
-                    Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Connect failed");
+                    // Hub not discovered yet, add to list of hubs to discover.
+                    undiscoveredHubs.push_back(hub);
                 }
-                else
+
+                if (hub->IsDiscovered())
                 {
-                    // Blink lights three times when connected.
-                    hub->SetLights(LIGHTS_ON);
-                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                    hub->SetLights(LIGHTS_OFF);
-                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                    hub->SetLights(LIGHTS_ON);
-                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                    hub->SetLights(LIGHTS_OFF);
-                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                    hub->SetLights(LIGHTS_ON);
-                    // delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                    // hub->SetLights(LIGHTS_OFF);
+                    // Hub discovered, try to connect now.
+                    if (!hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
+                    {
+                        // Connect attempt failed. Will retry in next loop.
+                        Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Connect failed");
+                    }
+                    else
+                    {
+                        if (loco->AllHubsConnected())
+                        {
+                            // TODO: Make loco blink its lights, instead of the individual hub below.
+                        }
+
+                        // Blink lights three times when connected.
+                        hub->SetLights(LIGHTS_ON);
+                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                        hub->SetLights(LIGHTS_OFF);
+                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                        hub->SetLights(LIGHTS_ON);
+                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                        hub->SetLights(LIGHTS_OFF);
+                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                        hub->SetLights(LIGHTS_ON);
+                        // delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                        // hub->SetLights(LIGHTS_OFF);
+                    }
                 }
             }
         }
@@ -180,6 +197,6 @@ void loop()
         hubScanner->StartDiscovery(scanner, undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
     }
 
-    // Delay next scan/connect attempt for a while, allowing the background drive tasks of already connected SBricks to send their periodic commands.
+    // Delay next scan/connect attempt for a while, allowing the background tasks of already connected Hubs to send their periodic drive commands.
     delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
 }

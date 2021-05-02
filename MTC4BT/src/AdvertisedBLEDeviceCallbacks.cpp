@@ -18,7 +18,7 @@ void AdvertisedBLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDe
     {
         BLEHub *hub = _hubs.at(i);
 
-        if (advertisedDevice->getAddress().equals(*hub->_address))
+        if (advertisedDevice->getAddress().equals(*hub->_config->DeviceAddress))
         {
             Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Discovered device: ");
             Serial.println(advertisedDevice->toString().c_str());
