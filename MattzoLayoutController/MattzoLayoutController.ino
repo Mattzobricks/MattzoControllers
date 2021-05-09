@@ -403,24 +403,52 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
     const char* rr_cmd = "-unknown-";
+    bool signalCommand;  // rocrail signal command as boolean value (true: on, false: off)
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
       mcLog2("cmd attribute not found or wrong type.", LOG_ERR);
       return;
     }
     mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
 
-    // set signal LED for the port on/off
+    // parse signal command
     if (strcmp(rr_cmd, "on") == 0) {
-      mcLog2("Setting signal LED " + String(rr_port - 1) + " on.", LOG_DEBUG);
-      setSignalLED(rr_port - 1, true);
+      signalCommand = true;
     }
     else if (strcmp(rr_cmd, "off") == 0) {
-      mcLog2("Setting signal LED " + String(rr_port - 1) + " off.", LOG_DEBUG);
-      setSignalLED(rr_port - 1, false);
+      signalCommand = false;
     }
     else {
-      mcLog2("Signal port command unknown - message disregarded.", LOG_ERR);
+      mcLog2("Signal command " + String(rr_cmd) + "unknown - message disregarded.", LOG_ERR);
+      return;
     }
+
+    if (SIGNALPORT_PIN_TYPE[rr_port - 1] != 1) {
+      // light signal => switch LED for this signal port on/off
+      mcLog2("Setting signal LED index " + String(rr_port - 1) + " to " + signalCommand ? "on" : "off", LOG_DEBUG);
+      setSignalLED(rr_port - 1, signalCommand);
+    }
+    else {
+      // form signal => turn servo to the desired value
+      // Parse servo angle
+      int servoAngle;
+      if (signalCommand) {
+        // red aspect. Use "value" attribute (in the Rocrail interface, this parameter is labelled "Brightness")!
+        if (element->QueryIntAttribute("value", &servoAngle) != XML_SUCCESS) {
+          mcLog2("Error in form signal configuration: value attribute not found or wrong type.", LOG_ERR);
+          return;
+        }
+      }
+      else {
+        // green aspect. Use "param" attribute (in the Rocrail interface, this parameter is labelled "Parameter")!
+        if (element->QueryIntAttribute("param", &servoAngle) != XML_SUCCESS) {
+          mcLog2("Error in form signal configuration: param attribute not found or wrong type.", LOG_ERR);
+          return;
+        }
+      }
+      mcLog2("Turning signal servo index " + String(rr_port - 1) + " to " + String(servoAngle), LOG_INFO);
+      setServoAngle(SIGNALPORT_PIN[rr_port - 1], servoAngle);
+    }
+
     return;
     // end of signal handling
   }
@@ -657,7 +685,12 @@ void sendSwitchSensorEvent(int rocrailPort, int switchCommand, bool sensorState)
 
 // switches a signal on or off
 void setSignalLED(int signalIndex, bool ledState) {
-  if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
+  if (SIGNALPORT_PIN_TYPE[signalIndex] == 1) {
+    // oops, that's a form signal - code should not have get to this place
+    mcLog2("CRITICAL ERROR - trying to set LED for form signal!", LOG_CRIT);
+    return;
+  }
+  else if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
     digitalWrite(SIGNALPORT_PIN[signalIndex], ledState ? LOW : HIGH);
   }
 #if USE_PCA9685
@@ -680,6 +713,12 @@ void setSignalLED(int signalIndex, bool ledState) {
 
 // fades a signal. "brightness" is a value between 0 (off) and 1023 (full bright)
 void fadeSignalLED(int signalIndex, int brightness) {
+  if (SIGNALPORT_PIN_TYPE[signalIndex] == 1) {
+    // oops, that's a form signal - code should not have get to this place
+    mcLog2("CRITICAL ERROR - trying to fade LED for form signal!", LOG_CRIT);
+    return;
+  }
+
   brightness = min(max(brightness, 0), 1023);
   
   if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {

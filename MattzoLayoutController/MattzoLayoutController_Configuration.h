@@ -146,18 +146,25 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 
 // SIGNAL WIRING CONFIGURATION
 
-// Number of signal ports (the number of signal LEDs, not the number of signals!)
-const int NUM_SIGNALPORTS = 2;
+// Number of signal ports
+// A signal port is either:
+// 1. an LED of a light signal, or
+// 2. a servo for a form signal.
+// In most cases, 2 pins are required for a light signal with 2 aspects (more are supported)
+// A form signal can only have two aspects in this version of the firmware. It is represented by 1 servo.
+const int NUM_SIGNALPORTS = 3;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
+// for form signals, the value represents the index in the SWITCHPORT_PIN array
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5, 0 };
 
-// Type of digital output pins for signal LEDs
-// 0   : pin on the ESP-8266
-// 0x40: port on the 1st PCA9685
-// 0x41: port on the 2nd PCA9685
-// 0x42: port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
+// Type of digital output pins for signal port
+// 0   : LED output pin on the ESP-8266
+// 1   : Servo port (for form signals). SIGNALPORT_PIN represents the index in the SWITCHPORT_PIN array.
+// 0x40: LED port on the 1st PCA9685
+// 0x41: LED port on the 2nd PCA9685
+// 0x42: LED port on the 3rd PCA9685 etc.
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 1 };
 
 
 // SENSOR WIRING CONFIGURATION
