@@ -30,9 +30,6 @@ void MattzoMQTTPublisher::Setup(char *topic, const int messageQueueLength)
   // Keep the topic, so we can know where to send our messages to.
   _topic = topic;
 
-  // Setup and connect to WiFi.
-  MattzoWifiClient::Setup();
-
   // Setup MQTT client.
   mqttPublisherClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
   mqttPublisherClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);

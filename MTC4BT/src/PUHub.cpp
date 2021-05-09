@@ -46,7 +46,7 @@ void PUHub::DriveTaskLoop()
         // Serial.println(MapSpeedPercToRaw(_channelControllers.at(channel)->GetCurrentSpeedPerc()));
 
         // Construct drive command.
-        byte targetSpeed = MapSpeedPercToRaw(_channelControllers.at(channel)->GetCurrentSpeedPerc());
+        byte targetSpeed = getRawChannelSpeedForController(_channelControllers.at(channel));
         byte setMotorCommand[8] = {0x81, (byte)channel, 0x11, 0x51, 0x00, targetSpeed};
         int size = 6;
 

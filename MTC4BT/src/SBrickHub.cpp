@@ -72,29 +72,28 @@ void SBrickHub::DriveTaskLoop()
                 //     Serial.println(rawspd);
                 // }
             }
+        }
 
-            // Construct drive command.
-            uint8_t byteCmd[13] = {
-                CMD_DRIVE,
-                // getDriveCommand(HubChannel::A),
-                HubChannel::A,
-                channelIsDrivingForward(HubChannel::A),
-                getRawChannelSpeed(HubChannel::A),
-                HubChannel::B,
-                channelIsDrivingForward(HubChannel::B),
-                getRawChannelSpeed(HubChannel::B),
-                HubChannel::C,
-                channelIsDrivingForward(HubChannel::C),
-                getRawChannelSpeed(HubChannel::C),
-                HubChannel::D,
-                channelIsDrivingForward(HubChannel::D),
-                getRawChannelSpeed(HubChannel::D)};
+        // Construct drive command.
+        uint8_t byteCmd[13] = {
+            CMD_DRIVE,
+            HubChannel::A,
+            channelIsDrivingForward(HubChannel::A),
+            getRawChannelSpeed(HubChannel::A),
+            HubChannel::B,
+            channelIsDrivingForward(HubChannel::B),
+            getRawChannelSpeed(HubChannel::B),
+            HubChannel::C,
+            channelIsDrivingForward(HubChannel::C),
+            getRawChannelSpeed(HubChannel::C),
+            HubChannel::D,
+            channelIsDrivingForward(HubChannel::D),
+            getRawChannelSpeed(HubChannel::D)};
 
-            // Send drive command.
-            if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
-            {
-                Serial.println("Drive failed");
-            }
+        // Send drive command.
+        if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
+        {
+            Serial.println("Drive failed");
         }
 
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
@@ -129,5 +128,5 @@ bool SBrickHub::channelIsDrivingForward(HubChannel channel)
 uint8_t SBrickHub::getRawChannelSpeed(HubChannel channel)
 {
     ChannelController *controller = findControllerByChannel(channel);
-    return controller ? MapSpeedPercToRaw(controller->GetCurrentSpeedPerc()) : 0;
+    return controller ? getRawChannelSpeedForController(controller) : 0;
 }

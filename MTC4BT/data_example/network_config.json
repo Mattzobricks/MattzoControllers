@@ -1,0 +1,60 @@
+{
+	/* 
+        You can make the controller use a specific hostname in your network by configuring it here.
+        If not configured, the controller will generate a random hostname for you.
+    */
+	// "hostname": "MTC4BT",
+	"logging": {
+		/* 
+			The minimum log level to output to serial/syslog.
+			-"min_level":			"debug", "info", "warning", "error", "fatal".
+		*/
+		"min_level": "info",
+		"serial": {
+			/* 
+				Configure logging to serial monitor:
+				- "enabled":		true or false.
+			*/
+			"enabled": true
+		},
+		"syslog": {
+			/* 
+				Configure logging to syslog:
+				- "enabled":		true or false.
+				- "server": 		Your syslog server IP address.
+				- "port": 			Your syslow server port number.
+				- "appname":		The app name used by the controller when logging to syslog.
+			*/
+			"enabled": true,
+			"server": "192.168.x.y",
+			"port": 514,
+			"appname": "MTC4BT"
+		}
+	},
+	"wifi": {
+		/*
+			Configure your WiFi network:
+			- "SSID":				SSID of your WiFi network.
+			- "password":			Password required to connect to your WiFi network.
+			- "wait":				Delay in milliseconds between WiFi connect attempts.
+		*/
+		"SSID": "xxxxxx",
+		"password": "xxxxxx",
+		"wait": 500
+	},
+	"MQTT": {
+		/*
+			Configure your MQTT broker:
+			- "broker": 			Your MQTT broker IP address.
+			- "port": 				Your MQTT broker port number.
+			- "keepalive": 			
+			- "ping": 				Ping delay in seconds.
+			- "ebreakOnDisconnect": true or false
+		*/
+		"broker": "192.168.x.y",
+		"port": 1883,
+		"keepalive": 10,
+		"ping": 0,
+		"ebreakOnDisconnect": true
+	}
+}

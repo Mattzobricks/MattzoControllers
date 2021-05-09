@@ -1,0 +1,82 @@
+{
+	"locos": [
+		{
+			"address": 1,
+			"name": "YC7939",
+			"bleHubs": [
+				{
+					"type": "SBrick",
+					"address": "00:07:80:d0:47:43",
+					"channels": [
+						{
+							"channel": "B",
+							"attachedDevice": "light",
+							"speedStep": 10,
+							"breakStep": 20,
+							"direction": "forward"
+						},
+						{
+							"channel": "D",
+							"attachedDevice": "motor",
+							"speedStep": 10,
+							"breakStep": 20,
+							"direction": "forward"
+						}
+					]
+				}
+			]
+		},
+		{
+			"address": 2,
+			"name": "BC60052",
+			"bleHubs": [
+				{
+					"type": "SBrick",
+					"address": "88:6b:0f:23:78:10",
+					"channels": [
+						{
+							"channel": "B",
+							"attachedDevice": "motor",
+							"speedStep": 10,
+							"breakStep": 20,
+							"direction": "forward"
+						},
+						{
+							"channel": "D",
+							"attachedDevice": "light",
+							"speedStep": 10,
+							"breakStep": 20,
+							"direction": "forward"
+						}
+					]
+				}
+			]
+		},
+		{
+			"address": 3,
+			"name": "PT60197",
+			"bleHubs": [
+				{
+					"type": "PU",
+					"address": "90:84:2b:07:13:7f",
+					"channels": [
+						{
+							"channel": "A",
+							"attachedDevice": "light",
+							"speedStep": 5,
+							"breakStep": 10,
+							"direction": "forward"
+						},
+						{
+							"channel": "B",
+							"attachedDevice": "motor",
+							"speedStep": 8,
+							"breakStep": 100,
+							"direction": "forward"
+						}
+					]
+				}
+			]
+		}
+	]
+}

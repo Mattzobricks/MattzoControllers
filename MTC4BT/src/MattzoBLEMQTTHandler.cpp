@@ -1,6 +1,6 @@
 #include "MattzoBLEMQTTHandler.h"
 
-void MattzoBLEMQTTHandler::Handle(const char *message, ulong locoCount, BLELocomotive *locos[])
+void MattzoBLEMQTTHandler::Handle(const char *message, std::vector<BLELocomotive *> locos)
 {
     char *pos;
 
@@ -8,17 +8,17 @@ void MattzoBLEMQTTHandler::Handle(const char *message, ulong locoCount, BLELocom
     if ((pos = strstr(message, "<sys ")) != nullptr)
     {
         // found <sys
-        handleSys(pos, locoCount, locos);
+        handleSys(pos, locos);
     }
     else if ((pos = strstr(message, "<lc ")) != nullptr)
     {
         // found <lc
-        handleLc(pos, locoCount, locos);
+        handleLc(pos, locos);
     }
     else if ((pos = strstr(message, "<fn ")) != nullptr)
     {
         // found <fn
-        handleFn(pos, locoCount, locos);
+        handleFn(pos, locos);
     }
     else if ((pos = strstr(message, "<sw ")) != nullptr)
     {
@@ -30,7 +30,7 @@ void MattzoBLEMQTTHandler::Handle(const char *message, ulong locoCount, BLELocom
     } // IGNORE THE REST
 }
 
-void MattzoBLEMQTTHandler::handleSys(const char *message, ulong locoCount, BLELocomotive *locos[])
+void MattzoBLEMQTTHandler::handleSys(const char *message, std::vector<BLELocomotive *> locos)
 {
     char *cmd = nullptr;
     if (!XmlParser::tryReadCharAttr(message, "cmd", &cmd))
@@ -42,9 +42,9 @@ void MattzoBLEMQTTHandler::handleSys(const char *message, ulong locoCount, BLELo
     if (strcmp(cmd, "ebreak") == 0 || strcmp(cmd, "stop") == 0 || strcmp(cmd, "shutdown") == 0)
     {
         // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
-        for (int i = 0; i < locoCount; i++)
+        for (int i = 0; i < locos.size(); i++)
         {
-            locos[i]->EmergencyBreak(true);
+            locos.at(i)->EmergencyBreak(true);
         }
 
         return;
@@ -53,16 +53,16 @@ void MattzoBLEMQTTHandler::handleSys(const char *message, ulong locoCount, BLELo
     if (strcmp(cmd, "go") == 0)
     {
         // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
-        for (int i = 0; i < locoCount; i++)
+        for (int i = 0; i < locos.size(); i++)
         {
-            locos[i]->EmergencyBreak(false);
+            locos.at(i)->EmergencyBreak(false);
         }
 
         return;
     }
 }
 
-void MattzoBLEMQTTHandler::handleLc(const char *message, ulong locoCount, BLELocomotive *locos[])
+void MattzoBLEMQTTHandler::handleLc(const char *message, std::vector<BLELocomotive *> locos)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr))
@@ -71,10 +71,10 @@ void MattzoBLEMQTTHandler::handleLc(const char *message, ulong locoCount, BLELoc
         return;
     }
 
-    for (int i = 0; i < locoCount; i++)
+    for (int i = 0; i < locos.size(); i++)
     {
         // Find loco by address.
-        if (locos[i]->GetLocoAddress() == addr)
+        if (locos.at(i)->GetLocoAddress() == addr)
         {
             // Get target speed.
             int speed;
@@ -135,7 +135,7 @@ void MattzoBLEMQTTHandler::handleLc(const char *message, ulong locoCount, BLELoc
     }
 }
 
-void MattzoBLEMQTTHandler::handleFn(const char *message, ulong locoCount, BLELocomotive *locos[])
+void MattzoBLEMQTTHandler::handleFn(const char *message, std::vector<BLELocomotive *> locos)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr))
@@ -144,10 +144,10 @@ void MattzoBLEMQTTHandler::handleFn(const char *message, ulong locoCount, BLELoc
         return;
     }
 
-    for (int i = 0; i < locoCount; i++)
+    for (int i = 0; i < locos.size(); i++)
     {
         // Find loco by address.
-        if (locos[i]->GetLocoAddress() == addr)
+        if (locos.at(i)->GetLocoAddress() == addr)
         {
             // if (locos[i]->GetAutoLightsEnabled())
             // {

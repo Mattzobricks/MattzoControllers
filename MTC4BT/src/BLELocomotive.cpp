@@ -56,10 +56,10 @@ void BLELocomotive::SetFunction(const uint8_t fn, const bool on)
 
 void BLELocomotive::EmergencyBreak(const bool enabled)
 {
+    // Set e-break on all hubs.
     for (int i = 0; i < _hubs.size(); i++)
     {
-        BLEHub *hub = _hubs.at(i);
-        hub->EmergencyBreak(enabled);
+        _hubs.at(i)->EmergencyBreak(enabled);
     }
 }
 

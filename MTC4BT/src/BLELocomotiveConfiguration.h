@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Arduino.h>
-
 #include "BLEHubConfiguration.h"
 
 class BLELocomotiveConfiguration

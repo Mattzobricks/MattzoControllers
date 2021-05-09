@@ -40,6 +40,11 @@ int16_t ChannelController::GetCurrentSpeedPerc()
   return _currentSpeedPerc;
 }
 
+void ChannelController::SetCurrentSpeedPerc(int16_t speedPerc)
+{
+  _currentSpeedPerc = speedPerc;
+}
+
 uint8_t ChannelController::GetAbsCurrentSpeedPerc()
 {
   return abs(_currentSpeedPerc);

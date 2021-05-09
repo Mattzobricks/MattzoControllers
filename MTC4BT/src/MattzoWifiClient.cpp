@@ -1,99 +1,77 @@
-// MattzoController Network Configuration
-// Author: Dr. Matthias Runte
-// Copyright 2020 by Dr. Matthias Runte
-// License:
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// This file needs to be copied into the Arduino library folder
-// This location of this folder depends on your system. Usually it is located in the Documents folder of the current user
-// Example: C:\Users\matth\Documents\Arduino\libraries\MattzoBricks
-
-// Best practice:
-// 1. Navigate to Documents
-// 2. Find the folder Arduino/libraries
-// 3. Create a subfolder called "MattzoBricks"
-// 4. Copy this file into the MattzoBricks folder that you just created.
-
-// ******************
-// Included libraries
-// ******************
-
-// Arduino OTA library
-// Install via the built-in Library Manager of the Arduino IDE
-// Tested with Version V1.0.5
-#include <ArduinoOTA.h> // Over the air update library
-
-// WiFi library for ESP-32
+#include <ArduinoOTA.h>
+#ifdef ESP32
 #include <WiFi.h>
+#else
+#include <ESP8266WiFi.h>
+#endif
+#include <WiFiUdp.h>
 
+#include "log4MC.h"
 #include "MattzoWifiClient.h"
-#include "MattzoController_Library.h"
-#include "MC_Wifi_confg.h"
+#include "MCFS.h"
 
-/// <summary>
-/// Setup the WiFi client.
-/// </summary>
-void MattzoWifiClient::Setup()
+void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
 {
-  if (setupCompleted)
+  _config = config;
+
+  if (_setupCompleted)
   {
-    Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup already completed!");
+    log4MC::vlogf(LOG_WARNING, "Wifi: Setup already completed!");
     return;
   }
 
-  if (setupInitiated)
+  if (_setupInitiated)
   {
     Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup already initiated!");
     return;
   }
   else
   {
-    setupInitiated = true;
+    _setupInitiated = true;
   }
 
-#if defined(ESP8266)
-  WiFi.hostname(mattzoControllerName_char);
-#elif defined(ESP32)
+#ifdef ESP8266
+  WiFi.hostname(config->hostname);
+#endif
+
+  WiFi.mode(WIFI_STA);
+ 
+#ifdef ESP32
   // The following code SHOULD work without the disconnect and config lines,
   // but it doesn't do its job for some ESP32s.
   // see https://github.com/espressif/arduino-esp32/issues/2537
   WiFi.disconnect(true);
-  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-  WiFi.setHostname(mattzoControllerName_char);
-#else
-#error "Error: this sketch is designed for ESP8266 or ESP32 only."
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+  WiFi.setHostname(_config->hostname.c_str());
 #endif
 
-  Serial.print("[" + String(xPortGetCoreID()) + "] Wifi: Connecting (SSID: " + String(WIFI_SSID) + ").");
+  Serial.print("[" + String(xPortGetCoreID()) + "] Wifi: Connecting to " + _config->SSID.c_str() + ".");
 
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(_config->SSID.c_str(), config->password.c_str());
 
   // Loop until we actually connect.
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(WAIT_BETWEEN_WIFI_CONNECTS_MS);
+    delay(_config->DailyBetweenConnectAttempsInMs);
     Serial.print(".");
   }
 
   Serial.println();
 
+  log4MC::wifiIsConnected(true);
+  log4MC::info("Wifi: Connected (IPv4: " + WiFi.localIP().toString() + ").");
+
   // Start OTA listener.
-  ArduinoOTA.setHostname(mattzoControllerName_char);
-  ArduinoOTA.setPassword(OTA_PASSWORD);
-  ArduinoOTA.begin();
+  startOTA();
 
   // Setup completed.
-  setupCompleted = true;
+  _setupCompleted = true;
 }
 
-/// <summary>
-/// Blocking call waiting for a WiFi connection. It also handles OTA updates.
-/// </summary>
+// Blocking call waiting for a WiFi connection. It also handles OTA updates.
 void MattzoWifiClient::Assert()
 {
-  if (!setupCompleted)
+  if (!_setupCompleted)
   {
     Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup not completed. Execute .Setup() first.");
     return;
@@ -101,32 +79,86 @@ void MattzoWifiClient::Assert()
 
   if (WiFi.status() == WL_CONNECTED)
   {
+    log4MC::wifiIsConnected(true);
+
     // Handle any OTA updates.
     ArduinoOTA.handle();
     return;
   }
 
+  log4MC::wifiIsConnected(false);
+
   // Loop until we reconnect.
   while (WiFi.status() != WL_CONNECTED)
   {
-    if (wasConnected)
+    if (_wasConnected)
     {
-      wasConnected = false;
-      Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Connection " + String(WIFI_SSID) + " lost. Reconnecting...");
+      _wasConnected = false;
+      Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Connection " + _config->SSID.c_str() + " lost. Reconnecting...");
     }
 
-    // Re-test connection in half a second.
-    delay(WAIT_BETWEEN_WIFI_CONNECTS_MS);
+    // Re-test connection ater a small delay.
+    delay(_config->DailyBetweenConnectAttempsInMs);
   }
 
-  if (!wasConnected)
+  log4MC::wifiIsConnected(true);
+
+  if (!_wasConnected)
   {
-    wasConnected = true;
-    Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Connected (IPv4: " + WiFi.localIP().toString() + ").");
+    _wasConnected = true;
+    log4MC::vlogf(LOG_INFO,"Wifi: Connected (IPv4: %s).", WiFi.localIP().toString().c_str());
   }
 }
 
+void MattzoWifiClient::startOTA()
+{
+  ArduinoOTA.setHostname(_config->hostname.c_str());
+  ArduinoOTA.setPassword(_config->otaPassword.c_str());
+
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH)
+    {
+      type = "sketch";
+    }
+    else // U_SPIFFS
+    {
+      type = "filesystem";
+    }
+
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    CONFIGFS.end(); // make sure the filesystems are unmounted
+
+    Serial.println("Start updating " + type);
+  });
+
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR)
+      Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR)
+      Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR)
+      Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR)
+      Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR)
+      Serial.println("End Failed");
+  });
+
+  ArduinoOTA.begin();
+}
+
 // Initialize private static members.
-bool MattzoWifiClient::setupInitiated = false;
-bool MattzoWifiClient::setupCompleted = false;
-bool MattzoWifiClient::wasConnected = false;
+MCWiFiConfiguration *MattzoWifiClient::_config;
+bool MattzoWifiClient::_setupInitiated = false;
+bool MattzoWifiClient::_setupCompleted = false;
+bool MattzoWifiClient::_wasConnected = false;

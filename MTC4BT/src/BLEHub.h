@@ -76,6 +76,7 @@ private:
     void initChannelControllers();
     void setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
     void setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
+    uint8_t getRawChannelSpeedForController(ChannelController *controller);
     ChannelController *findControllerByChannel(HubChannel channel);
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
     BaseType_t startDriveTask();

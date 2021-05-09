@@ -1,25 +1,23 @@
 #pragma once
 
-/// <summary>
-/// Class used to connect to WiFi.
-/// </summary>
-class MattzoWifiClient {
+#include "MCWiFiConfiguration.h"
 
+// Class used to connect to WiFi.
+class MattzoWifiClient
+{
 public:
-  /// <summary>
-  /// Setup the WiFi client.
-  /// </summary>
-  static void Setup();
+  // Setup the WiFi client.
+  static void Setup(MCWiFiConfiguration *config);
 
-  /// <summary>
-  /// Blocking call waiting for a WiFi connection. It also handles OTA updates.
-  /// </summary>
+  // Blocking call waiting for a WiFi connection. It also handles OTA updates.
   static void Assert();
 
 private:
-  
+  static void startOTA();
+
   // Private static members.
-  static bool setupInitiated;
-  static bool setupCompleted;
-  static bool wasConnected;
+  static MCWiFiConfiguration *_config;
+  static bool _setupInitiated;
+  static bool _setupCompleted;
+  static bool _wasConnected;
 };

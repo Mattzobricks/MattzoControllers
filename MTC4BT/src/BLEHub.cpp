@@ -69,27 +69,24 @@ void BLEHub::SetLights(HubChannel channel, bool on)
 // If false, releases the emergency break.
 void BLEHub::EmergencyBreak(const bool enabled)
 {
-    // Set e-break status.
+    // Set hub e-break status.
     _ebreak = enabled;
 
     if (_ebreak)
     {
         Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Emergency breaking on channels: ");
         Serial.println(_channelControllers.size());
+
+        // Set e-break on all channels.
+        for (int i = 0; i < _channelControllers.size(); i++)
+        {
+            _channelControllers.at(i)->EmergencyBreak();
+        }
     }
     else
     {
         Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Emergency breaking lifted on channels: ");
         Serial.println(_channelControllers.size());
-    }
-
-    if (_ebreak)
-    {
-        for (int i = 0; i < _channelControllers.size(); i++)
-        {
-            ChannelController *controller = _channelControllers.at(i);
-            controller->EmergencyBreak();
-        }
     }
 }
 
@@ -203,9 +200,9 @@ void BLEHub::initChannelControllers()
 {
     // TODO: This method should be made more robust to prevent config errors, like configuring the same channel twice.
 
-    for (int i = 0; i < _config->Channels->size(); i++)
+    for (int i = 0; i < _config->Channels.size(); i++)
     {
-        ChannelConfiguration *config = _config->Channels->at(i);
+        ChannelConfiguration *config = _config->Channels.at(i);
 
         // Serial.print("Custructing controller for channel: ");
         // Serial.print(config.channel);
@@ -249,6 +246,17 @@ void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, At
         controller->SetMinSpeedPerc(minSpeedPerc);
         controller->SetTargetSpeedPerc(speedPerc);
     }
+}
+
+uint8_t BLEHub::getRawChannelSpeedForController(ChannelController *controller)
+{
+    if (_ebreak && controller->GetAttachedDevice() == AttachedDevice::LIGHT)
+    {
+        // Force blinking lights when e-break is enabled.
+        controller->SetCurrentSpeedPerc(controller->GetCurrentSpeedPerc() == 0 ? _config->LightPerc : 0);
+    }
+
+    return MapSpeedPercToRaw(controller->GetCurrentSpeedPerc());
 }
 
 ChannelController *BLEHub::findControllerByChannel(HubChannel channel)

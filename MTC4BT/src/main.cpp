@@ -1,17 +1,26 @@
 #include <Arduino.h>
 
-#include "MTC4BT_loco_config.h"
 #include "MC_mqtt_config.h"
+#include "MattzoWifiClient.h"
 #include "MattzoController_Library.h"
 #include "MattzoBLEMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
 #include "BLEHubScanner.h"
+#include "log4MC.h"
+#include "loadNetworkConfiguration.h"
+#include "loadControllerConfiguration.h"
 
 #define MATTZO_CONTROLLER_TYPE "MTC4BT"
 
 #define LIGHTS_ON true
 #define LIGHTS_OFF false
 #define LIGHTS_BLINK_DELAY_ON_CONNECT_MS 250
+
+// BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
+const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 5;
+
+// Duration between BLE discovery and connect attempts in seconds.
+const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 
 // Sets the watchdog timeout (0D &lt; timeout in 0.1 secs, 1 byte &gt;)
 // The purpose of the watchdog is to stop driving in case of an application failure.
@@ -27,6 +36,8 @@ const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 BLEHubScanner *hubScanner;
+MCNetworkConfiguration *networkConfig;
+MTC4BTConfiguration *config;
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
@@ -53,7 +64,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     {
         // Free the allocated memory block as we couldn't queue the message anyway.
         free(messagePtr);
-        Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Incoming MQTT message queue full");
+        log4MC::warn("Loop: Incoming MQTT message queue full");
     }
 }
 
@@ -70,7 +81,7 @@ void handleMQTTMessages(void *parm)
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
             // Parse message and translate to a BLE command for loco hub(s).
-            MattzoBLEMQTTHandler::Handle(message, numLocos, locos);
+            MattzoBLEMQTTHandler::Handle(message, config->Locomotives);
 
             // Erase message from memory by freeing it.
             free(message);
@@ -88,11 +99,23 @@ void setup()
 
     // Wait a moment to start (so we don't miss Serial output).
     delay(1000 / portTICK_PERIOD_MS);
-    Serial.println();
-    Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Starting MattzoTrainController for BLE...");
 
-    // Setup Mattzo controller.
+    Serial.println();
+    Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Starting MattzoTrainController for BLE...");
+
+    // Setup Mattzo controller name.
     setupMattzoController(MATTZO_CONTROLLER_TYPE);
+
+    // Load the network configuration.
+    Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Loading network configuration...");
+    networkConfig = loadNetworkConfiguration("/network_config.json");
+
+    // Setup logging (from now on we can use log4MC).
+    networkConfig->Logging->SysLog->mask = 0xff; // Log everything for now.
+    log4MC::Setup(networkConfig->WiFi->hostname, networkConfig->Logging);
+
+    // Setup and connect to WiFi.
+    MattzoWifiClient::Setup(networkConfig->WiFi);
 
     // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
     msg_queue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
@@ -106,11 +129,12 @@ void setup()
     // Setup MQTT subscriber.
     MattzoMQTTSubscriber::Setup(ROCRAIL_COMMAND_TOPIC, mqttCallback);
 
-    // Load the loco/hub configuration.
-    configureLocos();
+    // Load the controller configuration.
+    log4MC::info("Setup: Loading MattzoTrainController for BLE configuration...");
+    config = loadControllerConfiguration("/controller_config.json");
 
     // Initialize BLE client.
-    Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Initializing BLE...");
+    log4MC::info("Setup: Initializing BLE...");
     NimBLEDevice::init("");
 
     // Configure BLE scanner.
@@ -120,21 +144,21 @@ void setup()
     scanner->setActiveScan(true);
     hubScanner = new BLEHubScanner();
 
-    Serial.print("[" + String(xPortGetCoreID()) + "] Setup: Number of locos to discover Hubs for: ");
-    Serial.println(numLocos);
+    log4MC::info("Setup: MattzoTrainController for BLE running.");
+    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover Hubs for: %u", config->Locomotives.size());
 }
 
 void loop()
 {
     std::vector<BLEHub *> undiscoveredHubs;
 
-    for (int l = 0; l < numLocos; l++)
+    for (int l = 0; l < config->Locomotives.size(); l++)
     {
-        BLELocomotive *loco = locos[l];
+        BLELocomotive *loco = config->Locomotives.at(l);
 
         if (!loco->IsEnabled() || loco->AllHubsConnected())
         {
-            // Skip to the next loco.
+            // Loco is not in use or all hubs are already connected. Skip to the next loco.
             continue;
         }
 
@@ -164,10 +188,12 @@ void loop()
                     if (!hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
                     {
                         // Connect attempt failed. Will retry in next loop.
-                        Serial.println("[" + String(xPortGetCoreID()) + "] Loop: Connect failed");
+                        log4MC::warn("Loop: Connect failed. Will retry...");
                     }
                     else
                     {
+                        log4MC::vlogf(LOG_INFO,"Loop: Connected to loco '%s'.",loco->GetLocoName().c_str());
+
                         if (loco->AllHubsConnected())
                         {
                             // TODO: Make loco blink its lights, instead of the individual hub below.

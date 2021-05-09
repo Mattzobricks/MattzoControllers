@@ -30,9 +30,6 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
   // Keep the topic, so we can resubscribe to it later, if we need to.
   _topic = topic;
 
-  // Setup and connect to WiFi.
-  MattzoWifiClient::Setup();
-
   // Setup MQTT client.
   mqttSubscriberClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
   mqttSubscriberClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);

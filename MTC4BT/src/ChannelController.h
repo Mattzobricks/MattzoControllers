@@ -23,6 +23,9 @@ public:
   // Returns the current speed percentage (sign indicates direction: >0: forward, <0: backwards).
   int16_t GetCurrentSpeedPerc();
 
+  // Sets the current speed to the specified value (sign indicates direction: >0: forward, <0: backwards).
+  void SetCurrentSpeedPerc(int16_t speedPerc);
+
   // Returns the absolute current speed percentage (no direction indication).
   uint8_t GetAbsCurrentSpeedPerc();
 
