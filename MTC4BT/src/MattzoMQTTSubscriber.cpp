@@ -6,6 +6,7 @@
 #include "MattzoWifiClient.h"
 #include "MattzoController_Library.h"
 #include "MC_mqtt_config.h"
+#include "log4MC.h"
 
 WiFiClient wifiSubscriberClient;
 PubSubClient mqttSubscriberClient(wifiSubscriberClient);
@@ -23,7 +24,7 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
 
   if (_setupCompleted)
   {
-    Serial.println("[" + String(xPortGetCoreID()) + "] MQTT : Setup already completed!");
+    log4MC::warn("MQTT: Subscriber setup already completed!");
     return;
   }
 
@@ -53,7 +54,7 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
 /// <param name="parm">Message to send.</param>
 void MattzoMQTTSubscriber::sendMessage(char *topic, const char *message)
 {
-  // Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: [" + topic + "] " + message);
+  log4MC::vlogf(LOG_DEBUG, "MQTT: Sending message [%s] %s", topic, message);
   mqttSubscriberClient.publish(topic, message);
 }
 
@@ -64,7 +65,7 @@ void MattzoMQTTSubscriber::reconnect()
 {
   while (!mqttSubscriberClient.connected())
   {
-    Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Subscriber attempting to connect...");
+    log4MC::info("MQTT: Subscriber sending last will...");
 
     String lastWillMessage;
     if (TriggerBreakOnDisconnect)
@@ -78,17 +79,17 @@ void MattzoMQTTSubscriber::reconnect()
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
+    log4MC::info("MQTT: Subscriber attempting to connect...");
+
     if (mqttSubscriberClient.connect(_subscriberName, _topic, 0, false, lastWillMessage_char))
     {
-      Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Subscriber connected");
+      log4MC::info("MQTT: Subscriber connected");
       mqttSubscriberClient.subscribe(_topic);
-      Serial.println("[" + String(xPortGetCoreID()) + "] MQTT: Subscriber subscribed to topic '" + _topic + "'");
+      log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", _topic);
     }
     else
     {
-      Serial.print("[" + String(xPortGetCoreID()) + "] MQTT: Subscriber connect failed, rc=");
-      Serial.print(mqttSubscriberClient.state());
-      Serial.println(". Try again in a few seconds...");
+      log4MC::vlogf(LOG_WARNING, "MQTT: Subscriber connect failed, rc=%u. Try again in a few seconds...", mqttSubscriberClient.state());
 
       // Wait a litte while before retrying.
       vTaskDelay(ReconnectDelayInMilliseconds / portTICK_PERIOD_MS);
@@ -104,7 +105,9 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 {
   if (!_setupCompleted)
   {
-    throw "Setup not completed. Execute .Setup() first.";
+    const char *message = "MQTT: Setup not completed. Execute .Setup() first.";
+    log4MC::error(message);
+    throw message;
   }
 
   // Loop forever
@@ -146,5 +149,5 @@ uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
 uint16_t MattzoMQTTSubscriber::MaxBufferSize = 1024;
 bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();
-char MattzoMQTTSubscriber::_subscriberName[60] ="Unknown";
+char MattzoMQTTSubscriber::_subscriberName[60] = "Unknown";
 char *MattzoMQTTSubscriber::_topic = (char *)"Unknown";

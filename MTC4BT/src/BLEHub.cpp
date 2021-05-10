@@ -5,6 +5,7 @@
 #include "BLEHub.h"
 #include "AdvertisedBLEDeviceCallbacks.h"
 #include "BLEClientCallback.h"
+#include "log4MC.h"
 
 BLEHub::BLEHub(BLEHubConfiguration *config)
 {
@@ -74,8 +75,7 @@ void BLEHub::EmergencyBreak(const bool enabled)
 
     if (_ebreak)
     {
-        Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Emergency breaking on channels: ");
-        Serial.println(_channelControllers.size());
+        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-breaking on all channels.", _config->DeviceAddress->toString().c_str());
 
         // Set e-break on all channels.
         for (int i = 0; i < _channelControllers.size(); i++)
@@ -85,8 +85,7 @@ void BLEHub::EmergencyBreak(const bool enabled)
     }
     else
     {
-        Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Emergency breaking lifted on channels: ");
-        Serial.println(_channelControllers.size());
+        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-break lifted on all channels.", _config->DeviceAddress->toString().c_str());
     }
 }
 
@@ -98,8 +97,7 @@ bool BLEHub::GetAutoLightsEnabled()
 
 bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-    Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Connecting to ");
-    Serial.println(_config->DeviceAddress->toString().c_str());
+    log4MC::vlogf(LOG_INFO, "BLE : Connecting to %s...", _config->DeviceAddress->toString().c_str());
 
     /** Check if we have a client we should reuse first **/
     if (NimBLEDevice::getClientListSize())
@@ -120,8 +118,8 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
             /* Serial.println("Reconnected client"); */
         }
         /** We don't already have a client that knows this device,
-     *  we will check for a client that is disconnected that we can use.
-     */
+         *  we will check for a client that is disconnected that we can use.
+         */
         else
         {
             _hub = NimBLEDevice::getDisconnectedClient();
@@ -133,7 +131,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
     {
         if (NimBLEDevice::getClientListSize() >= NIMBLE_MAX_CONNECTIONS)
         {
-            Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Max clients reached - no more connections available");
+            log4MC::warn("BLE : Max clients reached - no more connections available.");
             _isDiscovered = false;
             return false;
         }
@@ -161,7 +159,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         {
             /** Created a client but failed to connect, don't need to keep it as it has no data */
             NimBLEDevice::deleteClient(_hub);
-            Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Failed to connect, deleted client");
+            log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to %s, deleted client.", _config->DeviceAddress->toString().c_str());
             _isDiscovered = false;
             return false;
         }
@@ -171,13 +169,11 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
     {
         if (!_hub->connect(_advertisedDevice))
         {
-            Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Failed to connect");
+            log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to %s.", _config->DeviceAddress->toString().c_str());
             _isDiscovered = false;
             return false;
         }
     }
-
-    //Serial.println(" - Connected to server");
 
     // Try to obtain a reference to the remote control characteristic in the remote control service of the BLE server.
     // If we can set the watchdog timeout, we consider our connection attempt a success.
@@ -203,23 +199,10 @@ void BLEHub::initChannelControllers()
     for (int i = 0; i < _config->Channels.size(); i++)
     {
         ChannelConfiguration *config = _config->Channels.at(i);
-
-        // Serial.print("Custructing controller for channel: ");
-        // Serial.print(config.channel);
-        // Serial.print(", device: ");
-        // Serial.print(config.device);
-        // Serial.print(", min: ");
-        // Serial.print(-254);
-        // Serial.print(", max: ");
-        // Serial.print(254);
-        // Serial.print(", speedStep: ");
-        // Serial.print(config.speedStep);
-        // Serial.print(", brakeStep: ");
-        // Serial.print(config.brakeStep);
-        // Serial.println();
-
         _channelControllers.push_back(new ChannelController(config));
     }
+
+    log4MC::vlogf(LOG_INFO, "BLE : Hub %s channels initialized.", _config->DeviceAddress->toString().c_str());
 }
 
 void BLEHub::setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc)
@@ -242,7 +225,6 @@ void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, At
     ChannelController *controller = findControllerByChannel(channel);
     if (controller != nullptr && controller->GetAttachedDevice() == device)
     {
-        // Serial.println("Found channel with device");
         controller->SetMinSpeedPerc(minSpeedPerc);
         controller->SetTargetSpeedPerc(speedPerc);
     }

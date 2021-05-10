@@ -2,6 +2,7 @@
 #include "NimBLEDevice.h"
 #include "BLEHub.h"
 #include "AdvertisedBLEDeviceCallbacks.h"
+#include "log4MC.h"
 
 AdvertisedBLEDeviceCallbacks::AdvertisedBLEDeviceCallbacks(std::vector<BLEHub *> hubs) : NimBLEAdvertisedDeviceCallbacks()
 {
@@ -20,8 +21,7 @@ void AdvertisedBLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDe
 
         if (advertisedDevice->getAddress().equals(*hub->_config->DeviceAddress))
         {
-            Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Discovered device: ");
-            Serial.println(advertisedDevice->toString().c_str());
+            log4MC::vlogf(LOG_INFO, "BLE : Discovered hub %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
 
             hub->_advertisedDevice = advertisedDevice;
             hub->_isDiscovered = true;
@@ -31,8 +31,7 @@ void AdvertisedBLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDe
 
     if (!advertisedDeviceFound)
     {
-        Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Discovered unknown device: ");
-        Serial.println(advertisedDevice->getAddress().toString().c_str());
+        log4MC::vlogf(LOG_INFO, "BLE : Discovered unknown device %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
     }
 
     // If we have no more hubs to discover, we can stop scanning now.

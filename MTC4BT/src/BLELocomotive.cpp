@@ -1,11 +1,11 @@
 #include "BLELocomotive.h"
 #include "SBrickHub.h"
 #include "PUHub.h"
+#include "log4MC.h"
 
 BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config)
 {
     _config = config;
-
     initHubs(config->_hubs);
 }
 
@@ -33,6 +33,7 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t speed)
     if (!AllHubsConnected())
     {
         // Ignore drive command.
+        log4MC::vlogf(LOG_INFO, "Loco: %s ignored drive command because not all its hubs are connected (yet).", _config->_name.c_str());
         return;
     }
 
@@ -57,6 +58,15 @@ void BLELocomotive::SetFunction(const uint8_t fn, const bool on)
 void BLELocomotive::EmergencyBreak(const bool enabled)
 {
     // Set e-break on all hubs.
+    if (enabled)
+    {
+        log4MC::vlogf(LOG_WARNING, "Loco: %s e-breaking on all hubs.", _config->_name.c_str());
+    }
+    else
+    {
+        log4MC::vlogf(LOG_WARNING, "Loco: %s releasing e-break on all hubs.", _config->_name.c_str());
+    }
+
     for (int i = 0; i < _hubs.size(); i++)
     {
         _hubs.at(i)->EmergencyBreak(enabled);
@@ -103,4 +113,6 @@ void BLELocomotive::initHubs(std::vector<BLEHubConfiguration *> hubConfigs)
             break;
         }
     }
+
+    log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
 }

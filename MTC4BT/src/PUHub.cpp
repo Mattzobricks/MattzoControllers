@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "PUHub.h"
+#include "log4MC.h"
 
 #define MAX_PUHUB_CHANNEL_COUNT 2
 
@@ -18,16 +19,17 @@ bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 
   if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID))
   {
+    log4MC::error("BLE : Unable to attach to remote control service.");
     return false;
   }
 
   if (!_remoteControlCharacteristic->canWrite())
   {
+    log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
     return false;
   }
 
-  Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Watchdog timeout successfully set to s/10: ");
-  Serial.println(_watchdogTimeOutInTensOfSeconds);
+  log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout successfully set to s/10: ", _watchdogTimeOutInTensOfSeconds);
 
   return true;
 }
@@ -56,7 +58,7 @@ void PUHub::DriveTaskLoop()
         // Send drive command.
         if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
         {
-          Serial.println("Drive failed");
+          log4MC::error("BLE : Drive failed. Unabled to write to characteristic.");
         }
       }
     }

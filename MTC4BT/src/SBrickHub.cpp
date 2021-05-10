@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "SBrickHub.h"
+#include "log4MC.h"
 
 #define MAX_SBRICK_CHANNEL_COUNT 4
 
@@ -27,28 +28,31 @@ bool SBrickHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 
     if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID))
     {
+        log4MC::error("BLE : Unable to attach to remote control service.");
         return false;
     }
 
     if (!_remoteControlCharacteristic->canWrite())
     {
+        log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
         return false;
     }
 
     uint8_t byteWrite[2] = {CMD_SET_WATCHDOG_TIMEOUT, watchdogTimeOutInTensOfSeconds};
     if (!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false))
     {
+        log4MC::error("BLE : Writing remote control characteristic failed.");
         return false;
     }
 
     uint8_t byteRead[1] = {CMD_GET_WATCHDOG_TIMEOUT};
     if (!_remoteControlCharacteristic->writeValue(byteRead, sizeof(byteRead), false))
     {
+        log4MC::error("BLE : Writing remote control characteristic failed.");
         return false;
     }
 
-    Serial.print("[" + String(xPortGetCoreID()) + "] BLE : Watchdog timeout successfully set to s/10: ");
-    Serial.println(_remoteControlCharacteristic->readValue<uint8_t>());
+    log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout successfully set to s/10: ", _remoteControlCharacteristic->readValue<uint8_t>());
 
     return true;
 }
@@ -63,14 +67,6 @@ void SBrickHub::DriveTaskLoop()
             for (int channel = 0; channel < _channelControllers.size(); channel++)
             {
                 _channelControllers.at(channel)->UpdateCurrentSpeedPerc();
-
-                // int16_t rawspd = MapSpeedPercToRaw(_channelControllers.at(channel)->GetCurrentSpeedPerc());
-                // if (rawspd != 0)
-                // {
-                //     Serial.print(channel);
-                //     Serial.print(": rawspd=");
-                //     Serial.println(rawspd);
-                // }
             }
         }
 
@@ -93,7 +89,7 @@ void SBrickHub::DriveTaskLoop()
         // Send drive command.
         if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
         {
-            Serial.println("Drive failed");
+            log4MC::error("BLE : Drive failed. Unabled to write to characteristic.");
         }
 
         // Wait half the watchdog timeout (converted from s/10 to s/1000).

@@ -35,7 +35,7 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
 #endif
 
   WiFi.mode(WIFI_STA);
- 
+
 #ifdef ESP32
   // The following code SHOULD work without the disconnect and config lines,
   // but it doesn't do its job for some ESP32s.
@@ -73,7 +73,7 @@ void MattzoWifiClient::Assert()
 {
   if (!_setupCompleted)
   {
-    Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Setup not completed. Execute .Setup() first.");
+    log4MC::error("Wifi: Setup not completed. Execute .Setup() first.");
     return;
   }
 
@@ -94,7 +94,7 @@ void MattzoWifiClient::Assert()
     if (_wasConnected)
     {
       _wasConnected = false;
-      Serial.println("[" + String(xPortGetCoreID()) + "] Wifi: Connection " + _config->SSID.c_str() + " lost. Reconnecting...");
+      log4MC::vlogf(LOG_WARNING, "Wifi: Connection to %s lost. Reconnecting...", _config->SSID.c_str());
     }
 
     // Re-test connection ater a small delay.
@@ -106,7 +106,7 @@ void MattzoWifiClient::Assert()
   if (!_wasConnected)
   {
     _wasConnected = true;
-    log4MC::vlogf(LOG_INFO,"Wifi: Connected (IPv4: %s).", WiFi.localIP().toString().c_str());
+    log4MC::vlogf(LOG_INFO, "Wifi: Connected (IPv4: %s).", WiFi.localIP().toString().c_str());
   }
 }
 
@@ -129,32 +129,33 @@ void MattzoWifiClient::startOTA()
     // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
     CONFIGFS.end(); // make sure the filesystems are unmounted
 
-    Serial.println("Start updating " + type);
+    log4MC::vlogf(LOG_INFO, "OTA: Started updating %s...", type);
   });
 
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
+    log4MC::info("OTA: Update completed.");
   });
 
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    log4MC::vlogf(LOG_INFO, "OTA: Progress: %u%%\r", (progress / (total / 100)));
   });
 
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
+    log4MC::vlogf(LOG_ERR, "OTA: Error [%u]: ", error);
     if (error == OTA_AUTH_ERROR)
-      Serial.println("Auth Failed");
+      log4MC::error("OTA: Auth failed.");
     else if (error == OTA_BEGIN_ERROR)
-      Serial.println("Begin Failed");
+      log4MC::error("OTA: Begin failed.");
     else if (error == OTA_CONNECT_ERROR)
-      Serial.println("Connect Failed");
+      log4MC::error("OTA: Connect failed.");
     else if (error == OTA_RECEIVE_ERROR)
-      Serial.println("Receive Failed");
+      log4MC::error("OTA: Receive failed.");
     else if (error == OTA_END_ERROR)
-      Serial.println("End Failed");
+      log4MC::error("OTA: End failed.");
   });
 
   ArduinoOTA.begin();
+  log4MC::info("OTA: Initialized.");
 }
 
 // Initialize private static members.

@@ -111,7 +111,7 @@ void setup()
     networkConfig = loadNetworkConfiguration("/network_config.json");
 
     // Setup logging (from now on we can use log4MC).
-    networkConfig->Logging->SysLog->mask = 0xff; // Log everything for now.
+    // networkConfig->Logging->SysLog->mask = 0xff; // Log everything for now.
     log4MC::Setup(networkConfig->WiFi->hostname, networkConfig->Logging);
 
     // Setup and connect to WiFi.

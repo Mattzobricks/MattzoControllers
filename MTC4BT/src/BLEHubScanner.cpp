@@ -4,6 +4,7 @@
 
 #include "BLEHubScanner.h"
 #include "AdvertisedBLEDeviceCallbacks.h"
+#include "log4MC.h"
 
 BLEHubScanner::BLEHubScanner()
 {
@@ -21,15 +22,19 @@ void BLEHubScanner::StartDiscovery(NimBLEScan *scanner, std::vector<BLEHub *> &h
     // Start discovery.
     _isDiscovering = true;
 
-    Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scanning for " + hubs.size() + " hub(s)...");
+    log4MC::vlogf(LOG_INFO, "BLE : Scanning for %u hub(s)...", hubs.size());
+
     // Set the callback we want to use to be informed when we have detected a new device.
     if (_advertisedDeviceCallback == nullptr)
     {
         _advertisedDeviceCallback = new AdvertisedBLEDeviceCallbacks(hubs);
     }
+
     scanner->setAdvertisedDeviceCallbacks(_advertisedDeviceCallback);
     scanner->start(scanDurationInSeconds, false);
-    Serial.println("[" + String(xPortGetCoreID()) + "] BLE : Scanning for " + hubs.size() + " hub(s) aborted.");
 
+    log4MC::vlogf(LOG_INFO, "BLE : Scanning for %u hub(s) aborted.", hubs.size());
+
+    // Discovery stopped.
     _isDiscovering = false;
 }

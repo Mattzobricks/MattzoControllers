@@ -86,19 +86,6 @@ bool ChannelController::UpdateCurrentSpeedPerc()
     return true;
   }
 
-  // Serial.print(_channel);
-  // Serial.print(": tarspd=");
-  // Serial.print(_targetSpeedPerc);
-  // Serial.print(" curspd=");
-  // Serial.print(_currentSpeedPerc);
-  // Serial.print(" step=");
-  // Serial.print(speedStep);
-  // Serial.print(" newspd=");
-  // Serial.print(newSpeedPerc);
-  // Serial.print(" minspd=");
-  // Serial.print(_minSpeedPerc);
-  // Serial.println();
-
   if (abs(newSpeedPerc) < _minSpeedPerc)
   {
     // New speed is slower than min speed, force to min speed or stop immediately (dependend on wether we're accelarating or decelerating).
