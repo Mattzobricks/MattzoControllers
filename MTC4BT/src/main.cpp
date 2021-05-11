@@ -192,7 +192,7 @@ void loop()
                     }
                     else
                     {
-                        log4MC::vlogf(LOG_INFO,"Loop: Connected to loco '%s'.",loco->GetLocoName().c_str());
+                        log4MC::vlogf(LOG_INFO, "Loop: Connected to loco '%s'.", loco->GetLocoName().c_str());
 
                         if (loco->AllHubsConnected())
                         {
@@ -221,8 +221,8 @@ void loop()
     {
         // Start discovery for undiscovered hubs.
         hubScanner->StartDiscovery(scanner, undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
-    }
 
-    // Delay next scan/connect attempt for a while, allowing the background tasks of already connected Hubs to send their periodic drive commands.
-    delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
+        // Delay next discovery/connect attempts for a while, allowing the background tasks of already connected Hubs to send their periodic drive commands.
+        delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
+    }
 }
