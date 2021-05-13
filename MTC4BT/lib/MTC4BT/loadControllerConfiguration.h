@@ -5,6 +5,8 @@
 
 #include "MTC4BTConfiguration.h"
 
+#define DEFAULT_CONTROLLER_NAME "MTC4BT"
+
 MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 {
     // New up a configation object, so we can set its properties.
@@ -53,6 +55,11 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         return config;
     }
 
+    // Read controller name.
+    const char *controllerName = doc["name"] | DEFAULT_CONTROLLER_NAME;
+    config->ControllerName = controllerName;
+    log4MC::vlogf(LOG_INFO, "Controller name: %s", config->ControllerName);
+
     // Iterate over loco configs and copy values from the JsonDocument to BLELocomotiveConfiguration objects.
     JsonArray locoConfigs = doc["locos"].as<JsonArray>();
     for (JsonObject locoConfig : locoConfigs)
@@ -67,6 +74,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         // Iterate over hub configs and copy values from the JsonDocument to BLEHubConfiguration objects.
         std::vector<BLEHubConfiguration *> hubs;
         JsonArray hubConfigs = locoConfig["bleHubs"].as<JsonArray>();
+
         for (JsonObject hubConfig : hubConfigs)
         {
             // Read hub specific properties.
@@ -91,7 +99,8 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, lightPerc, autoLightsOnEnabled, enabled));
         }
 
-        config->Locomotives.push_back(new BLELocomotive(new BLELocomotiveConfiguration(address, name, hubs, lightPerc, autoLightsOnEnabled, enabled)));
+        BLELocomotive *loco = new BLELocomotive(new BLELocomotiveConfiguration(address, name, hubs, lightPerc, autoLightsOnEnabled, enabled));
+        config->Locomotives.push_back(loco);
     }
 
     // Close the config file.

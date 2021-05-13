@@ -1,16 +1,22 @@
 #include <Arduino.h>
 
-#include "MC_mqtt_config.h"
 #include "MattzoWifiClient.h"
-#include "MattzoController_Library.h"
 #include "MattzoBLEMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
 #include "BLEHubScanner.h"
 #include "log4MC.h"
 #include "loadNetworkConfiguration.h"
 #include "loadControllerConfiguration.h"
-
-#define MATTZO_CONTROLLER_TYPE "MTC4BT"
+#include "MCStatusLED.h"
+#ifdef ESP32
+// default pin for esp32doit-devkit-v1
+#define STATUS_LED 2
+#define STATUS_LED_INVERTED false
+#else
+// default pin for nodemcuv2
+#define STATUS_LED LED_BUILDIN
+#define STATUS_LED_INVERTED true
+#endif
 
 #define LIGHTS_ON true
 #define LIGHTS_OFF false
@@ -33,6 +39,7 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
 
 // Globals
+MCStatusLED *statusled;
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 BLEHubScanner *hubScanner;
@@ -92,6 +99,14 @@ void handleMQTTMessages(void *parm)
     }
 }
 
+void statusLoop(void *parm)
+{
+    for (;;)
+    {
+        statusled->UpdateStatusLED();
+    }
+}
+
 void setup()
 {
     // Configure Serial.
@@ -103,16 +118,23 @@ void setup()
     Serial.println();
     Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Starting MattzoTrainController for BLE...");
 
-    // Setup Mattzo controller name.
-    setupMattzoController(MATTZO_CONTROLLER_TYPE);
-
     // Load the network configuration.
     Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Loading network configuration...");
     networkConfig = loadNetworkConfiguration("/network_config.json");
 
     // Setup logging (from now on we can use log4MC).
-    // networkConfig->Logging->SysLog->mask = 0xff; // Log everything for now.
     log4MC::Setup(networkConfig->WiFi->hostname, networkConfig->Logging);
+
+    // Load the controller configuration.
+    Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Loading controller configuration...");
+    config = loadControllerConfiguration("/controller_config.json");
+
+    // Setup status LED.
+    // TODO: Get LED pin and inversion state from controller config.
+    statusled = new MCStatusLED(STATUS_LED, STATUS_LED_INVERTED);
+
+    // Start status task loop.
+    xTaskCreatePinnedToCore(statusLoop, "StatusLoop", 1024, NULL, 1, NULL, 1);
 
     // Setup and connect to WiFi.
     MattzoWifiClient::Setup(networkConfig->WiFi);
@@ -120,18 +142,15 @@ void setup()
     // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
     msg_queue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
 
-    // Start task loop to handle queued MQTT messages.
+    // Start MQTT task loop to handle queued messages.
     xTaskCreatePinnedToCore(handleMQTTMessages, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
 
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
     // MattzoMQTTPublisher::Setup(ROCRAIL_COMMAND_QUEUE, MQTT_OUTGOING_QUEUE_LENGTH);
 
-    // Setup MQTT subscriber.
-    MattzoMQTTSubscriber::Setup(ROCRAIL_COMMAND_TOPIC, mqttCallback);
-
-    // Load the controller configuration.
-    log4MC::info("Setup: Loading MattzoTrainController for BLE configuration...");
-    config = loadControllerConfiguration("/controller_config.json");
+    // Setup MQTT subscriber (use controller name as part of the subscriber name).
+    networkConfig->MQTT->SubscriberName = config->ControllerName;
+    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, mqttCallback);
 
     // Initialize BLE client.
     log4MC::info("Setup: Initializing BLE...");

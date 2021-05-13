@@ -6,15 +6,15 @@ void log4MC::Setup(std::string hostName, MCLoggingConfiguration *config)
 
     if (_config->SysLog->Enabled)
     {
-        Serial.print("Syslog server: ");
+        Serial.print("Syslog: Server: ");
         Serial.print(config->SysLog->ServerAddress.c_str());
         Serial.print(":");
         Serial.println(config->SysLog->ServerPort);
         
-        Serial.print("Hostname: ");
+        Serial.print("Syslog: Hostname: ");
         Serial.println(hostName.c_str());
 
-        Serial.print("Appname: ");
+        Serial.print("Syslog: Appname: ");
         Serial.println(config->SysLog->AppName.c_str());
 
         syslog.server(config->SysLog->ServerAddress.c_str(), config->SysLog->ServerPort);

@@ -108,6 +108,19 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
     // Attach WiFi configuration.
     config->WiFi = wifi;
 
+    // Read MQTT configuration.
+    MCMQTTConfiguration *mqtt = new MCMQTTConfiguration();
+    JsonObject mqttConfig = doc["mqtt"];
+    mqtt->ServerAddress = mqttConfig["broker"].as<std::string>();
+    mqtt->ServerPort = mqttConfig["port"] | 1883;
+    mqtt->KeepAlive = mqttConfig["keepalive"] | 10;
+    mqtt->Ping = mqttConfig["ping"] | 0;
+    mqtt->EbreakOnDisconnect = mqttConfig["ebreakOnDisconnect"] | false;
+    mqtt->Topic = "rocrail/service/command";
+
+    // Attach MQTT configuration.
+    config->MQTT = mqtt;
+
     // Close the config file.
     file.close();
 

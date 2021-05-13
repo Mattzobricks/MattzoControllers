@@ -68,6 +68,22 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
   _setupCompleted = true;
 }
 
+int MattzoWifiClient::GetStatus()
+{
+  if (!_setupInitiated)
+  {
+    return WL_UNINITIALIZED;
+  }
+  else if (!_setupCompleted)
+  {
+    return WL_INITIALIZING;
+  }
+  else
+  {
+    return WiFi.status();
+  }
+}
+
 // Blocking call waiting for a WiFi connection. It also handles OTA updates.
 void MattzoWifiClient::Assert()
 {

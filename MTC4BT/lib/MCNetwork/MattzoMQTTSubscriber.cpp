@@ -1,26 +1,18 @@
-// PubSubClient library by Nick O'Leary
-// Install via the built-in Library Manager of the Arduino IDE
-// Tested with Version V2.8.0
 #include <PubSubClient.h>
 #include "MattzoMQTTSubscriber.h"
 #include "MattzoWifiClient.h"
-#include "MattzoController_Library.h"
-#include "MC_mqtt_config.h"
 #include "log4MC.h"
 
 WiFiClient wifiSubscriberClient;
 PubSubClient mqttSubscriberClient(wifiSubscriberClient);
 
-/// <summary>
-/// Setup the MQTT Subscriber.
-/// </summary>
-/// <param name="topic">Topic to subscribe to.</param>
-/// <param name="callback">Callback method to call when a message arrives.</param>
-void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *, unsigned int))
+void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*callback)(char *, uint8_t *, unsigned int))
 {
 #if !defined(ESP32)
 #error "Error: this sketch is designed for ESP32 only."
 #endif
+
+  _config = config;
 
   if (_setupCompleted)
   {
@@ -28,17 +20,15 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
     return;
   }
 
-  // Keep the topic, so we can resubscribe to it later, if we need to.
-  _topic = topic;
-
   // Setup MQTT client.
-  mqttSubscriberClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
-  mqttSubscriberClient.setKeepAlive(MQTT_KEEP_ALIVE_INTERVAL);
+  log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
+  mqttSubscriberClient.setServer(_config->ServerAddress.c_str(), _config->ServerPort);
+  mqttSubscriberClient.setKeepAlive(_config->KeepAlive);
   mqttSubscriberClient.setBufferSize(MaxBufferSize);
   mqttSubscriberClient.setCallback(callback);
 
   // Construct subscriber name.
-  strcpy(_subscriberName, mattzoControllerName_char);
+  strcpy(_subscriberName, _config->SubscriberName);
   strcat(_subscriberName, "Subscriber");
 
   // Start task loop.
@@ -46,6 +36,11 @@ void MattzoMQTTSubscriber::Setup(char *topic, void (*callback)(char *, uint8_t *
 
   // Setup completed.
   _setupCompleted = true;
+}
+
+int MattzoMQTTSubscriber::GetStatus()
+{
+  return _setupCompleted ? mqttSubscriberClient.state() : MQTT_UNINITIALIZED;
 }
 
 /// <summary>
@@ -65,27 +60,27 @@ void MattzoMQTTSubscriber::reconnect()
 {
   while (!mqttSubscriberClient.connected())
   {
-    log4MC::info("MQTT: Subscriber sending last will...");
+    log4MC::info("MQTT: Subscriber configuring last will...");
 
     String lastWillMessage;
-    if (TriggerBreakOnDisconnect)
+    if (_config->EbreakOnDisconnect)
     {
-      lastWillMessage = "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"" + mattzoControllerName + "\"/>";
+      lastWillMessage = "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"" + String(_config->SubscriberName) + "\"/>";
     }
     else
     {
-      lastWillMessage = "<info msg=\"mc_disconnected\" source=\"lastwill\" mc=\"" + mattzoControllerName + "\"/>";
+      lastWillMessage = "<info msg=\"mc_disconnected\" source=\"lastwill\" mc=\"" + String(_config->SubscriberName) + "\"/>";
     }
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
     log4MC::info("MQTT: Subscriber attempting to connect...");
 
-    if (mqttSubscriberClient.connect(_subscriberName, _topic, 0, false, lastWillMessage_char))
+    if (mqttSubscriberClient.connect(_subscriberName, _config->Topic, 0, false, lastWillMessage_char))
     {
       log4MC::info("MQTT: Subscriber connected");
-      mqttSubscriberClient.subscribe(_topic);
-      log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", _topic);
+      mqttSubscriberClient.subscribe(_config->Topic);
+      log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", _config->Topic);
     }
     else
     {
@@ -122,7 +117,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
       reconnect();
     }
 
-    if (PingDelayInMilliseconds > 0 && millis() - lastPing >= PingDelayInMilliseconds)
+    if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000)
     {
       lastPing = millis();
 
@@ -139,15 +134,14 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 }
 
 // Initialize static members.
-bool MattzoMQTTSubscriber::TriggerBreakOnDisconnect = false;
 int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
-int MattzoMQTTSubscriber::PingDelayInMilliseconds = 10000;
 int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 50;
 uint8_t MattzoMQTTSubscriber::TaskPriority = 1;
 int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
 uint16_t MattzoMQTTSubscriber::MaxBufferSize = 1024;
+
 bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();
 char MattzoMQTTSubscriber::_subscriberName[60] = "Unknown";
-char *MattzoMQTTSubscriber::_topic = (char *)"Unknown";
+MCMQTTConfiguration *MattzoMQTTSubscriber::_config = nullptr;

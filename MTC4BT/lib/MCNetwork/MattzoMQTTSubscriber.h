@@ -8,23 +8,38 @@
 #include <PubSubClient.h>
 
 // WiFi library for ESP-32
-#include <WiFi.h>
+#include <Wifi.h>
+#include "MCMQTTConfiguration.h"
 
-extern WiFiClient wifiPublisherClient;
-extern PubSubClient mqttPublisherClient;
+// MQTT task priority.
+#define MQTT_TASK_PRIORITY 1
+
+// MQTT handle message task core ID.
+#define MQTT_HANDLE_MESSAGE_TASK_COREID 1
+
+// The size of the MQTT task stack specified as the number of bytes.
+#define MQTT_TASK_STACK_DEPTH 2048
+
+// Number of message received the MQTT queue can hold before we start dropping them.
+// Please note the more messages allowed to be queued, the more (heap) memory we consume.
+#define MQTT_INCOMING_QUEUE_LENGTH 100
+
+// Number of message to send the MQTT queue can hold before we start dropping them.
+// Please note the more messages allowed to be queued, the more (heap) memory we consume.
+#define MQTT_OUTGOING_QUEUE_LENGTH 1000
+
+#define MQTT_UNINITIALIZED -10
+
+extern WiFiClient wifiSubscriberClient;
+extern PubSubClient mqttSubscriberClient;
 
 /// <summary>
 /// Class used to publish messages to an MQTT broker.
 /// </summary>
-class MattzoMQTTPublisher {
-
+class MattzoMQTTSubscriber
+{
 public:
   // Public static members
-
-  /// <summary>
-  /// Boolean value indicating whether we should emergency break when we get disconnected.
-  /// </summary>
-  static bool TriggerBreakOnDisconnect;
 
   /// <summary>
   /// Reconnect delay in milliseconds. This configures the delay between reconnect attempts.
@@ -32,14 +47,9 @@ public:
   static int ReconnectDelayInMilliseconds;
 
   /// <summary>
-  /// Ping delay in milliseconds. This configures the delay between ping messages (0 = don't send ping messages).
-  /// </summary>
-  static int PingDelayInMilliseconds;
-
-  /// <summary>
   /// Send message delay in milliseconds. This configures the delay between send message attempts.
   /// </summary>
-  static int SendMessageDelayInMilliseconds;
+  static int HandleMessageDelayInMilliseconds;
 
   /// <summary>
   /// The priority at which the task should run.
@@ -60,41 +70,38 @@ public:
   /// </summary>
   static uint32_t StackDepth;
 
+  /// <summary>
+  /// The maximum message size, including header, specified as the number of bytes.
+  /// Messages larger than this are ignored!
+  /// </summary>
+  static uint16_t MaxBufferSize;
+
   // Methods
 
   /// <summary>
-  /// Setup the MQTT Publisher.
+  /// Setup the MQTT Subscriber.
   /// </summary>
-  /// <param name="messageQueueLength">Message queue length. This configures the number of messages the queue can hold, before the publisher starts dropping them.</param>
-  static void Setup(char *topic, const int messageQueueLength = 10);
+  /// <param name="topic">Topic to subscribe to.</param>
+  /// <param name="callback">Callback method to call when a message arrives.</param>
+  static void Setup(MCMQTTConfiguration *config, void (*callback)(char *, uint8_t *, unsigned int));
 
-  /// <summary>
-  /// Puts the given message on the queue.
-  /// </summary>
-  /// <param name="message">Message to add to the queue.</param>
-  /// <returns>Boolean value indicating whether the given message was added to the queue. Returns `false` when the queue was full.</returns>
-  static bool QueueMessage(const char* message);
+  // Returns the current MQTT connection status.
+  static int GetStatus();
 
 private:
-
+  static MCMQTTConfiguration *_config;
+  static char _subscriberName[60];
   static bool _setupCompleted;
-  static char _publisherName[60];
-  static char *_topic;
 
   // Time of the last sent ping.
   static unsigned long lastPing;
 
   /// <summary>
-  /// Sends all messages that are currently queued to the MQTT broker.
-  /// </summary>
-  static void sendMessages();
-
-  /// <summary>
   /// Sends the given message to the MQTT broker.
   /// </summary>
   /// <param name="parm">Message to send.</param>
-  static void sendMessage(const char* topic, const char* message);
-  
+  static void sendMessage(char *topic, const char *message);
+
   /// <summary>
   /// Reconnects the MQTT client to the broker (blocking).
   /// </summary>
@@ -104,5 +111,5 @@ private:
   /// The main (endless) task loop.
   /// </summary>
   /// <param name="parm"></param>
-  static void taskLoop(void* parm);
+  static void taskLoop(void *parm);
 };

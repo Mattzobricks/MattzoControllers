@@ -97,7 +97,7 @@ bool BLEHub::GetAutoLightsEnabled()
 
 bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-    log4MC::vlogf(LOG_INFO, "BLE : Connecting to %s...", _config->DeviceAddress->toString().c_str());
+    log4MC::vlogf(LOG_INFO, "BLE : Connecting to hub '%s'...", _config->DeviceAddress->toString().c_str());
 
     /** Check if we have a client we should reuse first **/
     if (NimBLEDevice::getClientListSize())
@@ -159,7 +159,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         {
             /** Created a client but failed to connect, don't need to keep it as it has no data */
             NimBLEDevice::deleteClient(_hub);
-            log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to %s, deleted client.", _config->DeviceAddress->toString().c_str());
+            log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to hub '%s', deleted client.", _config->DeviceAddress->toString().c_str());
             _isDiscovered = false;
             return false;
         }
@@ -169,7 +169,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
     {
         if (!_hub->connect(_advertisedDevice))
         {
-            log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to %s.", _config->DeviceAddress->toString().c_str());
+            log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to hub '%s'.", _config->DeviceAddress->toString().c_str());
             _isDiscovered = false;
             return false;
         }
@@ -202,7 +202,7 @@ void BLEHub::initChannelControllers()
         _channelControllers.push_back(new ChannelController(config));
     }
 
-    log4MC::vlogf(LOG_INFO, "BLE : Hub %s channels initialized.", _config->DeviceAddress->toString().c_str());
+    // log4MC::vlogf(LOG_INFO, "BLE : Hub %s channels initialized.", _config->DeviceAddress->toString().c_str());
 }
 
 void BLEHub::setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc)
