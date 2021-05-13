@@ -1,4 +1,5 @@
 {
+	"name": "YourControllerNameHere",
 	"locos": [
 		{
 			"address": 1,
