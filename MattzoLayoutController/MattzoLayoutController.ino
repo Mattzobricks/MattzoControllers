@@ -396,14 +396,13 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       return;
     }
     mcLog2("port: " + String(rr_port), LOG_DEBUG);
-    if (rr_port < 1 || rr_port > NUM_SIGNALPORTS) {
-      mcLog2("Message disgarded, as this controller does not have such a port.", LOG_ERR);
+    if (rr_port < 1) {
+      mcLog2("Message disgarded, as the signal port is below 1.", LOG_ERR);
       return;
     }
 
-    // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
+    // query cmd attribute. This is the desired signal setting and can either be "on" or "off".
     const char* rr_cmd = "-unknown-";
-    bool signalCommand;  // rocrail signal command as boolean value (true: on, false: off)
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
       mcLog2("cmd attribute not found or wrong type.", LOG_ERR);
       return;
@@ -412,41 +411,17 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // parse signal command
     if (strcmp(rr_cmd, "on") == 0) {
-      signalCommand = true;
+      // only signal message with command 'on' will be processed
+      handleSignalMessage(rr_port);
     }
     else if (strcmp(rr_cmd, "off") == 0) {
-      signalCommand = false;
-    }
-    else {
-      mcLog2("Signal command " + String(rr_cmd) + "unknown - message disregarded.", LOG_ERR);
+      // disregard signal messages with command 'off'
+      mcLog2("Signal command 'off' received - message disregarded.", LOG_ERR);
       return;
     }
-
-    if (SIGNALPORT_PIN_TYPE[rr_port - 1] != 1) {
-      // light signal => switch LED for this signal port on/off
-      mcLog2("Setting signal LED index " + String(rr_port - 1) + " to " + signalCommand ? "on" : "off", LOG_DEBUG);
-      setSignalLED(rr_port - 1, signalCommand);
-    }
     else {
-      // form signal => turn servo to the desired value
-      // Parse servo angle
-      int servoAngle;
-      if (signalCommand) {
-        // red aspect. Use "value" attribute (in the Rocrail interface, this parameter is labelled "Brightness")!
-        if (element->QueryIntAttribute("value", &servoAngle) != XML_SUCCESS) {
-          mcLog2("Error in form signal configuration: value attribute not found or wrong type.", LOG_ERR);
-          return;
-        }
-      }
-      else {
-        // green aspect. Use "param" attribute (in the Rocrail interface, this parameter is labelled "Parameter")!
-        if (element->QueryIntAttribute("param", &servoAngle) != XML_SUCCESS) {
-          mcLog2("Error in form signal configuration: param attribute not found or wrong type.", LOG_ERR);
-          return;
-        }
-      }
-      mcLog2("Turning signal servo index " + String(rr_port - 1) + " to " + String(servoAngle), LOG_INFO);
-      setServoAngle(SIGNALPORT_PIN[rr_port - 1], servoAngle);
+      mcLog2("Signal command " + String(rr_cmd) + " unknown - message disregarded.", LOG_ERR);
+      return;
     }
 
     return;
@@ -500,6 +475,65 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   mcLog2("Unhandled message type. Message disregarded.", LOG_DEBUG);
 }
+
+
+// handles a signal mesage that was received from Rocrail
+void handleSignalMessage(int rr_port) {
+  // Look for the signal that uses rr_port
+  // Edge case: multiple signals may share the same rr_port
+
+  if (rr_port < 1) return;
+
+  for (int s = 0; s < NUM_SIGNALS; s++) {
+    for (int a = 0; a < NUM_SIGNAL_ASPECTS; a++) {
+      if (signals[s].aspectRocrailPort[a] == rr_port) {
+        // found the aspect that corresponds with rr_port
+        if (signals[s].signalType == SignalType::LIGHT) {
+          // iterate through all aspects of the light signal and set the corresponding LED.
+          for (int a2 = 0; a2 < NUM_SIGNAL_ASPECTS; a2++) {
+            mcLog2("Setting signal LED index " + String(a2) + " to " + (a == a2) ? "on" : "off", LOG_DEBUG);
+            setSignalLED(signals[s].aspectSignalPort[a2], a == a2);
+          }
+        }
+        else if (signals[s].signalType == SignalType::FORM) {
+          // set the desired servo angle of the form signal
+          int servoAngle = signals[s].aspectServoAngle[a];
+          mcLog2("Turning signal servo index " + String(signals[s].servoPin) + " to " + String(servoAngle), LOG_INFO);
+          setServoAngle(signals[s].servoPin, servoAngle);
+        }
+      }
+    }
+  }
+
+  ////
+  //if (SIGNALPORT_PIN_TYPE[rr_port - 1] != 1) {
+  //  // light signal => switch LED for this signal port on/off
+  //  mcLog2("Setting signal LED index " + String(rr_port - 1) + " to " + signalCommand ? "on" : "off", LOG_DEBUG);
+  //  setSignalLED(rr_port - 1, signalCommand);
+  //}
+  //else {
+  //  // form signal => turn servo to the desired value
+  //  // Parse servo angle
+  //  int servoAngle;
+  //  if (signalCommand) {
+  //    // red aspect. Use "value" attribute (in the Rocrail interface, this parameter is labelled "Brightness")!
+  //    if (element->QueryIntAttribute("value", &servoAngle) != XML_SUCCESS) {
+  //      mcLog2("Error in form signal configuration: value attribute not found or wrong type.", LOG_ERR);
+  //      return;
+  //    }
+  //  }
+  //  else {
+  //    // green aspect. Use "param" attribute (in the Rocrail interface, this parameter is labelled "Parameter")!
+  //    if (element->QueryIntAttribute("param", &servoAngle) != XML_SUCCESS) {
+  //      mcLog2("Error in form signal configuration: param attribute not found or wrong type.", LOG_ERR);
+  //      return;
+  //    }
+  //  }
+  //  setServoAngle(SIGNALPORT_PIN[rr_port - 1], servoAngle);
+  //}
+
+}
+
 
 void sendSensorEvent2MQTT(int sensorPort, bool sensorState) {
   if (sensorPort < 0) {

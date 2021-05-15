@@ -147,24 +147,72 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 // SIGNAL WIRING CONFIGURATION
 
 // Number of signal ports
-// A signal port is either:
-// 1. an LED of a light signal, or
-// 2. a servo for a form signal.
+// A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
 // In most cases, 2 pins are required for a light signal with 2 aspects (more are supported)
-// A form signal can only have two aspects in this version of the firmware. It is represented by 1 servo.
-const int NUM_SIGNALPORTS = 3;
+const int NUM_SIGNALPORTS = 2;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
 // for form signals, the value represents the index in the SWITCHPORT_PIN array
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5, 0 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
 
 // Type of digital output pins for signal port
 // 0   : LED output pin on the ESP-8266
-// 1   : Servo port (for form signals). SIGNALPORT_PIN represents the index in the SWITCHPORT_PIN array.
 // 0x40: LED port on the 1st PCA9685
 // 0x41: LED port on the 2nd PCA9685
 // 0x42: LED port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 1 };
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
+
+
+// SIGNAL CONFIGURATION
+
+// Number of signals
+const int NUM_SIGNALS = 3;
+// Number of signal aspects (e.g. red, green, yellow)
+const int NUM_SIGNAL_ASPECTS = 3;
+
+enum struct SignalType
+{
+  LIGHT = 0x1, // light signal
+  FORM = 0x2   // form signal
+};
+
+struct Signal {
+  SignalType signalType;
+  // the port configured in Rocrail for this aspect
+  // 0: aspect not supported by this signal
+  int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
+  // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
+  // -1: no LED configured for this aspect
+  int aspectSignalPort[NUM_SIGNAL_ASPECTS];
+  // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
+  // -1: no servo configured for this signal
+  int servoPin;
+  // the desired servo angle for the aspect (for form signals)
+  int aspectServoAngle[NUM_SIGNAL_ASPECTS];
+} signals[NUM_SIGNALS] =
+{
+  {
+    .signalType = SignalType::FORM,
+    .aspectRocrailPort = {1, 2, 0},
+    .aspectSignalPort = {-1, -1, -1},
+    .servoPin = 0,
+    .aspectServoAngle = {140, 120, 0}
+  },
+  {
+    .signalType = SignalType::FORM,
+    .aspectRocrailPort = {3, 4, 5},
+    .aspectSignalPort = {-1, -1, -1},
+    .servoPin = 1,
+    .aspectServoAngle = {90, 160, 10}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {6, 7, 0},
+    .aspectSignalPort = {0, 1, -1},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0, 0}
+  }
+};
 
 
 // SENSOR WIRING CONFIGURATION
