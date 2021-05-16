@@ -160,6 +160,36 @@ uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {};
 uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = {};
 
 
+// SIGNAL CONFIGURATION
+
+// Number of signals
+const int NUM_SIGNALS = 0;
+// Number of signal aspects (e.g. red, green, yellow)
+const int NUM_SIGNAL_ASPECTS = 2;
+
+enum struct SignalType
+{
+  LIGHT = 0x1, // light signal
+  FORM = 0x2   // form signal
+};
+
+struct Signal {
+  // Type of the signal. Either light or form signal.
+  SignalType signalType;
+  // the port configured in Rocrail for this aspect
+  // 0: aspect not supported by this signal
+  int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
+  // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
+  // -1: no LED configured for this aspect
+  int aspectSignalPort[NUM_SIGNAL_ASPECTS];
+  // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
+  // -1: no servo configured for this signal
+  int servoPin;
+  // the desired servo angle for the aspect (for form signals)
+  int aspectServoAngle[NUM_SIGNAL_ASPECTS];
+} signals[NUM_SIGNALS] = {};
+
+
 // SENSOR WIRING CONFIGURATION
 
 // Set to true to enable remote sensors.

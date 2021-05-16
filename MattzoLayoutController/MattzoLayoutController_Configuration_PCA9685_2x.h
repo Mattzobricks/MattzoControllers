@@ -160,6 +160,94 @@ uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 8, 9, 10, 11, 12, 13, 14, 15, 8, 9, 
 uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41 };
 
 
+// SIGNAL CONFIGURATION
+
+// Number of signals
+const int NUM_SIGNALS = 8;
+// Number of signal aspects (e.g. red, green, yellow)
+const int NUM_SIGNAL_ASPECTS = 2;
+
+enum struct SignalType
+{
+  LIGHT = 0x1, // light signal
+  FORM = 0x2   // form signal
+};
+
+struct Signal {
+  // Type of the signal. Either light or form signal.
+  SignalType signalType;
+  // the port configured in Rocrail for this aspect
+  // 0: aspect not supported by this signal
+  int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
+  // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
+  // -1: no LED configured for this aspect
+  int aspectSignalPort[NUM_SIGNAL_ASPECTS];
+  // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
+  // -1: no servo configured for this signal
+  int servoPin;
+  // the desired servo angle for the aspect (for form signals)
+  int aspectServoAngle[NUM_SIGNAL_ASPECTS];
+} signals[NUM_SIGNALS] =
+{
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {1, 2},
+    .aspectSignalPort = {0, 1},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {3, 4},
+    .aspectSignalPort = {2, 3},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {5, 6},
+    .aspectSignalPort = {4, 5},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {7, 8},
+    .aspectSignalPort = {6, 7},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {9, 10},
+    .aspectSignalPort = {8, 9},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {11, 12},
+    .aspectSignalPort = {10, 11},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {13, 14},
+    .aspectSignalPort = {12, 13},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {15, 16},
+    .aspectSignalPort = {14, 15},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  },
+};
+
+
 // SENSOR WIRING CONFIGURATION
 
 // Set to true to enable remote sensors.

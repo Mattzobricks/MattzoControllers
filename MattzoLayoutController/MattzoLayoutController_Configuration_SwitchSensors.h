@@ -147,6 +147,7 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {
 	{ 1002, 8, 9 }
 };
 
+
 // SIGNAL WIRING CONFIGURATION
 
 // Number of signal ports (the number of signal LEDs, not the number of signals!)
@@ -161,6 +162,46 @@ uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
 uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
+
+
+// SIGNAL CONFIGURATION
+
+// Number of signals
+const int NUM_SIGNALS = 1;
+// Number of signal aspects (e.g. red, green, yellow)
+const int NUM_SIGNAL_ASPECTS = 2;
+
+enum struct SignalType
+{
+  LIGHT = 0x1, // light signal
+  FORM = 0x2   // form signal
+};
+
+struct Signal {
+  // Type of the signal. Either light or form signal.
+  SignalType signalType;
+  // the port configured in Rocrail for this aspect
+  // 0: aspect not supported by this signal
+  int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
+  // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
+  // -1: no LED configured for this aspect
+  int aspectSignalPort[NUM_SIGNAL_ASPECTS];
+  // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
+  // -1: no servo configured for this signal
+  int servoPin;
+  // the desired servo angle for the aspect (for form signals)
+  int aspectServoAngle[NUM_SIGNAL_ASPECTS];
+} signals[NUM_SIGNALS] =
+{
+  // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2, using LEDs 0 and 1.
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {1, 2},
+    .aspectSignalPort = {0, 1},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0}
+  }
+};
 
 
 // SENSOR WIRING CONFIGURATION

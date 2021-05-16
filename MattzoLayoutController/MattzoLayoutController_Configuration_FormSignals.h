@@ -97,19 +97,17 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // PHYSICAL SWITCH PORTS
 // Number of physical switch ports
-const int NUM_SWITCHPORTS = 0;
+const int NUM_SWITCHPORTS = 4;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {};
-// uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3 };
 
 // Type of digital output pins for switch servos
 // 0   : pin on the ESP-8266
 // 0x40: port on the 1st PCA9685
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = {};
-// uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0 };
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -148,24 +146,28 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 
 // SIGNAL WIRING CONFIGURATION
 
-// Number of signal ports (the number of signal LEDs, not the number of signals!)
-const int NUM_SIGNALPORTS = 4;
+// Number of signal ports
+// A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
+// In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
+const int NUM_SIGNALPORTS = 2;
 
-// Digital pins for signal LEDs
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D2, D3, D4, D5 };
-// uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 8, 9, 10, 11, 12, 13, 14, 15 };
+// Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
 
-// Type of digital output pins for signal LEDs (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 0, 0 };
-// uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
+// Type of digital output pins for signal port
+// 0   : LED output pin on the ESP-8266
+// 0x40: LED port on the 1st PCA9685
+// 0x41: LED port on the 2nd PCA9685
+// 0x42: LED port on the 3rd PCA9685 etc.
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 
 
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 0;
+const int NUM_SIGNALS = 3;
 // Number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 2;
+const int NUM_SIGNAL_ASPECTS = 3;
 
 enum struct SignalType
 {
@@ -187,7 +189,33 @@ struct Signal {
   int servoPin;
   // the desired servo angle for the aspect (for form signals)
   int aspectServoAngle[NUM_SIGNAL_ASPECTS];
-} signals[NUM_SIGNALS] = {};
+} signals[NUM_SIGNALS] =
+{
+  // signal 0: form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0
+  {
+    .signalType = SignalType::FORM,
+    .aspectRocrailPort = {1, 2, 0},
+    .aspectSignalPort = {-1, -1, -1},
+    .servoPin = 0,
+    .aspectServoAngle = {140, 120, 0}
+  },
+  // signal 1: form signal with 3 aspects, controlled via Rocrail ports 3, 4 and 5, using servo index 1
+  {
+    .signalType = SignalType::FORM,
+    .aspectRocrailPort = {3, 4, 5},
+    .aspectSignalPort = {-1, -1, -1},
+    .servoPin = 1,
+    .aspectServoAngle = {90, 160, 10}
+  },
+  // signal 2: light signal with 2 aspects, controlled via Rocrail ports 6 and 7, using LEDs 0 and 1.
+  {
+    .signalType = SignalType::LIGHT,
+    .aspectRocrailPort = {6, 7, 0},
+    .aspectSignalPort = {0, 1, -1},
+    .servoPin = -1,
+    .aspectServoAngle = {0, 0, 0}
+  }
+};
 
 
 // SENSOR WIRING CONFIGURATION
@@ -199,15 +227,15 @@ struct Signal {
 const bool REMOTE_SENSORS_ENABLED = false;
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 4;
+const int NUM_SENSORS = 2;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
 // If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7, 0, 0 };
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7 };
 
 // Type of digital input pins for sensors
-// 0   : local sensor, directly connected on a pin on the ESP-8266
+// 0   : pin on the ESP-8266
 // 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
 // 0x11: virtual sensor, triggered when bascule bridge is fully open or closed.
 // 0x20: local sensor, connected to a port on the 1st MCP23017
@@ -217,11 +245,11 @@ const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
 const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
 const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE };
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0 };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
 // If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0 };
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -329,7 +357,7 @@ const unsigned int LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS = 30000;
 // BASCULE BRIDGE CONFIGURATION
 
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
-bool BASCULE_BRIDGE_CONNECTED = true;
+bool BASCULE_BRIDGE_CONNECTED = false;
 
 // Port configured for the bascule bridge in Rocrail
 const int BASCULE_BRIDGE_RR_PORT = 1;
@@ -340,9 +368,9 @@ const int BASCULE_BRIDGE_MS_IN2 = D1;  // reverse
 
 // Motor power settings for bridge operations
 const int BASCULE_BRIDGE_POWER_UP = 1023;  // Motor power for pulling the bridge up (0 .. 1023)
-const int BASCULE_BRIDGE_POWER_UP2 = 768;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_UP2 = 512;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 1023)
 const int BASCULE_BRIDGE_POWER_DOWN = 1023;  // Motor power for letting the bridge down (0 .. 1023)
-const int BASCULE_BRIDGE_POWER_DOWN2 = 1023;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 1023)
+const int BASCULE_BRIDGE_POWER_DOWN2 = 512;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 1023)
 
 // Signal ports (set to -1 for "not connected")
 const int BASCULE_BRIDGE_SIGNAL_RIVER_STOP = 0;  // signal port that is activated when bridge is not in the "up" position (index in the SIGNALPORT_PIN array)
@@ -368,9 +396,9 @@ const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 45000;
 // Maximum allowed time for closing the bridge until the closing sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
 const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 45000;
 // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 3000;
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 2000;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 6000;
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 
 
 // ****************

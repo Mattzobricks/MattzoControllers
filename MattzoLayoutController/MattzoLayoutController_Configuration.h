@@ -148,11 +148,10 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 
 // Number of signal ports
 // A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
-// In most cases, 2 pins are required for a light signal with 2 aspects (more are supported)
+// In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
 const int NUM_SIGNALPORTS = 2;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-// for form signals, the value represents the index in the SWITCHPORT_PIN array
 uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
 
 // Type of digital output pins for signal port
@@ -166,9 +165,9 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 3;
+const int NUM_SIGNALS = 1;
 // Number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 3;
+const int NUM_SIGNAL_ASPECTS = 2;
 
 enum struct SignalType
 {
@@ -177,6 +176,7 @@ enum struct SignalType
 };
 
 struct Signal {
+  // Type of the signal. Either light or form signal.
   SignalType signalType;
   // the port configured in Rocrail for this aspect
   // 0: aspect not supported by this signal
@@ -191,26 +191,13 @@ struct Signal {
   int aspectServoAngle[NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] =
 {
-  {
-    .signalType = SignalType::FORM,
-    .aspectRocrailPort = {1, 2, 0},
-    .aspectSignalPort = {-1, -1, -1},
-    .servoPin = 0,
-    .aspectServoAngle = {140, 120, 0}
-  },
-  {
-    .signalType = SignalType::FORM,
-    .aspectRocrailPort = {3, 4, 5},
-    .aspectSignalPort = {-1, -1, -1},
-    .servoPin = 1,
-    .aspectServoAngle = {90, 160, 10}
-  },
+  // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2, using LEDs 0 and 1.
   {
     .signalType = SignalType::LIGHT,
-    .aspectRocrailPort = {6, 7, 0},
-    .aspectSignalPort = {0, 1, -1},
+    .aspectRocrailPort = {1, 2},
+    .aspectSignalPort = {0, 1},
     .servoPin = -1,
-    .aspectServoAngle = {0, 0, 0}
+    .aspectServoAngle = {0, 0}
   }
 };
 
