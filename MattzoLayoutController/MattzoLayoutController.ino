@@ -130,26 +130,10 @@ enum struct SpeedometerStatus
   FREE
 };
 
-enum struct SpeedometerLengthUnit
-{
-  STUDS,
-  MILLIMETERS,
-  CENTIMETERS
-};
-
-enum struct SpeedometerSpeedUnit
-{
-  STUDS_PER_SECOND,
-  MILLIMETERS_PER_SECOND,
-  METER_PER_MINUTE,
-  KILOMETER_PER_HOUR,
-  MILES_PER_HOUR
-};
-
 struct Speedometer {
-  SpeedometerStatus     smStatus   = SpeedometerStatus::FREE;
-  SpeedometerLengthUnit lengthUnit = (SpeedometerLengthUnit) SM_LENGTHUNIT;
-  SpeedometerSpeedUnit  speedUnit  = (SpeedometerSpeedUnit)  SM_SPEEDUNIT;
+  SpeedometerStatus smStatus = SpeedometerStatus::FREE;
+  SpeedometerLengthUnit lengthUnit = SM_LENGTHUNIT;
+  SpeedometerSpeedUnit speedUnit = SM_SPEEDUNIT;
 
   int startSensor;
   int endSensor;
@@ -1361,18 +1345,10 @@ void basculeBridgeLoop() {
 
 
 void SpeedometerDebug() {
-  Serial.println("Speedometer Debug ----------------------------------------------------");
   mcLog2("Speedometer Debug ----------------------------------------------------", LOG_DEBUG);
   for (int i = 0; i <= speedometer.wheelcounter[speedometer.startSensor]; i++) {
-    Serial.print("Sensor ["     + String(i) + "]");
-    Serial.print(" Start: "    + String((int)speedometer.values[i][speedometer.startTime]));
-    Serial.print(" End: "      + String((int)speedometer.values[i][speedometer.endTime]));
-    Serial.print(" Speed: "    + String(speedometer.values[i][speedometer.trainSpeed]));
-    Serial.println(" Length: " + String(speedometer.values[i][speedometer.trainLength]));
-
     mcLog2("Sensor ["  + String(i) + "] Start: "  + String(speedometer.values[i][speedometer.startTime]) + " End: " + String(speedometer.values[i][speedometer.endTime]) + " Speed: "  + String(speedometer.values[i][speedometer.trainSpeed]) + " Length: " + String(speedometer.values[i][speedometer.trainLength]), LOG_DEBUG);
   }
-  Serial.println("----------------------------------------------------------------------");
   mcLog2("----------------------------------------------------------------------", LOG_DEBUG);
 }
 
@@ -1390,13 +1366,7 @@ void updateDisplay() {
       break;
 
     case SpeedometerSpeedUnit::MILLIMETERS_PER_SECOND:
-      trainspeed = trainspeed;
       speedUnit = "mm/s";
-      break;
-
-    case SpeedometerSpeedUnit::METER_PER_MINUTE:
-      trainspeed = trainspeed * 60 / 1000;
-      speedUnit = "m/min";
       break;
 
     case SpeedometerSpeedUnit::KILOMETER_PER_HOUR:
@@ -1405,7 +1375,7 @@ void updateDisplay() {
       break;
 
     case SpeedometerSpeedUnit::MILES_PER_HOUR:
-      trainspeed = trainspeed * 3600 / 621371;
+      trainspeed = trainspeed * 3600 / 1609340;
       speedUnit = "studs";
       break;
   }
@@ -1417,7 +1387,6 @@ void updateDisplay() {
       break;
 
     case SpeedometerLengthUnit::MILLIMETERS:
-      //trainlength = trainlength;
       lengthUnit = "mm";
       break;
 
@@ -1425,12 +1394,15 @@ void updateDisplay() {
       trainlength = trainlength / 10;
       lengthUnit = "cm";
       break;
+
+    case SpeedometerLengthUnit::METERS:
+      trainlength = trainlength / 1000;
+      lengthUnit = "m";
+      break;
   }
 
   u8g2.clearBuffer();
-  //u8g2.setFont(u8g2_font_unifont_t_chinese2);  // use chinese2 for all the glyphs of "你好世界"
-  //u8g2.setFont(u8g2_font_unifont_t_symbols);
-  u8g2.setFont(u8g2_font_t0_12_me); // 8 pixel hight
+  u8g2.setFont(u8g2_font_t0_12_me); // height: 8 pixels
   u8g2.setFontDirection(0);
   u8g2.clearBuffer();
 
@@ -1443,10 +1415,12 @@ void updateDisplay() {
   }
 
   u8g2.setCursor(5, 50);
-  if (trainlength <= 0) {
-    u8g2.print("Length: ? " + lengthUnit);
-  } else {
-    u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnit);
+  if (speedometer.lengthUnit != SpeedometerLengthUnit::NO_INDICATION) {
+    if (trainlength <= 0) {
+      u8g2.print("Length: ? " + lengthUnit);
+    } else {
+      u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnit);
+    }
   }
 
   u8g2.sendBuffer();
@@ -1514,6 +1488,9 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
       }
 
       if (speedometer.wheelcounter[speedometer.endSensor] == speedometer.wheelcounter[speedometer.startSensor]){
+        speedometer.actualTrainSpeed = 0;
+        speedometer.actualTrainLength = 0;
+
         for (int i = 0; i <= speedometer.wheelcounter[speedometer.endSensor]; i++) {
           speedometer.actualTrainSpeed  += speedometer.values[i][speedometer.trainSpeed];
           speedometer.actualTrainLength += speedometer.values[i][speedometer.trainLength];
@@ -1522,7 +1499,6 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
 
         Serial.println("actualTrainSpeed:  " + String(speedometer.actualTrainSpeed));
         Serial.println("actualTrainLength: " + String(speedometer.actualTrainLength));
-
       }
       
       SpeedometerDebug();
@@ -1594,11 +1570,10 @@ void speedometerLoop() {
     {
       int remaningDuration = (SM_TIME_BETWEEN_MEASUREMENTS - (millis() - speedometer.measurementDone)) / 1000;
       if ((remaningDuration < 5 || remaningDuration % 5 == 0) && remaningDuration > 0){
-        Serial.println("Minimum time between measurements: " + String((int)(SM_TIME_BETWEEN_MEASUREMENTS - (millis() - speedometer.measurementDone)) / 1000) + " seconds remaining");
         mcLog2("Minimum time between measurements: " + String((int)(SM_TIME_BETWEEN_MEASUREMENTS - (millis() - speedometer.measurementDone)) / 1000) + " seconds remaining", LOG_DEBUG);
         speedometer.lastMeasurementEvent = actMillis;
       }
-  }
+    }
 
 //----------------------------------------------------------------------------------------------------------------------------
 
