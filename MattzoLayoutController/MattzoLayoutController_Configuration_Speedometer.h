@@ -100,17 +100,17 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // PHYSICAL SWITCH PORTS
 // Number of physical switch ports
-const int NUM_SWITCHPORTS = 4;
+const int NUM_SWITCHPORTS = 0;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3 };
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {};
 
 // Type of digital output pins for switch servos
 // 0   : pin on the ESP-8266
 // 0x40: port on the 1st PCA9685
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0 };
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = {};
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -152,23 +152,23 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 // Number of signal ports
 // A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
 // In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
-const int NUM_SIGNALPORTS = 2;
+const int NUM_SIGNALPORTS = 0;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {};
 
 // Type of digital output pins for signal port
 // 0   : LED output pin on the ESP-8266
 // 0x40: LED port on the 1st PCA9685
 // 0x41: LED port on the 2nd PCA9685
 // 0x42: LED port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = {};
 
 
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 1;
+const int NUM_SIGNALS = 0;
 // Number of signal aspects (e.g. red, green, yellow)
 const int NUM_SIGNAL_ASPECTS = 2;
 
@@ -192,17 +192,7 @@ struct Signal {
   int servoPin;
   // the desired servo angle for the aspect (for form signals)
   int aspectServoAngle[NUM_SIGNAL_ASPECTS];
-} signals[NUM_SIGNALS] =
-{
-  // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2, using LEDs 0 and 1.
-  {
-    .signalType = SignalType::LIGHT,
-    .aspectRocrailPort = {1, 2},
-    .aspectSignalPort = {0, 1},
-    .servoPin = -1,
-    .aspectServoAngle = {0, 0}
-  }
-};
+} signals[NUM_SIGNALS] = {};
 
 
 // SENSOR WIRING CONFIGURATION
