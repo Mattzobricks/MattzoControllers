@@ -390,17 +390,17 @@ const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 
 // SPEEDOMETER CONFIGURATION
 
-// speedometer installed?
+// Speedometer installed?
 bool SPEEDOMETER_CONNECTED = true;
 
-// Number of sensors connected or connectable to the controller, please let on two
+// Number of sensors connected or connectable to the controller (must be 2 - do not change!)
 const int SM_NUM_SENSORS = 2;
 
-// Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
-// If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+// Indexes in the sensor array used for measuring speed
+// Only local sensors are supported
 const int SM_SENSORS_INDEX[SM_NUM_SENSORS] = { 0, 1 };
 
-// maximum number of magnets attached to a train
+// Maximum number of magnets attached to a train
 const int SM_MAX_VALUES = 20;
 
 // distance between the sensors, measuring the speed in MILLIMETER
@@ -413,14 +413,13 @@ const int SM_LENGTHUNIT = 0;
 // timeunit to calculate results (0 .. STUDS_PER_SECOND, 1 .. MILLIMETER_PER_SECOND, 2 .. CENTIMETER_PER_MINUTE, 3 .. KILOMETER_PER_HOUR, 4 .. MILES_PER_HOUR)
 const int SM_SPEEDUNIT = 0;
 
-// Timings (in milli seconds)
-// timeout to reset the speedometer when nothing is happening anymore
+// Timeout to reset the speedometer when nothing is happening anymore (in ms)
 const unsigned int SM_TIMEOUT = 10000;
 
-// minimum time in ms between two measurements
+// Minimum time between two measurements (in ms)
 const unsigned int SM_TIME_BETWEEN_MEASUREMENTS = 10000;
 
-// minimum time in ms to show the measurement results on the display before switching to a "Screensaver"
+// Minimum time to display the speed on the display before switching to a "Screensaver" (in ms)
 const unsigned int SM_TIME_TO_SHOW_RESULTS = 20000;
 
 

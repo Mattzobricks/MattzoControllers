@@ -1360,8 +1360,7 @@ void basculeBridgeLoop() {
 }
 
 
-
-void SpeedometerDebug(){
+void SpeedometerDebug() {
   Serial.println("Speedometer Debug ----------------------------------------------------");
   mcLog2("Speedometer Debug ----------------------------------------------------", LOG_DEBUG);
   for (int i = 0; i <= speedometer.wheelcounter[speedometer.startSensor]; i++) {
@@ -1372,22 +1371,19 @@ void SpeedometerDebug(){
     Serial.println(" Length: " + String(speedometer.values[i][speedometer.trainLength]));
 
     mcLog2("Sensor ["  + String(i) + "] Start: "  + String(speedometer.values[i][speedometer.startTime]) + " End: " + String(speedometer.values[i][speedometer.endTime]) + " Speed: "  + String(speedometer.values[i][speedometer.trainSpeed]) + " Length: " + String(speedometer.values[i][speedometer.trainLength]), LOG_DEBUG);
-}
+  }
   Serial.println("----------------------------------------------------------------------");
   mcLog2("----------------------------------------------------------------------", LOG_DEBUG);
 }
 
-void updateDisplay(){
-
-  #if USE_U8G2
-
-    float trainspeed  = speedometer.actualTrainSpeed;
-    float trainlength = speedometer.actualTrainLength;
-    String speedUnit;
-    String lengthUnit;
+void updateDisplay() {
+#if USE_U8G2
+  float trainspeed  = speedometer.actualTrainSpeed;
+  float trainlength = speedometer.actualTrainLength;
+  String speedUnit;
+  String lengthUnit;
 
   switch (speedometer.speedUnit) {
-
     case SpeedometerSpeedUnit::STUDS_PER_SECOND:
       trainspeed = trainspeed / 8;
       speedUnit = "studs/s";
@@ -1415,7 +1411,6 @@ void updateDisplay(){
   }
 
   switch (speedometer.lengthUnit) {
-
     case SpeedometerLengthUnit::STUDS:
       trainlength = trainlength / 8;
       lengthUnit = "studs";
@@ -1432,31 +1427,30 @@ void updateDisplay(){
       break;
   }
 
-    u8g2.clearBuffer();
-    //u8g2.setFont(u8g2_font_unifont_t_chinese2);  // use chinese2 for all the glyphs of "你好世界"
-    //u8g2.setFont(u8g2_font_unifont_t_symbols);
-    u8g2.setFont(u8g2_font_t0_12_me); // 8 pixel hight
-    u8g2.setFontDirection(0);
-    u8g2.clearBuffer();
+  u8g2.clearBuffer();
+  //u8g2.setFont(u8g2_font_unifont_t_chinese2);  // use chinese2 for all the glyphs of "你好世界"
+  //u8g2.setFont(u8g2_font_unifont_t_symbols);
+  u8g2.setFont(u8g2_font_t0_12_me); // 8 pixel hight
+  u8g2.setFontDirection(0);
+  u8g2.clearBuffer();
 
-    u8g2.setCursor(5, 25);
+  u8g2.setCursor(5, 25);
 
-    if (trainspeed <= 0) {
-      u8g2.print("Speed: ? " + speedUnit);
-    } else {
-      u8g2.print("Speed: " + String((int)(trainspeed + 0.5)) + " " + speedUnit);
-    }
+  if (trainspeed <= 0) {
+    u8g2.print("Speed: ? " + speedUnit);
+  } else {
+    u8g2.print("Speed: " + String((int)(trainspeed + 0.5)) + " " + speedUnit);
+  }
 
-    u8g2.setCursor(5, 50);
-    if (trainlength <= 0) {
-      u8g2.print("Length: ? " + lengthUnit);
-    } else {
-      u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnit);
-    }
+  u8g2.setCursor(5, 50);
+  if (trainlength <= 0) {
+    u8g2.print("Length: ? " + lengthUnit);
+  } else {
+    u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnit);
+  }
 
-    u8g2.sendBuffer();
-  #endif
-
+  u8g2.sendBuffer();
+#endif
 }
 
 
@@ -1549,10 +1543,7 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
   //-------------------------------------------------
   // Speedometer is free, handle startSensor-Events
   //-------------------------------------------------
-  if (   speedometer.smStatus == SpeedometerStatus::FREE
-      && millis() - speedometer.measurementDone >= SM_TIME_BETWEEN_MEASUREMENTS
-     ){
-
+  if (speedometer.smStatus == SpeedometerStatus::FREE && millis() - speedometer.measurementDone >= SM_TIME_BETWEEN_MEASUREMENTS) {
     speedometer.lastMeasurementEvent = millis();
 
     speedometer.startSensor = triggeredSensor;
@@ -1569,10 +1560,8 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
 }
 
 
-void speedometerLoop(){
-  if (!SPEEDOMETER_CONNECTED) {
-    return;
-  }
+void speedometerLoop() {
+  if (!SPEEDOMETER_CONNECTED) return;
 
   if (speedometer.smStatus == SpeedometerStatus::OCCUPIED) {
 
@@ -1614,7 +1603,6 @@ void speedometerLoop(){
 //----------------------------------------------------------------------------------------------------------------------------
 
 #if USE_U8G2
-
   // display the very cool MattzoBricks screensaver
   if (   speedometer.smStatus == SpeedometerStatus::FREE
       && actMillis - speedometer.measurementDone >= SM_TIME_TO_SHOW_RESULTS
@@ -1647,6 +1635,7 @@ void speedometerLoop(){
   }
 #endif
 }
+
 
 void loop() {
   loopMattzoController();
