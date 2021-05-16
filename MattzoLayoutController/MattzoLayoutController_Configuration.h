@@ -89,7 +89,7 @@ uint8_t PCA9685_OE_PIN = D0;
 // MCP23017 port expander used?
 #define USE_MCP23017 false
 
-// Number of chained PCA9685 port extenders
+// Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
 
 
@@ -233,7 +233,7 @@ uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0 };
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
 // If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { LOCAL_SENSOR_PIN_TYPE, LOCAL_SENSOR_PIN_TYPE };
 
 
 // STATUS LED WIRING CONFIGURATION
