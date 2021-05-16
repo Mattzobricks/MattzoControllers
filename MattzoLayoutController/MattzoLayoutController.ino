@@ -124,14 +124,8 @@ struct Bridge {
 
 
 // SPEEDOMETER VARIABLES AND CONSTANTS
-enum struct SpeedometerStatus
-{
-  OCCUPIED,
-  FREE
-};
-
 struct Speedometer {
-  SpeedometerStatus smStatus = SpeedometerStatus::FREE;
+  bool occupied = false;
   SpeedometerLengthUnit lengthUnit = SM_LENGTHUNIT;
   SpeedometerSpeedUnit speedUnit = SM_SPEEDUNIT;
 
@@ -1446,7 +1440,7 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
 
   if (!isSpeedoMeterSensor) return;
 
-  if (speedometer.smStatus == SpeedometerStatus::OCCUPIED){
+  if (speedometer.occupied) {
 
   //-----------------------------------------------------
   // Speedometer is occupied, handle startSensor-Events
@@ -1506,9 +1500,8 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
 
     // no length measurement or wheelcounter smilar or timeout
     if (millis() >= speedometer.lastMeasurementEvent + SM_TIMEOUT){
-      Serial.println("reset");
       mcLog2("reset", LOG_DEBUG);
-      speedometer.smStatus = SpeedometerStatus::FREE;
+      speedometer.occupied = false;
       speedometer.wheelcounter[speedometer.startSensor] = -1;
       speedometer.wheelcounter[speedometer.endSensor]   = -1;
 
@@ -1519,12 +1512,12 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
   //-------------------------------------------------
   // Speedometer is free, handle startSensor-Events
   //-------------------------------------------------
-  if (speedometer.smStatus == SpeedometerStatus::FREE && millis() - speedometer.measurementDone >= SM_TIME_BETWEEN_MEASUREMENTS) {
+  if (!speedometer.occupied && millis() - speedometer.measurementDone >= SM_TIME_BETWEEN_MEASUREMENTS) {
     speedometer.lastMeasurementEvent = millis();
 
     speedometer.startSensor = triggeredSensor;
     speedometer.endSensor   = (SM_NUM_SENSORS - 1) - triggeredSensor;
-    speedometer.smStatus = SpeedometerStatus::OCCUPIED;
+    speedometer.occupied = true;
     speedometer.wheelcounter[speedometer.startSensor] = 0;
     speedometer.wheelcounter[speedometer.endSensor]   = -1;
 
@@ -1539,13 +1532,12 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
 void speedometerLoop() {
   if (!SPEEDOMETER_CONNECTED) return;
 
-  if (speedometer.smStatus == SpeedometerStatus::OCCUPIED) {
-
+  if (speedometer.occupied) {
     // no length measurement or wheelcounter smilar or timeout
     if (millis() >= speedometer.lastMeasurementEvent + SM_TIMEOUT){
       Serial.println("reset");
       mcLog2("reset", LOG_DEBUG);
-      speedometer.smStatus = SpeedometerStatus::FREE;
+      speedometer.occupied = false;
       speedometer.wheelcounter[speedometer.startSensor] = -1;
       speedometer.wheelcounter[speedometer.endSensor]   = -1;
       //speedometer.actualTrainSpeed  = 0;
@@ -1563,11 +1555,7 @@ void speedometerLoop() {
 
   unsigned long actMillis = millis();
 
-  if ( speedometer.smStatus == SpeedometerStatus::FREE
-      && actMillis - speedometer.measurementDone < SM_TIME_BETWEEN_MEASUREMENTS
-      && actMillis - speedometer.lastMeasurementEvent > 1000
-     )
-    {
+  if (!speedometer.occupied && actMillis - speedometer.measurementDone < SM_TIME_BETWEEN_MEASUREMENTS && actMillis - speedometer.lastMeasurementEvent > 1000) {
       int remaningDuration = (SM_TIME_BETWEEN_MEASUREMENTS - (millis() - speedometer.measurementDone)) / 1000;
       if ((remaningDuration < 5 || remaningDuration % 5 == 0) && remaningDuration > 0){
         mcLog2("Minimum time between measurements: " + String((int)(SM_TIME_BETWEEN_MEASUREMENTS - (millis() - speedometer.measurementDone)) / 1000) + " seconds remaining", LOG_DEBUG);
@@ -1579,11 +1567,7 @@ void speedometerLoop() {
 
 #if USE_U8G2
   // display the very cool MattzoBricks screensaver
-  if (   speedometer.smStatus == SpeedometerStatus::FREE
-      && actMillis - speedometer.measurementDone >= SM_TIME_TO_SHOW_RESULTS
-      && actMillis - speedometer.animationdelay >= 100
-     ){
-
+  if (!speedometer.occupied && actMillis - speedometer.measurementDone >= SM_TIME_TO_SHOW_RESULTS && actMillis - speedometer.animationdelay >= 100) {
     static byte rotor = 0;
 
     u8g2.clearBuffer();

@@ -403,7 +403,7 @@ const int SM_SENSORS_INDEX[SM_NUM_SENSORS] = { 0, 1 };
 // Maximum number of magnets attached to a train
 const int SM_MAX_VALUES = 20;
 
-// distance between the sensors, measuring the speed in MILLIMETER
+// Distance between the sensors in mm
 // SM_DISTANCE must be larger than the distance of the magnets on the train
 const float SM_DISTANCE = 1000;
 
@@ -424,10 +424,10 @@ enum struct SpeedometerLengthUnit
   METERS
 };
 
-// timeunit to calculate results (0 .. STUDS_PER_SECOND, 1 .. MILLIMETER_PER_SECOND, 2 .. KILOMETER_PER_HOUR, 3 .. MILES_PER_HOUR)
+// speed unit (for display only - internally, mm/s is used)
 const SpeedometerSpeedUnit SM_SPEEDUNIT = SpeedometerSpeedUnit::STUDS_PER_SECOND;
 
-// lengthunit to calculate results (0 .. STUDS, 1 .. MILLIMETERS, 2 .. CENTIMETERS, 3 .. METERS)
+// length unit (for display only - internally, mm is used)
 const SpeedometerLengthUnit SM_LENGTHUNIT = SpeedometerLengthUnit::STUDS;
 
 // Timeout to reset the speedometer when nothing is happening anymore (in ms)
