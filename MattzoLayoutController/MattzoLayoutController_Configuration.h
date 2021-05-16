@@ -155,7 +155,7 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 const int NUM_SIGNALPORTS = 2;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {};
 
 // Type of digital output pins for signal port
 // 0   : LED output pin on the ESP-8266

@@ -124,6 +124,48 @@ struct Bridge {
 
 
 // SPEEDOMETER VARIABLES AND CONSTANTS
+enum struct SpeedometerStatus
+{
+  OCCUPIED,
+  FREE
+};
+
+enum struct SpeedometerLengthUnit
+{
+  STUDS,
+  MILLIMETERS,
+  CENTIMETERS
+};
+
+enum struct SpeedometerSpeedUnit
+{
+  STUDS_PER_SECOND,
+  MILLIMETERS_PER_SECOND,
+  METER_PER_MINUTE,
+  KILOMETER_PER_HOUR,
+  MILES_PER_HOUR
+};
+
+struct Speedometer {
+  SpeedometerStatus     smStatus   = SpeedometerStatus::FREE;
+  SpeedometerLengthUnit lengthUnit = (SpeedometerLengthUnit) SM_LENGTHUNIT;
+  SpeedometerSpeedUnit  speedUnit  = (SpeedometerSpeedUnit)  SM_SPEEDUNIT;
+
+  int startSensor;
+  int endSensor;
+  int wheelcounter[SM_NUM_SENSORS] = {-1, -1};
+
+  const int startTime   = 0; /* millis()  */
+  const int endTime     = 1; /* millis()  */
+  const int trainSpeed  = 2; /* cm/second */
+  const int trainLength = 3; /* cm        */
+  float values[SM_MAX_VALUES][4];
+
+  unsigned long lastMeasurementEvent = -99999;
+  unsigned long measurementDone = -99999;
+  unsigned long animationdelay = -99999;
+
+// SPEEDOMETER VARIABLES AND CONSTANTS
 struct Speedometer {
   bool occupied = false;
   SpeedometerLengthUnit lengthUnit = SM_LENGTHUNIT;
@@ -164,6 +206,10 @@ void setup() {
 
 #if USE_MCP23017
   setupMCP23017();
+#endif
+
+#if USE_U8G2
+  setupU8g2();
 #endif
 
 #if USE_U8G2
@@ -245,6 +291,12 @@ void setupMCP23017() {
     mcp23017[m] = Adafruit_MCP23017();
     mcp23017[m].begin();
   }
+}
+#endif
+
+#if USE_U8G2
+void setupU8g2() {
+  u8g2.begin();
 }
 #endif
 
