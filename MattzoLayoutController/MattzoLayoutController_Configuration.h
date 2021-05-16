@@ -391,7 +391,7 @@ const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 // SPEEDOMETER CONFIGURATION
 
 // Speedometer installed?
-bool SPEEDOMETER_CONNECTED = true;
+bool SPEEDOMETER_CONNECTED = false;
 
 // Number of sensors connected or connectable to the controller (must be 2 - do not change!)
 const int SM_NUM_SENSORS = 2;
