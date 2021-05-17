@@ -170,11 +170,6 @@ void setup() {
   setupU8g2();
 #endif
 
-#if USE_U8G2
-  setupU8g2();
-#endif
-
-
   // initialize servo pins and turn servos to start position
   for (int i = 0; i < NUM_SWITCHPORTS; i++) {
     if (SWITCHPORT_PIN_TYPE[i] == 0) {
