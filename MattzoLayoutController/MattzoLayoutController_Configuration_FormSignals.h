@@ -89,7 +89,7 @@ uint8_t PCA9685_OE_PIN = D0;
 // MCP23017 port expander used?
 #define USE_MCP23017 false
 
-// Number of chained PCA9685 port extenders
+// Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
 
 
@@ -399,6 +399,58 @@ const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 45000;
 const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 2000;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
 const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
+
+
+// SPEEDOMETER CONFIGURATION
+
+// Speedometer installed?
+bool SPEEDOMETER_CONNECTED = false;
+
+// Number of sensors connected or connectable to the controller (must be 2 - do not change!)
+const int SM_NUM_SENSORS = 2;
+
+// Indexes in the sensor array used for measuring speed
+// Only local sensors are supported
+const int SM_SENSORS_INDEX[SM_NUM_SENSORS] = { 0, 1 };
+
+// Maximum number of magnets attached to a train
+const int SM_MAX_VALUES = 20;
+
+// Distance between the sensors in mm
+// SM_DISTANCE must be larger than the distance of the magnets on the train
+const float SM_DISTANCE = 1000;
+
+enum struct SpeedometerSpeedUnit
+{
+  STUDS_PER_SECOND,
+  MILLIMETERS_PER_SECOND,
+  KILOMETER_PER_HOUR,
+  MILES_PER_HOUR
+};
+
+enum struct SpeedometerLengthUnit
+{
+  NO_INDICATION,
+  STUDS,
+  MILLIMETERS,
+  CENTIMETERS,
+  METERS
+};
+
+// speed unit (for display only - internally, mm/s is used)
+const SpeedometerSpeedUnit SM_SPEEDUNIT = SpeedometerSpeedUnit::STUDS_PER_SECOND;
+
+// length unit (for display only - internally, mm is used)
+const SpeedometerLengthUnit SM_LENGTHUNIT = SpeedometerLengthUnit::STUDS;
+
+// Timeout to reset the speedometer when nothing is happening anymore (in ms)
+const unsigned int SM_TIMEOUT = 10000;
+
+// Minimum time between two measurements (in ms)
+const unsigned int SM_TIME_BETWEEN_MEASUREMENTS = 10000;
+
+// Minimum time to display the speed on the display before switching to a "Screensaver" (in ms)
+const unsigned int SM_TIME_TO_SHOW_RESULTS = 20000;
 
 
 // ****************
