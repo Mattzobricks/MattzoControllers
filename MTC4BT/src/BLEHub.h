@@ -4,8 +4,8 @@
 #include "NimBLEDevice.h"
 
 #include "BLEHubConfiguration.h"
-#include "ChannelConfiguration.h"
 #include "ChannelController.h"
+#include "Fn.h"
 
 #define AUTO_LIGHTS_ENABLED true
 #define AUTO_LIGHTS_DISABLED false
@@ -26,10 +26,11 @@
 // The number of seconds to wait for a Hub to connect.
 #define ConnectDelayInSeconds 5
 
+// Abstract Bluetooth Low Energy (BLE) hub base class.
 class BLEHub
 {
 public:
-    BLEHub(BLEHubConfiguration *config);
+    BLEHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep);
 
     // Returns a boolean value indicating whether this BLE hub is enabled (in use).
     bool IsEnabled();
@@ -40,12 +41,18 @@ public:
     // Returns a boolean value indicating whether we are connected to the BLE hub.
     bool IsConnected();
 
+    // Returns the hub's address.
+    std::string GetAddress();
+
     // Sets the given target speed for the respective channels (by their index).
     // The number of speeds specified should match the actual number of BLE hub channels.
     // void Drive(const int16_t channelSpeedPercs[]);
 
     // Sets the given target speed for all motor channels.
     void Drive(const int16_t minSpeed, const int16_t speed);
+
+    // Handles the given function.
+    void HandleFn(Fn* fn, bool on);
 
     // Turns all light channels on/off.
     void SetLights(bool on);
@@ -83,6 +90,8 @@ private:
     static void driveTaskImpl(void *);
 
     BLEHubConfiguration *_config;
+    int16_t _speedStep;
+    int16_t _brakeStep;
     std::vector<ChannelController *> _channelControllers;
 
     TaskHandle_t _driveTaskHandle;
@@ -104,5 +113,5 @@ private:
     friend class PUHub;
     friend class SBrickHub;
     friend class BLEClientCallback;
-    friend class AdvertisedBLEDeviceCallbacks;
+    friend class BLEDeviceCallbacks;
 };

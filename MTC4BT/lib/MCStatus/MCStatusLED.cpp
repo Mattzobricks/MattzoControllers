@@ -1,13 +1,14 @@
 #include <Arduino.h>
 
 #include "MCStatusLED.h"
-// #include "PubSubClient.h"
 #include "MattzoWiFiClient.h"
 #include "MattzoMQTTSubscriber.h"
 
 MCStatusLED::MCStatusLED(int led_pin, bool inverted)
-    : status_led_pin{led_pin}, statusLEDState{false}, inverted{inverted}
+    : _status_led_pin{led_pin}, _statusLEDState{false}, _inverted{inverted}
 {
+    Serial.print("Status pin inverted: ");
+    Serial.println(inverted);
     pinMode(led_pin, OUTPUT);
 }
 
@@ -38,58 +39,41 @@ MCConnectionStatus MCStatusLED::getConnectionStatus()
 
 void MCStatusLED::setStatusLED(bool on)
 {
-    if (status_led_pin > 0)
+    if (_status_led_pin > 0)
     {
-        if (!inverted)
+        if (!_inverted)
         {
-            digitalWrite(status_led_pin, on ? HIGH : LOW);
+            digitalWrite(_status_led_pin, on ? HIGH : LOW);
         }
         else
         {
-            digitalWrite(status_led_pin, on ? LOW : HIGH);
+            digitalWrite(_status_led_pin, on ? LOW : HIGH);
         }
     }
 }
 
 void MCStatusLED::UpdateStatusLED()
 {
+    unsigned long t = millis();
+
     switch (getConnectionStatus())
     {
     case uninitialized:
     case initializing:
-        // two short flashes per second
-        OnTime = 100;
-        OffTime = 400;
+        // two flaseshes per second.
+        setStatusLED(((t % 500) < 50) ^ _statusLEDState);
         break;
     case connecting_wifi:
-        // one short flash per second (10%)
-        OnTime = 100;
-        OffTime = 900;
+        // one short flash per second (on 10%).
+        setStatusLED(((t % 1000) < 100) ^ _statusLEDState);
         break;
     case connecting_mqtt:
-        // blink (50%)
-        OnTime = 500;
-        OffTime = 500;
+        // blink (on 50%).
+        setStatusLED(((t % 1000) < 500) ^ _statusLEDState);
         break;
     case connected:
-        // off
-        OnTime = 0;
-        OffTime = 0;
+        // off.
+        setStatusLED(false);
         break;
-    }
-
-    unsigned long t = millis();
-
-    if ((ledOn == true) && (t - previousMillis >= OnTime))
-    {
-        ledOn = false;
-        previousMillis = t;
-        setStatusLED(ledOn);
-    }
-    else if ((ledOn == false) && (t - previousMillis >= OffTime))
-    {
-        ledOn = true;
-        previousMillis = t;
-        setStatusLED(ledOn);
     }
 }

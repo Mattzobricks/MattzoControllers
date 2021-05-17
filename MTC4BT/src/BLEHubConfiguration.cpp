@@ -1,6 +1,6 @@
 #include "BLEHubConfiguration.h"
 
-BLEHubConfiguration::BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<ChannelConfiguration *> channels, int16_t lightPerc, bool autoLightsOnEnabled, bool enabled)
+BLEHubConfiguration::BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<DeviceConfiguration *> channels, int16_t lightPerc, bool autoLightsOnEnabled, bool enabled)
 {
     HubType = hubType;
     DeviceAddress = new NimBLEAddress(deviceAddress);

@@ -18,11 +18,7 @@ public:
 
 private:
     void setStatusLED(bool on);
-    int status_led_pin; 
-    bool statusLEDState;
-    bool inverted;
-    bool ledOn = false;
-    long previousMillis = 0;        // will store last time LED was updated
-    long OnTime = 0;
-    long OffTime = 0;
+    int _status_led_pin; 
+    bool _statusLEDState;
+    bool _inverted;
 };

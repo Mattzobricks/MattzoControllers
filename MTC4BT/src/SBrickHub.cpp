@@ -17,8 +17,8 @@ const int8_t CMD_GET_CHANNEL_STATUS = 34;
 const int16_t SBRICK_MAX_CHANNEL_SPEED = 254;
 const int16_t SBRICK_MIN_CHANNEL_SPEED = -254;
 
-SBrickHub::SBrickHub(BLEHubConfiguration *config)
-    : BLEHub(config)
+SBrickHub::SBrickHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep)
+    : BLEHub(config, speedStep, brakeStep)
 {
 }
 

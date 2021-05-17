@@ -7,7 +7,9 @@
 #include "log4MC.h"
 #include "loadNetworkConfiguration.h"
 #include "loadControllerConfiguration.h"
+#include "MTC4BTController.h"
 #include "MCStatusLED.h"
+
 #ifdef ESP32
 // default pin for esp32doit-devkit-v1
 #define STATUS_LED 2
@@ -44,7 +46,8 @@ static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 BLEHubScanner *hubScanner;
 MCNetworkConfiguration *networkConfig;
-MTC4BTConfiguration *config;
+MTC4BTController *controller;
+MTC4BTConfiguration *controllerConfig;
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
@@ -88,7 +91,7 @@ void handleMQTTMessages(void *parm)
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
             // Parse message and translate to a BLE command for loco hub(s).
-            MattzoBLEMQTTHandler::Handle(message, config->Locomotives);
+            MattzoBLEMQTTHandler::Handle(message, controllerConfig->Locomotives);
 
             // Erase message from memory by freeing it.
             free(message);
@@ -126,15 +129,22 @@ void setup()
     log4MC::Setup(networkConfig->WiFi->hostname, networkConfig->Logging);
 
     // Load the controller configuration.
-    Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Loading controller configuration...");
-    config = loadControllerConfiguration("/controller_config.json");
+    log4MC::info("Setup: Loading controller configuration...");
+    controllerConfig = loadControllerConfiguration("/controller_config.json");
+    controller = new MTC4BTController(controllerConfig);
 
-    // Setup status LED.
-    // TODO: Get LED pin and inversion state from controller config.
-    statusled = new MCStatusLED(STATUS_LED, STATUS_LED_INVERTED);
+    // Setup status LED, if configured.
+    DeviceConfiguration *statusLed = controller->GetStatusLed();
+    if (statusLed)
+    {
+        log4MC::vlogf(LOG_INFO, "Setup: Found status led attached to ESP pin %s. Initializing...", statusLed->GetAddress().c_str());
 
-    // Start status task loop.
-    xTaskCreatePinnedToCore(statusLoop, "StatusLoop", 1024, NULL, 1, NULL, 1);
+        // Initiate status LED.
+        statusled = new MCStatusLED(statusLed->GetAddressAsEspPinNumber(), statusLed->IsInverted());
+
+        // Start status task loop.
+        xTaskCreatePinnedToCore(statusLoop, "StatusLoop", 1024, NULL, 1, NULL, 1);
+    }
 
     // Setup and connect to WiFi.
     MattzoWifiClient::Setup(networkConfig->WiFi);
@@ -149,7 +159,7 @@ void setup()
     // MattzoMQTTPublisher::Setup(ROCRAIL_COMMAND_QUEUE, MQTT_OUTGOING_QUEUE_LENGTH);
 
     // Setup MQTT subscriber (use controller name as part of the subscriber name).
-    networkConfig->MQTT->SubscriberName = config->ControllerName;
+    networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
     MattzoMQTTSubscriber::Setup(networkConfig->MQTT, mqttCallback);
 
     // Initialize BLE client.
@@ -164,16 +174,16 @@ void setup()
     hubScanner = new BLEHubScanner();
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
-    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover Hubs for: %u", config->Locomotives.size());
+    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover Hubs for: %u", controllerConfig->Locomotives.size());
 }
 
 void loop()
 {
     std::vector<BLEHub *> undiscoveredHubs;
 
-    for (int l = 0; l < config->Locomotives.size(); l++)
+    for (int l = 0; l < controllerConfig->Locomotives.size(); l++)
     {
-        BLELocomotive *loco = config->Locomotives.at(l);
+        BLELocomotive *loco = controllerConfig->Locomotives.at(l);
 
         if (!loco->IsEnabled() || loco->AllHubsConnected())
         {
@@ -211,7 +221,7 @@ void loop()
                     }
                     else
                     {
-                        log4MC::vlogf(LOG_INFO, "Loop: Connected to loco '%s'.", loco->GetLocoName().c_str());
+                        log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
                         if (loco->AllHubsConnected())
                         {

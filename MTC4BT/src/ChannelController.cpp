@@ -5,9 +5,11 @@
 #define MIN_SPEED_PERC -100
 #define MAX_SPEED_PERC 100
 
-ChannelController::ChannelController(ChannelConfiguration *config)
+ChannelController::ChannelController(DeviceConfiguration *config, int16_t speedStep, int16_t brakeStep)
 {
   _config = config;
+  _speedStep = speedStep;
+  _brakeStep = brakeStep;
 
   _minSpeedPerc = 0;
   _targetSpeedPerc = 0;
@@ -16,12 +18,12 @@ ChannelController::ChannelController(ChannelConfiguration *config)
 
 HubChannel ChannelController::GetChannel()
 {
-  return _config->channel;
+  return _config->GetAddressAsHubChannel();
 }
 
 AttachedDevice ChannelController::GetAttachedDevice()
 {
-  return _config->device;
+  return _config->GetAttachedDevice();
 }
 
 void ChannelController::SetMinSpeedPerc(int16_t minSpeedPerc)
@@ -31,7 +33,7 @@ void ChannelController::SetMinSpeedPerc(int16_t minSpeedPerc)
 
 void ChannelController::SetTargetSpeedPerc(int16_t speedPerc)
 {
-  int16_t newSpeedPerc = _config->direction == HubChannelDirection::REVERSE ? speedPerc * -1 : speedPerc;
+  int16_t newSpeedPerc = _config->IsInverted() ? speedPerc * -1 : speedPerc;
   _targetSpeedPerc = normalizeSpeedPerc(newSpeedPerc);
 }
 
@@ -64,7 +66,7 @@ bool ChannelController::UpdateCurrentSpeedPerc()
   }
 
   int16_t dirMultiplier = _targetSpeedPerc > _currentSpeedPerc ? 1 : -1;
-  int16_t speedStep = (isAccelarating() ? _config->speedStep : _config->brakeStep) * dirMultiplier;
+  int16_t speedStep = (isAccelarating() ? _speedStep : _brakeStep) * dirMultiplier;
 
   if (!isAccelarating() && abs(speedStep) > abs(_currentSpeedPerc))
   {

@@ -3,10 +3,10 @@
 #include "NimBLEDevice.h"
 #include "BLEHub.h"
 
-class AdvertisedBLEDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks
+class BLEDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks
 {
 public:
-    AdvertisedBLEDeviceCallbacks(std::vector<BLEHub *> hubs);
+    BLEDeviceCallbacks(std::vector<BLEHub *> hubs);
 
 private:
     void onResult(NimBLEAdvertisedDevice *advertisedDevice);

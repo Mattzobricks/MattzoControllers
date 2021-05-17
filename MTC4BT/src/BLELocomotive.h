@@ -3,7 +3,6 @@
 #include <Arduino.h>
 
 #include "BLEHub.h"
-#include "BLEHubConfiguration.h"
 #include "BLELocomotiveConfiguration.h"
 
 #define AUTO_LIGHTS_ENABLED true
@@ -40,6 +39,9 @@ public:
 
     // Returns the hub at the given index.
     BLEHub *GetHub(uint index);
+
+    // Returns the hub with the given address.
+    BLEHub *GetHub(std::string address);
 
     // Returns a boolean value indicating whether the lights should automatically turn on when the loco starts driving.
     bool GetAutoLightsEnabled();

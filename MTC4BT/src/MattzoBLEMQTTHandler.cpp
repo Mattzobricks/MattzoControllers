@@ -158,10 +158,6 @@ void MattzoBLEMQTTHandler::handleLc(const char *message, std::vector<BLELocomoti
 
 void MattzoBLEMQTTHandler::handleFn(const char *message, std::vector<BLELocomotive *> locos)
 {
-    // TODO: Ignore message.
-    log4MC::warn("Received and ignored 'fn' command'.");
-    return;
-
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr))
     {
@@ -181,7 +177,7 @@ void MattzoBLEMQTTHandler::handleFn(const char *message, std::vector<BLELocomoti
             //     return;
             // }
 
-            // Get channel index (f0=A, f1=B, f2=C, f3=D).
+            // Get number of function that changed.
             int fnchanged;
             if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged))
             {
@@ -190,7 +186,7 @@ void MattzoBLEMQTTHandler::handleFn(const char *message, std::vector<BLELocomoti
                 return;
             }
 
-            // Query fnchangedstate attribute. This is the new state of the lights (true=on, false=off) of a channel.
+            // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
             bool fnchangedstate;
             if (!XmlParser::tryReadBoolAttr(message, "fnchangedstate", &fnchangedstate))
             {
@@ -199,11 +195,8 @@ void MattzoBLEMQTTHandler::handleFn(const char *message, std::vector<BLELocomoti
                 return;
             }
 
-            // Determine actual channel.
-            // HubChannel channel = static_cast<HubChannel>(fnchanged);
-
-            // TODO: Turn lights on for the requested channel (if channel has lights attached!).
-            // locos[i]->SetLights(channel, fnchangedstate);
+            // Ask loco to handle the function.
+            locos[i]->SetFunction(fnchanged, fnchangedstate);
         }
     }
 }

@@ -48,11 +48,28 @@ void BLELocomotive::SetFunction(const uint8_t fn, const bool on)
 {
     if (!AllHubsConnected())
     {
-        // Ignore drive command.
+        // Ignore function command.
+        log4MC::vlogf(LOG_INFO, "Loco: %s ignored function command because not all its hubs are connected (yet).", _config->_name.c_str());
         return;
     }
 
-    // TODO: Implement!
+    // Convert function number to string "fx";
+    char fnName[3];
+    sprintf(fnName, "f%u", fn);
+    MTC4BTFunction func = functionMap()[fnName];
+
+    for (int i = 0; i < _config->_functions.size(); i++)
+    {
+        Fn *function = _config->_functions.at(i);
+        if (function->GetFunction() == func)
+        {
+            // Found function definition, determine hub address.
+            std::string hubAddress = function->GetDevice()->GetParentAddress();
+
+            // Ask hub to handle function.
+            GetHub(hubAddress)->HandleFn(function, on);
+        }
+    }
 }
 
 void BLELocomotive::EmergencyBreak(const bool enabled)
@@ -93,6 +110,19 @@ BLEHub *BLELocomotive::GetHub(uint index)
     return _hubs.at(index);
 }
 
+BLEHub *BLELocomotive::GetHub(std::string address)
+{
+    for (int i = 0; i < _hubs.size(); i++)
+    {
+        if (_hubs.at(i)->GetAddress().compare(address) == 0)
+        {
+            return _hubs.at(i);
+        }
+    }
+
+    return nullptr;
+}
+
 bool BLELocomotive::GetAutoLightsEnabled()
 {
     return _config->_autoLightsEnabled;
@@ -106,13 +136,13 @@ void BLELocomotive::initHubs(std::vector<BLEHubConfiguration *> hubConfigs)
         switch (hubConfig->HubType)
         {
         case BLEHubType::SBrick:
-            _hubs.push_back(new SBrickHub(hubConfig));
+            _hubs.push_back(new SBrickHub(hubConfig, _config->_speedStep, _config->_brakeStep));
             break;
         case BLEHubType::PU:
-            _hubs.push_back(new PUHub(hubConfig));
+            _hubs.push_back(new PUHub(hubConfig, _config->_speedStep, _config->_brakeStep));
             break;
         }
     }
 
-    log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
+    // log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
 }

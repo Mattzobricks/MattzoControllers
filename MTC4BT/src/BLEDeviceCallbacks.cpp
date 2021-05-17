@@ -1,16 +1,16 @@
 #include <Arduino.h>
 #include "NimBLEDevice.h"
 #include "BLEHub.h"
-#include "AdvertisedBLEDeviceCallbacks.h"
+#include "BLEDeviceCallbacks.h"
 #include "log4MC.h"
 
-AdvertisedBLEDeviceCallbacks::AdvertisedBLEDeviceCallbacks(std::vector<BLEHub *> hubs) : NimBLEAdvertisedDeviceCallbacks()
+BLEDeviceCallbacks::BLEDeviceCallbacks(std::vector<BLEHub *> hubs) : NimBLEAdvertisedDeviceCallbacks()
 {
     _hubs = hubs;
 }
 
 // Called for each advertising BLE server.
-void AdvertisedBLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
+void BLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
 {
     bool advertisedDeviceFound = false;
 

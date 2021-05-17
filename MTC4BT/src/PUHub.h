@@ -15,7 +15,7 @@
 class PUHub : public BLEHub
 {
 public:
-    PUHub(BLEHubConfiguration *config);
+    PUHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep);
     bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
     void DriveTaskLoop();
     int16_t MapSpeedPercToRaw(int speedPerc);

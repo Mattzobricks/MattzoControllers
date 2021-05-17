@@ -30,8 +30,8 @@
 		/*
 			Configure your WiFi network:
 			- "SSID":				SSID of your WiFi network (required).
-			- "password":		Password required to connect to your WiFi network (required).
-			- "hostname":		Hostname used by this controller on your WiFi network (optional, default: generated controller name).
+			- "password":			Password required to connect to your WiFi network (required).
+			- "hostname":			Hostname used by this controller on your WiFi network (optional, default: generated controller name).
 			- "otaPassword":		Password required to connect to update this controller over-the-air (required).
 			- "wait":				Delay in milliseconds between WiFi connect attempts (optional, default: 500).
 		*/
@@ -41,12 +41,12 @@
 		"otaPassword": "xxxxxx",
 		"wait": 500
 	},
-	"MQTT": {
+	"mqtt": {
 		/*
 			Configure your MQTT broker:
 			- "broker": 			Your MQTT broker IP address (required).
 			- "port": 				Your MQTT broker port number (required).
-			- "keepalive": 		Keep alive timeout (optional).
+			- "keepalive": 			Keep alive timeout (optional).
 			- "ping": 				Ping delay in seconds (optional, 0 = no ping).
 			- "ebreakOnDisconnect": true or false (optional, NOT USED YET).
 		*/

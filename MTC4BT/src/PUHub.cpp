@@ -8,8 +8,8 @@
 static BLEUUID remoteControlServiceUUID(PU_REMOTECONTROL_SERVICE_UUID);
 static BLEUUID remoteControlCharacteristicUUID(PU_REMOTECONTROL_CHARACTERISTIC_UUID);
 
-PUHub::PUHub(BLEHubConfiguration *config)
-    : BLEHub(config)
+PUHub::PUHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep)
+    : BLEHub(config, speedStep, brakeStep)
 {
 }
 

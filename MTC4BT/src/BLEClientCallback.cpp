@@ -1,5 +1,3 @@
-#include "NimBLEDevice.h"
-#include "BLEHub.h"
 #include "BLEClientCallback.h"
 #include "log4MC.h"
 

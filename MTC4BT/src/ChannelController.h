@@ -1,12 +1,13 @@
 #pragma once
 
 #include <Arduino.h>
-#include "ChannelConfiguration.h"
+
+#include "DeviceConfiguration.h"
 
 class ChannelController
 {
 public:
-  ChannelController(ChannelConfiguration *config);
+  ChannelController(DeviceConfiguration *config, int16_t speedStep, int16_t brakeStep);
 
   // Returns the controlled channel.
   HubChannel GetChannel();
@@ -48,8 +49,10 @@ private:
   // Return the normalized speed value, bounded by the min and max channel speed.
   int16_t normalizeSpeedPerc(int16_t speedPerc);
 
-  ChannelConfiguration *_config;
+  DeviceConfiguration *_config;
 
+  int16_t _speedStep;
+  int16_t _brakeStep;
   int16_t _minSpeedPerc;
   int16_t _targetSpeedPerc;
   int16_t _currentSpeedPerc;

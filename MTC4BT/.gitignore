@@ -4,12 +4,5 @@
 .vscode/launch.json
 .vscode/ipch
 
-include/log4MC_config.h
-include/MC_mqtt_config.h
-include/MC_Wifi_confg.h
-include/MTC4BT_loco_config.h
-
-data/controller_config.json
-data/network_config.json
-
+data/
 platformio.ini

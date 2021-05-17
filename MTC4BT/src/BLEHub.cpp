@@ -1,15 +1,15 @@
 #include <Arduino.h>
 
-#include "NimBLEDevice.h"
-
 #include "BLEHub.h"
-#include "AdvertisedBLEDeviceCallbacks.h"
+#include "BLEDeviceCallbacks.h"
 #include "BLEClientCallback.h"
 #include "log4MC.h"
 
-BLEHub::BLEHub(BLEHubConfiguration *config)
+BLEHub::BLEHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep)
 {
     _config = config;
+    _speedStep = speedStep;
+    _brakeStep = brakeStep;
 
     initChannelControllers();
 
@@ -42,9 +42,20 @@ bool BLEHub::IsConnected()
     return _isConnected;
 }
 
+std::string BLEHub::GetAddress()
+{
+    return _config->DeviceAddress->toString();
+}
+
 void BLEHub::Drive(const int16_t minSpeed, const int16_t speed)
 {
     setTargetSpeedPercByAttachedDevice(AttachedDevice::MOTOR, minSpeed, speed);
+}
+
+void BLEHub::HandleFn(Fn *fn, bool on)
+{
+    log4MC::vlogf(LOG_DEBUG, "BLEHub handling function %u for channel %u.", fn->GetDevice()->GetAttachedDevice(), fn->GetDevice()->GetAddressAsHubChannel());
+    setTargetSpeedPercForChannelByAttachedDevice(fn->GetDevice()->GetAddressAsHubChannel(), fn->GetDevice()->GetAttachedDevice(), 0, on ? _config->LightPerc : 0);
 }
 
 void BLEHub::SetLights(bool on)
@@ -198,8 +209,8 @@ void BLEHub::initChannelControllers()
 
     for (int i = 0; i < _config->Channels.size(); i++)
     {
-        ChannelConfiguration *config = _config->Channels.at(i);
-        _channelControllers.push_back(new ChannelController(config));
+        DeviceConfiguration *config = _config->Channels.at(i);
+        _channelControllers.push_back(new ChannelController(config, _speedStep, _brakeStep));
     }
 
     // log4MC::vlogf(LOG_INFO, "BLE : Hub %s channels initialized.", _config->DeviceAddress->toString().c_str());
