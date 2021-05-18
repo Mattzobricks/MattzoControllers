@@ -70,7 +70,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const bool inverted = espPinConfig["inverted"] | false;
         const std::string attachedDevice = espPinConfig["attachedDevice"] | "nothing";
 
-        config->EspPins.push_back(new DeviceConfiguration(address, inverted, attachedDeviceMap()[attachedDevice]));
+        config->EspPins.push_back(new DeviceConfiguration(HardwareType::EspPin, address, inverted, attachedDeviceMap()[attachedDevice]));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read ESP pin configuration (%u).", config->EspPins.size());
 
@@ -99,7 +99,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         }
 
         // Check if the ESP pin with the specified address defined in the config has a light attached to it.
-        if (fnDevice->GetAttachedDevice() != AttachedDevice::LIGHT)
+        if (fnDevice->GetAttachedDeviceType() != AttachedDevice::LIGHT)
         {
             log4MC::vlogf(LOG_ERR, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`.", pin);
         }
@@ -142,9 +142,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
                 const char *dir = channelConfig["direction"] | "forward";
                 bool isInverted = strcmp(dir, "reverse") == 0;
 
-                // TODO: Read hub channel function properties (if any) any add to `config->Functions`.
-
-                channels.push_back(new DeviceConfiguration(channel, isInverted, attachedDeviceMap()[attachedDevice]));
+                channels.push_back(new DeviceConfiguration(HardwareType::BleHub, channel, isInverted, attachedDeviceMap()[attachedDevice]));
             }
 
             hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, lightPerc, autoLightsOnEnabled, enabled));
@@ -156,52 +154,91 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         for (JsonObject fnConfig : fnConfigs)
         {
             const char *fnName = fnConfig["name"];
-            const std::string address = fnConfig["address"];
-            const std::string channel = fnConfig["channel"];
+            const std::string device = fnConfig["device"];
 
-            // Check if there's a hub with the specified address in the config.
             DeviceConfiguration *fnDevice = nullptr;
-            std::string hubAddress;
-            for (int h = 0; h < hubs.size(); h++)
+            DeviceConfiguration *tmpDevice;
+
+            switch (hardwareTypeMap()[device])
             {
-                BLEHubConfiguration *hub = hubs.at(h);
-                if (hub->DeviceAddress->toString().compare(address) == 0)
+            case HardwareType::EspPin:
+            {
+                // Check if there's an ESP pin with the specified pin number in the config.
+                const int pin = fnConfig["pin"];
+
+                for (int i = 0; i < config->EspPins.size(); i++)
                 {
-                    // Keep hub address for reference.
-                    hubAddress = hub->DeviceAddress->toString();
-
-                    // Check if the specified channel is defined in the hub config.
-                    for (int i = 0; i < hub->Channels.size(); i++)
+                    tmpDevice = config->EspPins.at(i);
+                    if (tmpDevice->GetAddressAsEspPinNumber() == pin)
                     {
-                        DeviceConfiguration *hubChannel = hub->Channels.at(i);
-                        if (hubChannel->GetAddress().compare(channel) == 0)
-                        {
-                            fnDevice = hubChannel;
-                            break;
-                        }
+                        fnDevice = tmpDevice;
+                        break;
                     }
-
-                    break;
                 }
-            }
 
-            if (fnDevice == nullptr)
+                if (fnDevice == nullptr)
+                {
+                    log4MC::vlogf(LOG_ERR, "Config: ESP pin %u not configured in 'espPins' section.", pin);
+                }
+
+                // Check if the ESP pin with the specified address defined in the config has a light attached to it.
+                if (fnDevice->GetAttachedDeviceType() != AttachedDevice::LIGHT)
+                {
+                    log4MC::vlogf(LOG_ERR, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`.", pin);
+                }
+
+                break;
+            }
+            case HardwareType::BleHub:
             {
-                log4MC::vlogf(LOG_ERR, "Config: Hub '%s' or channel %s not configured in this loco's 'bleHubs' section.", address, channel);
-            }
+                // Check if there's a hub with the specified address in the config.
+                const std::string address = fnConfig["address"];
+                const std::string channel = fnConfig["channel"];
 
-            // Check if the given channel of the hub with the specified address defined in the config has a light attached to it.
-            if (fnDevice->GetAttachedDevice() != AttachedDevice::LIGHT)
-            {
-                log4MC::vlogf(LOG_ERR, "Config: Channel %s of hub '%s' in the 'bleHubs' section is not configured with `light` as the `attachedDevice`.", channel, address);
-            }
+                std::string hubAddress;
+                for (BLEHubConfiguration *hub : hubs)
+                {
+                    if (hub->DeviceAddress->toString().compare(address) == 0)
+                    {
+                        // Keep hub address for reference.
+                        hubAddress = hub->DeviceAddress->toString();
 
-            // Keep hub address for reference.
-            fnDevice->SetParentAddress(address);
+                        // Check if the specified channel is defined in the hub config.
+                        for (int i = 0; i < hub->Channels.size(); i++)
+                        {
+                            tmpDevice = hub->Channels.at(i);
+                            if (tmpDevice->GetAddress().compare(channel) == 0)
+                            {
+                                fnDevice = tmpDevice;
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+
+                if (fnDevice == nullptr)
+                {
+                    log4MC::vlogf(LOG_ERR, "Config: Hub '%s' or channel %s not configured in this loco's 'bleHubs' section.", address, channel);
+                }
+
+                // Check if the given channel of the hub with the specified address defined in the config has a light attached to it.
+                if (fnDevice->GetAttachedDeviceType() != AttachedDevice::LIGHT)
+                {
+                    log4MC::vlogf(LOG_ERR, "Config: Channel %s of hub '%s' in the 'bleHubs' section is not configured with `light` as the `attachedDevice`.", channel, address);
+                }
+
+                // Keep hub address for reference.
+                fnDevice->SetParentAddress(address);
+
+                break;
+            }
+            }
 
             functions.push_back(new Fn(functionMap()[fnName], fnDevice));
         }
-        log4MC::vlogf(LOG_INFO, "Config: Read function configuration (%u).", functions .size());
+        log4MC::vlogf(LOG_INFO, "Config: Read function configuration (%u).", functions.size());
 
         BLELocomotive *loco = new BLELocomotive(new BLELocomotiveConfiguration(address, name, hubs, functions, speedStep, brakeStep, lightPerc, autoLightsOnEnabled, enabled));
         config->Locomotives.push_back(loco);

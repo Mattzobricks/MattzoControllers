@@ -21,8 +21,11 @@ public:
     // Sets the given target speed for all motor channels for all hubs.
     void Drive(const int16_t minSpeed, const int16_t speed);
 
+    // Returns a list of functions that need to be handled.
+    std::vector<Fn *> GetFn(MTC4BTFunction func);
+
     // Turns the specified function on/off.
-    void SetFunction(const uint8_t fn, const bool on);
+    void HandleFn(Fn *fn, const bool on);
 
     // If true, immediately sets the current speed for all hubs for all channels to zero.
     // If false, releases the emergency break.
@@ -48,6 +51,7 @@ public:
 
 private:
     void initHubs(std::vector<BLEHubConfiguration *> hubConfigs);
+    std::vector<Fn *> getFunctions(MTC4BTFunction f);
 
     BLELocomotiveConfiguration *_config;
     std::vector<BLEHub *> _hubs;

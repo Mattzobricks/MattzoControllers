@@ -1,7 +1,7 @@
 #include "MattzoBLEMQTTHandler.h"
 #include "log4MC.h"
 
-void MattzoBLEMQTTHandler::Handle(const char *message, std::vector<BLELocomotive *> locos)
+void MattzoBLEMQTTHandler::Handle(const char *message, MTC4BTController *controller)
 {
     char *pos;
 
@@ -9,17 +9,17 @@ void MattzoBLEMQTTHandler::Handle(const char *message, std::vector<BLELocomotive
     if ((pos = strstr(message, "<sys ")) != nullptr)
     {
         // found <sys
-        handleSys(pos, locos);
+        handleSys(pos, controller);
     }
     else if ((pos = strstr(message, "<lc ")) != nullptr)
     {
         // found <lc
-        handleLc(pos, locos);
+        handleLc(pos, controller);
     }
     else if ((pos = strstr(message, "<fn ")) != nullptr)
     {
         // found <fn
-        handleFn(pos, locos);
+        handleFn(pos, controller);
     }
     else if ((pos = strstr(message, "<sw ")) != nullptr)
     {
@@ -33,7 +33,7 @@ void MattzoBLEMQTTHandler::Handle(const char *message, std::vector<BLELocomotive
     } // IGNORE THE REST
 }
 
-void MattzoBLEMQTTHandler::handleSys(const char *message, std::vector<BLELocomotive *> locos)
+void MattzoBLEMQTTHandler::handleSys(const char *message, MTC4BTController *controller)
 {
     char *cmd = nullptr;
     if (!XmlParser::tryReadCharAttr(message, "cmd", &cmd))
@@ -46,11 +46,8 @@ void MattzoBLEMQTTHandler::handleSys(const char *message, std::vector<BLELocomot
     {
         log4MC::vlogf(LOG_INFO, "Received '%s' command. Stopping all locos.", cmd);
 
-        // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
-        for (int i = 0; i < locos.size(); i++)
-        {
-            locos.at(i)->EmergencyBreak(true);
-        }
+        // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. All trains will stop immediately.
+        controller->EmergencyBreak(true);
 
         return;
     }
@@ -60,16 +57,13 @@ void MattzoBLEMQTTHandler::handleSys(const char *message, std::vector<BLELocomot
         log4MC::info("Received 'go' command. Releasing e-break and starting all locos.");
 
         // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
-        for (int i = 0; i < locos.size(); i++)
-        {
-            locos.at(i)->EmergencyBreak(false);
-        }
+        controller->EmergencyBreak(false);
 
         return;
     }
 }
 
-void MattzoBLEMQTTHandler::handleLc(const char *message, std::vector<BLELocomotive *> locos)
+void MattzoBLEMQTTHandler::handleLc(const char *message, MTC4BTController *controller)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr))
@@ -79,84 +73,81 @@ void MattzoBLEMQTTHandler::handleLc(const char *message, std::vector<BLELocomoti
         return;
     }
 
-    for (int i = 0; i < locos.size(); i++)
+    BLELocomotive *loco = controller->GetLocomotive(addr);
+    if (!loco)
     {
-        // Find loco by address.
-        if (locos.at(i)->GetLocoAddress() == addr)
-        {
-            // Get target speed.
-            int speed;
-            if (!XmlParser::tryReadIntAttr(message, "V", &speed))
-            {
-                // Log error, ignore message.
-                log4MC::warn("Received 'lc' command, but couldn't read 'V' attribute.");
-                return;
-            }
+        // Not a loco under our control. Ignore message.
+        log4MC::vlogf(LOG_DEBUG, "Loco with address '%u' is not under our control. Lc command ignored.", addr);
+        return;
+    }
 
-            // Get min speed.
-            int minSpeed;
-            if (!XmlParser::tryReadIntAttr(message, "V_min", &minSpeed))
-            {
-                // Log error, ignore message.
-                log4MC::warn("Received 'lc' command, but couldn't read 'V_min' attribute.");
-                return;
-            }
+    // Get target speed.
+    int speed;
+    if (!XmlParser::tryReadIntAttr(message, "V", &speed))
+    {
+        // Log error, ignore message.
+        log4MC::warn("Received 'lc' command, but couldn't read 'V' attribute.");
+        return;
+    }
 
-            if (speed != 0 && speed < minSpeed)
-            {
-                // Requested speed is too low, we should ignore this command.
-                log4MC::vlogf(LOG_DEBUG, "Received and ignored 'lc' command, because speed (%u) was below V_min (%u).", speed, minSpeed);
-                return;
-            }
+    // Get min speed.
+    int minSpeed;
+    if (!XmlParser::tryReadIntAttr(message, "V_min", &minSpeed))
+    {
+        // Log error, ignore message.
+        log4MC::warn("Received 'lc' command, but couldn't read 'V_min' attribute.");
+        return;
+    }
 
-            // Get max speed.
-            int maxSpeed;
-            if (!XmlParser::tryReadIntAttr(message, "V_max", &maxSpeed))
-            {
-                // Log error, ignore message.
-                log4MC::warn("Received 'lc' command, but couldn't read 'V_max' attribute.");
-                return;
+    if (speed != 0 && speed < minSpeed)
+    {
+        // Requested speed is too low, we should ignore this command.
+        log4MC::vlogf(LOG_DEBUG, "Received and ignored 'lc' command, because speed (%u) was below V_min (%u).", speed, minSpeed);
+        return;
+    }
 
-            }
+    // Get max speed.
+    int maxSpeed;
+    if (!XmlParser::tryReadIntAttr(message, "V_max", &maxSpeed))
+    {
+        // Log error, ignore message.
+        log4MC::warn("Received 'lc' command, but couldn't read 'V_max' attribute.");
+        return;
+    }
 
-            // Get speed mode (percentage or km/h).
-            char *mode;
-            if (!XmlParser::tryReadCharAttr(message, "V_mode", &mode))
-            {
-                // Log error, ignore message.
-                log4MC::warn("Received 'lc' command, but couldn't read 'V_mode' attribute.");
-                return;
+    // Get speed mode (percentage or km/h).
+    char *mode;
+    if (!XmlParser::tryReadCharAttr(message, "V_mode", &mode))
+    {
+        // Log error, ignore message.
+        log4MC::warn("Received 'lc' command, but couldn't read 'V_mode' attribute.");
+        return;
+    }
 
-            }
+    // Get direction (true=forward, false=backward).
+    bool dirBool;
+    if (!XmlParser::tryReadBoolAttr(message, "dir", &dirBool))
+    {
+        // Log error, ignore message.
+        log4MC::warn("Received 'lc' command, but couldn't read 'dir' attribute.");
+        return;
+    }
 
-            // Get direction (true=forward, false=backward).
-            bool dirBool;
-            if (!XmlParser::tryReadBoolAttr(message, "dir", &dirBool))
-            {
-                // Log error, ignore message.
-                log4MC::warn("Received 'lc' command, but couldn't read 'dir' attribute.");
-                return;
-            }
+    // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
+    int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
 
-            // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
-            int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
+    // Execute drive command.
+    int8_t dirMultiplier = dirBool ? 1 : -1;
+    loco->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
 
-            // Execute drive command.
-            int8_t dirMultiplier = dirBool ? 1 : -1;
-            locos[i]->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
-
-            if (locos[i]->GetAutoLightsEnabled())
-            {
-                // TODO: Determine lights on or off based on target motor speed percentage.
-                // locos[i]->SetLights(speed != 0);
-            }
-
-            return;
-        }
+    if (loco->GetAutoLightsEnabled())
+    {
+        // TODO: Determine lights on or off based on target motor speed percentage.
+        // locos[i]->SetLights(speed != 0);
     }
 }
 
-void MattzoBLEMQTTHandler::handleFn(const char *message, std::vector<BLELocomotive *> locos)
+void MattzoBLEMQTTHandler::handleFn(const char *message, MTC4BTController *controller)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr))
@@ -166,37 +157,31 @@ void MattzoBLEMQTTHandler::handleFn(const char *message, std::vector<BLELocomoti
         return;
     }
 
-    for (int i = 0; i < locos.size(); i++)
+    // Get number of function that changed.
+    int fnchanged;
+    if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged))
     {
-        // Find loco by address.
-        if (locos.at(i)->GetLocoAddress() == addr)
-        {
-            // if (locos[i]->GetAutoLightsEnabled())
-            // {
-            //     // Found the loco the command is for, but it uses automatic lights (on while driving). Ignore command.
-            //     return;
-            // }
-
-            // Get number of function that changed.
-            int fnchanged;
-            if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged))
-            {
-                // Log error, ignore message.
-                log4MC::warn("Received 'fn' command' but couldn't read 'fnchanged' attribute.");
-                return;
-            }
-
-            // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
-            bool fnchangedstate;
-            if (!XmlParser::tryReadBoolAttr(message, "fnchangedstate", &fnchangedstate))
-            {
-                // Log error, ignore message.
-                log4MC::warn("Received 'fn' command' but couldn't read 'fnchangedstate' attribute.");
-                return;
-            }
-
-            // Ask loco to handle the function.
-            locos[i]->SetFunction(fnchanged, fnchangedstate);
-        }
+        // Log error, ignore message.
+        log4MC::warn("Received 'fn' command' but couldn't read 'fnchanged' attribute.");
+        return;
     }
+
+    // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
+    bool fnchangedstate;
+    if (!XmlParser::tryReadBoolAttr(message, "fnchangedstate", &fnchangedstate))
+    {
+        // Log error, ignore message.
+        log4MC::warn("Received 'fn' command' but couldn't read 'fnchangedstate' attribute.");
+        return;
+    }
+
+    // Convert function number to string "fx";
+    char fnName[3];
+    sprintf(fnName, "f%u", fnchanged);
+
+    // Convert function string to enum;
+    MTC4BTFunction fn = functionMap()[fnName];
+
+    // Ask controller to handle the function.
+    controller->HandleFn(addr, fn, fnchangedstate);
 }

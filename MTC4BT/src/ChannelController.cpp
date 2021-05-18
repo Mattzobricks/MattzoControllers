@@ -23,7 +23,7 @@ HubChannel ChannelController::GetChannel()
 
 AttachedDevice ChannelController::GetAttachedDevice()
 {
-  return _config->GetAttachedDevice();
+  return _config->GetAttachedDeviceType();
 }
 
 void ChannelController::SetMinSpeedPerc(int16_t minSpeedPerc)

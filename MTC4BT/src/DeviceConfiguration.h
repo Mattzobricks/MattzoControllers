@@ -1,11 +1,15 @@
 #pragma once
 
 #include "HubChannel.h"
+#include "enums.h"
 
 class DeviceConfiguration
 {
 public:
-    DeviceConfiguration(std::string address, bool isInverted, AttachedDevice attachedDevice);
+    DeviceConfiguration(HardwareType hwType, std::string address, bool isInverted, AttachedDevice deviceType);
+
+    // Returns the type of hardware the device is attached to.
+    HardwareType GetHardwareType();
 
     // Returns the raw device address.
     std::string GetAddress();
@@ -20,7 +24,7 @@ public:
     bool IsInverted();
 
     // Returns the attached device.
-    AttachedDevice GetAttachedDevice();
+    AttachedDevice GetAttachedDeviceType();
 
     // Gets the parent hub/receiver address.
     std::string GetParentAddress();
@@ -29,6 +33,9 @@ public:
     void SetParentAddress(std::string address);
 
 private:
+    // Type of hardware.
+    HardwareType _hwType;
+
     // Can be hub/receiver channel or ESP pin number.
     std::string _address;
 
@@ -38,6 +45,6 @@ private:
     // Boolean value indcating whether the channel should be treated as inverted.
     bool _isInverted = false;
 
-    // Attached device.
-    AttachedDevice _device = AttachedDevice::NOTHING;
+    // Attached device type.
+    AttachedDevice _deviceType = AttachedDevice::NOTHING;
 };

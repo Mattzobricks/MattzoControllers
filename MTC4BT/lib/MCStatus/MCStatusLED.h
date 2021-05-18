@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MCLed.h"
+
 enum MCConnectionStatus
 {
     uninitialized = 0x0,
@@ -9,16 +11,13 @@ enum MCConnectionStatus
     connected
 };
 
-class MCStatusLED
+class MCStatusLED : MCLed
 {
 public:
     MCStatusLED(int led_pin, bool inverted);
-    void UpdateStatusLED();
-    MCConnectionStatus getConnectionStatus();
+    void UpdateByStatus();
 
 private:
-    void setStatusLED(bool on);
-    int _status_led_pin; 
+    MCConnectionStatus getConnectionStatus();
     bool _statusLEDState;
-    bool _inverted;
 };

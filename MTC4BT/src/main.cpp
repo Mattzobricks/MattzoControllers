@@ -10,15 +10,8 @@
 #include "MTC4BTController.h"
 #include "MCStatusLED.h"
 
-#ifdef ESP32
-// default pin for esp32doit-devkit-v1
-#define STATUS_LED 2
-#define STATUS_LED_INVERTED false
-#else
-// default pin for nodemcuv2
-#define STATUS_LED LED_BUILDIN
-#define STATUS_LED_INVERTED true
-#endif
+#define NETWORK_CONFIG_FILE "/network_config.json"
+#define CONTROLLER_CONFIG_FILE "/controller_config.json"
 
 #define LIGHTS_ON true
 #define LIGHTS_OFF false
@@ -41,7 +34,7 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
 
 // Globals
-MCStatusLED *statusled;
+MCStatusLED *statusLed = nullptr;
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 BLEHubScanner *hubScanner;
@@ -91,7 +84,7 @@ void handleMQTTMessages(void *parm)
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
             // Parse message and translate to a BLE command for loco hub(s).
-            MattzoBLEMQTTHandler::Handle(message, controllerConfig->Locomotives);
+            MattzoBLEMQTTHandler::Handle(message, controller);
 
             // Erase message from memory by freeing it.
             free(message);
@@ -102,11 +95,19 @@ void handleMQTTMessages(void *parm)
     }
 }
 
-void statusLoop(void *parm)
+void ledLoop(void *parm)
 {
     for (;;)
     {
-        statusled->UpdateStatusLED();
+        if (statusLed)
+        {
+            statusLed->UpdateByStatus();
+        }
+        
+        for (MCLed *led : controller->Leds)
+        {
+            led->Update();
+        }
     }
 }
 
@@ -123,28 +124,28 @@ void setup()
 
     // Load the network configuration.
     Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Loading network configuration...");
-    networkConfig = loadNetworkConfiguration("/network_config.json");
+    networkConfig = loadNetworkConfiguration(NETWORK_CONFIG_FILE);
 
     // Setup logging (from now on we can use log4MC).
     log4MC::Setup(networkConfig->WiFi->hostname, networkConfig->Logging);
 
     // Load the controller configuration.
     log4MC::info("Setup: Loading controller configuration...");
-    controllerConfig = loadControllerConfiguration("/controller_config.json");
+    controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE);
     controller = new MTC4BTController(controllerConfig);
 
     // Setup status LED, if configured.
-    DeviceConfiguration *statusLed = controller->GetStatusLed();
-    if (statusLed)
+    DeviceConfiguration *statusLedConfig = controller->GetStatusLed();
+    if (statusLedConfig)
     {
-        log4MC::vlogf(LOG_INFO, "Setup: Found status led attached to ESP pin %s. Initializing...", statusLed->GetAddress().c_str());
+        log4MC::vlogf(LOG_INFO, "Setup: Found status led attached to ESP pin %s. Initializing...", statusLedConfig->GetAddress().c_str());
 
         // Initiate status LED.
-        statusled = new MCStatusLED(statusLed->GetAddressAsEspPinNumber(), statusLed->IsInverted());
-
-        // Start status task loop.
-        xTaskCreatePinnedToCore(statusLoop, "StatusLoop", 1024, NULL, 1, NULL, 1);
+        statusLed = new MCStatusLED(statusLedConfig->GetAddressAsEspPinNumber(), statusLedConfig->IsInverted());
     }
+
+    // Start led task loop.
+    xTaskCreatePinnedToCore(ledLoop, "LedLoop", 1024, NULL, 1, NULL, 1);
 
     // Setup and connect to WiFi.
     MattzoWifiClient::Setup(networkConfig->WiFi);

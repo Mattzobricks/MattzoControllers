@@ -2,6 +2,11 @@
 	"name": "YourControllerNameHere",
 	"espPins": [
 		{
+			"pin": 5,
+			"inverted": false,
+			"attachedDevice": "light"
+		},
+		{
 			"pin": 23,
 			"inverted": false,
 			"attachedDevice": "light"
@@ -10,6 +15,7 @@
 	"fn": [
 		{
 			"name": "status",
+			"device": "espPin",
 			"pin": 23
 		}
 	],
@@ -35,6 +41,19 @@
 							"direction": "forward"
 						}
 					]
+				}
+			],
+			"fn": [
+				{
+					"name": "f2",
+					"device": "bleHub",
+					"address": "00:07:80:d0:47:43",
+					"channel": "B"
+				},
+				{
+					"name": "f4",
+					"device": "espPin",
+					"pin": 5
 				}
 			]
 		},

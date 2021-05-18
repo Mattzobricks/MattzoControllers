@@ -16,6 +16,11 @@ bool BLELocomotive::IsEnabled()
 
 bool BLELocomotive::AllHubsConnected()
 {
+    if (!IsEnabled())
+    {
+        return false;
+    }
+
     for (int i = 0; i < _hubs.size(); i++)
     {
         BLEHub *hub = _hubs.at(i);
@@ -44,44 +49,47 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t speed)
     }
 }
 
-void BLELocomotive::SetFunction(const uint8_t fn, const bool on)
+std::vector<Fn *> BLELocomotive::GetFn(MTC4BTFunction func)
+{
+    return getFunctions(func);
+}
+
+void BLELocomotive::HandleFn(Fn *fn, const bool on)
 {
     if (!AllHubsConnected())
     {
         // Ignore function command.
         log4MC::vlogf(LOG_INFO, "Loco: %s ignored function command because not all its hubs are connected (yet).", _config->_name.c_str());
+
+        // Return success anyway, because we don't want the controller to handle the function.
         return;
     }
 
-    // Convert function number to string "fx";
-    char fnName[3];
-    sprintf(fnName, "f%u", fn);
-    MTC4BTFunction func = functionMap()[fnName];
-
-    for (int i = 0; i < _config->_functions.size(); i++)
+    // Ask hub to handle function.
+    BLEHub *hub = GetHub(fn->GetDeviceConfiguration()->GetParentAddress());
+    if (hub)
     {
-        Fn *function = _config->_functions.at(i);
-        if (function->GetFunction() == func)
-        {
-            // Found function definition, determine hub address.
-            std::string hubAddress = function->GetDevice()->GetParentAddress();
-
-            // Ask hub to handle function.
-            GetHub(hubAddress)->HandleFn(function, on);
-        }
+        hub->HandleFn(fn, on);
     }
 }
 
 void BLELocomotive::EmergencyBreak(const bool enabled)
 {
+    if (!AllHubsConnected())
+    {
+        // Ignore function command.
+        log4MC::vlogf(LOG_INFO, "Loco: %s ignored e-brake command because not all its hubs are connected (yet).", _config->_name.c_str());
+        return;
+    }
+
     // Set e-break on all hubs.
     if (enabled)
     {
-        log4MC::vlogf(LOG_WARNING, "Loco: %s e-breaking on all hubs.", _config->_name.c_str());
+        log4MC::vlogf(LOG_WARNING, "Loco: %s e-braking on all hubs.", _config->_name.c_str());
     }
     else
     {
-        log4MC::vlogf(LOG_WARNING, "Loco: %s releasing e-break on all hubs.", _config->_name.c_str());
+        log4MC::vlogf(LOG_WARNING, "Loco: %s releasing e-brake on all hubs.", _config->_name.c_str());
     }
 
     for (int i = 0; i < _hubs.size(); i++)
@@ -145,4 +153,22 @@ void BLELocomotive::initHubs(std::vector<BLEHubConfiguration *> hubConfigs)
     }
 
     // log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
+}
+
+std::vector<Fn *> BLELocomotive::getFunctions(MTC4BTFunction f)
+{
+    std::vector<Fn *> functions;
+
+    if (AllHubsConnected())
+    {
+        for (Fn *fn : _config->_functions)
+        {
+            if (fn->GetFunction() == f)
+            {
+                functions.push_back(fn);
+            }
+        }
+    }
+
+    return functions;
 }

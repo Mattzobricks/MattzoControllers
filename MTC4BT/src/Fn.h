@@ -7,12 +7,15 @@
 class Fn
 {
 public:
-    Fn(MTC4BTFunction function, DeviceConfiguration *device);
+    Fn(MTC4BTFunction function, DeviceConfiguration *deviceConfig);
 
     MTC4BTFunction GetFunction();
-    DeviceConfiguration *GetDevice();
+    DeviceConfiguration *GetDeviceConfiguration();
 
 private:
+    // Function.
     MTC4BTFunction _function;
-    DeviceConfiguration *_device;
+
+    // Attached device config.
+    DeviceConfiguration *_deviceConfig;
 };
