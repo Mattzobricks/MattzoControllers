@@ -1,4 +1,5 @@
 #include "MTC4BTController.h"
+#include "MCStatusLed.h"
 #include "MCLed.h"
 #include "enums.h"
 #include "log4MC.h"
@@ -6,18 +7,7 @@
 MTC4BTController::MTC4BTController(MTC4BTConfiguration *config)
 {
     _config = config;
-}
-
-DeviceConfiguration *MTC4BTController::GetStatusLed()
-{
-    // Find the ESP pin configured for the "status" function.
-    for (Fn *fn : getFunctions(MTC4BTFunction::Status))
-    {
-        // Return first device of type status led.
-        return fn->GetDeviceConfiguration();
-    }
-
-    return nullptr;
+    initStatusLeds();
 }
 
 void MTC4BTController::EmergencyBreak(const bool enabled)
@@ -51,7 +41,7 @@ void MTC4BTController::HandleFn(int locoAddress, MTC4BTFunction f, const bool on
     if (!loco)
     {
         // Not a loco under our control. Ignore message.
-        log4MC::vlogf(LOG_DEBUG, "Loco with address '%u' is not under our control. Fn command ignored.", locoAddress);
+        log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Fn command ignored.", locoAddress);
         return;
     }
 
@@ -64,9 +54,9 @@ void MTC4BTController::HandleFn(int locoAddress, MTC4BTFunction f, const bool on
         case HardwareType::EspPin:
         {
             // Handle function locally on the controller.
-            DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();            
-            log4MC::vlogf(LOG_DEBUG, "Controller handling function %u for pin %u.", ledConfig->GetAttachedDeviceType(), ledConfig->GetAddressAsEspPinNumber());
-            MCLed *led = getLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
+            DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();
+            log4MC::vlogf(LOG_DEBUG, "Ctrl: Handling function %u for pin %u.", ledConfig->GetAttachedDeviceType(), ledConfig->GetAddressAsEspPinNumber());
+            MCLedBase *led = getLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
             led->Switch(on);
             break;
         }
@@ -77,6 +67,18 @@ void MTC4BTController::HandleFn(int locoAddress, MTC4BTFunction f, const bool on
             break;
         }
         }
+    }
+}
+
+void MTC4BTController::initStatusLeds()
+{
+    // Find the ESP pin configured for the "status" function.
+    for (Fn *fn : getFunctions(MTC4BTFunction::Status))
+    {
+        DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();
+        log4MC::vlogf(LOG_INFO, "Ctrl: Found status led attached to ESP pin %u. Initializing...", ledConfig->GetAddressAsEspPinNumber());
+        MCStatusLed *statusLed = new MCStatusLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
+        Leds.push_back(statusLed);
     }
 }
 
@@ -97,16 +99,17 @@ std::vector<Fn *> MTC4BTController::getFunctions(MTC4BTFunction f)
     return functions;
 }
 
-MCLed *MTC4BTController::getLed(int pin, bool inverted)
+MCLedBase *MTC4BTController::getLed(int pin, bool inverted)
 {
-    for (MCLed *led : Leds)
+    for (MCLedBase *led : Leds)
     {
-        if(led->GetPin() == pin){
+        if (led->GetPin() == pin)
+        {
             return led;
         }
     }
 
-    MCLed * led = new MCLed(pin, inverted);
+    MCLed *led = new MCLed(pin, inverted);
     Leds.push_back(led);
     return led;
 }

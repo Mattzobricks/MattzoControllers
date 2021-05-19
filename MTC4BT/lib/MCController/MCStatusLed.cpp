@@ -1,15 +1,17 @@
 #include <Arduino.h>
 
-#include "MCStatusLED.h"
+#include "MCStatusLed.h"
 #include "MattzoWiFiClient.h"
 #include "MattzoMQTTSubscriber.h"
 
-MCStatusLED::MCStatusLED(int led_pin, bool inverted)
-    : MCLed(led_pin, inverted), _statusLEDState{false}
+MCStatusLed::MCStatusLed(int led_pin, bool inverted)
+    : MCLedBase(led_pin, inverted)
 {
+    _on = false;
 }
 
-void MCStatusLED::UpdateByStatus()
+// Updates the status of the LED based on the controller connection status (WiFi and MQTT).
+void MCStatusLed::Update()
 {
     unsigned long t = millis();
 
@@ -17,25 +19,25 @@ void MCStatusLED::UpdateByStatus()
     {
     case uninitialized:
     case initializing:
-        // two flaseshes per second.
-        Switch(((t % 500) < 50) ^ _statusLEDState);
+        // Two flashes per second.
+        Write(((t % 500) < 50) ^ _on);
         break;
     case connecting_wifi:
-        // one short flash per second (on 10%).
-        Switch(((t % 1000) < 100) ^ _statusLEDState);
+        // One short flash per second (on 10%).
+        Write(((t % 1000) < 100) ^ _on);
         break;
     case connecting_mqtt:
-        // blink (on 50%).
-        Switch(((t % 1000) < 500) ^ _statusLEDState);
+        // Blink (on 50%).
+        Write(((t % 1000) < 500) ^ _on);
         break;
     case connected:
-        // off.
-        Switch(false);
+        // Off.
+        Write(false);
         break;
     }
 }
 
-MCConnectionStatus MCStatusLED::getConnectionStatus()
+MCConnectionStatus MCStatusLed::getConnectionStatus()
 {
     if (MattzoWifiClient::GetStatus() == WL_UNINITIALIZED)
     {

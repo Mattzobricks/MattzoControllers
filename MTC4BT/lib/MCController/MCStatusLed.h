@@ -1,23 +1,22 @@
 #pragma once
 
-#include "MCLed.h"
+#include "MCLedBase.h"
 
 enum MCConnectionStatus
 {
-    uninitialized = 0x0,
+    uninitialized = 0,
     initializing,
     connecting_wifi,
     connecting_mqtt,
     connected
 };
 
-class MCStatusLED : MCLed
+class MCStatusLed : public MCLedBase
 {
 public:
-    MCStatusLED(int led_pin, bool inverted);
-    void UpdateByStatus();
+    MCStatusLed(int led_pin, bool inverted);
+    void Update();
 
 private:
     MCConnectionStatus getConnectionStatus();
-    bool _statusLEDState;
 };

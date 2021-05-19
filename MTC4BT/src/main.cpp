@@ -8,7 +8,6 @@
 #include "loadNetworkConfiguration.h"
 #include "loadControllerConfiguration.h"
 #include "MTC4BTController.h"
-#include "MCStatusLED.h"
 
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
@@ -34,7 +33,6 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
 
 // Globals
-MCStatusLED *statusLed = nullptr;
 static QueueHandle_t msg_queue;
 NimBLEScan *scanner;
 BLEHubScanner *hubScanner;
@@ -99,12 +97,7 @@ void ledLoop(void *parm)
 {
     for (;;)
     {
-        if (statusLed)
-        {
-            statusLed->UpdateByStatus();
-        }
-        
-        for (MCLed *led : controller->Leds)
+        for (MCLedBase *led : controller->Leds)
         {
             led->Update();
         }
@@ -133,16 +126,6 @@ void setup()
     log4MC::info("Setup: Loading controller configuration...");
     controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE);
     controller = new MTC4BTController(controllerConfig);
-
-    // Setup status LED, if configured.
-    DeviceConfiguration *statusLedConfig = controller->GetStatusLed();
-    if (statusLedConfig)
-    {
-        log4MC::vlogf(LOG_INFO, "Setup: Found status led attached to ESP pin %s. Initializing...", statusLedConfig->GetAddress().c_str());
-
-        // Initiate status LED.
-        statusLed = new MCStatusLED(statusLedConfig->GetAddressAsEspPinNumber(), statusLedConfig->IsInverted());
-    }
 
     // Start led task loop.
     xTaskCreatePinnedToCore(ledLoop, "LedLoop", 1024, NULL, 1, NULL, 1);
