@@ -66,7 +66,7 @@ void BLELocomotive::HandleFn(Fn *fn, const bool on)
     }
 
     // Ask hub to handle function.
-    BLEHub *hub = GetHub(fn->GetDeviceConfiguration()->GetParentAddress());
+    BLEHub *hub = getHubByAddress(fn->GetDeviceConfiguration()->GetParentAddress());
     if (hub)
     {
         hub->HandleFn(fn, on);
@@ -118,19 +118,6 @@ BLEHub *BLELocomotive::GetHub(uint index)
     return _hubs.at(index);
 }
 
-BLEHub *BLELocomotive::GetHub(std::string address)
-{
-    for (int i = 0; i < _hubs.size(); i++)
-    {
-        if (_hubs.at(i)->GetAddress().compare(address) == 0)
-        {
-            return _hubs.at(i);
-        }
-    }
-
-    return nullptr;
-}
-
 bool BLELocomotive::GetAutoLightsEnabled()
 {
     return _config->_autoLightsEnabled;
@@ -153,6 +140,19 @@ void BLELocomotive::initHubs(std::vector<BLEHubConfiguration *> hubConfigs)
     }
 
     // log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
+}
+
+BLEHub *BLELocomotive::getHubByAddress(std::string address)
+{
+    for (BLEHub *hub : _hubs)
+    {
+        if (hub->GetAddress().compare(address) == 0)
+        {
+            return hub;
+        }
+    }
+
+    return nullptr;
 }
 
 std::vector<Fn *> BLELocomotive::getFunctions(MTC4BTFunction f)
