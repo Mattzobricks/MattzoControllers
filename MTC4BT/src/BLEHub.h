@@ -1,8 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
-#include "NimBLEDevice.h"
+#include <NimBLEDevice.h>
 
+#include "HubChannel.h"
 #include "BLEHubConfiguration.h"
 #include "ChannelController.h"
 #include "Fn.h"

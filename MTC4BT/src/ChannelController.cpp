@@ -18,7 +18,7 @@ ChannelController::ChannelController(DeviceConfiguration *config, int16_t speedS
 
 HubChannel ChannelController::GetChannel()
 {
-  return _config->GetAddressAsHubChannel();
+  return hubChannelMap()[_config->GetAddress()];;
 }
 
 AttachedDevice ChannelController::GetAttachedDevice()

@@ -1,8 +1,7 @@
 #include <Arduino.h>
 
 #include "MCStatusLed.h"
-#include "MattzoWiFiClient.h"
-#include "MattzoMQTTSubscriber.h"
+#include "MCController.h"
 
 MCStatusLed::MCStatusLed(int led_pin, bool inverted)
     : MCLedBase(led_pin, inverted)
@@ -15,7 +14,7 @@ void MCStatusLed::Update()
 {
     unsigned long t = millis();
 
-    switch (getConnectionStatus())
+    switch (MCController::GetConnectionStatus())
     {
     case uninitialized:
     case initializing:
@@ -35,29 +34,4 @@ void MCStatusLed::Update()
         Write(false);
         break;
     }
-}
-
-MCConnectionStatus MCStatusLed::getConnectionStatus()
-{
-    if (MattzoWifiClient::GetStatus() == WL_UNINITIALIZED)
-    {
-        return MCConnectionStatus::uninitialized;
-    }
-
-    if (MattzoWifiClient::GetStatus() == WL_INITIALIZING)
-    {
-        return MCConnectionStatus::initializing;
-    }
-
-    if (MattzoWifiClient::GetStatus() != WL_CONNECTED)
-    {
-        return MCConnectionStatus::connecting_wifi;
-    }
-
-    if (MattzoMQTTSubscriber::GetStatus() != MQTT_CONNECTED)
-    {
-        return MCConnectionStatus::connecting_mqtt;
-    }
-
-    return MCConnectionStatus::connected;
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "HubChannel.h"
 #include "enums.h"
 
 class DeviceConfiguration
@@ -13,9 +12,6 @@ public:
 
     // Returns the raw device address.
     std::string GetAddress();
-
-    // Returns the device's address interpreted as a HubChannel.
-    HubChannel GetAddressAsHubChannel();
 
     // Returns the device's address interpreted as an ESP pin number.
     int GetAddressAsEspPinNumber();

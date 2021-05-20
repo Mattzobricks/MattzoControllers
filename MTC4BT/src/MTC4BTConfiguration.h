@@ -1,21 +1,13 @@
 #pragma once
 
+#include "MCConfiguration.h"
 #include "DeviceConfiguration.h"
 #include "BLELocomotive.h"
 #include "Fn.h"
 
-struct MTC4BTConfiguration
+struct MTC4BTConfiguration : MCConfiguration
 {
 public:
-    // Controller name.
-    const char *ControllerName;
-
-    // ESP32 pins.
-    std::vector<DeviceConfiguration *> EspPins;
-
-    // Functions.
-    std::vector<Fn *> Functions;
-
     // BLE locomotives.
     std::vector<BLELocomotive *> Locomotives;
 };

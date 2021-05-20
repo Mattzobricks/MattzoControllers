@@ -180,7 +180,7 @@ void MattzoBLEMQTTHandler::handleFn(const char *message, MTC4BTController *contr
     sprintf(fnName, "f%u", fnchanged);
 
     // Convert function string to enum;
-    MTC4BTFunction fn = functionMap()[fnName];
+    MCFunction fn = functionMap()[fnName];
 
     // Ask controller to handle the function.
     controller->HandleFn(addr, fn, fnchangedstate);

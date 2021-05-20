@@ -49,7 +49,7 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t speed)
     }
 }
 
-std::vector<Fn *> BLELocomotive::GetFn(MTC4BTFunction func)
+std::vector<Fn *> BLELocomotive::GetFn(MCFunction func)
 {
     return getFunctions(func);
 }
@@ -155,7 +155,7 @@ BLEHub *BLELocomotive::getHubByAddress(std::string address)
     return nullptr;
 }
 
-std::vector<Fn *> BLELocomotive::getFunctions(MTC4BTFunction f)
+std::vector<Fn *> BLELocomotive::getFunctions(MCFunction f)
 {
     std::vector<Fn *> functions;
 

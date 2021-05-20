@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 
+#include "HubChannel.h"
 #include "DeviceConfiguration.h"
 
 class ChannelController

@@ -43,23 +43,3 @@ struct hubChannelDirectionMap : public std::map<std::string, HubChannelDirection
     };
     ~hubChannelDirectionMap(){}
 };
-
-enum AttachedDevice
-{
-  NOTHING,
-  MOTOR,
-  LIGHT
-};
-
-// String switch paridgam   
-struct attachedDeviceMap : public std::map<std::string, AttachedDevice>
-{
-    attachedDeviceMap()
-    {
-        this->operator[]("") = AttachedDevice::NOTHING;
-        this->operator[]("nothing") = AttachedDevice::NOTHING;
-        this->operator[]("motor") = AttachedDevice::MOTOR;
-        this->operator[]("light") = AttachedDevice::LIGHT;
-    };
-    ~attachedDeviceMap(){}
-};

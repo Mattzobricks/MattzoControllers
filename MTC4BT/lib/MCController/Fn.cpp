@@ -1,9 +1,9 @@
 #include "Fn.h"
 
-Fn::Fn(MTC4BTFunction function, DeviceConfiguration *deviceConfig)
+Fn::Fn(MCFunction function, DeviceConfiguration *deviceConfig)
     : _function{function}, _deviceConfig{deviceConfig} {}
 
-MTC4BTFunction Fn::GetFunction()
+MCFunction Fn::GetFunction()
 {
     return _function;
 }

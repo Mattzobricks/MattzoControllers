@@ -93,17 +93,6 @@ void handleMQTTMessages(void *parm)
     }
 }
 
-void ledLoop(void *parm)
-{
-    for (;;)
-    {
-        for (MCLedBase *led : controller->Leds)
-        {
-            led->Update();
-        }
-    }
-}
-
 void setup()
 {
     // Configure Serial.
@@ -126,9 +115,8 @@ void setup()
     log4MC::info("Setup: Loading controller configuration...");
     controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE);
     controller = new MTC4BTController(controllerConfig);
-
-    // Start led task loop.
-    xTaskCreatePinnedToCore(ledLoop, "LedLoop", 1024, NULL, 1, NULL, 1);
+    controller->Setup();
+    log4MC::info("Setup: Controller configuration completed.");
 
     // Setup and connect to WiFi.
     MattzoWifiClient::Setup(networkConfig->WiFi);
@@ -209,21 +197,27 @@ void loop()
 
                         if (loco->AllHubsConnected())
                         {
-                            // TODO: Make loco blink its lights, instead of the individual hub below.
+                            if (controller->GetEmergencyBreak())
+                            {
+                                // Blink continuesly if we don't have a connection to the MQTT broker.
+                                loco->EmergencyBreak(true);
+                            }
+                            else
+                            {
+                                // Blink lights three times when connected.
+                                hub->SetLights(LIGHTS_ON);
+                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                                hub->SetLights(LIGHTS_OFF);
+                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                                hub->SetLights(LIGHTS_ON);
+                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                                hub->SetLights(LIGHTS_OFF);
+                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                                hub->SetLights(LIGHTS_ON);
+                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
+                                hub->SetLights(LIGHTS_OFF);
+                            }
                         }
-
-                        // Blink lights three times when connected.
-                        hub->SetLights(LIGHTS_ON);
-                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                        hub->SetLights(LIGHTS_OFF);
-                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                        hub->SetLights(LIGHTS_ON);
-                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                        hub->SetLights(LIGHTS_OFF);
-                        delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                        hub->SetLights(LIGHTS_ON);
-                        // delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                        // hub->SetLights(LIGHTS_OFF);
                     }
                 }
             }

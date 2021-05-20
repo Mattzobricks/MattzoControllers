@@ -22,7 +22,7 @@ public:
     void Drive(const int16_t minSpeed, const int16_t speed);
 
     // Returns a list of functions that need to be handled.
-    std::vector<Fn *> GetFn(MTC4BTFunction func);
+    std::vector<Fn *> GetFn(MCFunction func);
 
     // Turns the specified function on/off.
     void HandleFn(Fn *fn, const bool on);
@@ -49,7 +49,7 @@ public:
 private:
     void initHubs(std::vector<BLEHubConfiguration *> hubConfigs);
     BLEHub *getHubByAddress(std::string address);
-    std::vector<Fn *> getFunctions(MTC4BTFunction f);
+    std::vector<Fn *> getFunctions(MCFunction f);
 
     BLELocomotiveConfiguration *_config;
     std::vector<BLEHub *> _hubs;

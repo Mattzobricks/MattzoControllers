@@ -15,11 +15,6 @@ std::string DeviceConfiguration::GetAddress()
     return _address;
 }
 
-HubChannel DeviceConfiguration::GetAddressAsHubChannel()
-{
-    return hubChannelMap()[_address];
-}
-
 int DeviceConfiguration::GetAddressAsEspPinNumber()
 {
     return atoi(_address.c_str());
