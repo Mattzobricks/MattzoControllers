@@ -12,6 +12,8 @@ class BLELocomotive
 public:
     BLELocomotive(BLELocomotiveConfiguration *config);
 
+    std::vector<BLEHub *> Hubs;
+
     // Returns a boolean value indicating whether this loco is enabled (in use).
     bool IsEnabled();
 
@@ -28,8 +30,8 @@ public:
     void HandleFn(Fn *fn, const bool on);
 
     // If true, immediately sets the current speed for all hubs for all channels to zero.
-    // If false, releases the emergency break.
-    void EmergencyBreak(const bool enabled);
+    // If false, releases the emergency brake.
+    void EmergencyBrake(const bool enabled);
 
     // Returns the loco name.
     std::string GetLocoName();
@@ -52,5 +54,4 @@ private:
     std::vector<Fn *> getFunctions(MCFunction f);
 
     BLELocomotiveConfiguration *_config;
-    std::vector<BLEHub *> _hubs;
 };

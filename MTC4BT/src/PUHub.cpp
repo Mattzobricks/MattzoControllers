@@ -40,8 +40,8 @@ void PUHub::DriveTaskLoop()
   {
     for (int channel = 0; channel < _channelControllers.size(); channel++)
     {
-      // Update current channel speeds, if we're not emergency breaking.
-      if (_ebreak || _channelControllers.at(channel)->UpdateCurrentSpeedPerc())
+      // Update current channel speeds, if we're not emergency braking.
+      if (_ebrake || _channelControllers.at(channel)->UpdateCurrentSpeedPerc())
       {
         // Serial.print(channel);
         // Serial.print(": rawspd=");

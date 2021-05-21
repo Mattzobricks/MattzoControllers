@@ -17,20 +17,23 @@ enum MCConnectionStatus
 class MCController
 {
 public:
-    MCController(MCConfiguration *config);
+    MCController();
 
     std::vector<MCLedBase *> Leds;
 
     static MCConnectionStatus GetConnectionStatus();
 
-    void Setup();
+    void BaseSetup(MCConfiguration *config);
+
+    // Update emergency brake looking at the current controller connection status and controls leds.
+    void BaseLoop();
+
     MCLedBase *GetLed(int pin, bool inverted);
-    bool GetEmergencyBreak();
-    virtual void EmergencyBreak(const bool enabled) = 0;
+    bool GetEmergencyBrake();
+    virtual void EmergencyBrake(const bool enabled) = 0;
 
 private:
     void initStatusLeds();
-    static void loop(void *parm);
     std::vector<Fn *> getFunctions(MCFunction f);
 
     bool _ebrake;

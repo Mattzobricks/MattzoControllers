@@ -3,7 +3,6 @@
 #include "MattzoWifiClient.h"
 #include "MattzoBLEMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
-#include "BLEHubScanner.h"
 #include "log4MC.h"
 #include "loadNetworkConfiguration.h"
 #include "loadControllerConfiguration.h"
@@ -12,30 +11,8 @@
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
 
-#define LIGHTS_ON true
-#define LIGHTS_OFF false
-#define LIGHTS_BLINK_DELAY_ON_CONNECT_MS 250
-
-// BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
-const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 5;
-
-// Duration between BLE discovery and connect attempts in seconds.
-const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
-
-// Sets the watchdog timeout (0D &lt; timeout in 0.1 secs, 1 byte &gt;)
-// The purpose of the watchdog is to stop driving in case of an application failure.
-// Watchdog starts when the first DRIVE command is issued during a connection.
-// Watchdog is stopped when all channels are either set to zero drive, or are braking.
-// The value is saved to the persistent store.
-// The recommended watchdog frequency is 0.2-0.5 seconds, but a smaller and many larger settings are also available.
-// Writing a zero disables the watchdog.
-// By default watchdog is set to 5, which means a 0.5 second timeout.
-const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
-
 // Globals
 static QueueHandle_t msg_queue;
-NimBLEScan *scanner;
-BLEHubScanner *hubScanner;
 MCNetworkConfiguration *networkConfig;
 MTC4BTController *controller;
 MTC4BTConfiguration *controllerConfig;
@@ -114,8 +91,8 @@ void setup()
     // Load the controller configuration.
     log4MC::info("Setup: Loading controller configuration...");
     controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE);
-    controller = new MTC4BTController(controllerConfig);
-    controller->Setup();
+    controller = new MTC4BTController();
+    controller->Setup(controllerConfig);
     log4MC::info("Setup: Controller configuration completed.");
 
     // Setup and connect to WiFi.
@@ -134,102 +111,11 @@ void setup()
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
     MattzoMQTTSubscriber::Setup(networkConfig->MQTT, mqttCallback);
 
-    // Initialize BLE client.
-    log4MC::info("Setup: Initializing BLE...");
-    NimBLEDevice::init("");
-
-    // Configure BLE scanner.
-    scanner = NimBLEDevice::getScan();
-    scanner->setInterval(45);
-    scanner->setWindow(15);
-    scanner->setActiveScan(true);
-    hubScanner = new BLEHubScanner();
-
     log4MC::info("Setup: MattzoTrainController for BLE running.");
-    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover Hubs for: %u", controllerConfig->Locomotives.size());
+    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
 }
 
 void loop()
 {
-    std::vector<BLEHub *> undiscoveredHubs;
-
-    for (int l = 0; l < controllerConfig->Locomotives.size(); l++)
-    {
-        BLELocomotive *loco = controllerConfig->Locomotives.at(l);
-
-        if (!loco->IsEnabled() || loco->AllHubsConnected())
-        {
-            // Loco is not in use or all hubs are already connected. Skip to the next loco.
-            continue;
-        }
-
-        uint hubCount = loco->GetHubCount();
-
-        for (int h = 0; h < hubCount; h++)
-        {
-            BLEHub *hub = loco->GetHub(h);
-
-            if (!hub->IsEnabled())
-            {
-                // Skip to the next Hub.
-                continue;
-            }
-
-            if (!hub->IsConnected())
-            {
-                if (!hub->IsDiscovered())
-                {
-                    // Hub not discovered yet, add to list of hubs to discover.
-                    undiscoveredHubs.push_back(hub);
-                }
-
-                if (hub->IsDiscovered())
-                {
-                    // Hub discovered, try to connect now.
-                    if (!hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
-                    {
-                        // Connect attempt failed. Will retry in next loop.
-                        log4MC::warn("Loop: Connect failed. Will retry...");
-                    }
-                    else
-                    {
-                        log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
-
-                        if (loco->AllHubsConnected())
-                        {
-                            if (controller->GetEmergencyBreak())
-                            {
-                                // Blink continuesly if we don't have a connection to the MQTT broker.
-                                loco->EmergencyBreak(true);
-                            }
-                            else
-                            {
-                                // Blink lights three times when connected.
-                                hub->SetLights(LIGHTS_ON);
-                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                hub->SetLights(LIGHTS_OFF);
-                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                hub->SetLights(LIGHTS_ON);
-                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                hub->SetLights(LIGHTS_OFF);
-                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                hub->SetLights(LIGHTS_ON);
-                                delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                hub->SetLights(LIGHTS_OFF);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (undiscoveredHubs.size() > 0)
-    {
-        // Start discovery for undiscovered hubs.
-        hubScanner->StartDiscovery(scanner, undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
-
-        // Delay next discovery/connect attempts for a while, allowing the background tasks of already connected Hubs to send their periodic drive commands.
-        delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
-    }
+    controller->Loop();
 }

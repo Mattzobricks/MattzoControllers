@@ -63,14 +63,14 @@ void MattzoMQTTSubscriber::reconnect()
     log4MC::info("MQTT: Subscriber configuring last will...");
 
     String lastWillMessage;
-    if (_config->EbreakOnDisconnect)
+    // if (_config->EbrakeOnDisconnect)
     {
       lastWillMessage = "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"" + String(_config->SubscriberName) + "\"/>";
     }
-    else
-    {
-      lastWillMessage = "<info msg=\"mc_disconnected\" source=\"lastwill\" mc=\"" + String(_config->SubscriberName) + "\"/>";
-    }
+    // else
+    // {
+    //   lastWillMessage = "<info msg=\"mc_disconnected\" source=\"lastwill\" mc=\"" + String(_config->SubscriberName) + "\"/>";
+    // }
     char lastWillMessage_char[lastWillMessage.length() + 1];
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 

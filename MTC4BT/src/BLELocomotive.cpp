@@ -21,9 +21,9 @@ bool BLELocomotive::AllHubsConnected()
         return false;
     }
 
-    for (int i = 0; i < _hubs.size(); i++)
+    for (int i = 0; i < Hubs.size(); i++)
     {
-        BLEHub *hub = _hubs.at(i);
+        BLEHub *hub = Hubs.at(i);
         if (!hub->IsConnected())
         {
             return false;
@@ -42,9 +42,9 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t speed)
         return;
     }
 
-    for (int i = 0; i < _hubs.size(); i++)
+    for (int i = 0; i < Hubs.size(); i++)
     {
-        BLEHub *hub = _hubs.at(i);
+        BLEHub *hub = Hubs.at(i);
         hub->Drive(minSpeed, speed);
     }
 }
@@ -73,7 +73,7 @@ void BLELocomotive::HandleFn(Fn *fn, const bool on)
     }
 }
 
-void BLELocomotive::EmergencyBreak(const bool enabled)
+void BLELocomotive::EmergencyBrake(const bool enabled)
 {
     if (!AllHubsConnected())
     {
@@ -82,7 +82,7 @@ void BLELocomotive::EmergencyBreak(const bool enabled)
         return;
     }
 
-    // Set e-break on all hubs.
+    // Set e-brake on all hubs.
     if (enabled)
     {
         log4MC::vlogf(LOG_WARNING, "Loco: %s e-braking on all hubs.", _config->_name.c_str());
@@ -92,9 +92,9 @@ void BLELocomotive::EmergencyBreak(const bool enabled)
         log4MC::vlogf(LOG_WARNING, "Loco: %s releasing e-brake on all hubs.", _config->_name.c_str());
     }
 
-    for (int i = 0; i < _hubs.size(); i++)
+    for (int i = 0; i < Hubs.size(); i++)
     {
-        _hubs.at(i)->EmergencyBreak(enabled);
+        Hubs.at(i)->EmergencyBrake(enabled);
     }
 }
 
@@ -110,12 +110,12 @@ uint BLELocomotive::GetLocoAddress()
 
 uint BLELocomotive::GetHubCount()
 {
-    return _hubs.size();
+    return Hubs.size();
 }
 
 BLEHub *BLELocomotive::GetHub(uint index)
 {
-    return _hubs.at(index);
+    return Hubs.at(index);
 }
 
 bool BLELocomotive::GetAutoLightsEnabled()
@@ -131,10 +131,10 @@ void BLELocomotive::initHubs(std::vector<BLEHubConfiguration *> hubConfigs)
         switch (hubConfig->HubType)
         {
         case BLEHubType::SBrick:
-            _hubs.push_back(new SBrickHub(hubConfig, _config->_speedStep, _config->_brakeStep));
+            Hubs.push_back(new SBrickHub(hubConfig, _config->_speedStep, _config->_brakeStep));
             break;
         case BLEHubType::PU:
-            _hubs.push_back(new PUHub(hubConfig, _config->_speedStep, _config->_brakeStep));
+            Hubs.push_back(new PUHub(hubConfig, _config->_speedStep, _config->_brakeStep));
             break;
         }
     }
@@ -144,7 +144,7 @@ void BLELocomotive::initHubs(std::vector<BLEHubConfiguration *> hubConfigs)
 
 BLEHub *BLELocomotive::getHubByAddress(std::string address)
 {
-    for (BLEHub *hub : _hubs)
+    for (BLEHub *hub : Hubs)
     {
         if (hub->GetAddress().compare(address) == 0)
         {

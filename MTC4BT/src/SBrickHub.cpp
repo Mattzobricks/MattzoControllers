@@ -12,7 +12,7 @@ const int8_t CMD_BRAKE = 0;
 const int8_t CMD_DRIVE = 1;
 const int8_t CMD_SET_WATCHDOG_TIMEOUT = 13;
 const int8_t CMD_GET_WATCHDOG_TIMEOUT = 14;
-const int8_t CMD_BREAK_WITH_PM = 19;
+const int8_t CMD_BRAKE_WITH_PM = 19;
 const int8_t CMD_GET_CHANNEL_STATUS = 34;
 const int16_t SBRICK_MAX_CHANNEL_SPEED = 254;
 const int16_t SBRICK_MIN_CHANNEL_SPEED = -254;
@@ -61,7 +61,7 @@ void SBrickHub::DriveTaskLoop()
 {
     for (;;)
     {
-        if (!_ebreak)
+        if (!_ebrake)
         {
             // Update current channel speeds, if needed.
             for (int channel = 0; channel < _channelControllers.size(); channel++)

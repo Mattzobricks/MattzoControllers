@@ -5,11 +5,8 @@
 #include "MCLed.h"
 #include "log4MC.h"
 
-MCController::MCController(MCConfiguration *config)
+MCController::MCController()
 {
-    _config = config;
-
-    _ebrake = false;
 }
 
 MCConnectionStatus MCController::GetConnectionStatus()
@@ -37,13 +34,31 @@ MCConnectionStatus MCController::GetConnectionStatus()
     return MCConnectionStatus::connected;
 }
 
-void MCController::Setup()
+void MCController::BaseSetup(MCConfiguration *config)
 {
+    // Setup controller configuration.
+    _config = config;
+    _ebrake = false;
+
     // Initialize any status LEDs.
     initStatusLeds();
+}
 
-    // Start inner task loop (will controle status and LEDs).
-    xTaskCreatePinnedToCore(this->loop, "ControllerLoop", 2048, this, 1, NULL, 1);
+void MCController::BaseLoop()
+{
+    // Update emergency brake looking at the current controller connection status.
+    bool isDisconnected = GetConnectionStatus() != MCConnectionStatus::connected;
+    if (isDisconnected != _ebrake)
+    {
+        _ebrake = isDisconnected;
+        EmergencyBrake(_ebrake);
+    }
+
+    // Update leds.
+    for (MCLedBase *led : Leds)
+    {
+        led->Update();
+    }
 }
 
 MCLedBase *MCController::GetLed(int pin, bool inverted)
@@ -62,7 +77,7 @@ MCLedBase *MCController::GetLed(int pin, bool inverted)
     return led;
 }
 
-bool MCController::GetEmergencyBreak()
+bool MCController::GetEmergencyBrake()
 {
     return _ebrake;
 }
@@ -76,26 +91,6 @@ void MCController::initStatusLeds()
         log4MC::vlogf(LOG_INFO, "Ctrl: Found status led attached to ESP pin %u. Initializing...", ledConfig->GetAddressAsEspPinNumber());
         MCStatusLed *statusLed = new MCStatusLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
         Leds.push_back(statusLed);
-    }
-}
-
-void MCController::loop(void *parm)
-{
-    MCController *controller = (MCController *)parm;
-
-    for (;;)
-    {
-        bool isDisconnected = controller->GetConnectionStatus() != MCConnectionStatus::connected;
-        if (isDisconnected != controller->_ebrake)
-        {
-            controller->_ebrake = isDisconnected;
-            controller->EmergencyBreak(controller->_ebrake);
-        }
-
-        for (MCLedBase *led : controller->Leds)
-        {
-            led->Update();
-        }
     }
 }
 

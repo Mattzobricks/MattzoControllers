@@ -38,7 +38,7 @@ public:
   bool UpdateCurrentSpeedPerc();
 
   // Sets the current channel speed percentage to zero immediately, stopping any motion.
-  void EmergencyBreak();
+  void EmergencyBrake();
 
 private:
   // Returns a boolean value indicating whether the channel is currently accelarating in either direction.

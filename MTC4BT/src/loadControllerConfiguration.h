@@ -240,8 +240,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         }
         log4MC::vlogf(LOG_INFO, "Config: Read function configuration (%u).", functions.size());
 
-        BLELocomotive *loco = new BLELocomotive(new BLELocomotiveConfiguration(address, name, hubs, functions, speedStep, brakeStep, lightPerc, autoLightsOnEnabled, enabled));
-        config->Locomotives.push_back(loco);
+        config->Locomotives.push_back(new BLELocomotiveConfiguration(address, name, hubs, functions, speedStep, brakeStep, lightPerc, autoLightsOnEnabled, enabled));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read loco configuration (%u).", config->Locomotives.size());
 

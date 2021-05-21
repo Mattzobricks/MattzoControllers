@@ -62,8 +62,8 @@ public:
     void SetLights(HubChannel channel, bool on);
 
     // If true, immediately sets the current speed for all channels to zero.
-    // If false, releases the emergency break.
-    void EmergencyBreak(const bool enabled);
+    // If false, releases the emergency brake.
+    void EmergencyBrake(const bool enabled);
 
     // Returns a boolean value indicating whether the lights should automatically turn on when the train starts driving.
     bool GetAutoLightsEnabled();
@@ -100,7 +100,7 @@ private:
     NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
     NimBLEClient *_hub;
     NimBLEClientCallbacks *_clientCallback;
-    bool _ebreak;
+    bool _ebrake;
     bool _isDiscovering;
     bool _isDiscovered;
     bool _isConnected;

@@ -101,7 +101,7 @@ bool ChannelController::UpdateCurrentSpeedPerc()
   return true;
 }
 
-void ChannelController::EmergencyBreak()
+void ChannelController::EmergencyBrake()
 {
   _currentSpeedPerc = 0;
 }

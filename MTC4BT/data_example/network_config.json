@@ -48,12 +48,10 @@
 			- "port": 				Your MQTT broker port number (required).
 			- "keepalive": 			Keep alive timeout (optional).
 			- "ping": 				Ping delay in seconds (optional, 0 = no ping).
-			- "ebreakOnDisconnect": true or false (optional, NOT USED YET).
 		*/
 		"broker": "192.168.x.y",
 		"port": 1883,
 		"keepalive": 10,
-		"ping": 0,
-		"ebreakOnDisconnect": true
+		"ping": 0
 	}
 }

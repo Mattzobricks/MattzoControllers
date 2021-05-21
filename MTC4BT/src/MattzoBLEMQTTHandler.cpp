@@ -46,18 +46,18 @@ void MattzoBLEMQTTHandler::handleSys(const char *message, MTC4BTController *cont
     {
         log4MC::vlogf(LOG_INFO, "Received '%s' command. Stopping all locos.", cmd);
 
-        // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. All trains will stop immediately.
-        controller->EmergencyBreak(true);
+        // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency brake flag is set. All trains will stop immediately.
+        controller->EmergencyBrake(true);
 
         return;
     }
 
     if (strcmp(cmd, "go") == 0)
     {
-        log4MC::info("Received 'go' command. Releasing e-break and starting all locos.");
+        log4MC::info("Received 'go' command. Releasing e-brake and starting all locos.");
 
-        // Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
-        controller->EmergencyBreak(false);
+        // Upon receiving "go" command, the emergency brake flag is be released (i.e. pressing the light bulb in Rocview).
+        controller->EmergencyBrake(false);
 
         return;
     }

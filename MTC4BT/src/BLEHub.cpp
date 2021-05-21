@@ -17,7 +17,7 @@ BLEHub::BLEHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep
     _hub = nullptr;
     _advertisedDeviceCallback = nullptr;
     _clientCallback = nullptr;
-    _ebreak = false;
+    _ebrake = false;
     _isDiscovering = false;
     _isDiscovered = false;
     _isConnected = false;
@@ -79,25 +79,25 @@ void BLEHub::SetLights(HubChannel channel, bool on)
 }
 
 // If true, immediately sets the current speed for all channels to zero.
-// If false, releases the emergency break.
-void BLEHub::EmergencyBreak(const bool enabled)
+// If false, releases the emergency brake.
+void BLEHub::EmergencyBrake(const bool enabled)
 {
-    // Set hub e-break status.
-    _ebreak = enabled;
+    // Set hub e-brake status.
+    _ebrake = enabled;
 
-    if (_ebreak)
+    if (_ebrake)
     {
-        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-breaking on all channels.", _config->DeviceAddress->toString().c_str());
+        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-braking on all channels.", _config->DeviceAddress->toString().c_str());
 
-        // Set e-break on all channels.
+        // Set e-brake on all channels.
         for (int i = 0; i < _channelControllers.size(); i++)
         {
-            _channelControllers.at(i)->EmergencyBreak();
+            _channelControllers.at(i)->EmergencyBrake();
         }
     }
     else
     {
-        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-break lifted on all channels.", _config->DeviceAddress->toString().c_str());
+        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-brake lifted on all channels.", _config->DeviceAddress->toString().c_str());
     }
 }
 
@@ -244,9 +244,9 @@ void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, At
 
 uint8_t BLEHub::getRawChannelSpeedForController(ChannelController *controller)
 {
-    if (_ebreak && controller->GetAttachedDevice() == AttachedDevice::LIGHT)
+    if (_ebrake && controller->GetAttachedDevice() == AttachedDevice::LIGHT)
     {
-        // Force blinking lights when e-break is enabled.
+        // Force blinking lights when e-brake is enabled.
         controller->SetCurrentSpeedPerc(controller->GetCurrentSpeedPerc() == 0 ? _config->LightPerc : 0);
     }
 
