@@ -21,7 +21,7 @@ void BLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
 
         if (advertisedDevice->getAddress().equals(*hub->_config->DeviceAddress))
         {
-            log4MC::vlogf(LOG_INFO, "BLE : Discovered hub %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
+            log4MC::vlogf(LOG_INFO, "BLE : Discovered hub: %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
 
             hub->_advertisedDevice = advertisedDevice;
             hub->_isDiscovered = true;
@@ -31,7 +31,7 @@ void BLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
 
     if (!advertisedDeviceFound)
     {
-        log4MC::vlogf(LOG_INFO, "BLE : Discovered unknown device %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
+        log4MC::vlogf(LOG_INFO, "BLE : Discovered unknown device: %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
     }
 
     // If we have no more hubs to discover, we can stop scanning now.
