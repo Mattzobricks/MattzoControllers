@@ -171,7 +171,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 // Initialize static members.
 QueueHandle_t MattzoMQTTSubscriber::IncomingQueue = nullptr;
 int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
-int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 50;
+int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 100;
 uint8_t MattzoMQTTSubscriber::TaskPriority = 1;
 int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;

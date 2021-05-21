@@ -22,7 +22,7 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 // The recommended watchdog frequency is 0.2-0.5 seconds, but a smaller and many larger settings are also available.
 // Writing a zero disables the watchdog.
 // By default watchdog is set to 5, which means a 0.5 second timeout.
-const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 5;
+const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 3;
 
 MTC4BTController::MTC4BTController() : MCController()
 {
