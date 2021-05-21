@@ -6,11 +6,10 @@
 #include "MTC4BTController.h"
 
 // Class used to translate MQTT messages to BLE commands.
-class MattzoBLEMQTTHandler
+class MTC4BTMQTTHandler
 {
-
 public:
-    // Handle the given MQTT message and apply it to the applicable loco.
+    // Handles the given MQTT message and applies it to the applicable loco(s).
     static void Handle(const char *message, MTC4BTController *controller);
 
 private:

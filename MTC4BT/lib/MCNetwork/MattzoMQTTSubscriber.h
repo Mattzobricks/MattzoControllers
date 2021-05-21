@@ -41,6 +41,9 @@ class MattzoMQTTSubscriber
 public:
   // Public static members
 
+  // Incoming MQTT message queue.
+  static QueueHandle_t IncomingQueue;
+
   /// <summary>
   /// Reconnect delay in milliseconds. This configures the delay between reconnect attempts.
   /// </summary>
@@ -81,9 +84,7 @@ public:
   /// <summary>
   /// Setup the MQTT Subscriber.
   /// </summary>
-  /// <param name="topic">Topic to subscribe to.</param>
-  /// <param name="callback">Callback method to call when a message arrives.</param>
-  static void Setup(MCMQTTConfiguration *config, void (*callback)(char *, uint8_t *, unsigned int));
+  static void Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void * parm));
 
   // Returns the current MQTT connection status.
   static int GetStatus();
@@ -95,6 +96,9 @@ private:
 
   // Time of the last sent ping.
   static unsigned long lastPing;
+
+  // Callback used to put received message on a queue.
+  static void mqttCallback(char *topic, byte *payload, unsigned int length);
 
   /// <summary>
   /// Sends the given message to the MQTT broker.

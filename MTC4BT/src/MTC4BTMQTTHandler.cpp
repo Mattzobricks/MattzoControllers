@@ -1,7 +1,7 @@
-#include "MattzoBLEMQTTHandler.h"
+#include "MTC4BTMQTTHandler.h"
 #include "log4MC.h"
 
-void MattzoBLEMQTTHandler::Handle(const char *message, MTC4BTController *controller)
+void MTC4BTMQTTHandler::Handle(const char *message, MTC4BTController *controller)
 {
     char *pos;
 
@@ -23,17 +23,17 @@ void MattzoBLEMQTTHandler::Handle(const char *message, MTC4BTController *control
     }
     else if ((pos = strstr(message, "<sw ")) != nullptr)
     {
-        // first go for "<sw"
+        // found <sw
         log4MC::debug("Received and ignored 'sw' command'.");
     }
     else if ((pos = strstr(message, "<clock ")) != nullptr)
     {
-        // found clock
+        // found <clock
         log4MC::debug("Received and ignored 'clock' command'.");
     } // IGNORE THE REST
 }
 
-void MattzoBLEMQTTHandler::handleSys(const char *message, MTC4BTController *controller)
+void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *controller)
 {
     char *cmd = nullptr;
     if (!XmlParser::tryReadCharAttr(message, "cmd", &cmd))
@@ -63,7 +63,7 @@ void MattzoBLEMQTTHandler::handleSys(const char *message, MTC4BTController *cont
     }
 }
 
-void MattzoBLEMQTTHandler::handleLc(const char *message, MTC4BTController *controller)
+void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controller)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr))
@@ -147,7 +147,7 @@ void MattzoBLEMQTTHandler::handleLc(const char *message, MTC4BTController *contr
     }
 }
 
-void MattzoBLEMQTTHandler::handleFn(const char *message, MTC4BTController *controller)
+void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controller)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr))
