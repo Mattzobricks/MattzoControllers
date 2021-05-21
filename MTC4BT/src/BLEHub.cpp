@@ -3,6 +3,7 @@
 #include "BLEHub.h"
 #include "BLEDeviceCallbacks.h"
 #include "BLEClientCallback.h"
+#include "MCLightController.h"
 #include "log4MC.h"
 
 BLEHub::BLEHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep)
@@ -247,7 +248,7 @@ uint8_t BLEHub::getRawChannelSpeedForController(ChannelController *controller)
     if (_ebrake && controller->GetAttachedDevice() == AttachedDevice::LIGHT)
     {
         // Force blinking lights when e-brake is enabled.
-        controller->SetCurrentSpeedPerc(controller->GetCurrentSpeedPerc() == 0 ? _config->LightPerc : 0);
+        controller->SetCurrentSpeedPerc(MCLightController::Blink() ? _config->LightPerc : 0);
     }
 
     return MapSpeedPercToRaw(controller->GetCurrentSpeedPerc());
