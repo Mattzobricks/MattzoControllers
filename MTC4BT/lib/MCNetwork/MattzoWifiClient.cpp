@@ -50,19 +50,13 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
   WiFi.begin(_config->SSID.c_str(), config->password.c_str());
 
   // Loop until we actually connect.
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(_config->DailyBetweenConnectAttempsInMs);
-    Serial.print(".");
-  }
+  // while (WiFi.status() != WL_CONNECTED)
+  // {
+  //   delay(_config->DailyBetweenConnectAttempsInMs);
+  //   Serial.print(".");
+  // }
 
-  Serial.println();
-
-  log4MC::wifiIsConnected(true);
-  log4MC::info("Wifi: Connected (IPv4: " + WiFi.localIP().toString() + ").");
-
-  // Start OTA listener.
-  startOTA();
+  // Serial.println();
 
   // Setup completed.
   _setupCompleted = true;
@@ -123,6 +117,9 @@ void MattzoWifiClient::Assert()
   {
     _wasConnected = true;
     log4MC::vlogf(LOG_INFO, "Wifi: Connected (IPv4: %s).", WiFi.localIP().toString().c_str());
+
+    // Start OTA listener.
+    startOTA();
   }
 }
 
