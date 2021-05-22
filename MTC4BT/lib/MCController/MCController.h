@@ -30,7 +30,8 @@ public:
 
     MCLedBase *GetLed(int pin, bool inverted);
     bool GetEmergencyBrake();
-    virtual void EmergencyBrake(const bool enabled) = 0;
+    void SetEmergencyBrake(const bool enabled);
+    virtual void HandleEmergencyBrake(const bool enabled) = 0;
 
 private:
     void initStatusLeds();

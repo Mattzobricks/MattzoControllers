@@ -60,12 +60,16 @@ void MTC4BTController::Loop()
     BaseLoop();
 }
 
-void MTC4BTController::EmergencyBrake(const bool enabled)
+void MTC4BTController::HandleEmergencyBrake(const bool enabled)
 {
-    // Handle e-brake on all locomotives.
-    for (BLELocomotive *loco : Locomotives)
+    // Only handle e-brake request if we're requested to e-brake or when we're connected.
+    if (enabled || GetConnectionStatus() == MCConnectionStatus::connected)
     {
-        loco->EmergencyBrake(enabled);
+        // Handle e-brake on all locomotives.
+        for (BLELocomotive *loco : Locomotives)
+        {
+            loco->EmergencyBrake(enabled);
+        }
     }
 }
 

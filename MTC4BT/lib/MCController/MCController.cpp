@@ -46,12 +46,10 @@ void MCController::BaseSetup(MCConfiguration *config)
 
 void MCController::BaseLoop()
 {
-    // Update emergency brake looking at the current controller connection status.
-    bool isDisconnected = GetConnectionStatus() != MCConnectionStatus::connected;
-    if (isDisconnected != _ebrake)
+    // If we're not already emergency braking, then emergency brake when the controller is not connected.
+    if (!_ebrake && GetConnectionStatus() != MCConnectionStatus::connected)
     {
-        _ebrake = isDisconnected;
-        EmergencyBrake(_ebrake);
+        SetEmergencyBrake(true);
     }
 
     // Update leds.
@@ -80,6 +78,12 @@ MCLedBase *MCController::GetLed(int pin, bool inverted)
 bool MCController::GetEmergencyBrake()
 {
     return _ebrake;
+}
+
+void MCController::SetEmergencyBrake(const bool enabled)
+{
+    _ebrake = enabled;
+    HandleEmergencyBrake(_ebrake);
 }
 
 void MCController::initStatusLeds()

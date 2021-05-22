@@ -14,7 +14,7 @@ public:
 
     void Setup(MTC4BTConfiguration *config);
     void Loop();
-    void EmergencyBrake(const bool enabled);
+    void HandleEmergencyBrake(const bool enabled);
     BLELocomotive *GetLocomotive(uint address);
     void HandleFn(int locoAddress, MCFunction f, const bool on);
 
