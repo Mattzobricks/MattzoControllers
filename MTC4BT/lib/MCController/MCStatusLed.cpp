@@ -7,7 +7,6 @@
 MCStatusLed::MCStatusLed(int led_pin, bool inverted)
     : MCLedBase(led_pin, inverted)
 {
-    _on = false;
 }
 
 // Updates the status of the LED based on the controller connection status (WiFi and MQTT).

@@ -46,10 +46,17 @@ void MCController::BaseSetup(MCConfiguration *config)
 
 void MCController::BaseLoop()
 {
-    // If we're not already emergency braking, then emergency brake when the controller is not connected.
-    if (!_ebrake && GetConnectionStatus() != MCConnectionStatus::connected)
+    // Handle e-braking when e-brake is specifically requested (through MQTT) and when the controller is not connected.
+    if (_ebrake || GetConnectionStatus() != MCConnectionStatus::connected)
     {
-        SetEmergencyBrake(true);
+        HandleEmergencyBrake(true);
+
+        // E-braking is completely handled by the loco's, so no need to handle it here on the controller.
+        return;
+    }
+    else
+    {
+        HandleEmergencyBrake(false);
     }
 
     // Update leds.
@@ -83,12 +90,23 @@ bool MCController::GetEmergencyBrake()
 void MCController::SetEmergencyBrake(const bool enabled)
 {
     _ebrake = enabled;
-    HandleEmergencyBrake(_ebrake);
+}
+
+void MCController::HandleFn(Fn *fn, const bool on)
+{
+    DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();
+    log4MC::vlogf(LOG_DEBUG, "Ctrl: Handling function %u for pin %u.", ledConfig->GetAttachedDeviceType(), ledConfig->GetAddressAsEspPinNumber());
+    MCLedBase *led = GetLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
+
+    if (led)
+    {
+        led->Switch(on);
+    }
 }
 
 void MCController::initStatusLeds()
 {
-    // Find the ESP pin configured for the "status" function.
+    // Find the ESP pins configured with the "status" led function.
     for (Fn *fn : getFunctions(MCFunction::Status))
     {
         DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();

@@ -4,13 +4,14 @@
 
 #include "BLEHub.h"
 #include "BLELocomotiveConfiguration.h"
+#include "MCLedBase.h"
 
 #define AUTO_LIGHTS_ENABLED true
 
 class BLELocomotive
 {
 public:
-    BLELocomotive(BLELocomotiveConfiguration *config);
+    BLELocomotive(BLELocomotiveConfiguration *config, MCController *controller);
 
     std::vector<BLEHub *> Hubs;
 
@@ -49,9 +50,12 @@ public:
     bool GetAutoLightsEnabled();
 
 private:
-    void initHubs(std::vector<BLEHubConfiguration *> hubConfigs);
+    void initLights();
+    void initHubs();
     BLEHub *getHubByAddress(std::string address);
     std::vector<Fn *> getFunctions(MCFunction f);
 
+    std::vector<MCLedBase *> _espLeds;
     BLELocomotiveConfiguration *_config;
+    MCController *_controller;
 };

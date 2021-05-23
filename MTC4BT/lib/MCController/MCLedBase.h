@@ -6,6 +6,7 @@ public:
     MCLedBase(int led_pin, bool inverted);
     int GetPin();
     void Switch(bool on);
+    bool IsOn();
     void Write(bool on);
     virtual void Update() = 0;
 
