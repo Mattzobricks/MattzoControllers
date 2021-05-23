@@ -46,23 +46,16 @@ void MCController::BaseSetup(MCConfiguration *config)
 
 void MCController::BaseLoop()
 {
-    // Handle e-braking when e-brake is specifically requested (through MQTT) and when the controller is not connected.
-    if (_ebrake || GetConnectionStatus() != MCConnectionStatus::connected)
-    {
-        HandleEmergencyBrake(true);
+    // E-brake is enabled when specifically requested (through MQTT) or when the controller is not connected.
+    bool ebrakeEnabled = _ebrake || GetConnectionStatus() != MCConnectionStatus::connected;
 
-        // E-braking is completely handled by the loco's, so no need to handle it here on the controller.
-        return;
-    }
-    else
-    {
-        HandleEmergencyBrake(false);
-    }
+    // Handle e-brake.
+    HandleEmergencyBrake(ebrakeEnabled);
 
     // Update leds.
     for (MCLedBase *led : Leds)
     {
-        led->Update();
+        led->Update(ebrakeEnabled);
     }
 }
 
