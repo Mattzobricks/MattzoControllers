@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include "MCConfiguration.h"
-#include "MattzoWiFiClient.h"
+#include "MattzoWifiClient.h"
 #include "MattzoMQTTSubscriber.h"
 #include "MCLedBase.h"
 
