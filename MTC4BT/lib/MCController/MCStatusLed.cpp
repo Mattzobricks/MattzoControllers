@@ -5,14 +5,13 @@
 #include "MCLightController.h"
 
 MCStatusLed::MCStatusLed(int led_pin, bool inverted)
-    : MCLedBase(led_pin, inverted)
-{
-    _on = false;
-}
+    : MCLedBase(led_pin, inverted) {}
 
 // Updates the status of the LED based on the controller connection status (WiFi and MQTT).
-void MCStatusLed::Update()
+void MCStatusLed::Update(bool ebrakeEnabled)
 {
+    // Status LED ignores the e-brake status and purely looks at the controller connection status.
+
     switch (MCController::GetConnectionStatus())
     {
     case uninitialized:

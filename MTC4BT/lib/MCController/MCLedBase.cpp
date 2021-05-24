@@ -5,6 +5,7 @@
 MCLedBase::MCLedBase(int led_pin, bool inverted)
     : _led_pin{led_pin}, _inverted{inverted}
 {
+    _on = false;
     pinMode(led_pin, OUTPUT);
 }
 
@@ -18,6 +19,11 @@ int MCLedBase::GetPin()
 void MCLedBase::Switch(bool on)
 {
     _on = on;
+}
+
+bool MCLedBase::IsOn()
+{
+    return _on;
 }
 
 // Writes the status to the LED pin (to be used in a loop).

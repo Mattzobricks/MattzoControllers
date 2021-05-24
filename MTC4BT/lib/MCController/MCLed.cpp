@@ -5,10 +5,12 @@
 MCLed::MCLed(int led_pin, bool inverted)
     : MCLedBase(led_pin, inverted) {}
 
-
 // Updates the status of the LED.
-void MCLed::Update()
+void MCLed::Update(bool ebrakeEnabled)
 {
-    // Write state to pin.
-    Write(_on);
+    if (!ebrakeEnabled)
+    {
+        // Write state to pin.
+        Write(_on);
+    }
 }

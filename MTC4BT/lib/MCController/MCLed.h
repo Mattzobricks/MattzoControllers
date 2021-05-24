@@ -6,5 +6,5 @@ class MCLed : public MCLedBase
 {
 public:
     MCLed(int led_pin, bool inverted);
-    void Update();
+    void Update(bool ebrakeEnabled);
 };

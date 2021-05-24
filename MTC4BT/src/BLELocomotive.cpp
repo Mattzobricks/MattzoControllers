@@ -1,12 +1,17 @@
+#include "MCController.h"
 #include "BLELocomotive.h"
 #include "SBrickHub.h"
 #include "PUHub.h"
+#include "MCLightController.h"
 #include "log4MC.h"
 
-BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config)
+BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MCController *controller)
 {
     _config = config;
-    initHubs(config->_hubs);
+    _controller = controller;
+
+    initLights();
+    initHubs();
 }
 
 bool BLELocomotive::IsEnabled()
@@ -78,20 +83,36 @@ void BLELocomotive::EmergencyBrake(const bool enabled)
     if (!AllHubsConnected())
     {
         // Ignore function command.
-        log4MC::vlogf(LOG_INFO, "Loco: %s ignored e-brake command because not all its hubs are connected (yet).", _config->_name.c_str());
+        //log4MC::vlogf(LOG_INFO, "Loco: %s ignored e-brake command because not all its hubs are connected (yet).", _config->_name.c_str());
         return;
     }
 
     // Set e-brake on all hubs.
-    if (enabled)
+    // if (enabled)
+    // {
+    //     log4MC::vlogf(LOG_WARNING, "Loco: %s e-braking on all hubs.", _config->_name.c_str());
+    // }
+    // else
+    // {
+    //     log4MC::vlogf(LOG_WARNING, "Loco: %s releasing e-brake on all hubs.", _config->_name.c_str());
+    // }
+
+    // Handle e-brake on our leds connected to ESP pins of the controller.
+    for (MCLedBase *led : _espLeds)
     {
-        log4MC::vlogf(LOG_WARNING, "Loco: %s e-braking on all hubs.", _config->_name.c_str());
-    }
-    else
-    {
-        log4MC::vlogf(LOG_WARNING, "Loco: %s releasing e-brake on all hubs.", _config->_name.c_str());
+        if (enabled)
+        {
+            // Blink when e-braking.
+            led->Write(MCLightController::Blink());
+        }
+        else
+        {
+            // Switch back to normal mode.
+            led->Switch(led->IsOn());
+        }
     }
 
+    // Handle e-brake on lights attached to channels of our hubs.
     for (int i = 0; i < Hubs.size(); i++)
     {
         Hubs.at(i)->EmergencyBrake(enabled);
@@ -123,11 +144,23 @@ bool BLELocomotive::GetAutoLightsEnabled()
     return _config->_autoLightsEnabled;
 }
 
-void BLELocomotive::initHubs(std::vector<BLEHubConfiguration *> hubConfigs)
+void BLELocomotive::initLights()
 {
-    for (int i = 0; i < hubConfigs.size(); i++)
+    for (Fn *fn : _config->_functions)
     {
-        BLEHubConfiguration *hubConfig = hubConfigs.at(i);
+        DeviceConfiguration *deviceConfig = fn->GetDeviceConfiguration();
+        if (deviceConfig->GetAttachedDeviceType() == AttachedDevice::LIGHT)
+        {
+            // Ask controller to create an led for us and keep a reference to it.
+            _espLeds.push_back(_controller->GetLed(deviceConfig->GetAddressAsEspPinNumber(), deviceConfig->IsInverted()));
+        }
+    }
+}
+
+void BLELocomotive::initHubs()
+{
+    for (BLEHubConfiguration *hubConfig : _config->_hubs)
+    {
         switch (hubConfig->HubType)
         {
         case BLEHubType::SBrick:

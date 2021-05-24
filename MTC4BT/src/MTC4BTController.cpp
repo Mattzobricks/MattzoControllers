@@ -62,14 +62,10 @@ void MTC4BTController::Loop()
 
 void MTC4BTController::HandleEmergencyBrake(const bool enabled)
 {
-    // Only handle e-brake request if we're requested to e-brake or when we're connected.
-    if (enabled || GetConnectionStatus() == MCConnectionStatus::connected)
+    // Handle e-brake on all locomotives.
+    for (BLELocomotive *loco : Locomotives)
     {
-        // Handle e-brake on all locomotives.
-        for (BLELocomotive *loco : Locomotives)
-        {
-            loco->EmergencyBrake(enabled);
-        }
+        loco->EmergencyBrake(enabled);
     }
 }
 
@@ -105,10 +101,7 @@ void MTC4BTController::HandleFn(int locoAddress, MCFunction f, const bool on)
         case HardwareType::EspPin:
         {
             // Handle function locally on the controller.
-            DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();
-            log4MC::vlogf(LOG_DEBUG, "Ctrl: Handling function %u for pin %u.", ledConfig->GetAttachedDeviceType(), ledConfig->GetAddressAsEspPinNumber());
-            MCLedBase *led = GetLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
-            led->Switch(on);
+            MCController::HandleFn(fn, on);
             break;
         }
         case HardwareType::BleHub:
@@ -169,7 +162,7 @@ void MTC4BTController::discoveryLoop(void *parm)
                             {
                                 if (controller->GetEmergencyBrake())
                                 {
-                                    // Blink continuesly if we don't have a connection to the MQTT broker.
+                                    // Pass current e-brake status from controller to loco.
                                     loco->EmergencyBrake(true);
                                 }
                                 else
@@ -209,6 +202,7 @@ void MTC4BTController::initLocomotives(std::vector<BLELocomotiveConfiguration *>
 {
     for (BLELocomotiveConfiguration *locoConfig : locoConfigs)
     {
-        Locomotives.push_back(new BLELocomotive(locoConfig));
+        // Keep an instance of the configured loco and pass it a reference to the controller.
+        Locomotives.push_back(new BLELocomotive(locoConfig, this));
     }
 }

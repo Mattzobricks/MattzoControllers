@@ -28,10 +28,20 @@ public:
     // Update emergency brake looking at the current controller connection status and controls leds.
     void BaseLoop();
 
+    // Return an led instance for the requested pin, or creates one if it doesn't exist yet.
     MCLedBase *GetLed(int pin, bool inverted);
+
+    // Returns a boolean value indicating whether the e-brake flag is currently set or not.
     bool GetEmergencyBrake();
+
+    // Sets the emergency brake flag to the given value.
     void SetEmergencyBrake(const bool enabled);
-    virtual void HandleEmergencyBrake(const bool enabled) = 0;
+
+    // Handles the given function.
+    void HandleFn(Fn *fn, const bool on);
+
+    // Abstract method required for derived controller implementations to handle e-brake.
+    virtual void HandleEmergencyBrake(const bool enabled) = 0;    
 
 private:
     void initStatusLeds();

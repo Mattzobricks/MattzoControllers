@@ -83,6 +83,12 @@ void BLEHub::SetLights(HubChannel channel, bool on)
 // If false, releases the emergency brake.
 void BLEHub::EmergencyBrake(const bool enabled)
 {
+    if(enabled == _ebrake)
+    {
+        // Status hasn't changed. Ignore.
+        return;
+    }
+
     // Set hub e-brake status.
     _ebrake = enabled;
 

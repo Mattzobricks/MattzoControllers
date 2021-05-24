@@ -6,8 +6,9 @@ public:
     MCLedBase(int led_pin, bool inverted);
     int GetPin();
     void Switch(bool on);
+    bool IsOn();
     void Write(bool on);
-    virtual void Update() = 0;
+    virtual void Update(bool ebrakeEnabled) = 0;
 
 private:
     int _led_pin;
