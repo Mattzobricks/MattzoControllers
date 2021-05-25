@@ -34,7 +34,7 @@ MCConnectionStatus MCController::GetConnectionStatus()
     return MCConnectionStatus::connected;
 }
 
-void MCController::BaseSetup(MCConfiguration *config)
+void MCController::Setup(MCConfiguration *config)
 {
     // Setup controller configuration.
     _config = config;
@@ -44,7 +44,7 @@ void MCController::BaseSetup(MCConfiguration *config)
     initStatusLeds();
 }
 
-void MCController::BaseLoop()
+void MCController::Loop()
 {
     // E-brake is enabled when specifically requested (through MQTT) or when the controller is not connected.
     bool ebrakeEnabled = _ebrake || GetConnectionStatus() != MCConnectionStatus::connected;

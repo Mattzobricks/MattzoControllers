@@ -34,7 +34,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
     _config = config;
 
     // Setup controller base configuration.
-    BaseSetup(_config);
+    MCController::Setup(_config);
 
     // Setup controller configuration.
     initLocomotives(config->Locomotives);
@@ -57,7 +57,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
 void MTC4BTController::Loop()
 {
     // Run the loop from the base MCController class (handles WiFi/MQTT connection monitoring and leds).
-    BaseLoop();
+    MCController::Loop();
 }
 
 void MTC4BTController::HandleEmergencyBrake(const bool enabled)

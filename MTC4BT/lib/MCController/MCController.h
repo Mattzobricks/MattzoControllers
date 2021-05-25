@@ -23,10 +23,10 @@ public:
 
     static MCConnectionStatus GetConnectionStatus();
 
-    void BaseSetup(MCConfiguration *config);
+    void Setup(MCConfiguration *config);
 
     // Update emergency brake looking at the current controller connection status and controls leds.
-    void BaseLoop();
+    void Loop();
 
     // Return an led instance for the requested pin, or creates one if it doesn't exist yet.
     MCLedBase *GetLed(int pin, bool inverted);
