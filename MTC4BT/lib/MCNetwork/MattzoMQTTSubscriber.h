@@ -8,7 +8,7 @@
 #include <PubSubClient.h>
 
 // WiFi library for ESP-32
-#include <Wifi.h>
+#include <WiFi.h>
 #include "MCMQTTConfiguration.h"
 
 // MQTT task priority.
