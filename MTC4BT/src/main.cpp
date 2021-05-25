@@ -56,7 +56,7 @@ void setup()
     networkConfig = loadNetworkConfiguration(NETWORK_CONFIG_FILE);
 
     // Setup logging (from now on we can use log4MC).
-    log4MC::Setup(networkConfig->WiFi->hostname, networkConfig->Logging);
+    log4MC::Setup(networkConfig->WiFi->hostname.c_str(), networkConfig->Logging);
 
     // Load the controller configuration.
     log4MC::info("Setup: Loading controller configuration...");

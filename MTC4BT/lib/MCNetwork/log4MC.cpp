@@ -1,6 +1,6 @@
 #include <log4MC.h>
 
-void log4MC::Setup(std::string hostName, MCLoggingConfiguration *config)
+void log4MC::Setup(const char *hostName, MCLoggingConfiguration *config)
 {
     _config = config;
 
@@ -10,18 +10,19 @@ void log4MC::Setup(std::string hostName, MCLoggingConfiguration *config)
         Serial.print(config->SysLog->ServerAddress.c_str());
         Serial.print(":");
         Serial.println(config->SysLog->ServerPort);
-        
+
         Serial.print("Syslog: Hostname: ");
-        Serial.println(hostName.c_str());
+        Serial.println(hostName);
 
         Serial.print("Syslog: Appname: ");
         Serial.println(config->SysLog->AppName.c_str());
 
-        syslog.server(config->SysLog->ServerAddress.c_str(), config->SysLog->ServerPort);
-        syslog.deviceHostname(hostName.c_str());
-        syslog.appName(config->SysLog->AppName.c_str());
-        syslog.defaultPriority(LOG_KERN);
-        syslog.logMask(config->SysLog->mask);
+        syslog.server(config->SysLog->ServerAddress.c_str(), config->SysLog->ServerPort)
+            .deviceHostname(hostName)
+            .appName(config->SysLog->AppName.c_str())
+            .defaultPriority(LOG_KERN)
+            .logMask(config->SysLog->mask);
+            
         _priMask = config->SysLog->mask;
     }
 

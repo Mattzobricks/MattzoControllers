@@ -22,7 +22,7 @@ class log4MC
 {
 public:
     // Setup the logger.
-    static void Setup(std::string hostName, MCLoggingConfiguration *config);
+    static void Setup(const char *hostName, MCLoggingConfiguration *config);
     static void wifiIsConnected(bool connected);
     static void vlogf(uint8_t level, const char *fmt, ...);
     static void log(uint8_t level, const char *message);
