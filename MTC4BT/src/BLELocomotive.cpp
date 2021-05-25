@@ -87,7 +87,6 @@ void BLELocomotive::EmergencyBrake(const bool enabled)
         return;
     }
 
-    // Set e-brake on all hubs.
     // if (enabled)
     // {
     //     log4MC::vlogf(LOG_WARNING, "Loco: %s e-braking on all hubs.", _config->_name.c_str());

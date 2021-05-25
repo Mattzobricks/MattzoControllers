@@ -56,7 +56,7 @@ void BLEHub::Drive(const int16_t minSpeed, const int16_t speed)
 void BLEHub::HandleFn(Fn *fn, bool on)
 {
     HubChannel channel = hubChannelMap()[fn->GetDeviceConfiguration()->GetAddress()];
-    log4MC::vlogf(LOG_DEBUG, "BLEHub handling function %u for channel %s.", fn->GetDeviceConfiguration()->GetAttachedDeviceType(), fn->GetDeviceConfiguration()->GetAddress().c_str());
+    log4MC::vlogf(LOG_DEBUG, "BLE : Hub handling function %u for channel %s.", fn->GetDeviceConfiguration()->GetAttachedDeviceType(), fn->GetDeviceConfiguration()->GetAddress().c_str());
     setTargetSpeedPercForChannelByAttachedDevice(channel, fn->GetDeviceConfiguration()->GetAttachedDeviceType(), 0, on ? _config->LightPerc : 0);
 }
 
