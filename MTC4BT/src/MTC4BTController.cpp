@@ -33,10 +33,10 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
     // Keep controller configuration.
     _config = config;
 
-    // Setup controller base configuration.
+    // Setup basic MC controller configuration.
     MCController::Setup(_config);
 
-    // Setup controller configuration.
+    // Setup MTC4BT specific controller configuration.
     initLocomotives(config->Locomotives);
 
     // Initialize BLE client.
@@ -58,33 +58,52 @@ void MTC4BTController::Loop()
 {
     // Run the loop from the base MCController class (handles WiFi/MQTT connection monitoring and leds).
     MCController::Loop();
-}
 
-void MTC4BTController::HandleEmergencyBrake(const bool enabled)
-{
     // Handle e-brake on all locomotives.
     for (BLELocomotive *loco : Locomotives)
     {
-        loco->EmergencyBrake(enabled);
+        loco->EmergencyBrake(GetEmergencyBrake());
     }
 }
 
-BLELocomotive *MTC4BTController::GetLocomotive(uint address)
+bool MTC4BTController::HasLocomotive(uint address)
 {
-    for (BLELocomotive *loco : Locomotives)
+    return getLocomotive(address);
+}
+
+void MTC4BTController::HandleSys(const bool ebrakeEnabled)
+{
+    // Update global e-brake status.
+    SetEmergencyBrake(ebrakeEnabled);
+}
+
+void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward)
+{
+    BLELocomotive *loco = getLocomotive(locoAddress);
+    if (!loco)
     {
-        if (loco->GetLocoAddress() == address)
-        {
-            return loco;
-        }
+        // Not a loco under our control. Ignore message.
+        log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Lc command ignored.", locoAddress);
+        return;
     }
 
-    return nullptr;
+    // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
+    int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
+
+    // Execute drive command.
+    int8_t dirMultiplier = dirForward ? 1 : -1;
+    loco->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
+
+    if (loco->GetAutoLightsEnabled())
+    {
+        // TODO: Determine lights on or off based on target motor speed percentage.
+        // locos[i]->SetLights(speed != 0);
+    }
 }
 
 void MTC4BTController::HandleFn(int locoAddress, MCFunction f, const bool on)
 {
-    BLELocomotive *loco = GetLocomotive(locoAddress);
+    BLELocomotive *loco = getLocomotive(locoAddress);
     if (!loco)
     {
         // Not a loco under our control. Ignore message.
@@ -205,4 +224,17 @@ void MTC4BTController::initLocomotives(std::vector<BLELocomotiveConfiguration *>
         // Keep an instance of the configured loco and pass it a reference to the controller.
         Locomotives.push_back(new BLELocomotive(locoConfig, this));
     }
+}
+
+BLELocomotive *MTC4BTController::getLocomotive(uint address)
+{
+    for (BLELocomotive *loco : Locomotives)
+    {
+        if (loco->GetLocoAddress() == address)
+        {
+            return loco;
+        }
+    }
+
+    return nullptr;
 }

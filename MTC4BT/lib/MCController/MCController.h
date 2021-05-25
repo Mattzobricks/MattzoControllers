@@ -37,11 +37,11 @@ public:
     // Sets the emergency brake flag to the given value.
     void SetEmergencyBrake(const bool enabled);
 
-    // Handles the given function.
+    // Handles the given function locally on this controller.
     void HandleFn(Fn *fn, const bool on);
 
     // Abstract method required for derived controller implementations to handle e-brake.
-    virtual void HandleEmergencyBrake(const bool enabled) = 0;    
+    virtual void HandleSys(const bool enabled) = 0;
 
 private:
     void initStatusLeds();

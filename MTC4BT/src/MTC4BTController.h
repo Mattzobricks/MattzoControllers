@@ -8,20 +8,35 @@
 class MTC4BTController : public MCController
 {
 public:
+    // MTC4BTController constructor.
     MTC4BTController();
 
+    // Locomotives under control of this controller.
     std::vector<BLELocomotive *> Locomotives;
 
+    // Controller setup.
     void Setup(MTC4BTConfiguration *config);
+
+    // Controller loop.
     void Loop();
-    void HandleEmergencyBrake(const bool enabled);
-    BLELocomotive *GetLocomotive(uint address);
+
+    // Returns a boolean value indicating whether this controller controls the loco with the given address.
+    bool HasLocomotive(uint address);
+
+    // Handles sys emergency brake command for all locos (under control of this controller).
+    void HandleSys(const bool ebrake);
+
+    // Handles the given loco command (if loco is under control if this controller).
+    void HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward);
+
+    // Handles the given function for the specified loco (if loco is under control of this controller).
     void HandleFn(int locoAddress, MCFunction f, const bool on);
 
 private:
     static void discoveryLoop(void *parm);
 
     void initLocomotives(std::vector<BLELocomotiveConfiguration *> locoConfigs);
+    BLELocomotive *getLocomotive(uint address);
 
     MTC4BTConfiguration *_config;
     NimBLEScan *_scanner;

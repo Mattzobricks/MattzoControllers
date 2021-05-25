@@ -49,10 +49,7 @@ void MCController::Loop()
     // E-brake is enabled when specifically requested (through MQTT) or when the controller is not connected.
     bool ebrakeEnabled = _ebrake || GetConnectionStatus() != MCConnectionStatus::connected;
 
-    // Handle e-brake.
-    HandleEmergencyBrake(ebrakeEnabled);
-
-    // Update leds.
+    // Update leds (taking e-brake into account).
     for (MCLedBase *led : Leds)
     {
         led->Update(ebrakeEnabled);
