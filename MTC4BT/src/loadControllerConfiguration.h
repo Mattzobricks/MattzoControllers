@@ -112,6 +112,14 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
     JsonArray locoConfigs = doc["locos"].as<JsonArray>();
     for (JsonObject locoConfig : locoConfigs)
     {
+        // Read if loco is enabled.
+        const bool enabled = locoConfig["enabled"] | true;
+        if (!enabled)
+        {
+            // Skip if loco is not enabled.
+            continue;
+        }
+
         // Read loco properties.
         const uint address = locoConfig["address"];
         const std::string name = locoConfig["name"]; // | "loco_" + locoConfig["address"];
@@ -119,7 +127,6 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         int16_t brakeStep = locoConfig["brakeStep"] | 20;
         const int16_t lightPerc = locoConfig["lightPerc"] | 100;
         const bool autoLightsOnEnabled = locoConfig["autoLightsOnEnabled"] | false;
-        const bool enabled = locoConfig["enabled"] | true;
 
         // Iterate over hub configs and copy values from the JsonDocument to BLEHubConfiguration objects.
         std::vector<BLEHubConfiguration *> hubs;
