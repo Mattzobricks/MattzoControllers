@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 #include "NimBLEAddress.h"
-#include "DeviceConfiguration.h"
+#include "PortConfiguration.h"
 
 enum BLEHubType
 {
@@ -28,7 +28,7 @@ struct bleHubTypeMap : public std::map<std::string, BLEHubType>
 class BLEHubConfiguration
 {
 public:
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<DeviceConfiguration *> channels, int16_t lightPerc = 100, bool autoLightsOnEnabled = false, bool enabled = true);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<PortConfiguration *> channels, int16_t lightPerc = 100, bool autoLightsOnEnabled = false, bool enabled = true);
 
     // Type of Hub.
     BLEHubType HubType;
@@ -37,7 +37,7 @@ public:
     NimBLEAddress *DeviceAddress;
 
     // Hub channels.
-    std::vector<DeviceConfiguration *> Channels;
+    std::vector<PortConfiguration *> Channels;
 
     // Percentage of power to use when turning lights on.
     int16_t LightPerc;

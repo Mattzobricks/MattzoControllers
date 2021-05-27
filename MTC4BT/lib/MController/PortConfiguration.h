@@ -2,13 +2,13 @@
 
 #include "enums.h"
 
-class DeviceConfiguration
+class PortConfiguration
 {
 public:
-    DeviceConfiguration(HardwareType hwType, std::string address, bool isInverted, AttachedDevice deviceType);
+    PortConfiguration(PortType portType, std::string address, bool isInverted, AttachedDevice deviceType);
 
-    // Returns the type of hardware the device is attached to.
-    HardwareType GetHardwareType();
+    // Returns the type of port the device is attached to.
+    PortType GetPortType();
 
     // Returns the raw device address.
     std::string GetAddress();
@@ -29,8 +29,8 @@ public:
     void SetParentAddress(std::string address);
 
 private:
-    // Type of hardware.
-    HardwareType _hwType;
+    // Type of port.
+    PortType _portType;
 
     // Can be hub/receiver channel or ESP pin number.
     std::string _address;
@@ -38,9 +38,9 @@ private:
     // Can be hub/receiver address.
     std::string _parentAddress;
 
-    // Boolean value indcating whether the channel should be treated as inverted.
+    // Boolean value indcating whether the port should be treated as inverted.
     bool _isInverted = false;
 
-    // Attached device type.
+    // Type of device attached to the port.
     AttachedDevice _deviceType = AttachedDevice::NOTHING;
 };

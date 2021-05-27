@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include "DeviceConfiguration.h"
+#include "PortConfiguration.h"
 #include "Fn.h"
 
 struct MCConfiguration
@@ -12,7 +12,7 @@ public:
     const char *ControllerName;
 
     // ESP32 pins.
-    std::vector<DeviceConfiguration *> EspPins;
+    std::vector<PortConfiguration *> EspPins;
 
     // Functions.
     std::vector<Fn *> Functions;

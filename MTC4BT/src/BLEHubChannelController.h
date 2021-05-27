@@ -2,16 +2,16 @@
 
 #include <Arduino.h>
 
-#include "HubChannel.h"
-#include "DeviceConfiguration.h"
+#include "BLEHubChannel.h"
+#include "PortConfiguration.h"
 
-class ChannelController
+class BLEHubChannelController
 {
 public:
-  ChannelController(DeviceConfiguration *config, int16_t speedStep, int16_t brakeStep);
+  BLEHubChannelController(PortConfiguration *config, int16_t speedStep, int16_t brakeStep);
 
   // Returns the controlled channel.
-  HubChannel GetChannel();
+  BLEHubChannel GetChannel();
 
   // Returns the device attached to the channel.
   AttachedDevice GetAttachedDevice();
@@ -50,7 +50,8 @@ private:
   // Return the normalized speed value, bounded by the min and max channel speed.
   int16_t normalizeSpeedPerc(int16_t speedPerc);
 
-  DeviceConfiguration *_config;
+  // Reference to the configuration of the port controlled by this channel controller.
+  PortConfiguration *_config;
 
   int16_t _speedStep;
   int16_t _brakeStep;

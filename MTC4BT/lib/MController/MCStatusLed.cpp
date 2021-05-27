@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include "MCStatusLed.h"
-#include "MCController.h"
+#include "MController.h"
 #include "MCLightController.h"
 
 MCStatusLed::MCStatusLed(int led_pin, bool inverted)
@@ -12,7 +12,7 @@ void MCStatusLed::Update(bool ebrakeEnabled)
 {
     // Status LED ignores the e-brake status and purely looks at the controller connection status.
 
-    switch (MCController::GetConnectionStatus())
+    switch (MController::GetConnectionStatus())
     {
     case uninitialized:
     case initializing:

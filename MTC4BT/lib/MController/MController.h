@@ -14,21 +14,21 @@ enum MCConnectionStatus
     connected
 };
 
-class MCController
+class MController
 {
 public:
-    MCController();
+    MController();
 
-    std::vector<MCLedBase *> Leds;
-
+    // Returns the current controller connection status. 
     static MCConnectionStatus GetConnectionStatus();
 
+    // Mattzo Controller setup initialization method.
     void Setup(MCConfiguration *config);
 
-    // Update emergency brake looking at the current controller connection status and controls leds.
+    // Updates emergency brake based on the current controller connection status and controls leds.
     void Loop();
 
-    // Return an led instance for the requested pin, or creates one if it doesn't exist yet.
+    // Returns an led instance for the requested pin, or creates one if it doesn't exist yet.
     MCLedBase *GetLed(int pin, bool inverted);
 
     // Returns a boolean value indicating whether the e-brake flag is currently set or not.
@@ -44,9 +44,18 @@ public:
     virtual void HandleSys(const bool enabled) = 0;
 
 private:
+    // Initialized the status leds attached to this controller.
     void initStatusLeds();
+
+    // Returns a list of references to functions of the given type configured for this controller.
     std::vector<Fn *> getFunctions(MCFunction f);
 
+    // List of references to leds attached to this controller.
+    std::vector<MCLedBase *> _espLeds;
+
+    // Boolean value indicating whether emergency brake is currently enabled or not.
     bool _ebrake;
+
+    // Reference to the configuration of this controller.
     MCConfiguration *_config;
 };

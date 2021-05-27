@@ -73,18 +73,18 @@ void SBrickHub::DriveTaskLoop()
         // Construct drive command.
         uint8_t byteCmd[13] = {
             CMD_DRIVE,
-            HubChannel::A,
-            channelIsDrivingForward(HubChannel::A),
-            getRawChannelSpeed(HubChannel::A),
-            HubChannel::B,
-            channelIsDrivingForward(HubChannel::B),
-            getRawChannelSpeed(HubChannel::B),
-            HubChannel::C,
-            channelIsDrivingForward(HubChannel::C),
-            getRawChannelSpeed(HubChannel::C),
-            HubChannel::D,
-            channelIsDrivingForward(HubChannel::D),
-            getRawChannelSpeed(HubChannel::D)};
+            BLEHubChannel::A,
+            channelIsDrivingForward(BLEHubChannel::A),
+            getRawChannelSpeed(BLEHubChannel::A),
+            BLEHubChannel::B,
+            channelIsDrivingForward(BLEHubChannel::B),
+            getRawChannelSpeed(BLEHubChannel::B),
+            BLEHubChannel::C,
+            channelIsDrivingForward(BLEHubChannel::C),
+            getRawChannelSpeed(BLEHubChannel::C),
+            BLEHubChannel::D,
+            channelIsDrivingForward(BLEHubChannel::D),
+            getRawChannelSpeed(BLEHubChannel::D)};
 
         // Send drive command.
         if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
@@ -106,9 +106,9 @@ int16_t SBrickHub::MapSpeedPercToRaw(int speedPerc)
     return map(abs(speedPerc), 0, 100, 0, SBRICK_MAX_CHANNEL_SPEED);
 }
 
-std::array<uint8_t, 3> SBrickHub::getDriveCommand(HubChannel channel)
+std::array<uint8_t, 3> SBrickHub::getDriveCommand(BLEHubChannel channel)
 {
-    ChannelController *controller = findControllerByChannel(channel);
+    BLEHubChannelController *controller = findControllerByChannel(channel);
 
     std::array<uint8_t, 3> cmd;
     cmd[0] = channel;
@@ -118,14 +118,14 @@ std::array<uint8_t, 3> SBrickHub::getDriveCommand(HubChannel channel)
     return cmd;
 }
 
-bool SBrickHub::channelIsDrivingForward(HubChannel channel)
+bool SBrickHub::channelIsDrivingForward(BLEHubChannel channel)
 {
-    ChannelController *controller = findControllerByChannel(channel);
+    BLEHubChannelController *controller = findControllerByChannel(channel);
     return controller ? controller->IsDrivingForward() : false;
 }
 
-uint8_t SBrickHub::getRawChannelSpeed(HubChannel channel)
+uint8_t SBrickHub::getRawChannelSpeed(BLEHubChannel channel)
 {
-    ChannelController *controller = findControllerByChannel(channel);
+    BLEHubChannelController *controller = findControllerByChannel(channel);
     return controller ? getRawChannelSpeedForController(controller) : 0;
 }

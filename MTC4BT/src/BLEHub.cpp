@@ -55,9 +55,9 @@ void BLEHub::Drive(const int16_t minSpeed, const int16_t speed)
 
 void BLEHub::HandleFn(Fn *fn, bool on)
 {
-    HubChannel channel = hubChannelMap()[fn->GetDeviceConfiguration()->GetAddress()];
-    log4MC::vlogf(LOG_DEBUG, "BLE : Hub handling function %u for channel %s.", fn->GetDeviceConfiguration()->GetAttachedDeviceType(), fn->GetDeviceConfiguration()->GetAddress().c_str());
-    setTargetSpeedPercForChannelByAttachedDevice(channel, fn->GetDeviceConfiguration()->GetAttachedDeviceType(), 0, on ? _config->LightPerc : 0);
+    BLEHubChannel channel = bleHubChannelMap()[fn->GetPortConfiguration()->GetAddress()];
+    log4MC::vlogf(LOG_DEBUG, "BLE : Hub handling function %u for channel %s.", fn->GetPortConfiguration()->GetAttachedDeviceType(), fn->GetPortConfiguration()->GetAddress().c_str());
+    setTargetSpeedPercForChannelByAttachedDevice(channel, fn->GetPortConfiguration()->GetAttachedDeviceType(), 0, on ? _config->LightPerc : 0);
 }
 
 void BLEHub::SetLights(bool on)
@@ -70,7 +70,7 @@ void BLEHub::SetLights(bool on)
     setTargetSpeedPercByAttachedDevice(AttachedDevice::LIGHT, 0, on ? _config->LightPerc : 0);
 }
 
-void BLEHub::SetLights(HubChannel channel, bool on)
+void BLEHub::SetLights(BLEHubChannel channel, bool on)
 {
     // Serial.print("Turn lights ");
     // Serial.print(on ? "on" : "off");
@@ -217,8 +217,8 @@ void BLEHub::initChannelControllers()
 
     for (int i = 0; i < _config->Channels.size(); i++)
     {
-        DeviceConfiguration *config = _config->Channels.at(i);
-        _channelControllers.push_back(new ChannelController(config, _speedStep, _brakeStep));
+        PortConfiguration *config = _config->Channels.at(i);
+        _channelControllers.push_back(new BLEHubChannelController(config, _speedStep, _brakeStep));
     }
 
     // log4MC::vlogf(LOG_INFO, "BLE : Hub %s channels initialized.", _config->DeviceAddress->toString().c_str());
@@ -234,14 +234,14 @@ void BLEHub::setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t m
 
     for (int i = 0; i < _channelControllers.size(); i++)
     {
-        HubChannel channel = _channelControllers.at(i)->GetChannel();
+        BLEHubChannel channel = _channelControllers.at(i)->GetChannel();
         setTargetSpeedPercForChannelByAttachedDevice(channel, device, minSpeedPerc, speedPerc);
     }
 }
 
-void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc)
+void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(BLEHubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc)
 {
-    ChannelController *controller = findControllerByChannel(channel);
+    BLEHubChannelController *controller = findControllerByChannel(channel);
     if (controller != nullptr && controller->GetAttachedDevice() == device)
     {
         controller->SetMinSpeedPerc(minSpeedPerc);
@@ -249,7 +249,7 @@ void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, At
     }
 }
 
-uint8_t BLEHub::getRawChannelSpeedForController(ChannelController *controller)
+uint8_t BLEHub::getRawChannelSpeedForController(BLEHubChannelController *controller)
 {
     if (_ebrake && controller->GetAttachedDevice() == AttachedDevice::LIGHT)
     {
@@ -260,7 +260,7 @@ uint8_t BLEHub::getRawChannelSpeedForController(ChannelController *controller)
     return MapSpeedPercToRaw(controller->GetCurrentSpeedPerc());
 }
 
-ChannelController *BLEHub::findControllerByChannel(HubChannel channel)
+BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
 {
     for (int i = 0; i < _channelControllers.size(); i++)
     {

@@ -16,7 +16,7 @@ public:
     int16_t MapSpeedPercToRaw(int speedPerc);
 
 private:
-    std::array<uint8_t, 3> getDriveCommand(HubChannel channel);
-    bool channelIsDrivingForward(HubChannel channel);
-    uint8_t getRawChannelSpeed(HubChannel channel);
+    std::array<uint8_t, 3> getDriveCommand(BLEHubChannel channel);
+    bool channelIsDrivingForward(BLEHubChannel channel);
+    uint8_t getRawChannelSpeed(BLEHubChannel channel);
 };

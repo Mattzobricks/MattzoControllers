@@ -1,11 +1,11 @@
 #include <Arduino.h>
 
-#include "ChannelController.h"
+#include "BLEHubChannelController.h"
 
 #define MIN_SPEED_PERC -100
 #define MAX_SPEED_PERC 100
 
-ChannelController::ChannelController(DeviceConfiguration *config, int16_t speedStep, int16_t brakeStep)
+BLEHubChannelController::BLEHubChannelController(PortConfiguration *config, int16_t speedStep, int16_t brakeStep)
 {
   _config = config;
   _speedStep = speedStep;
@@ -16,48 +16,48 @@ ChannelController::ChannelController(DeviceConfiguration *config, int16_t speedS
   _currentSpeedPerc = 0;
 }
 
-HubChannel ChannelController::GetChannel()
+BLEHubChannel BLEHubChannelController::GetChannel()
 {
-  return hubChannelMap()[_config->GetAddress()];;
+  return bleHubChannelMap()[_config->GetAddress()];;
 }
 
-AttachedDevice ChannelController::GetAttachedDevice()
+AttachedDevice BLEHubChannelController::GetAttachedDevice()
 {
   return _config->GetAttachedDeviceType();
 }
 
-void ChannelController::SetMinSpeedPerc(int16_t minSpeedPerc)
+void BLEHubChannelController::SetMinSpeedPerc(int16_t minSpeedPerc)
 {
   _minSpeedPerc = minSpeedPerc;
 }
 
-void ChannelController::SetTargetSpeedPerc(int16_t speedPerc)
+void BLEHubChannelController::SetTargetSpeedPerc(int16_t speedPerc)
 {
   int16_t newSpeedPerc = _config->IsInverted() ? speedPerc * -1 : speedPerc;
   _targetSpeedPerc = normalizeSpeedPerc(newSpeedPerc);
 }
 
-int16_t ChannelController::GetCurrentSpeedPerc()
+int16_t BLEHubChannelController::GetCurrentSpeedPerc()
 {
   return _currentSpeedPerc;
 }
 
-void ChannelController::SetCurrentSpeedPerc(int16_t speedPerc)
+void BLEHubChannelController::SetCurrentSpeedPerc(int16_t speedPerc)
 {
   _currentSpeedPerc = speedPerc;
 }
 
-uint8_t ChannelController::GetAbsCurrentSpeedPerc()
+uint8_t BLEHubChannelController::GetAbsCurrentSpeedPerc()
 {
   return abs(_currentSpeedPerc);
 }
 
-bool ChannelController::IsDrivingForward()
+bool BLEHubChannelController::IsDrivingForward()
 {
   return _currentSpeedPerc >= 0;
 }
 
-bool ChannelController::UpdateCurrentSpeedPerc()
+bool BLEHubChannelController::UpdateCurrentSpeedPerc()
 {
   if (isAtTargetSpeedPerc())
   {
@@ -101,12 +101,12 @@ bool ChannelController::UpdateCurrentSpeedPerc()
   return true;
 }
 
-void ChannelController::EmergencyBrake()
+void BLEHubChannelController::EmergencyBrake()
 {
   _currentSpeedPerc = 0;
 }
 
-bool ChannelController::isAccelarating()
+bool BLEHubChannelController::isAccelarating()
 {
   // Current speed equals target speed.
   if (isAtTargetSpeedPerc())
@@ -120,12 +120,12 @@ bool ChannelController::isAccelarating()
   return abs(_targetSpeedPerc) > abs(_currentSpeedPerc);
 }
 
-bool ChannelController::isAtTargetSpeedPerc()
+bool BLEHubChannelController::isAtTargetSpeedPerc()
 {
   return _currentSpeedPerc == _targetSpeedPerc;
 }
 
-int16_t ChannelController::normalizeSpeedPerc(int16_t speedPerc)
+int16_t BLEHubChannelController::normalizeSpeedPerc(int16_t speedPerc)
 {
   // We can never go beyond the absolute min speed value.
   if (speedPerc < MIN_SPEED_PERC)

@@ -2,21 +2,21 @@
 
 #include <map>
 
-enum HardwareType
+enum PortType
 {
     EspPin = 0,
-    BleHub
+    BleHubChannel
 };
 
 // String switch paridgam
-struct hardwareTypeMap : public std::map<std::string, HardwareType>
+struct portTypeMap : public std::map<std::string, PortType>
 {
-    hardwareTypeMap()
+    portTypeMap()
     {
-        this->operator[]("espPin") = HardwareType::EspPin;
-        this->operator[]("bleHub") = HardwareType::BleHub;
+        this->operator[]("espPin") = PortType::EspPin;
+        this->operator[]("bleHub") = PortType::BleHubChannel;
     };
-    ~hardwareTypeMap() {}
+    ~portTypeMap() {}
 };
 
 enum AttachedDevice

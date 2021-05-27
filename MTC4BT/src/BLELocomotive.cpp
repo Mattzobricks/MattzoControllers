@@ -1,11 +1,11 @@
-#include "MCController.h"
+#include "MController.h"
 #include "BLELocomotive.h"
 #include "SBrickHub.h"
 #include "PUHub.h"
 #include "MCLightController.h"
 #include "log4MC.h"
 
-BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MCController *controller)
+BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MController *controller)
 {
     _config = config;
     _controller = controller;
@@ -71,7 +71,7 @@ void BLELocomotive::HandleFn(Fn *fn, const bool on)
     }
 
     // Ask hub to handle function.
-    BLEHub *hub = getHubByAddress(fn->GetDeviceConfiguration()->GetParentAddress());
+    BLEHub *hub = getHubByAddress(fn->GetPortConfiguration()->GetParentAddress());
     if (hub)
     {
         hub->HandleFn(fn, on);
@@ -147,7 +147,7 @@ void BLELocomotive::initLights()
 {
     for (Fn *fn : _config->_functions)
     {
-        DeviceConfiguration *deviceConfig = fn->GetDeviceConfiguration();
+        PortConfiguration *deviceConfig = fn->GetPortConfiguration();
         if (deviceConfig->GetAttachedDeviceType() == AttachedDevice::LIGHT)
         {
             // Ask controller to create an led for us and keep a reference to it.

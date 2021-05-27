@@ -1,11 +1,11 @@
 #pragma once
 
-#include "MCController.h"
+#include "MController.h"
 #include "MTC4BTConfiguration.h"
 #include "BLELocomotive.h"
 #include "BLEHubScanner.h"
 
-class MTC4BTController : public MCController
+class MTC4BTController : public MController
 {
 public:
     // MTC4BTController constructor.
@@ -33,12 +33,21 @@ public:
     void HandleFn(int locoAddress, MCFunction f, const bool on);
 
 private:
+    // Discovers new BLE devices.
     static void discoveryLoop(void *parm);
 
+    // Initializes locomotives with the given configuration.
     void initLocomotives(std::vector<BLELocomotiveConfiguration *> locoConfigs);
+
+    // Returns the locomotive with the given address.
     BLELocomotive *getLocomotive(uint address);
 
+    // Reference to the configuration of this controller.
     MTC4BTConfiguration *_config;
+
+    // Reference to the BLE scanner used by this controller.
     NimBLEScan *_scanner;
+    
+    // Reference to the BLE Hub scanner used by this controller.
     BLEHubScanner *_hubScanner;
 };

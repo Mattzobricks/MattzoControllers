@@ -61,7 +61,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
     config->ControllerName = controllerName;
     log4MC::vlogf(LOG_INFO, "Config: Read controller name: %s", config->ControllerName);
 
-    // Iterate over ESP pins and copy values from the JsonDocument to DeviceConfiguration objects.
+    // Iterate over ESP pins and copy values from the JsonDocument to PortConfiguration objects.
     JsonArray espPinConfigs = doc["espPins"].as<JsonArray>();
     for (JsonObject espPinConfig : espPinConfigs)
     {
@@ -70,7 +70,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const bool inverted = espPinConfig["inverted"] | false;
         const std::string attachedDevice = espPinConfig["attachedDevice"] | "nothing";
 
-        config->EspPins.push_back(new DeviceConfiguration(HardwareType::EspPin, address, inverted, attachedDeviceMap()[attachedDevice]));
+        config->EspPins.push_back(new PortConfiguration(PortType::EspPin, address, inverted, attachedDeviceMap()[attachedDevice]));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read ESP pin configuration (%u).", config->EspPins.size());
 
@@ -82,10 +82,10 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const int pin = fnConfig["pin"];
 
         // Check if there's an ESP pin with the specified address defined in the config.
-        DeviceConfiguration *fnDevice = nullptr;
+        PortConfiguration *fnDevice = nullptr;
         for (int i = 0; i < config->EspPins.size(); i++)
         {
-            DeviceConfiguration *espPin = config->EspPins.at(i);
+            PortConfiguration *espPin = config->EspPins.at(i);
             if (espPin->GetAddressAsEspPinNumber() == pin)
             {
                 fnDevice = espPin;
@@ -138,8 +138,8 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             const std::string hubType = hubConfig["type"];
             const std::string address = hubConfig["address"];
 
-            // Iterate over channel configs and copy values from the JsonDocument to DeviceConfiguration objects.
-            std::vector<DeviceConfiguration *> channels;
+            // Iterate over channel configs and copy values from the JsonDocument to PortConfiguration objects.
+            std::vector<PortConfiguration *> channels;
             JsonArray channelConfigs = hubConfig["channels"].as<JsonArray>();
             for (JsonObject channelConfig : channelConfigs)
             {
@@ -149,7 +149,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
                 const char *dir = channelConfig["direction"] | "forward";
                 bool isInverted = strcmp(dir, "reverse") == 0;
 
-                channels.push_back(new DeviceConfiguration(HardwareType::BleHub, channel, isInverted, attachedDeviceMap()[attachedDevice]));
+                channels.push_back(new PortConfiguration(PortType::BleHubChannel, channel, isInverted, attachedDeviceMap()[attachedDevice]));
             }
 
             hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, lightPerc, autoLightsOnEnabled, enabled));
@@ -161,16 +161,16 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         for (JsonObject fnConfig : fnConfigs)
         {
             const char *fnName = fnConfig["name"];
-            const std::string device = fnConfig["device"];
+            const std::string port = fnConfig["device"]; // TODO: Should be named `port` in config too.
 
-            DeviceConfiguration *fnDevice = nullptr;
-            DeviceConfiguration *tmpDevice;
+            PortConfiguration *fnDevice = nullptr;
+            PortConfiguration *tmpDevice;
 
-            switch (hardwareTypeMap()[device])
+            switch (portTypeMap()[port])
             {
-            case HardwareType::EspPin:
+            case PortType::EspPin:
             {
-                // Check if there's an ESP pin with the specified pin number in the config.
+                // Check if there's an ESP pin with the specified pin number in the controller config.
                 const int pin = fnConfig["pin"];
 
                 for (int i = 0; i < config->EspPins.size(); i++)
@@ -196,7 +196,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 
                 break;
             }
-            case HardwareType::BleHub:
+            case PortType::BleHubChannel:
             {
                 // Check if there's a hub with the specified address in the config.
                 const std::string address = fnConfig["address"];

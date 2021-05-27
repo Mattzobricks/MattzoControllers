@@ -11,8 +11,9 @@
 class BLELocomotive
 {
 public:
-    BLELocomotive(BLELocomotiveConfiguration *config, MCController *controller);
+    BLELocomotive(BLELocomotiveConfiguration *config, MController *controller);
 
+    // List of references to hubs inside this loco.
     std::vector<BLEHub *> Hubs;
 
     // Returns a boolean value indicating whether this loco is enabled (in use).
@@ -30,8 +31,8 @@ public:
     // Turns the specified function on/off.
     void HandleFn(Fn *fn, const bool on);
 
-    // If true, immediately sets the current speed for all hubs for all channels to zero.
-    // If false, releases the emergency brake.
+    // If true, immediately sets the current speed for all channels on all hubs to zero and makes all loco lights blink.
+    // If false, releases the emergency brake, returning the loco to normal operations.
     void EmergencyBrake(const bool enabled);
 
     // Returns the loco name.
@@ -50,12 +51,24 @@ public:
     bool GetAutoLightsEnabled();
 
 private:
+    // Initialized the leds inside this loco.
     void initLights();
+
+    // Initialized the hubs inside this loco.
     void initHubs();
+
+    // Returns a reference to a hub by its address.
     BLEHub *getHubByAddress(std::string address);
+
+    // Returns a list of references to functions of the given type configured for this loco.
     std::vector<Fn *> getFunctions(MCFunction f);
 
+    // List of references to leds inside this loco.
     std::vector<MCLedBase *> _espLeds;
+
+    // Reference to the configuration of this loco.
     BLELocomotiveConfiguration *_config;
-    MCController *_controller;
+
+    // Reference to the controller controling this loco.
+    MController *_controller;
 };

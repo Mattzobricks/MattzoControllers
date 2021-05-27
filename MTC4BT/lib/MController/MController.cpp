@@ -1,15 +1,15 @@
-#include "MCController.h"
-#include "DeviceConfiguration.h"
+#include "MController.h"
+#include "PortConfiguration.h"
 #include "MCStatusLed.h"
 #include "Fn.h"
 #include "MCLed.h"
 #include "log4MC.h"
 
-MCController::MCController()
+MController::MController()
 {
 }
 
-MCConnectionStatus MCController::GetConnectionStatus()
+MCConnectionStatus MController::GetConnectionStatus()
 {
     if (MattzoWifiClient::GetStatus() == WL_UNINITIALIZED)
     {
@@ -34,7 +34,7 @@ MCConnectionStatus MCController::GetConnectionStatus()
     return MCConnectionStatus::connected;
 }
 
-void MCController::Setup(MCConfiguration *config)
+void MController::Setup(MCConfiguration *config)
 {
     // Setup controller configuration.
     _config = config;
@@ -44,21 +44,21 @@ void MCController::Setup(MCConfiguration *config)
     initStatusLeds();
 }
 
-void MCController::Loop()
+void MController::Loop()
 {
     // E-brake is enabled when specifically requested (through MQTT) or when the controller is not connected.
     bool ebrakeEnabled = _ebrake || GetConnectionStatus() != MCConnectionStatus::connected;
 
     // Update leds (taking e-brake into account).
-    for (MCLedBase *led : Leds)
+    for (MCLedBase *led : _espLeds)
     {
         led->Update(ebrakeEnabled);
     }
 }
 
-MCLedBase *MCController::GetLed(int pin, bool inverted)
+MCLedBase *MController::GetLed(int pin, bool inverted)
 {
-    for (MCLedBase *led : Leds)
+    for (MCLedBase *led : _espLeds)
     {
         if (led->GetPin() == pin)
         {
@@ -68,23 +68,23 @@ MCLedBase *MCController::GetLed(int pin, bool inverted)
 
     // If not found, define, initialize and add a new LED.
     MCLed *led = new MCLed(pin, inverted);
-    Leds.push_back(led);
+    _espLeds.push_back(led);
     return led;
 }
 
-bool MCController::GetEmergencyBrake()
+bool MController::GetEmergencyBrake()
 {
     return _ebrake;
 }
 
-void MCController::SetEmergencyBrake(const bool enabled)
+void MController::SetEmergencyBrake(const bool enabled)
 {
     _ebrake = enabled;
 }
 
-void MCController::HandleFn(Fn *fn, const bool on)
+void MController::HandleFn(Fn *fn, const bool on)
 {
-    DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();
+    PortConfiguration *ledConfig = fn->GetPortConfiguration();
     log4MC::vlogf(LOG_DEBUG, "Ctrl: Handling function %u for pin %u.", ledConfig->GetAttachedDeviceType(), ledConfig->GetAddressAsEspPinNumber());
     MCLedBase *led = GetLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
 
@@ -94,19 +94,19 @@ void MCController::HandleFn(Fn *fn, const bool on)
     }
 }
 
-void MCController::initStatusLeds()
+void MController::initStatusLeds()
 {
     // Find the ESP pins configured with the "status" led function.
     for (Fn *fn : getFunctions(MCFunction::Status))
     {
-        DeviceConfiguration *ledConfig = fn->GetDeviceConfiguration();
+        PortConfiguration *ledConfig = fn->GetPortConfiguration();
         log4MC::vlogf(LOG_INFO, "Ctrl: Found status led attached to ESP pin %u. Initializing...", ledConfig->GetAddressAsEspPinNumber());
         MCStatusLed *statusLed = new MCStatusLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
-        Leds.push_back(statusLed);
+        _espLeds.push_back(statusLed);
     }
 }
 
-std::vector<Fn *> MCController::getFunctions(MCFunction f)
+std::vector<Fn *> MController::getFunctions(MCFunction f)
 {
     std::vector<Fn *> functions;
 

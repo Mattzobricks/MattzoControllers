@@ -24,7 +24,7 @@ const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
 // By default watchdog is set to 5, which means a 0.5 second timeout.
 const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 3;
 
-MTC4BTController::MTC4BTController() : MCController()
+MTC4BTController::MTC4BTController() : MController()
 {
 }
 
@@ -34,7 +34,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
     _config = config;
 
     // Setup basic MC controller configuration.
-    MCController::Setup(_config);
+    MController::Setup(_config);
 
     // Setup MTC4BT specific controller configuration.
     initLocomotives(config->Locomotives);
@@ -57,7 +57,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
 void MTC4BTController::Loop()
 {
     // Run the loop from the base MCController class (handles WiFi/MQTT connection monitoring and leds).
-    MCController::Loop();
+    MController::Loop();
 
     // Handle e-brake on all locomotives.
     for (BLELocomotive *loco : Locomotives)
@@ -114,16 +114,16 @@ void MTC4BTController::HandleFn(int locoAddress, MCFunction f, const bool on)
     // Get applicable functions from loco.
     for (Fn *fn : loco->GetFn(f))
     {
-        // Determine type of hardware.
-        switch (fn->GetDeviceConfiguration()->GetHardwareType())
+        // Determine type of port.
+        switch (fn->GetPortConfiguration()->GetPortType())
         {
-        case HardwareType::EspPin:
+        case PortType::EspPin:
         {
             // Handle function locally on the controller.
-            MCController::HandleFn(fn, on);
+            MController::HandleFn(fn, on);
             break;
         }
-        case HardwareType::BleHub:
+        case PortType::BleHubChannel:
         {
             // Let loco handle the function.
             loco->HandleFn(fn, on);

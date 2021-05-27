@@ -3,9 +3,9 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 
-#include "HubChannel.h"
+#include "BLEHubChannel.h"
+#include "BLEHubChannelController.h"
 #include "BLEHubConfiguration.h"
-#include "ChannelController.h"
 #include "Fn.h"
 
 #define AUTO_LIGHTS_ENABLED true
@@ -59,7 +59,7 @@ public:
     void SetLights(bool on);
 
     // Turns specific light channel on/off.
-    void SetLights(HubChannel channel, bool on);
+    void SetLights(BLEHubChannel channel, bool on);
 
     // If true, immediately sets the current speed for all channels to zero.
     // If false, releases the emergency brake.
@@ -83,9 +83,9 @@ public:
 private:
     void initChannelControllers();
     void setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
-    void setTargetSpeedPercForChannelByAttachedDevice(HubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
-    uint8_t getRawChannelSpeedForController(ChannelController *controller);
-    ChannelController *findControllerByChannel(HubChannel channel);
+    void setTargetSpeedPercForChannelByAttachedDevice(BLEHubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
+    uint8_t getRawChannelSpeedForController(BLEHubChannelController *controller);
+    BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
     BaseType_t startDriveTask();
     static void driveTaskImpl(void *);
@@ -93,7 +93,7 @@ private:
     BLEHubConfiguration *_config;
     int16_t _speedStep;
     int16_t _brakeStep;
-    std::vector<ChannelController *> _channelControllers;
+    std::vector<BLEHubChannelController *> _channelControllers;
 
     TaskHandle_t _driveTaskHandle;
     NimBLEAdvertisedDevice *_advertisedDevice;
