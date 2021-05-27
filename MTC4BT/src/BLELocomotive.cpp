@@ -78,6 +78,22 @@ void BLELocomotive::HandleFn(Fn *fn, const bool on)
     }
 }
 
+void BLELocomotive::BlinkLights(int durationInMs)
+{
+    if (!AllHubsConnected())
+    {
+        // Ignore blink request.
+        //log4MC::vlogf(LOG_INFO, "Loco: %s ignored blink lights request because not all its hubs are connected (yet).", _config->_name.c_str());
+        return;
+    }
+
+    // Handle blink on lights attached to channels of our hubs.
+    for (int i = 0; i < Hubs.size(); i++)
+    {
+        Hubs.at(i)->BlinkLights(durationInMs);
+    }
+}
+
 void BLELocomotive::EmergencyBrake(const bool enabled)
 {
     if (!AllHubsConnected())
@@ -148,7 +164,7 @@ void BLELocomotive::initLights()
     for (Fn *fn : _config->_functions)
     {
         PortConfiguration *deviceConfig = fn->GetPortConfiguration();
-        if (deviceConfig->GetAttachedDeviceType() == AttachedDevice::LIGHT)
+        if (deviceConfig->GetAttachedDeviceType() == DeviceType::Light)
         {
             // Ask controller to create an led for us and keep a reference to it.
             _espLeds.push_back(_controller->GetLed(deviceConfig->GetAddressAsEspPinNumber(), deviceConfig->IsInverted()));

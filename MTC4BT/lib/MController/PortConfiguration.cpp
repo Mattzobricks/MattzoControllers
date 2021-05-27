@@ -3,7 +3,7 @@
 #include "PortConfiguration.h"
 #include "log4MC.h"
 
-PortConfiguration::PortConfiguration(PortType portType, std::string address, bool isInverted, AttachedDevice deviceType)
+PortConfiguration::PortConfiguration(PortType portType, std::string address, bool isInverted, DeviceType deviceType)
     : _portType{portType}, _address{address}, _isInverted{isInverted}, _deviceType{deviceType} {}
 
 PortType PortConfiguration::GetPortType()
@@ -31,7 +31,7 @@ bool PortConfiguration::IsInverted()
     return _isInverted;
 }
 
-AttachedDevice PortConfiguration::GetAttachedDeviceType()
+DeviceType PortConfiguration::GetAttachedDeviceType()
 {
     return _deviceType;
 }

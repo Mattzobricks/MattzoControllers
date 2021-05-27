@@ -19,24 +19,24 @@ struct portTypeMap : public std::map<std::string, PortType>
     ~portTypeMap() {}
 };
 
-enum AttachedDevice
+enum DeviceType
 {
-    NOTHING,
-    MOTOR,
-    LIGHT
+    Nothing,
+    Motor,
+    Light
 };
 
 // String switch paridgam
-struct attachedDeviceMap : public std::map<std::string, AttachedDevice>
+struct deviceTypeMap : public std::map<std::string, DeviceType>
 {
-    attachedDeviceMap()
+    deviceTypeMap()
     {
-        this->operator[]("") = AttachedDevice::NOTHING;
-        this->operator[]("nothing") = AttachedDevice::NOTHING;
-        this->operator[]("motor") = AttachedDevice::MOTOR;
-        this->operator[]("light") = AttachedDevice::LIGHT;
+        this->operator[]("") = DeviceType::Nothing;
+        this->operator[]("nothing") = DeviceType::Nothing;
+        this->operator[]("motor") = DeviceType::Motor;
+        this->operator[]("light") = DeviceType::Light;
     };
-    ~attachedDeviceMap() {}
+    ~deviceTypeMap() {}
 };
 
 // Function supported by the generic controller.

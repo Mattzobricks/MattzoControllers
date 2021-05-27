@@ -4,9 +4,8 @@
 #include "enums.h"
 #include "log4MC.h"
 
-#define LIGHTS_ON true
-#define LIGHTS_OFF false
-#define LIGHTS_BLINK_DELAY_ON_CONNECT_MS 250
+// Blink duration in milliseconds. If all hubs if a loco are connected, its lights will blink for this duration.
+const uint32_t BLINK_AT_CONNECT_DURATION_IN_MS = 3000;
 
 // BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
 const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 5;
@@ -186,18 +185,8 @@ void MTC4BTController::discoveryLoop(void *parm)
                                 }
                                 else
                                 {
-                                    // Blink lights three times when connected.
-                                    hub->SetLights(LIGHTS_ON);
-                                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                    hub->SetLights(LIGHTS_OFF);
-                                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                    hub->SetLights(LIGHTS_ON);
-                                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                    hub->SetLights(LIGHTS_OFF);
-                                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                    hub->SetLights(LIGHTS_ON);
-                                    delay(LIGHTS_BLINK_DELAY_ON_CONNECT_MS / portTICK_PERIOD_MS);
-                                    hub->SetLights(LIGHTS_OFF);
+                                    // Blink lights for a while when connected.
+                                    loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
                                 }
                             }
                         }

@@ -5,7 +5,7 @@
 class PortConfiguration
 {
 public:
-    PortConfiguration(PortType portType, std::string address, bool isInverted, AttachedDevice deviceType);
+    PortConfiguration(PortType portType, std::string address, bool isInverted, DeviceType deviceType);
 
     // Returns the type of port the device is attached to.
     PortType GetPortType();
@@ -20,7 +20,7 @@ public:
     bool IsInverted();
 
     // Returns the attached device.
-    AttachedDevice GetAttachedDeviceType();
+    DeviceType GetAttachedDeviceType();
 
     // Gets the parent hub/receiver address.
     std::string GetParentAddress();
@@ -42,5 +42,5 @@ private:
     bool _isInverted = false;
 
     // Type of device attached to the port.
-    AttachedDevice _deviceType = AttachedDevice::NOTHING;
+    DeviceType _deviceType = DeviceType::Nothing;
 };

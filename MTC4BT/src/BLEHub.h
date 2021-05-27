@@ -55,11 +55,8 @@ public:
     // Handles the given function.
     void HandleFn(Fn* fn, bool on);
 
-    // Turns all light channels on/off.
-    void SetLights(bool on);
-
-    // Turns specific light channel on/off.
-    void SetLights(BLEHubChannel channel, bool on);
+    // Makes all channels with lights attached blink for the given duration.
+    void BlinkLights(int durationInMs);
 
     // If true, immediately sets the current speed for all channels to zero.
     // If false, releases the emergency brake.
@@ -82,8 +79,8 @@ public:
 
 private:
     void initChannelControllers();
-    void setTargetSpeedPercByAttachedDevice(AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
-    void setTargetSpeedPercForChannelByAttachedDevice(BLEHubChannel channel, AttachedDevice device, int16_t minSpeedPerc, int16_t speedPerc);
+    void setTargetSpeedPercByAttachedDevice(DeviceType device, int16_t minSpeedPerc, int16_t speedPerc);
+    void setTargetSpeedPercForChannelByAttachedDevice(BLEHubChannel channel, DeviceType device, int16_t minSpeedPerc, int16_t speedPerc);
     uint8_t getRawChannelSpeedForController(BLEHubChannelController *controller);
     BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
@@ -101,6 +98,8 @@ private:
     NimBLEClient *_hub;
     NimBLEClientCallbacks *_clientCallback;
     bool _ebrake;
+    bool _blinkLights;
+    ulong _blinkUntil;
     bool _isDiscovering;
     bool _isDiscovered;
     bool _isConnected;

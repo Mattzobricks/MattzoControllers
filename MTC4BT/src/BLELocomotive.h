@@ -31,6 +31,9 @@ public:
     // Turns the specified function on/off.
     void HandleFn(Fn *fn, const bool on);
 
+    // Makes all channels on all hubs with lights attached blink for the given duration.
+    void BlinkLights(int durationInMs);
+
     // If true, immediately sets the current speed for all channels on all hubs to zero and makes all loco lights blink.
     // If false, releases the emergency brake, returning the loco to normal operations.
     void EmergencyBrake(const bool enabled);

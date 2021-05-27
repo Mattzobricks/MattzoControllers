@@ -21,7 +21,7 @@ BLEHubChannel BLEHubChannelController::GetChannel()
   return bleHubChannelMap()[_config->GetAddress()];;
 }
 
-AttachedDevice BLEHubChannelController::GetAttachedDevice()
+DeviceType BLEHubChannelController::GetAttachedDevice()
 {
   return _config->GetAttachedDeviceType();
 }

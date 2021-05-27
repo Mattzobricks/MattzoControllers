@@ -14,7 +14,7 @@ public:
   BLEHubChannel GetChannel();
 
   // Returns the device attached to the channel.
-  AttachedDevice GetAttachedDevice();
+  DeviceType GetAttachedDevice();
 
   // Set the min speed percentage. When a speed percentage is set below this value, we either set current speed to zero (when slowing down) or to the given value (when speeding up).
   void SetMinSpeedPerc(int16_t minSpeedPerc);
