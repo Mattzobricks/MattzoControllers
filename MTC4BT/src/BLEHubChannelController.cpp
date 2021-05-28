@@ -31,6 +31,11 @@ void BLEHubChannelController::SetMinSpeedPerc(int16_t minSpeedPerc)
   _minSpeedPerc = minSpeedPerc;
 }
 
+int16_t BLEHubChannelController::GetTargetSpeedPerc()
+{
+  return _targetSpeedPerc;
+}
+
 void BLEHubChannelController::SetTargetSpeedPerc(int16_t speedPerc)
 {
   int16_t newSpeedPerc = _config->IsInverted() ? speedPerc * -1 : speedPerc;

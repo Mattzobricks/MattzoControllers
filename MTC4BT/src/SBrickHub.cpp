@@ -106,6 +106,11 @@ int16_t SBrickHub::MapSpeedPercToRaw(int speedPerc)
     return map(abs(speedPerc), 0, 100, 0, SBRICK_MAX_CHANNEL_SPEED);
 }
 
+void SBrickHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
+{
+    // TODO: Ignored for now...
+}
+
 std::array<uint8_t, 3> SBrickHub::getDriveCommand(BLEHubChannel channel)
 {
     BLEHubChannelController *controller = findControllerByChannel(channel);

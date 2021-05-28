@@ -6,6 +6,8 @@
 #include "MCLightController.h"
 #include "log4MC.h"
 
+using namespace std::placeholders;
+
 BLEHub::BLEHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep)
 {
     _config = config;
@@ -191,9 +193,11 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         return false;
     }
 
-    //if(_remoteControlCharacteristic->canNotify()) {
-    //  _remoteControlCharacteristic->registerForNotify(notifyCallback);
-    //}
+    // Subscribe to receive callback notifications.
+    if (_remoteControlCharacteristic->canNotify())
+    {
+        _remoteControlCharacteristic->subscribe(true, std::bind(&BLEHub::NotifyCallback, this, _1, _2, _3, _4), true);
+    }
 
     // Start drive task loop.
     return startDriveTask();

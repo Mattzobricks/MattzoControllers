@@ -15,6 +15,15 @@ public:
     void DriveTaskLoop();
     int16_t MapSpeedPercToRaw(int speedPerc);
 
+    /**
+     * @brief Callback function for notifications of a specific characteristic
+     * @param [in] pBLERemoteCharacteristic The pointer to the characteristic
+     * @param [in] pData The pointer to the received data
+     * @param [in] length The length of the data array
+     * @param [in] isNotify 
+     */
+    void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
+    
 private:
     std::array<uint8_t, 3> getDriveCommand(BLEHubChannel channel);
     bool channelIsDrivingForward(BLEHubChannel channel);

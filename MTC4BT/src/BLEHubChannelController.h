@@ -19,6 +19,9 @@ public:
   // Set the min speed percentage. When a speed percentage is set below this value, we either set current speed to zero (when slowing down) or to the given value (when speeding up).
   void SetMinSpeedPerc(int16_t minSpeedPerc);
 
+  // Gets the current target speed percentage (sign indicates direction: >0: forward, <0: backwards).
+  int16_t GetTargetSpeedPerc();
+
   // Sets a new target speed percentage (sign indicates direction: >0: forward, <0: backwards).
   void SetTargetSpeedPerc(int16_t speedPerc);
 
