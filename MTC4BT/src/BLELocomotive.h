@@ -26,10 +26,10 @@ public:
     void Drive(const int16_t minSpeed, const int16_t speed);
 
     // Returns a list of functions that need to be handled.
-    std::vector<Fn *> GetFn(MCFunction func);
+    std::vector<MCFunctionBinding *> GetFn(MCFunction func);
 
     // Turns the specified function on/off.
-    void HandleFn(Fn *fn, const bool on);
+    void HandleFn(MCFunctionBinding *fn, const bool on);
 
     // Makes all channels on all hubs with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
@@ -64,7 +64,7 @@ private:
     BLEHub *getHubByAddress(std::string address);
 
     // Returns a list of references to functions of the given type configured for this loco.
-    std::vector<Fn *> getFunctions(MCFunction f);
+    std::vector<MCFunctionBinding *> getFunctions(MCFunction f);
 
     // List of references to leds inside this loco.
     std::vector<MCLedBase *> _espLeds;

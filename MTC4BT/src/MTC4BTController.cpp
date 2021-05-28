@@ -111,7 +111,7 @@ void MTC4BTController::HandleFn(int locoAddress, MCFunction f, const bool on)
     }
 
     // Get applicable functions from loco.
-    for (Fn *fn : loco->GetFn(f))
+    for (MCFunctionBinding *fn : loco->GetFn(f))
     {
         // Determine type of port.
         switch (fn->GetPortConfiguration()->GetPortType())

@@ -5,7 +5,7 @@
 #define MIN_SPEED_PERC -100
 #define MAX_SPEED_PERC 100
 
-BLEHubChannelController::BLEHubChannelController(PortConfiguration *config, int16_t speedStep, int16_t brakeStep)
+BLEHubChannelController::BLEHubChannelController(MCPortConfiguration *config, int16_t speedStep, int16_t brakeStep)
 {
   _config = config;
   _speedStep = speedStep;

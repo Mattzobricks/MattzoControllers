@@ -3,12 +3,12 @@
 #include <Arduino.h>
 
 #include "BLEHubChannel.h"
-#include "PortConfiguration.h"
+#include "MCPortConfiguration.h"
 
 class BLEHubChannelController
 {
 public:
-  BLEHubChannelController(PortConfiguration *config, int16_t speedStep, int16_t brakeStep);
+  BLEHubChannelController(MCPortConfiguration *config, int16_t speedStep, int16_t brakeStep);
 
   // Returns the controlled channel.
   BLEHubChannel GetChannel();
@@ -51,7 +51,7 @@ private:
   int16_t normalizeSpeedPerc(int16_t speedPerc);
 
   // Reference to the configuration of the port controlled by this channel controller.
-  PortConfiguration *_config;
+  MCPortConfiguration *_config;
 
   int16_t _speedStep;
   int16_t _brakeStep;

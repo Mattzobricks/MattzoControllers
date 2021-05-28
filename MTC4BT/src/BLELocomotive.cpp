@@ -54,12 +54,12 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t speed)
     }
 }
 
-std::vector<Fn *> BLELocomotive::GetFn(MCFunction func)
+std::vector<MCFunctionBinding *> BLELocomotive::GetFn(MCFunction func)
 {
     return getFunctions(func);
 }
 
-void BLELocomotive::HandleFn(Fn *fn, const bool on)
+void BLELocomotive::HandleFn(MCFunctionBinding *fn, const bool on)
 {
     if (!AllHubsConnected())
     {
@@ -161,9 +161,9 @@ bool BLELocomotive::GetAutoLightsEnabled()
 
 void BLELocomotive::initLights()
 {
-    for (Fn *fn : _config->_functions)
+    for (MCFunctionBinding *fn : _config->_functions)
     {
-        PortConfiguration *deviceConfig = fn->GetPortConfiguration();
+        MCPortConfiguration *deviceConfig = fn->GetPortConfiguration();
         if (deviceConfig->GetAttachedDeviceType() == DeviceType::Light)
         {
             // Ask controller to create an led for us and keep a reference to it.
@@ -203,13 +203,13 @@ BLEHub *BLELocomotive::getHubByAddress(std::string address)
     return nullptr;
 }
 
-std::vector<Fn *> BLELocomotive::getFunctions(MCFunction f)
+std::vector<MCFunctionBinding *> BLELocomotive::getFunctions(MCFunction f)
 {
-    std::vector<Fn *> functions;
+    std::vector<MCFunctionBinding *> functions;
 
     if (AllHubsConnected())
     {
-        for (Fn *fn : _config->_functions)
+        for (MCFunctionBinding *fn : _config->_functions)
         {
             if (fn->GetFunction() == f)
             {

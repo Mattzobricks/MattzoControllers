@@ -38,7 +38,7 @@ public:
     void SetEmergencyBrake(const bool enabled);
 
     // Handles the given function locally on this controller.
-    void HandleFn(Fn *fn, const bool on);
+    void HandleFn(MCFunctionBinding *fn, const bool on);
 
     // Abstract method required for derived controller implementations to handle e-brake.
     virtual void HandleSys(const bool enabled) = 0;
@@ -48,7 +48,7 @@ private:
     void initStatusLeds();
 
     // Returns a list of references to functions of the given type configured for this controller.
-    std::vector<Fn *> getFunctions(MCFunction f);
+    std::vector<MCFunctionBinding *> getFunctions(MCFunction f);
 
     // List of references to leds attached to this controller.
     std::vector<MCLedBase *> _espLeds;

@@ -3,7 +3,7 @@
 
 #include "BLELocomotiveConfiguration.h"
 
-BLELocomotiveConfiguration::BLELocomotiveConfiguration(uint address, std::string name, std::vector<BLEHubConfiguration *> hubs, std::vector<Fn *> functions, int16_t speedStep, int16_t brakeStep, int16_t lightPerc, bool autoLightsEnabled, bool enabled)
+BLELocomotiveConfiguration::BLELocomotiveConfiguration(uint address, std::string name, std::vector<BLEHubConfiguration *> hubs, std::vector<MCFunctionBinding *> functions, int16_t speedStep, int16_t brakeStep, int16_t lightPerc, bool autoLightsEnabled, bool enabled)
 {
     _address = address;
     _name = name;

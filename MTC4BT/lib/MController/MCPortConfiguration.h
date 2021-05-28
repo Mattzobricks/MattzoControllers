@@ -2,10 +2,10 @@
 
 #include "enums.h"
 
-class PortConfiguration
+class MCPortConfiguration
 {
 public:
-    PortConfiguration(PortType portType, std::string address, bool isInverted, DeviceType deviceType);
+    MCPortConfiguration(PortType portType, std::string address, bool isInverted, DeviceType deviceType);
 
     // Returns the type of port the device is attached to.
     PortType GetPortType();

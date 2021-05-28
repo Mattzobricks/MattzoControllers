@@ -55,7 +55,7 @@ void BLEHub::Drive(const int16_t minSpeed, const int16_t speed)
     setTargetSpeedPercByAttachedDevice(DeviceType::Motor, minSpeed, speed);
 }
 
-void BLEHub::HandleFn(Fn *fn, bool on)
+void BLEHub::HandleFn(MCFunctionBinding *fn, bool on)
 {
     BLEHubChannel channel = bleHubChannelMap()[fn->GetPortConfiguration()->GetAddress()];
     log4MC::vlogf(LOG_DEBUG, "BLE : Hub handling function %u for channel %s.", fn->GetPortConfiguration()->GetAttachedDeviceType(), fn->GetPortConfiguration()->GetAddress().c_str());
@@ -203,7 +203,7 @@ void BLEHub::initChannelControllers()
 {
     // TODO: This method should be made more robust to prevent config errors, like configuring the same channel twice.
 
-    for (PortConfiguration *config : _config->Channels)
+    for (MCPortConfiguration *config : _config->Channels)
     {
         _channelControllers.push_back(new BLEHubChannelController(config, _speedStep, _brakeStep));
     }

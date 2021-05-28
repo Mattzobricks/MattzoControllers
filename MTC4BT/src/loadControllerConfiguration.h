@@ -4,7 +4,7 @@
 #include <SPIFFS.h>
 
 #include "MTC4BTConfiguration.h"
-#include "Fn.h"
+#include "MCFunctionBinding.h"
 
 #define DEFAULT_CONTROLLER_NAME "MTC4BT"
 
@@ -70,7 +70,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const bool inverted = espPinConfig["inverted"] | false;
         const std::string attachedDevice = espPinConfig["attachedDevice"] | "nothing";
 
-        config->EspPins.push_back(new PortConfiguration(PortType::EspPin, address, inverted, deviceTypeMap()[attachedDevice]));
+        config->EspPins.push_back(new MCPortConfiguration(PortType::EspPin, address, inverted, deviceTypeMap()[attachedDevice]));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read ESP pin configuration (%u).", config->EspPins.size());
 
@@ -82,10 +82,10 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const int pin = fnConfig["pin"];
 
         // Check if there's an ESP pin with the specified address defined in the config.
-        PortConfiguration *fnDevice = nullptr;
+        MCPortConfiguration *fnDevice = nullptr;
         for (int i = 0; i < config->EspPins.size(); i++)
         {
-            PortConfiguration *espPin = config->EspPins.at(i);
+            MCPortConfiguration *espPin = config->EspPins.at(i);
             if (espPin->GetAddressAsEspPinNumber() == pin)
             {
                 fnDevice = espPin;
@@ -104,7 +104,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             log4MC::vlogf(LOG_ERR, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`.", pin);
         }
 
-        config->Functions.push_back(new Fn(functionMap()[fnName], fnDevice));
+        config->Functions.push_back(new MCFunctionBinding(functionMap()[fnName], fnDevice));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read function configuration (%u).", config->Functions.size());
 
@@ -139,7 +139,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             const std::string address = hubConfig["address"];
 
             // Iterate over channel configs and copy values from the JsonDocument to PortConfiguration objects.
-            std::vector<PortConfiguration *> channels;
+            std::vector<MCPortConfiguration *> channels;
             JsonArray channelConfigs = hubConfig["channels"].as<JsonArray>();
             for (JsonObject channelConfig : channelConfigs)
             {
@@ -149,22 +149,22 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
                 const char *dir = channelConfig["direction"] | "forward";
                 bool isInverted = strcmp(dir, "reverse") == 0;
 
-                channels.push_back(new PortConfiguration(PortType::BleHubChannel, channel, isInverted, deviceTypeMap()[attachedDevice]));
+                channels.push_back(new MCPortConfiguration(PortType::BleHubChannel, channel, isInverted, deviceTypeMap()[attachedDevice]));
             }
 
             hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, lightPerc, autoLightsOnEnabled, enabled));
         }
 
         // Iterate over functions and copy values from the JsonDocument to Fn objects.
-        std::vector<Fn *> functions;
+        std::vector<MCFunctionBinding *> functions;
         JsonArray fnConfigs = locoConfig["fn"].as<JsonArray>();
         for (JsonObject fnConfig : fnConfigs)
         {
             const char *fnName = fnConfig["name"];
             const std::string port = fnConfig["device"]; // TODO: Should be named `port` in config too.
 
-            PortConfiguration *fnDevice = nullptr;
-            PortConfiguration *tmpDevice;
+            MCPortConfiguration *fnDevice = nullptr;
+            MCPortConfiguration *tmpDevice;
 
             switch (portTypeMap()[port])
             {
@@ -243,7 +243,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             }
             }
 
-            functions.push_back(new Fn(functionMap()[fnName], fnDevice));
+            functions.push_back(new MCFunctionBinding(functionMap()[fnName], fnDevice));
         }
         log4MC::vlogf(LOG_INFO, "Config: Read function configuration (%u).", functions.size());
 

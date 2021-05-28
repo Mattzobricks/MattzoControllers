@@ -1,7 +1,7 @@
 #include "MController.h"
-#include "PortConfiguration.h"
+#include "MCPortConfiguration.h"
 #include "MCStatusLed.h"
-#include "Fn.h"
+#include "MCFunctionBinding.h"
 #include "MCLed.h"
 #include "log4MC.h"
 
@@ -82,9 +82,9 @@ void MController::SetEmergencyBrake(const bool enabled)
     _ebrake = enabled;
 }
 
-void MController::HandleFn(Fn *fn, const bool on)
+void MController::HandleFn(MCFunctionBinding *fn, const bool on)
 {
-    PortConfiguration *ledConfig = fn->GetPortConfiguration();
+    MCPortConfiguration *ledConfig = fn->GetPortConfiguration();
     log4MC::vlogf(LOG_DEBUG, "Ctrl: Handling function %u for pin %u.", ledConfig->GetAttachedDeviceType(), ledConfig->GetAddressAsEspPinNumber());
     MCLedBase *led = GetLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
 
@@ -97,20 +97,20 @@ void MController::HandleFn(Fn *fn, const bool on)
 void MController::initStatusLeds()
 {
     // Find the ESP pins configured with the "status" led function.
-    for (Fn *fn : getFunctions(MCFunction::Status))
+    for (MCFunctionBinding *fn : getFunctions(MCFunction::Status))
     {
-        PortConfiguration *ledConfig = fn->GetPortConfiguration();
+        MCPortConfiguration *ledConfig = fn->GetPortConfiguration();
         log4MC::vlogf(LOG_INFO, "Ctrl: Found status led attached to ESP pin %u. Initializing...", ledConfig->GetAddressAsEspPinNumber());
         MCStatusLed *statusLed = new MCStatusLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
         _espLeds.push_back(statusLed);
     }
 }
 
-std::vector<Fn *> MController::getFunctions(MCFunction f)
+std::vector<MCFunctionBinding *> MController::getFunctions(MCFunction f)
 {
-    std::vector<Fn *> functions;
+    std::vector<MCFunctionBinding *> functions;
 
-    Fn *fn;
+    MCFunctionBinding *fn;
     for (int i = 0; i < _config->Functions.size(); i++)
     {
         fn = _config->Functions.at(i);

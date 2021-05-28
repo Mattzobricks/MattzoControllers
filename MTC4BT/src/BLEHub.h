@@ -6,7 +6,7 @@
 #include "BLEHubChannel.h"
 #include "BLEHubChannelController.h"
 #include "BLEHubConfiguration.h"
-#include "Fn.h"
+#include "MCFunctionBinding.h"
 
 #define AUTO_LIGHTS_ENABLED true
 #define AUTO_LIGHTS_DISABLED false
@@ -53,7 +53,7 @@ public:
     void Drive(const int16_t minSpeed, const int16_t speed);
 
     // Handles the given function.
-    void HandleFn(Fn* fn, bool on);
+    void HandleFn(MCFunctionBinding* fn, bool on);
 
     // Makes all channels with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
