@@ -36,8 +36,8 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
   locoConf[0] = (MattzoLocoConfiguration) {
-    .locoName = "SFE",
-    .locoAddress = 13043,
+    .locoName = "BR52",
+    .locoAddress = 52,
     .accelerationInterval = 100,
     .accelerateStep = 2,
     .brakeStep = 2
@@ -78,13 +78,13 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "SFE",
+      .motorShieldName = "BR52",
       .motorShieldType = MotorShieldType::L9110,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = 1,
-      .configMotorB = 0,
-      .locoAddress = 13043
+      .configMotorB = 1,
+      .locoAddress = 52
   };
 
   return msConf;
@@ -119,15 +119,15 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.
 // You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 4;
+const int NUM_FUNCTIONS = 2;
 
 // Digital pins for function output
 // For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D1, D2, D7 };
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D2 };
 
 // The loco address for which the function pin will be triggered.
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
-int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0, 0, 0 };
+int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0 };
 
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and even numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
