@@ -532,18 +532,20 @@ void handleSignalMessage(int rr_port) {
     for (int a = 0; a < NUM_SIGNAL_ASPECTS; a++) {
       if (signals[s].aspectRocrailPort[a] == rr_port) {
         // found the aspect that corresponds with rr_port
-        if (signals[s].signalType == SignalType::LIGHT) {
-          // iterate through all aspects of the light signal and set the corresponding LED.
-          for (int a2 = 0; a2 < NUM_SIGNAL_ASPECTS; a2++) {
-            mcLog2("Setting signal LED index " + String(a2) + " to " + (a == a2) ? "on" : "off", LOG_DEBUG);
-            setSignalLED(signals[s].aspectSignalPort[a2], a == a2);
-          }
+        // -> set aspect a for signal s
+
+        // iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
+        for (int l = 0; l < NUM_SIGNAL_ASPECTS; l++) {
+          bool onOff = aspectLEDMapping[a][l];
+          mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + onOff ? "on" : "off", LOG_DEBUG);
+          setSignalLED(signals[s].aspectLEDPort[l], onOff);
         }
-        else if (signals[s].signalType == SignalType::FORM) {
-          // set the desired servo angle of the form signal
-          int servoAngle = signals[s].aspectServoAngle[a];
-          mcLog2("Turning signal servo index " + String(signals[s].servoPin) + " to " + String(servoAngle), LOG_INFO);
-          setServoAngle(signals[s].servoPin, servoAngle);
+
+        // set the desired servo angle of the form signal
+        for (int servo = 0; servo < NUM_SIGNAL_SERVOS; servo++) {
+          int servoAngle = signals[s].aspectServoAngle[servo][a];
+          mcLog2("Turning servo index " + String(servo) + " of signal " + String(s) + " to " + String(servoAngle), LOG_INFO);
+          setServoAngle(signals[s].servoPin[servo], servoAngle);
         }
       }
     }

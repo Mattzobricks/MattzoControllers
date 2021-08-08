@@ -165,55 +165,87 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 3;
-// Number of signal aspects (e.g. red, green, yellow)
+const int NUM_SIGNALS = 4;
+// Maximum number of signal aspects (e.g. red, green, yellow)
 const int NUM_SIGNAL_ASPECTS = 3;
-
-enum struct SignalType
-{
-  LIGHT = 0x1, // light signal
-  FORM = 0x2   // form signal
-};
+// Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
+// If no form signals are used, just set to 0
+const int NUM_SIGNAL_SERVOS = 2;
 
 struct Signal {
-  // Type of the signal. Either light or form signal.
-  SignalType signalType;
-  // the port configured in Rocrail for this aspect
+  // the port configured in Rocrail for an aspect
   // 0: aspect not supported by this signal
   int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
   // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
   // -1: no LED configured for this aspect
-  int aspectSignalPort[NUM_SIGNAL_ASPECTS];
+  int aspectLEDPort[NUM_SIGNAL_ASPECTS];
+  // mappings between aspects and LEDs (often a diagonal matrix)
+  // true: LED is mapped for this aspect
+  bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_ASPECTS];
   // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
   // -1: no servo configured for this signal
-  int servoPin;
+  int servoPin[NUM_SIGNAL_SERVOS];
   // the desired servo angle for the aspect (for form signals)
-  int aspectServoAngle[NUM_SIGNAL_ASPECTS];
+  int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] =
 {
   // signal 0: form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0
   {
-    .signalType = SignalType::FORM,
     .aspectRocrailPort = {1, 2, 0},
-    .aspectSignalPort = {-1, -1, -1},
-    .servoPin = 0,
-    .aspectServoAngle = {140, 120, 0}
+    .aspectLEDPort = {-1, -1, -1},
+    .aspectLEDMapping = {
+      {true, false, false},
+      {false, true, false},
+      {false, false, true}
+    },
+    .servoPin[0] = 0,
+    .aspectServoAngle[0] = {140, 120, 0},
+    .servoPin[1] = -1,
+    .aspectServoAngle[1] = {0, 0, 0}
   },
-  // signal 1: form signal with 3 aspects, controlled via Rocrail ports 3, 4 and 5, using servo index 1
+  // signal 1: form signal with 3 aspects, controlled via Rocrail ports 3, 4 and 5, using servos index 1 and 2
+  // Please note that for aspect 2 (corresponds to Hp2 for German signals), a yellow LED (LED index 5) is activated
   {
-    .signalType = SignalType::FORM,
     .aspectRocrailPort = {3, 4, 5},
-    .aspectSignalPort = {-1, -1, -1},
-    .servoPin = 1,
-    .aspectServoAngle = {90, 160, 10}
+    .aspectLEDPort = {-1, -1, 5},
+    .aspectLEDMapping = {
+      {false, false, false},
+      {false, false, false},
+      {false, false, true}
+    },
+    .servoPin[0] = 1,
+    .aspectServoAngle[0] = {90, 160, 160},  // temporary comment from Mattze: HP2 = 10
+    .servoPin[1] = 2,
+    .aspectServoAngle[1] = {20, 20, 60}
   },
   // signal 2: light signal with 2 aspects, controlled via Rocrail ports 6 and 7, using LEDs 0 and 1.
   {
-    .signalType = SignalType::LIGHT,
     .aspectRocrailPort = {6, 7, 0},
-    .aspectSignalPort = {0, 1, -1},
-    .servoPin = -1,
-    .aspectServoAngle = {0, 0, 0}
+    .aspectLEDPort = {0, 1, -1},
+    .aspectLEDMapping = {
+      {true, false, false},
+      {false, true, false},
+      {false, false, true}
+    },
+    .servoPin[0] = -1,
+    .aspectServoAngle[0] = {0, 0, 0},
+    .servoPin[1] = -1,
+    .aspectServoAngle[1] = {0, 0, 0}
+  },
+  // signal 3: light signal with 2 aspects, controlled via Rocrail ports 8, 9 and 10, using LEDs 2 (red), 3 (green) and 4 (yellow).
+  // Please note that for aspect 2 (corresponds to Hp2 for German signals), both the green and yellow light are activated
+  {
+    .aspectRocrailPort = {8, 9, 10},
+    .aspectLEDPort = {2, 3, 4},
+    .aspectLEDMapping = {
+      {true, false, false},
+      {false, true, false},
+      {false, true, true}
+    },
+    .servoPin[0] = -1,
+    .aspectServoAngle[0] = {0, 0, 0},
+    .servoPin[1] = -1,
+    .aspectServoAngle[1] = {0, 0, 0}
   }
 };
 
