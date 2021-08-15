@@ -97,17 +97,17 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // PHYSICAL SWITCH PORTS
 // Number of physical switch ports
-const int NUM_SWITCHPORTS = 4;
+const int NUM_SWITCHPORTS = 3;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2, D3 };
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1, D2 };
 
 // Type of digital output pins for switch servos
 // 0   : pin on the ESP-8266
 // 0x40: port on the 1st PCA9685
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0, 0 };
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0, 0 };
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -149,23 +149,23 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 // Number of signal ports
 // A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
 // In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
-const int NUM_SIGNALPORTS = 2;
+const int NUM_SIGNALPORTS = 4;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5, D6, D7 };
 
 // Type of digital output pins for signal port
 // 0   : LED output pin on the ESP-8266
 // 0x40: LED port on the 1st PCA9685
 // 0x41: LED port on the 2nd PCA9685
 // 0x42: LED port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 0, 0 };
 
 
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 4;
+const int NUM_SIGNALS = 3;
 // Maximum number of signal aspects (e.g. red, green, yellow)
 const int NUM_SIGNAL_ASPECTS = 3;
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
@@ -198,54 +198,42 @@ struct Signal {
       {false, true, false},
       {false, false, true}
     },
-    .servoPin[0] = 0,
-    .aspectServoAngle[0] = {140, 120, 0},
-    .servoPin[1] = -1,
-    .aspectServoAngle[1] = {0, 0, 0}
+    .servoPin = {0, -1},
+    .aspectServoAngle = {
+      {140, 120, 0},
+      {0, 0, 0}
+    }
   },
   // signal 1: form signal with 3 aspects, controlled via Rocrail ports 3, 4 and 5, using servos index 1 and 2
-  // Please note that for aspect 2 (corresponds to Hp2 for German signals), a yellow LED (LED index 5) is activated
+  // Please note that for aspect 2 (corresponds to Hp2 for German signals), a yellow LED (LED index 0) is activated
   {
     .aspectRocrailPort = {3, 4, 5},
-    .aspectLEDPort = {-1, -1, 5},
+    .aspectLEDPort = {-1, -1, 0},
     .aspectLEDMapping = {
       {false, false, false},
       {false, false, false},
       {false, false, true}
     },
-    .servoPin[0] = 1,
-    .aspectServoAngle[0] = {90, 160, 160},  // temporary comment from Mattze: HP2 = 10
-    .servoPin[1] = 2,
-    .aspectServoAngle[1] = {20, 20, 60}
+    .servoPin = {1, 2},
+    .aspectServoAngle = {
+      {90, 160, 160},  // temporary comment from Mattze: HP2 = 10
+      {20, 20, 60}
+    }
   },
-  // signal 2: light signal with 2 aspects, controlled via Rocrail ports 6 and 7, using LEDs 0 and 1.
-  {
-    .aspectRocrailPort = {6, 7, 0},
-    .aspectLEDPort = {0, 1, -1},
+  // signal 2: light signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using LEDs 1 (red), 2 (green) and 3 (yellow).
+    {
+    .aspectRocrailPort = {6, 7, 8},
+    .aspectLEDPort = {1, 2, 3},
     .aspectLEDMapping = {
       {true, false, false},
       {false, true, false},
-      {false, false, true}
+      {false, true, true}  // Please note that for aspect 2 (corresponds to Hp2 for German signals), both the green and yellow light are activated
     },
-    .servoPin[0] = -1,
-    .aspectServoAngle[0] = {0, 0, 0},
-    .servoPin[1] = -1,
-    .aspectServoAngle[1] = {0, 0, 0}
-  },
-  // signal 3: light signal with 2 aspects, controlled via Rocrail ports 8, 9 and 10, using LEDs 2 (red), 3 (green) and 4 (yellow).
-  // Please note that for aspect 2 (corresponds to Hp2 for German signals), both the green and yellow light are activated
-  {
-    .aspectRocrailPort = {8, 9, 10},
-    .aspectLEDPort = {2, 3, 4},
-    .aspectLEDMapping = {
-      {true, false, false},
-      {false, true, false},
-      {false, true, true}
-    },
-    .servoPin[0] = -1,
-    .aspectServoAngle[0] = {0, 0, 0},
-    .servoPin[1] = -1,
-    .aspectServoAngle[1] = {0, 0, 0}
+    .servoPin = {-1, -1},
+    .aspectServoAngle = {
+      {0, 0, 0},
+      {0, 0, 0}
+    }
   }
 };
 
@@ -259,12 +247,12 @@ struct Signal {
 const bool REMOTE_SENSORS_ENABLED = false;
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 2;
+const int NUM_SENSORS = 0;
 
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
 // If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7 };
+uint8_t SENSOR_PIN[NUM_SENSORS] = {};
 
 // Type of digital input pins for sensors
 // 0   : pin on the ESP-8266
@@ -277,11 +265,11 @@ const int LOCAL_SENSOR_PIN_TYPE = 0;
 const int REMOTE_SENSOR_PIN_TYPE = 0x10;
 const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
 const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { 0, 0 };
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = {};
 
 // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
 // If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = {};
 
 
 // STATUS LED WIRING CONFIGURATION

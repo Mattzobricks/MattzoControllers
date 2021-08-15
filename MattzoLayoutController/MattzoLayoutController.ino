@@ -460,11 +460,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
     else if (strcmp(rr_cmd, "off") == 0) {
       // disregard signal messages with command 'off'
-      mcLog2("Signal command 'off' received - message disregarded.", LOG_ERR);
+      mcLog2("Signal command 'off' received - message disregarded.", LOG_DEBUG);
       return;
     }
     else {
-      mcLog2("Signal command " + String(rr_cmd) + " unknown - message disregarded.", LOG_ERR);
+      mcLog2("Signal command " + String(rr_cmd) + " unknown - message disregarded.", LOG_DEBUG);
       return;
     }
 
@@ -536,16 +536,19 @@ void handleSignalMessage(int rr_port) {
 
         // iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
         for (int l = 0; l < NUM_SIGNAL_ASPECTS; l++) {
-          bool onOff = aspectLEDMapping[a][l];
-          mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + onOff ? "on" : "off", LOG_DEBUG);
+          bool onOff = signals[s].aspectLEDMapping[a][l];
+          mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + (onOff ? "on" : "off"), LOG_INFO);
           setSignalLED(signals[s].aspectLEDPort[l], onOff);
         }
 
         // set the desired servo angle of the form signal
         for (int servo = 0; servo < NUM_SIGNAL_SERVOS; servo++) {
-          int servoAngle = signals[s].aspectServoAngle[servo][a];
-          mcLog2("Turning servo index " + String(servo) + " of signal " + String(s) + " to " + String(servoAngle), LOG_INFO);
-          setServoAngle(signals[s].servoPin[servo], servoAngle);
+          // skip servo if servo pin < 0 (this means "not used")
+          if (signals[s].servoPin[servo] >= 0) {
+            int servoAngle = signals[s].aspectServoAngle[servo][a];
+            mcLog2("Turning servo index " + String(servo) + " of signal " + String(s) + " to " + String(servoAngle), LOG_INFO);
+            setServoAngle(signals[s].servoPin[servo], servoAngle);
+          }
         }
       }
     }
