@@ -164,29 +164,27 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = {};
 
 // Number of signals
 const int NUM_SIGNALS = 0;
-// Number of signal aspects (e.g. red, green, yellow)
+// Maximum number of signal aspects (e.g. red, green, yellow)
 const int NUM_SIGNAL_ASPECTS = 2;
-
-enum struct SignalType
-{
-  LIGHT = 0x1, // light signal
-  FORM = 0x2   // form signal
-};
+// Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
+// If no form signals are used, just set to 0
+const int NUM_SIGNAL_SERVOS = 0;
 
 struct Signal {
-  // Type of the signal. Either light or form signal.
-  SignalType signalType;
-  // the port configured in Rocrail for this aspect
+  // the port configured in Rocrail for an aspect
   // 0: aspect not supported by this signal
   int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
   // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
   // -1: no LED configured for this aspect
-  int aspectSignalPort[NUM_SIGNAL_ASPECTS];
+  int aspectLEDPort[NUM_SIGNAL_ASPECTS];
+  // mappings between aspects and LEDs (often a diagonal matrix)
+  // true: LED is mapped for this aspect
+  bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_ASPECTS];
   // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
   // -1: no servo configured for this signal
-  int servoPin;
+  int servoPin[NUM_SIGNAL_SERVOS];
   // the desired servo angle for the aspect (for form signals)
-  int aspectServoAngle[NUM_SIGNAL_ASPECTS];
+  int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] = {};
 
 
