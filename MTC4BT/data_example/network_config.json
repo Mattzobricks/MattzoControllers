@@ -32,7 +32,7 @@
 			- "SSID":				SSID of your WiFi network (required).
 			- "password":			Password required to connect to your WiFi network (required).
 			- "hostname":			Hostname used by this controller on your WiFi network (optional, default: generated controller name).
-			- "otaPassword":		Password required to connect to update this controller over-the-air (required).
+			- "otaPassword":		Password required to update this controller over-the-air (required).
 			- "wait":				Delay in milliseconds between WiFi connect attempts (optional, default: 500).
 		*/
 		"SSID": "xxxxxx",
