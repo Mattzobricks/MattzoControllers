@@ -220,8 +220,7 @@ void setup() {
 
   // initialize motor shield pins for bascule bridge
   if (BASCULE_BRIDGE_CONNECTED) {
-    pinMode(BASCULE_BRIDGE_MS_IN1, OUTPUT);
-    pinMode(BASCULE_BRIDGE_MS_IN2, OUTPUT);
+    pinMode(BASCULE_BRIDGE_SERVO, OUTPUT);
   }
 }
 
@@ -1083,14 +1082,15 @@ void basculeBridgeCommand(int bridgeCommand) {
 void setBridgeMotorPower(int motorPower) {
   mcLog2("Setting bridge motor power to " + String(motorPower), LOG_DEBUG);
 
-  if (motorPower >= 0) {
-    analogWrite(BASCULE_BRIDGE_MS_IN1, motorPower);
-    analogWrite(BASCULE_BRIDGE_MS_IN2, 0);
+  // PWM values for orange continuous servos: 0=full backward, 100=stop, 200=full forward
+  // limit motorPower input parameter to -100 .. 100
+  if (motorPower > 100) {
+    motorPower = 100;
   }
-  else {
-    analogWrite(BASCULE_BRIDGE_MS_IN1, 0);
-    analogWrite(BASCULE_BRIDGE_MS_IN2, -motorPower);
+  else if (motorPower < -100) {
+    motorPower = -100;
   }
+  analogWrite(BASCULE_BRIDGE_SERVO, motorPower + 100);
 }
 
 // set bridge lights
