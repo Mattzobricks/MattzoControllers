@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration_BasculeBridge.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -120,6 +120,7 @@ struct Bridge {
   BridgeStatus nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
   unsigned long nextEventTime_ms;
   BridgeCommand bridgeCommand = BridgeCommand::DOWN;
+  Servo bridgeServo;
 } bridge;
 
 
@@ -220,7 +221,8 @@ void setup() {
 
   // initialize motor shield pins for bascule bridge
   if (BASCULE_BRIDGE_CONNECTED) {
-    pinMode(BASCULE_BRIDGE_SERVO, OUTPUT);
+    bridge.bridgeServo.attach(BASCULE_BRIDGE_SERVO);
+    bridge.bridgeServo.write(100);  // stop
   }
 }
 
@@ -1082,7 +1084,6 @@ void basculeBridgeCommand(int bridgeCommand) {
 void setBridgeMotorPower(int motorPower) {
   mcLog2("Setting bridge motor power to " + String(motorPower), LOG_DEBUG);
 
-  // PWM values for orange continuous servos: 0=full backward, 100=stop, 200=full forward
   // limit motorPower input parameter to -100 .. 100
   if (motorPower > 100) {
     motorPower = 100;
@@ -1090,7 +1091,9 @@ void setBridgeMotorPower(int motorPower) {
   else if (motorPower < -100) {
     motorPower = -100;
   }
-  analogWrite(BASCULE_BRIDGE_SERVO, motorPower + 100);
+
+  // PWM values for orange continuous servos: 0=full backward, 100=stop, 200=full forward
+  bridge.bridgeServo.write(motorPower + 100);
 }
 
 // set bridge lights
