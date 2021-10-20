@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration_BasculeBridge_multiLeaf.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -97,30 +97,47 @@ struct LevelCrossing {
 // BASCULE BRIDGE VARIABLES AND CONSTANTS
 enum struct BridgeStatus
 {
-  STOPPED = 0x1,
-  CLOSED = 0x2,
-  OPENING = 0x3,
-  OPENING2 = 0x4,
-  OPEN = 0x5,
-  CLOSING = 0x6,
-  CLOSING2 = 0x7,
-  ERRoR = 0x8,             // error condition
-  NO_TIMED_EVENT = 0x10,   // for timed events: no timed event pending
-  COMMAND_PENDING = 0x11   // a bridge command was received, which has not been used to set a new bridge state
+  CLOSED,
+  OPENING,
+  OPENED,
+  CLOSING,
+  UNDEFINED,
+  ERRoR
+};
+
+enum struct BridgeLeafStatus
+{
+  CLOSED,
+  OPENING0,
+  OPENING1,
+  OPENING2,
+  OPENING3,
+  OPENED,
+  CLOSING0,
+  CLOSING1,
+  CLOSING2,
+  CLOSING3,
+  UNDEFINED,
+  ERRoR
 };
 
 enum struct BridgeCommand
 {
   UP = 0,
   DOWN = 1,
+  NONE = 2
+};
+
+struct BridgeLeaf {
+  Servo bridgeLeafServo;
+  BridgeLeafStatus leafStatus = BridgeLeafStatus::UNDEFINED;
+  unsigned long leafTimer;
 };
 
 struct Bridge {
-  BridgeStatus bridgeStatus = BridgeStatus::COMMAND_PENDING;
-  BridgeStatus nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
-  unsigned long nextEventTime_ms;
-  BridgeCommand bridgeCommand = BridgeCommand::DOWN;
-  Servo bridgeServo;
+  BridgeStatus bridgeStatus = BridgeStatus::UNDEFINED;
+  BridgeCommand bridgeCommand = BridgeCommand::UNDEFINED;
+  BridgeLeaf bridgeLeaf[NUM_BASCULE_BRIDGE_LEAFS];
 } bridge;
 
 
@@ -221,8 +238,8 @@ void setup() {
 
   // initialize motor shield pins for bascule bridge
   if (BASCULE_BRIDGE_CONNECTED) {
-    bridge.bridgeServo.attach(BASCULE_BRIDGE_SERVO);
-    bridge.bridgeServo.write(100);  // stop
+    bridge.bridgeLeafServo.attach(BASCULE_BRIDGE_SERVO);
+    bridge.bridgeLeafServo.write(100);  // stop
   }
 }
 
@@ -770,12 +787,7 @@ void sendSwitchSensorEvent(int rocrailPort, int switchCommand, bool sensorState)
 
 // switches a signal on or off
 void setSignalLED(int signalIndex, bool ledState) {
-  if (SIGNALPORT_PIN_TYPE[signalIndex] == 1) {
-    // oops, that's a form signal - code should not have get to this place
-    mcLog2("CRITICAL ERROR - trying to set LED for form signal!", LOG_CRIT);
-    return;
-  }
-  else if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
+  if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
     digitalWrite(SIGNALPORT_PIN[signalIndex], ledState ? LOW : HIGH);
   }
 #if USE_PCA9685
@@ -798,12 +810,6 @@ void setSignalLED(int signalIndex, bool ledState) {
 
 // fades a signal. "brightness" is a value between 0 (off) and 1023 (full bright)
 void fadeSignalLED(int signalIndex, int brightness) {
-  if (SIGNALPORT_PIN_TYPE[signalIndex] == 1) {
-    // oops, that's a form signal - code should not have get to this place
-    mcLog2("CRITICAL ERROR - trying to fade LED for form signal!", LOG_CRIT);
-    return;
-  }
-
   brightness = min(max(brightness, 0), 1023);
   
   if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
@@ -1063,17 +1069,17 @@ void levelCrossingLoop() {
 }
 
 
+
+
 // copy bascule bridge command to bridge object
 void basculeBridgeCommand(int bridgeCommand) {
   if (bridgeCommand == 0) { // up
     mcLog2("Bascule bridge command UP.", LOG_DEBUG);
     bridge.bridgeCommand = BridgeCommand::UP;
-    bridge.bridgeStatus = BridgeStatus::COMMAND_PENDING;
   }
   else if (bridgeCommand == 1) { // down
     mcLog2("Bascule bridge command DOWN.", LOG_DEBUG);
     bridge.bridgeCommand = BridgeCommand::DOWN;
-    bridge.bridgeStatus = BridgeStatus::COMMAND_PENDING;
   }
   else {
     mcLog2("Unkown bascule bridge command.", LOG_CRIT);
@@ -1093,7 +1099,7 @@ void setBridgeMotorPower(int motorPower) {
   }
 
   // PWM values for orange continuous servos: 0=full backward, 100=stop, 200=full forward
-  bridge.bridgeServo.write(motorPower + 100);
+  bridge.bridgeLeafServo.write(motorPower + 100);
 }
 
 // set bridge lights
@@ -1103,12 +1109,6 @@ void setBridgeLights() {
   bool flashState = (millis() % 417) >= 208;
 
   switch (bridge.bridgeStatus) {
-  case BridgeStatus::STOPPED:
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, blinkState);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, blinkState);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, blinkState);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, blinkState);
-    break;
   case BridgeStatus::CLOSED:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, true);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
@@ -1121,13 +1121,7 @@ void setBridgeLights() {
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, blinkState);
     break;
-  case BridgeStatus::OPENING2:
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, false);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, true);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, flashState);
-    break;
-  case BridgeStatus::OPEN:
+  case BridgeStatus::OPENED:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, true);
@@ -1139,11 +1133,11 @@ void setBridgeLights() {
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, blinkState);
     break;
-  case BridgeStatus::CLOSING2:
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, true);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, flashState);
+  case BridgeStatus::UNDEFINED:
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, blinkState);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, !blinkState);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, blinkState);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, !blinkState);
     break;
   case BridgeStatus::ERRoR:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, flashState);
@@ -1160,187 +1154,359 @@ void basculeBridgeLoop() {
   if (!BASCULE_BRIDGE_CONNECTED)
     return;
 
-  // 1. Determine if bridge state change is required
-  BridgeStatus oldBridgeStatus = bridge.bridgeStatus;
-  BridgeStatus newBridgeStatus = oldBridgeStatus;
+  // Process bridge state machine
+  // nextBridgeStatus == BridgeStatus::UNDEFINED means: no status change
+  BridgeStatus nextBridgeStatus = BridgeStatus::UNDEFINED;
 
-  // Timed state change?
-  if ((oldBridgeStatus != bridge.nextBridgeStatus) && (bridge.nextBridgeStatus != BridgeStatus::NO_TIMED_EVENT) && (millis() >= bridge.nextEventTime_ms)) {
-    mcLog2("Executing timed bridge state change.", LOG_DEBUG);
-    newBridgeStatus = bridge.nextBridgeStatus;
-    bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
-  } else {
-    // no timed state change required.
-    // Check if a state change is required due to sensor event or bridge command.
-    if (bridge.bridgeCommand == BridgeCommand::UP) {
-      // Bridge command: UP!
-
-      switch (oldBridgeStatus) {
+  // Check for leaf errors
+  if (bridge.bridgeStatus != BridgeStatus::ERRoR) {
+    if (checkForBridgeLeafErrors()) {
+      bridge.bridgeCommand = BridgeCommand::NONE;
+      nextBridgeStatus = BridgeStatus::ERRoR;
+    }
+  }
+  else {
+    // no leaf error -> process main bridge state machine
+    switch (bridge.bridgeStatus) {
       case BridgeStatus::CLOSED:
-      case BridgeStatus::CLOSING:
-      case BridgeStatus::CLOSING2:
-      case BridgeStatus::COMMAND_PENDING:
-        // Check if "bridge up" sensor is triggered.
-        if (sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
-          mcLog2("Bridge was already open.", LOG_DEBUG);
-          newBridgeStatus = BridgeStatus::OPEN;
-          bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
-        }
-        // Open bridge!
-        else {
-          mcLog2("Opening bridge...", LOG_DEBUG);
-          newBridgeStatus = BridgeStatus::OPENING;
-          // make sure bridge motors stops after BASCULE_BRIDGE_MAX_OPENING_TIME_MS of "Sensor Up" was not triggered until then.
-          bridge.nextBridgeStatus = BridgeStatus::STOPPED;
-          bridge.nextEventTime_ms = millis() + BASCULE_BRIDGE_MAX_OPENING_TIME_MS;
+        // in this state, usually nothing happenes unless the bridge command "up" is received
+        if (bridge.bridgeCommand == BridgeCommand::UP) {
+          nextBridgeStatus = BridgeStatus::OPENING;
         }
         break;
 
       case BridgeStatus::OPENING:
-        if (sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
-          if (BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS > 0) {
-            // continue opening for BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS milliseconds
-            mcLog2("Bridge almost open...", LOG_DEBUG);
-            newBridgeStatus = BridgeStatus::OPENING2;
-            // add timed state change
-            bridge.nextBridgeStatus = BridgeStatus::OPEN;
-            bridge.nextEventTime_ms = millis() + BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS;
-          }
-          else {
-            mcLog2("Bridge open.", LOG_DEBUG);
-            newBridgeStatus = BridgeStatus::OPEN;
-            bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
-          }
+        if (bridge.bridgeCommand == BridgeCommand::DOWN) {
+          nextBridgeStatus = BridgeStatus::CLOSING;
+        }
+        else if (checkAllBridgeLeafsOpened()) {
+          nextBridgeStatus = BridgeStatus::OPENED;
         }
         break;
 
-      case BridgeStatus::OPENING2:
-      case BridgeStatus::OPEN:
-      case BridgeStatus::STOPPED:
-      case BridgeStatus::ERRoR:
+      case BridgeStatus::OPENED:
+        // in this state, usually nothing happenes unless the bridge command "down" is received
+        if (bridge.bridgeCommand == BridgeCommand::DOWN) {
+          nextBridgeStatus = BridgeStatus::CLOSING;
+        }
         break;
 
-      default:
-        mcLog2("Unknown bridge status #1.", LOG_CRIT);
-      }
-    }
-    else {
-      // Bridge command: DOWN!
-
-      switch (oldBridgeStatus) {
       case BridgeStatus::CLOSING:
-        if (sensorState[BASCULE_BRIDGE_SENSOR_DOWN]) {
-          if (BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS > 0) {
-            // continue closing for BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS milliseconds
-            mcLog2("Bridge almost closed...", LOG_DEBUG);
-            newBridgeStatus = BridgeStatus::CLOSING2;
-            // add timed state change
-            bridge.nextBridgeStatus = BridgeStatus::CLOSED;
-            bridge.nextEventTime_ms = millis() + BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS;
-          }
-          else {
-            mcLog2("Bridge closed.", LOG_DEBUG);
-            newBridgeStatus = BridgeStatus::CLOSED;
-            bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
-          }
+        if (bridge.bridgeCommand == BridgeCommand::UP) {
+          nextBridgeStatus = BridgeStatus::OPENING;
         }
+        else if (checkAllBridgeLeafsClosed()) {
+          nextBridgeStatus = BridgeStatus::CLOSED;
+        }
+        break;
+
+      case BridgeStatus::UNDEFINED:
+      case BridgeStatus::ERRoR:
+        // if in error or undefined state, go to opening or closing state depending on the bridge command.
+        if (bridge.bridgeCommand == BridgeCommand::UP) {
+          nextBridgeStatus = BridgeStatus::OPENING;
+        }
+        else if (bridge.bridgeCommand == BridgeCommand::DOWN) {
+          nextBridgeStatus = BridgeStatus::CLOSING;
+        }
+        break;
+    }
+  }
+
+  if (nextBridgeStatus != BridgeStatus::UNDEFINED) {
+    mcLog2("New bridge status: " + String(nextBridgeStatus), LOG_DEBUG);
+    bridge.bridgeStatus = nextBridgeStatus;
+
+    switch (nextBridgeStatus) {
+      case BridgeStatus::CLOSED:
+        mcLog2("Bridge fully closed.", LOG_DEBUG);
+        sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, true);
         break;
 
       case BridgeStatus::OPENING:
-      case BridgeStatus::OPEN:
-      case BridgeStatus::COMMAND_PENDING:
-        // Check if "bridge down" sensor is still triggered.
-        if (sensorState[BASCULE_BRIDGE_SENSOR_DOWN]) {
-          mcLog2("Bridge was already down.", LOG_DEBUG);
-          newBridgeStatus = BridgeStatus::CLOSED;
-          bridge.nextBridgeStatus = BridgeStatus::NO_TIMED_EVENT;
-        }
-        // Close bridge!
-        else {
-          mcLog2("Closing bridge...", LOG_DEBUG);
-          newBridgeStatus = BridgeStatus::CLOSING;
-          // make sure bridge motors stops after BASCULE_BRIDGE_MAX_CLOSING_TIME_MS of "Sensor Down" was not triggered until then.
-          bridge.nextBridgeStatus = BridgeStatus::STOPPED;
-          bridge.nextEventTime_ms = millis() + BASCULE_BRIDGE_MAX_CLOSING_TIME_MS;
-        }
+        sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, false);
+        mcLog2("Opening bridge...", LOG_DEBUG);
         break;
 
-      case BridgeStatus::CLOSED:
-      case BridgeStatus::CLOSING2:
-      case BridgeStatus::STOPPED:
+      case BridgeStatus::OPENED:
+        mcLog2("Bridge fully opened.", LOG_DEBUG);
+        sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, true);
+        break;
+
+      case BridgeStatus::CLOSING:
+        mcLog2("Closing bridge...", LOG_DEBUG);
+        sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, false);
+        break;
+
       case BridgeStatus::ERRoR:
+        mcLog2("Bridge error.", LOG_DEBUG);
+        sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, false);
+        stopAllBridgeLeafs();
+        break;
+    }
+  }
+
+  // Process leaf state machines
+  processBridgeLeafs();
+
+  // Update bridge lights
+  setBridgeLights();
+}
+
+// Check if one or more bridge leafs are in error state
+bool checkForBridgeLeafErrors() {
+  for (int l = 0; l < NUM_BASCULE_BRIDGE_LEAFS; l++) {
+    if (bridge.bridgeLeaf[l].leafStatus == BridgeLeafStatus::ERRoR) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Check if all bridge leafs are in opened state
+bool checkAllBridgeLeafsOpened() {
+  for (int l = 0; l < NUM_BASCULE_BRIDGE_LEAFS; l++) {
+    if (bridge.bridgeLeaf[l].leafStatus != BridgeLeafStatus::OPENED) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Check if all bridge leafs are in closed state
+bool checkAllBridgeLeafsClosed() {
+  for (int l = 0; l < NUM_BASCULE_BRIDGE_LEAFS; l++) {
+    if (bridge.bridgeLeaf[l].leafStatus != BridgeLeafStatus::CLOSED) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Process bridge leaf state machines
+bool processBridgeLeafs() {
+  for (int l = 0; l < NUM_BASCULE_BRIDGE_LEAFS; l++) {
+    processBridgeLeaf(l);
+  }
+}
+
+// Process bridge leaf state machines
+bool processBridgeLeaf(int leafIndex) {
+  BridgeLeaf bridgeLeaf = bridge.bridgeLeaf[leafIndex];
+
+  // get sensor states
+  bool sensorUp = sensorState[BASCULE_BRIDGE_SENSOR_UP[leafIndex]];
+  bool sensorDown = sensorState[BASCULE_BRIDGE_SENSOR_DOWN[leafIndex]];
+
+  // Process bridge leaf state machine
+  // nextLeafBridgeStatus == BridgeStatus::UNDEFINED means: no status change
+  BridgeLeafStatus nextBridgeLeafStatus = BridgeLeafStatus::UNDEFINED;
+
+  // The idea is to split the state machine into two branches depending on the bridge command  (up/down). This makes combined handling of several different states significantly easier.
+  switch (bridge.bridgeCommand) {
+
+    case BridgeCommand::UP:
+      switch (bridgeLeaf.leafStatus) {
+        case BridgeLeafStatus::OPENED:
+          // do nothing
+          break;
+        case BridgeLeafStatus::CLOSING0:
+        case BridgeLeafStatus::CLOSING1:
+        case BridgeLeafStatus::CLOSING2:
+        case BridgeLeafStatus::CLOSING3:
+        case BridgeLeafStatus::CLOSED:
+        case BridgeLeafStatus::UNDEFINED:
+          nextBridgeLeafStatus = BridgeLeafStatus::OPENING0;
+          // fall-through
+        case BridgeLeafStatus::OPENING0:
+          if (millis() - bridgeLeaf.leafTimer < BASCULE_BRIDGE_LEAF_DELAY_OPEN_MS[leafIndex]) {
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::OPENING1;
+          bridgeLeaf.leafTimer = millis();
+          // fall-through
+        case BridgeLeafStatus::OPENING1:
+          if (sensorDown) {
+            if (millis() - bridgeLeaf.leafTimer >= BASCULE_BRIDGE_MAX_OPENING_TIME_MS) {
+              nextBridgeLeafStatus = BridgeLeafStatus::ERRoR;
+              break;
+            }
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::OPENING2;
+          bridgeLeaf.leafTimer = millis();
+          // fall-through
+        case BridgeLeafStatus::OPENING2:
+          if (!sensorUp) {
+            if (millis() - bridgeLeaf.leafTimer >= BASCULE_BRIDGE_MAX_OPENING_TIME_MS) {
+              nextBridgeLeafStatus = BridgeLeafStatus::ERRoR;
+              break;
+            }
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::OPENING3;
+          bridgeLeaf.leafTimer = millis();
+          // fall-through
+        case BridgeLeafStatus::OPENING3:
+          if (millis() - bridgeLeaf.leafTimer >= BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS) {
+            nextBridgeLeafStatus = BridgeLeafStatus::OPENED;
+          }
+          break;
+      }
+      break;
+
+    case BridgeCommand::DOWN:
+      switch (bridgeLeaf.leafStatus) {
+        case BridgeLeafStatus::CLOSED:
+          // do nothing
+          break;
+        case BridgeLeafStatus::OPENING0:
+          if (millis() - bridgeLeaf.leafTimer < BASCULE_BRIDGE_LEAF_DELAY_OPEN_MS[leafIndex]) {
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::OPENING1;
+          bridgeLeaf.leafTimer = millis();
+          // fall-through
+        case BridgeLeafStatus::OPENING1:
+          if (sensorDown) {
+            if (millis() - bridgeLeaf.leafTimer >= BASCULE_BRIDGE_MAX_OPENING_TIME_MS) {
+              nextBridgeLeafStatus = BridgeLeafStatus::ERRoR;
+              break;
+            }
+            break;
+          }
+          // fall-through
+        case BridgeLeafStatus::OPENING2:
+        case BridgeLeafStatus::OPENING3:
+        case BridgeLeafStatus::OPENED:
+          nextBridgeLeafStatus = BridgeLeafStatus::CLOSING0;
+          bridgeLeaf.leafTimer = millis();
+          break;
+        case BridgeLeafStatus::UNDEFINED:
+          // if bridge leaf is in undefined state, we can not determine if the bridge is really closed if the closed sensor is triggered
+          // -> open bridge leaf until sensor is released for safety!
+          if (sensorDown) {
+            nextBridgeLeafStatus = BridgeLeafStatus::OPENING0;
+            bridgeLeaf.leafTimer = millis();
+          }
+          // if closed sensor not triggered, simply enter the standard closing sequence
+          else {
+            nextBridgeLeafStatus = BridgeLeafStatus::CLOSING0;
+            bridgeLeaf.leafTimer = millis();
+          }
+          // fall-through
+        case BridgeLeafStatus::CLOSING0:
+          if (millis() - bridgeLeaf.leafTimer < BASCULE_BRIDGE_LEAF_DELAY_CLOSE_MS[leafIndex]) {
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::CLOSING1;
+          bridgeLeaf.leafTimer = millis();
+          // fall-through
+        case BridgeLeafStatus::CLOSING1:
+          if (sensorUp) {
+            if (millis() - bridgeLeaf.leafTimer >= BASCULE_BRIDGE_MAX_CLOSING_TIME_MS) {
+              nextBridgeLeafStatus = BridgeLeafStatus::ERRoR;
+              break;
+            }
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::CLOSING2;
+          bridgeLeaf.leafTimer = millis();
+          // fall-through
+        case BridgeLeafStatus::CLOSING2:
+          if (!sensorDown) {
+            if (millis() - bridgeLeaf.leafTimer >= BASCULE_BRIDGE_MAX_CLOSING_TIME_MS) {
+              nextBridgeLeafStatus = BridgeLeafStatus::ERRoR;
+              break;
+            }
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::CLOSING3;
+          bridgeLeaf.leafTimer = millis();
+          // fall-through
+        case BridgeLeafStatus::CLOSING3:
+          if (millis() - bridgeLeaf.leafTimer < BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS) {
+            break;
+          }
+          nextBridgeLeafStatus = BridgeLeafStatus::CLOSED;
+          break;
+      }
+      break;
+  }
+
+  // Process next bridge leaf status
+  if (nextBridgeLeafStatus != BridgeLeafStatus::UNDEFINED) {
+    mcLog2("New status bridge leaf " + String(leafIndex) + ": " + String(nextBridgeLeafStatus), LOG_DEBUG);
+    bridgeLeaf.leafStatus = nextBridgeLeafStatus;
+    bridgeLeaf.leafTimer = millis();
+
+    switch (nextBridgeLeafStatus) {
+      case BridgeLeafStatus::CLOSED:
+        mcLog2("Bridge leaf " + String(leafIndex) + " fully closed.", LOG_DEBUG);
+        setBridgeMotorPower(0);
         break;
 
-      default:
-        mcLog2("Unknown bridge status #2.", LOG_CRIT);
-      }
+      case BridgeLeafStatus::OPENING0:
+        mcLog2("Bridge leaf " + String(leafIndex) + " standing by to be opened.", LOG_DEBUG);
+        setBridgeMotorPower(0);
+        break;
+      case BridgeLeafStatus::OPENING1:
+        mcLog2("Opening bridge leaf " + String(leafIndex) + " (initial stage)...", LOG_DEBUG);
+        setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP);
+      case BridgeLeafStatus::OPENING2:
+        mcLog2("Opening bridge leaf " + String(leafIndex) + " (intermediate stage)...", LOG_DEBUG);
+        setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP);
+        break;
+      case BridgeLeafStatus::OPENING3:
+        mcLog2("Opening bridge leaf " + String(leafIndex) + " (final stage)...", LOG_DEBUG);
+        setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP2);
+        break;
+
+      case BridgeLeafStatus::OPENED:
+        mcLog2("Bridge leaf " + String(leafIndex) + " fully opened.", LOG_DEBUG);
+        setBridgeMotorPower(0);
+        break;
+
+      case BridgeLeafStatus::CLOSING0:
+        mcLog2("Bridge leaf " + String(leafIndex) + " standing by to be closed.", LOG_DEBUG);
+        setBridgeMotorPower(0);
+        break;
+      case BridgeLeafStatus::CLOSING1:
+        mcLog2("Closing bridge leaf " + String(leafIndex) + " (initial stage)...", LOG_DEBUG);
+        setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN);
+        break;
+      case BridgeLeafStatus::CLOSING2:
+        mcLog2("Closing bridge leaf " + String(leafIndex) + " (intermediate stage)...", LOG_DEBUG);
+        setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN);
+        break;
+      case BridgeLeafStatus::CLOSING3:
+        mcLog2("Closing bridge leaf " + String(leafIndex) + " (final stage)...", LOG_DEBUG);
+        setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN2);
+        break;
+
+      case BridgeStatus::ERRoR:
+        mcLog2("Bridge leaf " + String(leafIndex) + " error.", LOG_CRIT);
+        setBridgeMotorPower(0);
+        break;
     }
   }
 
-  // 2. Execute bridge state change
-  // Bridge state change pending?
-  if (newBridgeStatus != oldBridgeStatus) {
-    switch (newBridgeStatus) {
-    case BridgeStatus::STOPPED:
-      mcLog2("Setting new bridge status STOPPED.", LOG_DEBUG);
-      setBridgeMotorPower(0);
-      break;
-    case BridgeStatus::CLOSED:
-      mcLog2("Setting new bridge status CLOSED.", LOG_DEBUG);
-      setBridgeMotorPower(0);
-      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, true);
-      break;
-    case BridgeStatus::OPEN:
-      mcLog2("Setting new bridge status OPEN.", LOG_DEBUG);
-      setBridgeMotorPower(0);
-      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, true);
-      break;
-    case BridgeStatus::ERRoR:
-      mcLog2("Setting new bridge status ERROR.", LOG_DEBUG);
-      setBridgeMotorPower(0);
-      break;
-    case BridgeStatus::OPENING:
-      mcLog2("Setting new bridge status OPENING.", LOG_DEBUG);
-      setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP);
-      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_DOWN, false);
-      break;
-    case BridgeStatus::OPENING2:
-      mcLog2("Setting new bridge status OPENING2.", LOG_DEBUG);
-      setBridgeMotorPower(BASCULE_BRIDGE_POWER_UP2);
-      break;
-    case BridgeStatus::CLOSING:
-      mcLog2("Setting new bridge status CLOSING.", LOG_DEBUG);
-      setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN);
-      sendSensorEvent2MQTT(BASCULE_BRIDGE_SENSOR_FULLY_UP, false);
-      break;
-    case BridgeStatus::CLOSING2:
-      mcLog2("Setting new bridge status CLOSING2.", LOG_DEBUG);
-      setBridgeMotorPower(-BASCULE_BRIDGE_POWER_DOWN2);
-      break;
-    default:
-      mcLog2("Unknown bridge status #3.", LOG_CRIT);
-    }
-
-    bridge.bridgeStatus = newBridgeStatus;
-  }
-
-  // 3. Check if an emergency brake situation exists
-  if (bridge.bridgeStatus == BridgeStatus::CLOSED) {
-    if (!sensorState[BASCULE_BRIDGE_SENSOR_DOWN]) {
-      bridge.bridgeStatus = BridgeStatus::ERRoR;
-      mcLog2("Alert: Bridge open!", LOG_ALERT);
+  // Check if an emergency brake situation exists
+  if (bridge.leafStatus == BridgeLeafStatus::CLOSED) {
+    if (!sensorDown) {
+      bridgeLeaf.leafStatus = BridgeLeafStatus::ERRoR;
+      mcLog2("Alert: Bridge leaf " + String(leafIndex) + " open, but bridge leaf status is CLOSED!", LOG_ALERT);
       sendEmergencyBrake2MQTT("bridge open");
     }
-    else if (sensorState[BASCULE_BRIDGE_SENSOR_DOWN] && sensorState[BASCULE_BRIDGE_SENSOR_UP]) {
+    else if (sensorDown && sensorUp) {
       bridge.bridgeStatus = BridgeStatus::ERRoR;
-      mcLog2("Alert: Bridge sensors triggered concurrently!", LOG_ALERT);
+      mcLog2("Alert: Sensors of bridge leaf " + String(leafIndex) + " triggered concurrently!", LOG_ALERT);
       sendEmergencyBrake2MQTT("bridge sensors triggered concurrently");
     }
   }
-
-  // 4. Update bridge lights
-  setBridgeLights();
 }
+
+
 
 
 void SpeedometerDebug() {
