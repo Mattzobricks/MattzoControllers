@@ -149,15 +149,13 @@ const int SWITCHPORT_SENSORS[NUM_SWITCHPORT_SENSORPAIRS][3] = {};
 // SIGNAL WIRING CONFIGURATION
 
 // Number of signal ports (the number of signal LEDs, not the number of signals!)
-const int NUM_SIGNALPORTS = 4;
+const int NUM_SIGNALPORTS = 2;
 
 // Digital pins for signal LEDs
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D2, D3, D4, D5 };
-// uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { 8, 9, 10, 11, 12, 13, 14, 15 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D3 };
 
 // Type of digital output pins for signal LEDs (0 = pins on the ESP-8266; 0x40 = ports of the PCA9685)
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 0, 0 };
-// uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 
 
 // SIGNAL CONFIGURATION
@@ -202,7 +200,7 @@ const int NUM_SENSORS = 6;
 // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
 // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
 // If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D4, D5, D6, D7, 0, 0 };
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D2, D5, D6, D7, 0, 0 };
 
 // Type of digital input pins for sensors
 // 0   : local sensor, directly connected on a pin on the ESP-8266
@@ -339,10 +337,10 @@ const int NUM_BASCULE_BRIDGE_LEAFS = 2;
 const int BASCULE_BRIDGE_SERVO_PIN[NUM_BASCULE_BRIDGE_LEAFS] = { D0, D1 };
 
 // Delay for opening the bridge leaf (in milliseconds)
-const int BASCULE_BRIDGE_LEAF_DELAY_OPEN_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 0, 2000 };
+const int BASCULE_BRIDGE_LEAF_DELAY_OPEN_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 2500, 5000 };
 
 // Delay for closing the bridge leaf (in milliseconds)
-const int BASCULE_BRIDGE_LEAF_DELAY_CLOSE_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 5000, 0 };
+const int BASCULE_BRIDGE_LEAF_DELAY_CLOSE_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 5000, 2500 };
 
 // Motor power settings for bridge operations
 // Use negative values to reverse servo!
@@ -371,9 +369,9 @@ const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 5;
 
 // Timings (in milli seconds)
 // Maximum allowed time for opening the bridge from releasing the closing sensor until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
-const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 30000;
+const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 20000;
 // Same for closing the bridge
-const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 30000;
+const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 20000;
 // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
 const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 2000;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
