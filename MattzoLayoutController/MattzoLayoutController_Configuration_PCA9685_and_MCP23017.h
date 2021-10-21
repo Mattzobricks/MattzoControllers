@@ -182,7 +182,7 @@ struct Signal {
   bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_ASPECTS];
   // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
   // -1: no servo configured for this signal
-  int servoPin[NUM_SIGNAL_SERVOS];
+  int servoIndex[NUM_SIGNAL_SERVOS];
   // the desired servo angle for the aspect (for form signals)
   int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] =
@@ -195,7 +195,7 @@ struct Signal {
       {true, false},
       {false, true}
     },
-    .servoPin = {},
+    .servoIndex = {},
     .aspectServoAngle = {}
   },
   // signal 1: light signal with 2 aspects, controlled via Rocrail ports 3 and 4
@@ -206,7 +206,7 @@ struct Signal {
       {true, false},
       {false, true}
     },
-    .servoPin = {},
+    .servoIndex = {},
     .aspectServoAngle = {}
   },
   // signal 2: light signal with 2 aspects, controlled via Rocrail ports 5 and 6
@@ -217,7 +217,7 @@ struct Signal {
       {true, false},
       {false, true}
     },
-    .servoPin = {},
+    .servoIndex = {},
     .aspectServoAngle = {}
   },
   // signal 3: light signal with 2 aspects, controlled via Rocrail ports 7 and 8
@@ -228,7 +228,7 @@ struct Signal {
       {true, false},
       {false, true}
     },
-    .servoPin = {},
+    .servoIndex = {},
     .aspectServoAngle = {}
   },
 };

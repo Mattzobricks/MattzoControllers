@@ -563,10 +563,10 @@ void handleSignalMessage(int rr_port) {
         // set the desired servo angle of the form signal
         for (int servo = 0; servo < NUM_SIGNAL_SERVOS; servo++) {
           // skip servo if servo pin < 0 (this means "not used")
-          if (signals[s].servoPin[servo] >= 0) {
+          if (signals[s].servoIndex[servo] >= 0) {
             int servoAngle = signals[s].aspectServoAngle[servo][a];
             mcLog2("Turning servo index " + String(servo) + " of signal " + String(s) + " to " + String(servoAngle), LOG_INFO);
-            setServoAngle(signals[s].servoPin[servo], servoAngle);
+            setServoAngle(signals[s].servoIndex[servo], servoAngle);
           }
         }
       }

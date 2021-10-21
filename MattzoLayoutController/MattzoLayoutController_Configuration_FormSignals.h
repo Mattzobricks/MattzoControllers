@@ -184,7 +184,7 @@ struct Signal {
   bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_ASPECTS];
   // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
   // -1: no servo configured for this signal
-  int servoPin[NUM_SIGNAL_SERVOS];
+  int servoIndex[NUM_SIGNAL_SERVOS];
   // the desired servo angle for the aspect (for form signals)
   int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] =
@@ -198,7 +198,7 @@ struct Signal {
       {false, true, false},
       {false, false, true}
     },
-    .servoPin = {0, -1},
+    .servoIndex = {0, -1},
     .aspectServoAngle = {
       {140, 120, 0},
       {0, 0, 0}
@@ -214,7 +214,7 @@ struct Signal {
       {false, false, false},
       {false, false, true}
     },
-    .servoPin = {1, 2},
+    .servoIndex = {1, 2},
     .aspectServoAngle = {
       {90, 160, 160},  // temporary comment from Mattze: HP2 = 10
       {20, 20, 60}
@@ -229,7 +229,7 @@ struct Signal {
       {false, true, false},
       {false, true, true}  // Please note that for aspect 2 (corresponds to Hp2 for German signals), both the green and yellow light are activated
     },
-    .servoPin = {-1, -1},
+    .servoIndex = {-1, -1},
     .aspectServoAngle = {
       {0, 0, 0},
       {0, 0, 0}
