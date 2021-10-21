@@ -97,19 +97,17 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // PHYSICAL SWITCH PORTS
 // Number of physical switch ports
-const int NUM_SWITCHPORTS = 0;
+const int NUM_SWITCHPORTS = 2;
 
 // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = {};
-// uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+uint8_t SWITCHPORT_PIN[NUM_SWITCHPORTS] = { D0, D1 };
 
 // Type of digital output pins for switch servos
 // 0   : pin on the ESP-8266
 // 0x40: port on the 1st PCA9685
 // 0x41: port on the 2nd PCA9685
 // 0x42: port on the 3rd PCA9685 etc.
-uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = {};
-// uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40 };
+uint8_t SWITCHPORT_PIN_TYPE[NUM_SWITCHPORTS] = { 0, 0 };
 
 // LOGICAL SWITCH PORTS
 // Number of logical switch ports
@@ -334,13 +332,7 @@ const int BASCULE_BRIDGE_RR_PORT = 1;
 const int NUM_BASCULE_BRIDGE_LEAFS = 2;
 
 // Servo pins for bridge motor control
-const int BASCULE_BRIDGE_SERVO_PIN[NUM_BASCULE_BRIDGE_LEAFS] = { D0, D1 };
-
-// Delay for opening the bridge leaf (in milliseconds)
-const int BASCULE_BRIDGE_LEAF_DELAY_OPEN_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 2500, 5000 };
-
-// Delay for closing the bridge leaf (in milliseconds)
-const int BASCULE_BRIDGE_LEAF_DELAY_CLOSE_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 5000, 2500 };
+const int BASCULE_BRIDGE_SERVO_INDEX[NUM_BASCULE_BRIDGE_LEAFS] = { 0, 1 };
 
 // Motor power settings for bridge operations
 // Use negative values to reverse servo!
@@ -368,12 +360,16 @@ const int BASCULE_BRIDGE_SENSOR_FULLY_DOWN = 4;
 const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 5;
 
 // Timings (in milli seconds)
+// Delay for opening the bridge leaf (in milliseconds)
+const int BASCULE_BRIDGE_LEAF_DELAY_OPEN_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 0, 3000 };
+// Delay for closing the bridge leaf (in milliseconds)
+const int BASCULE_BRIDGE_LEAF_DELAY_CLOSE_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 3000, 0 };
 // Maximum allowed time for opening the bridge from releasing the closing sensor until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
 const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 20000;
 // Same for closing the bridge
 const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 20000;
 // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 2000;
+const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 1500;
 // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
 const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 2000;
 
