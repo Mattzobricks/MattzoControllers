@@ -1125,10 +1125,10 @@ void setBridgeLights() {
     setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, false);
     break;
   case BridgeStatus::OPENING:
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, true);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, blinkState);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, true);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, blinkState);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, flashState);
     break;
   case BridgeStatus::OPENED:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, false);
@@ -1140,7 +1140,7 @@ void setBridgeLights() {
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, true);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, false);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, false);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, blinkState);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, flashState);
     break;
   case BridgeStatus::UNDEFINED:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, blinkState);
@@ -1150,9 +1150,9 @@ void setBridgeLights() {
     break;
   case BridgeStatus::ERRoR:
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_STOP, flashState);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, !flashState);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_PREP, !blinkState);
     setSignalLED(BASCULE_BRIDGE_SIGNAL_RIVER_GO, blinkState);
-    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, !blinkState);
+    setSignalLED(BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT, !flashState);
     break;
   }
 }
