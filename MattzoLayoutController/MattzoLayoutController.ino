@@ -16,18 +16,6 @@
 #include <Wire.h>                                 // Built-in library for I2C
 #endif
 
-// SERVO VARIABLES AND CONSTANTS
-
-// Create servo objects to control servos
-Servo servo[NUM_SWITCHPORTS];
-
-// Create PWM Servo Driver object (for PCA9685)
-#if USE_PCA9685
-#include <Adafruit_PWMServoDriver.h>              // Adafruit PWM Servo Driver Library for PCA9685 port expander. Tested with version 2.4.0.
-Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
-#define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
-#endif
-
 #if USE_MCP23017
 #include "Adafruit_MCP23017.h"
 Adafruit_MCP23017 mcp23017[NUM_MCP23017s];
@@ -40,16 +28,18 @@ Adafruit_MCP23017 mcp23017[NUM_MCP23017s];
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // in arduino ide pleas look at "File" - "Examples" - "U8g2" in the menu for examples
 #endif
 
+                                                                             
+// SERVO VARIABLES AND CONSTANTS
 
-// Default values for TrixBrix switches (in case servo angles are not transmitted)
-const int SERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SERVO_MIN.
-const int SERVO_MIN = 75;           // a good first guess for the minimum angle of TrixBrix servos is 70
-const int SERVO_START = 80;         // position after boot-up. For TrixBrix servos, this is more or less the middle position
-const int SERVO_MAX = 85;           // a good first guess for the maximum angle of TrixBrix servos is 90
-const int SERVO_MAX_ALLOWED = 120;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SERVO_MAX.
+// Create servo objects to control servos
+Servo servo[NUM_SERVOS];
 
-// Delay between two switch operations
-const int SWITCH_DELAY = 200;
+// Create PWM Servo Driver object (for PCA9685)
+#if USE_PCA9685
+#include <Adafruit_PWMServoDriver.h>              // Adafruit PWM Servo Driver Library for PCA9685 port expander. Tested with version 2.4.0.
+Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
+#define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+#endif
 
 // Time after servo operation until servo power is switched off (in milliseconds; 3000 = 3 sec.)
 // Presently only supported when using PCA9685
@@ -58,6 +48,24 @@ const int SERVOSLEEPMODEAFTER_MS = 3000;
 // time when servos will go to sleep mode
 bool servoSleepMode = false;
 unsigned long servoSleepModeFrom_ms = 0;
+
+
+// SWITCH VARIABLES AND CONSTANTS
+// Switch array
+struct MattzoSwitch {
+  unsigned long lastSwitchingAction_ms = 0;
+  bool servosAttached = false;
+} mattzoSwitch[NUM_SWITCHES];
+
+// Delay after which servo is detached after flipping a switch
+const int SWITCH_DETACH_DELAY = 3000;
+
+// Default values for TrixBrix switches (in case servo angles are not transmitted)
+const int SERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SERVO_MIN.
+const int SERVO_MIN = 75;           // a good first guess for the minimum angle of TrixBrix servos is 70
+const int SERVO_START = 80;         // position after boot-up. For TrixBrix servos, this is more or less the middle position
+const int SERVO_MAX = 85;           // a good first guess for the maximum angle of TrixBrix servos is 90
+const int SERVO_MAX_ALLOWED = 120;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SERVO_MAX.
 
 
 // SENSOR VARIABLES AND CONSTANTS
@@ -189,8 +197,9 @@ void setup() {
   setupU8g2();
 #endif
 
+/*
   // initialize servo pins and turn servos to start position
-  for (int i = 0; i < NUM_SWITCHPORTS; i++) {
+  for (int i = 0; i < NUM_SERVOS; i++) {
     if (SWITCHPORT_PIN_TYPE[i] == 0) {
       // servo connected directly to the controller
       servo[i].attach(SWITCHPORT_PIN[i]);
@@ -202,6 +211,7 @@ void setup() {
       // no action required
     }
   }
+*/
 
   // stop bascule bridge motors
   if (BASCULE_BRIDGE_CONNECTED) {
@@ -289,10 +299,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   mcLog2("Parsing XML successful.", LOG_DEBUG);
 
+  // *********************
+  // HANDLE SWITCH MESSAGE (used for switches, level crossings and bascule bridges)
+  // *********************
   XMLElement *element;
   element = xmlDocument.FirstChildElement("sw");
   if (element != NULL) {
-    // handle switch, level crossing or bascule bridge message
     mcLog2("<sw> node found.", LOG_DEBUG);
 
     // query addr1 attribute. This is the MattzoController id.
@@ -309,22 +321,18 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
 
     // query port1 attribute. This is port id of the port to which the switch is connected.
-    // If the controller does not have such a port, the message is disregarded.
     int rr_port1 = 0;
     if (element->QueryIntAttribute("port1", &rr_port1) != XML_SUCCESS) {
       mcLog2("port1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
       return;
     }
     mcLog2("port1: " + String(rr_port1), LOG_DEBUG);
-    if (BASCULE_BRIDGE_CONNECTED && (rr_port1 == BASCULE_BRIDGE_RR_PORT)) {
-      mcLog2("This is a bascule bridge command.", LOG_DEBUG);
-    }
-    else if ((rr_port1 < 1 || rr_port1 > NUM_SWITCHPORTS) && (rr_port1 < 1001)) {
-      mcLog2("Message disgarded, this controller does not have such a port.", LOG_ERR);
-      return;
-    }
 
-    // query cmd attribute. This is the desired switch setting and can either be "turnout" or "straight".
+    // query cmd attribute.
+    // This is value can be either "straight" or "turnout". The meaning depends of the type of component being controlled:
+    // switch: well, straight or turnout, simple as that...
+    // level crossing: booms up or down
+    // bascule bridge: bridge up or down
     const char* rr_cmd = "-unknown-";
     if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
       mcLog2("cmd attribute not found or wrong type.", LOG_ERR);
@@ -332,38 +340,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
     mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
 
-    // query param1 attribute. This is the "straight" position of the switch servo motor.
-    // defaults to SERVO_MIN
-    int rr_param1 = SERVO_MIN;
-    if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
-      mcLog2("param1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
-    }
-    if (rr_param1 < SERVO_MIN_ALLOWED || rr_param1 > SERVO_MAX_ALLOWED) {
-      // Reset angle back to standard if angle is too small
-      // User has obviously forgotten to configure servo angle in Rocrail properly
-      // To protect the servo, the default value is used
-      mcLog2("param1 attribute out of bounds. Using default value.", LOG_DEBUG);
-      rr_param1 = SERVO_MIN;
-    }
-    mcLog2("param1: " + String(rr_param1), LOG_DEBUG);
-
-    // query value1 attribute. This is the "turnout" position of the switch servo motor.
-    // defaults to SERVO_MAX
-    int rr_value1 = SERVO_MAX;
-    if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
-      mcLog2("value1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
-    }
-    if (rr_value1 < SERVO_MIN_ALLOWED || rr_value1 > SERVO_MAX_ALLOWED) {
-      // Reset angle back to standard if angle is too small
-      // User has obviously forgotten to configure servo angle in Rocrail properly
-      // To protect the servo, the default value is used
-      mcLog2("value1 attribute out of bounds. Using default value.", LOG_DEBUG);
-      rr_value1 = SERVO_MAX;
-    }
-    mcLog2("value1: " + String(rr_value1), LOG_DEBUG);
-
-    // check command string and prepare servo angle
-    // servo angle will only be used to flip a standard or one side of a triple switch - not for double slip switches!
+    // parse command string
     int switchCommand;
     if (strcmp(rr_cmd, "straight") == 0) {
       switchCommand = 1;
@@ -378,65 +355,93 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // Check if port is used to control a level crossing
     if (LEVEL_CROSSING_CONNECTED && (rr_port1 == LEVEL_CROSSING_RR_PORT)) {
+      mcLog2("This is a level crossing command.", LOG_DEBUG);
       levelCrossingCommand(switchCommand);
       return;
     }
 
     // Check if port is used to control a bascule bridge
     if (BASCULE_BRIDGE_CONNECTED && (rr_port1 == BASCULE_BRIDGE_RR_PORT)) {
+      mcLog2("This is a bascule bridge command.", LOG_DEBUG);
       basculeBridgeCommand(switchCommand);
       return;
     }
 
-    // Check if port is a logical switch port
-    if (rr_port1 >= 1001) {
-      // look for logical port in LOGICAL_SWITCHPORTS array
-      bool logicalSwitchPortFound = false;
-      for (int i = 0; i < NUM_LOGICAL_SWITCHPORTS; i++) {
-        if (rr_port1 == LOGICAL_SWITCHPORTS[i]) {
-          // logical switch port found
-          logicalSwitchPortFound = true;
+    // Not a level crossing or a bascule bridge, so at this point we assume we received a switch command
 
-          int servoPort1 = LOGICAL_SWITCHPORT_MAPPINGS[i * 2];
-          int servoPort2 = LOGICAL_SWITCHPORT_MAPPINGS[i * 2 + 1];
-          int servoAngle1 = (switchCommand == 1) ? rr_param1 : rr_value1;
-          int servoAngle2 = (switchCommand == 1 ^ LOGICAL_SWITCHPORT_REV_2ND_PORT[i]) ? rr_param1 : rr_value1;
-
-          // Release virtual sensor on counterside
-          sendSwitchSensorEvent(rr_port1, 1 - switchCommand, false);
-
-          mcLog2("Turning servos on logical port " + String(rr_port1) + "...", LOG_DEBUG);
-          setServoAngle(servoPort1, servoAngle1);
-          setServoAngle(servoPort2, servoAngle2);
-
-          // Trigger virtual sensor
-          sendSwitchSensorEvent(rr_port1, switchCommand, true);
-        }
-      }
-
-      if (!logicalSwitchPortFound) {
-        mcLog2("Error: logical port " + String(rr_port1) + " unknown.", LOG_ERR);
-        return;
+    // find switch in servoConfiguration array
+    int switchIndex = -1;
+    for (int s = 0; s < NUM_SWITCHES; s++) {
+      if (switchConfiguration[s].rocRailPort == rr_port1) {
+        switchIndex = s;
+        break;
       }
     }
-    else {
-      // Release virtual sensor on counterside
-      sendSwitchSensorEvent(rr_port1, 1 - switchCommand, false);
-
-      // Port was a plain, simple switch port
-      setServoAngle(rr_port1 - 1, (switchCommand == 1) ? rr_param1 : rr_value1);
-
-      // Trigger virtual sensor
-      sendSwitchSensorEvent(rr_port1, switchCommand, true);
+    if (switchIndex == -1) {
+      mcLog2("No switch for rocrail port " + String(rr_port1) + " configured - message disregarded.", LOG_ERR);
+      return;
     }
+
+    // query param1 attribute. This is the "straight" position of the switch servo motor.
+    // defaults to SERVO_MIN
+    int rr_param1 = SERVO_MIN;
+    if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
+      mcLog2("param1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
+    }
+    if (rr_param1 < SERVO_MIN_ALLOWED || rr_param1 > SERVO_MAX_ALLOWED) {
+      // Reset angle back to standard if angle is out of bounds
+      // User has obviously forgotten to configure servo angle in Rocrail properly
+      // To protect the servo, the default value is used
+      mcLog2("param1 attribute out of bounds. Using default value.", LOG_DEBUG);
+      rr_param1 = SERVO_MIN;
+    }
+    mcLog2("param1: " + String(rr_param1), LOG_DEBUG);
+
+    // query value1 attribute. This is the "turnout" position of the switch servo motor.
+    // defaults to SERVO_MAX
+    int rr_value1 = SERVO_MAX;
+    if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
+      mcLog2("value1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
+    }
+    if (rr_value1 < SERVO_MIN_ALLOWED || rr_value1 > SERVO_MAX_ALLOWED) {
+      // Reset angle back to standard if angle is out of bounds
+      // User has obviously forgotten to configure servo angle in Rocrail properly
+      // To protect the servo, the default value is used
+      mcLog2("value1 attribute out of bounds. Using default value.", LOG_DEBUG);
+      rr_value1 = SERVO_MAX;
+    }
+    mcLog2("value1: " + String(rr_value1), LOG_DEBUG);
+
+    // at this stage, all parameters are parsed and checks are completed. Time to flip a switch!
+
+    // release virtual switch sensor on old switching side
+    sendSwitchSensorEvent(switchIndex, 1 - switchCommand, false);
+
+    // flip switch
+    mattzoSwitch[switchIndex].lastSwitchingAction_ms = millis();
+    int servoAngle = (switchCommand == 1) ? rr_param1 : rr_value1;
+    mcLog2("Turning servo of switch index " + String(switchIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+    setServoAngle(switchConfiguration[switchIndex].servoIndex, servoAngle);
+    // if double slip switch, a second servo might need to be switched
+    if (switchConfiguration[switchIndex].servo2Index >= 0) {
+      servoAngle = ((switchCommand == 1) ^ (switchConfiguration[switchIndex].servo2Reverse)) ? rr_param1 : rr_value1;
+      mcLog2("Turning 2nd servo of switch index " + String(switchIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+      setServoAngle(switchConfiguration[switchIndex].servo2Index, servoAngle);
+    }
+    mattzoSwitch[switchIndex].servosAttached = true;
+
+    // trigger virtual switch sensor on new switching side
+    sendSwitchSensorEvent(switchIndex, switchCommand, true);
 
     return;
     // end of switch command handling
   }
 
+  // *********************
+  // HANDLE SIGNAL MESSAGE
+  // *********************
   element = xmlDocument.FirstChildElement("co");
   if (element != NULL) {
-    // handle signal message
     mcLog2("<co> node found.", LOG_DEBUG);
 
     // query addr attribute. This is the MattzoController id.
@@ -492,10 +497,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     // end of signal handling
   }
 
+  // ***********************
+  // HANDLE FEEDBACK MESSAGE (used for remote sensors)
+  // ***********************
   if (REMOTE_SENSORS_ENABLED) {
     element = xmlDocument.FirstChildElement("fb");
     if (element != NULL) {
-      // handle feedback message. Used for remote sensors
       mcLog2("<fb> node found.", LOG_DEBUG);
 
       // query bus attribute. This MattzoControllerId to which the sensor is connected
@@ -573,34 +580,6 @@ void handleSignalMessage(int rr_port) {
       }
     }
   }
-
-  ////
-  //if (SIGNALPORT_PIN_TYPE[rr_port - 1] != 1) {
-  //  // light signal => switch LED for this signal port on/off
-  //  mcLog2("Setting signal LED index " + String(rr_port - 1) + " to " + signalCommand ? "on" : "off", LOG_DEBUG);
-  //  setSignalLED(rr_port - 1, signalCommand);
-  //}
-  //else {
-  //  // form signal => turn servo to the desired value
-  //  // Parse servo angle
-  //  int servoAngle;
-  //  if (signalCommand) {
-  //    // red aspect. Use "value" attribute (in the Rocrail interface, this parameter is labelled "Brightness")!
-  //    if (element->QueryIntAttribute("value", &servoAngle) != XML_SUCCESS) {
-  //      mcLog2("Error in form signal configuration: value attribute not found or wrong type.", LOG_ERR);
-  //      return;
-  //    }
-  //  }
-  //  else {
-  //    // green aspect. Use "param" attribute (in the Rocrail interface, this parameter is labelled "Parameter")!
-  //    if (element->QueryIntAttribute("param", &servoAngle) != XML_SUCCESS) {
-  //      mcLog2("Error in form signal configuration: param attribute not found or wrong type.", LOG_ERR);
-  //      return;
-  //    }
-  //  }
-  //  setServoAngle(SIGNALPORT_PIN[rr_port - 1], servoAngle);
-  //}
-
 }
 
 
@@ -711,18 +690,20 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState) {
 
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle) {
-  // mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
-  if (servoIndex >= 0 && servoIndex < NUM_SWITCHPORTS) {
-    if (SWITCHPORT_PIN_TYPE[servoIndex] == 0) {
+  mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+  if (servoIndex >= 0 && servoIndex < NUM_SERVOS) {
+    if (servoConfiguration[servoIndex].pinType == 0) {
+      if (!servo[servoIndex].attached()) {
+        servo[servoIndex].attach(servoConfiguration[servoIndex].pin);
+      }
       servo[servoIndex].write(servoAngle);
     }
 #if USE_PCA9685
     else if (SWITCHPORT_PIN_TYPE[servoIndex] >= 0x40) {
       setServoSleepMode(false);
-      pca9685[SWITCHPORT_PIN_TYPE[servoIndex] - 0x40].setPWM(SWITCHPORT_PIN[servoIndex], 0, mapAngle2PulseLength(servoAngle));
+      pca9685[servoConfiguration[servoIndex].pinType - 0x40].setPWM(servoConfiguration[servoIndex].pin, 0, mapAngle2PulseLength(servoAngle));
     }
 #endif
-    // delay(SWITCH_DELAY);
   }
   else {
     // this should not happen
@@ -755,34 +736,56 @@ void setServoSleepMode(bool onOff) {
   }
 }
 
-// Checks if servos can be set to sleep mode (presently supported for PCA9685 only)
 void checkEnableServoSleepMode() {
+  // Checks if servos can be set to sleep mode (presently supported for PCA9685 only)
   if (millis() > servoSleepModeFrom_ms) {
     setServoSleepMode(true);
   }
+
+  // Checks if directly wired servos shall be detached
+  for (int s = 0; s < NUM_SWITCHES; s++) {
+    if (mattzoSwitch[s].servosAttached && millis() >= mattzoSwitch[s].lastSwitchingAction_ms + SWITCH_DETACH_DELAY) {
+      int servoIndex = switchConfiguration[s].servoIndex;
+      detachServo(servoIndex);
+
+      int servo2Index = switchConfiguration[s].servo2Index;
+      if (servo2Index >= 0)
+        detachServo(servo2Index);
+
+      mattzoSwitch[s].servosAttached = false;
+    }
+  }
 }
 
+void detachServo(int servoIndex) {
+  // detach only directly connected servos
+  if (servoConfiguration[servoIndex].pinType == 0) {
+    if (servo[servoIndex].attached()) {
+      mcLog2("Detaching servo index " + String(servoIndex), LOG_DEBUG);
+      servo[servoIndex].detach();
+    }
+  }
+}
+
+
 // Releases or triggers a virtual switch sensor
-void sendSwitchSensorEvent(int rocrailPort, int switchCommand, bool sensorState) {
-  if (NUM_SWITCHPORT_SENSORPAIRS > 0) {
-    if (switchCommand < 0 || switchCommand > 1) {
-      // This should never happen
-      mcLog2("sendSwitchSensorEvent() received switchCommand out of bounds: " + String(switchCommand), LOG_CRIT);
-      return;
-    }
-  
-    // Search for switch sensors
-    for (int s = 0; s < NUM_SWITCHPORT_SENSORPAIRS; s++) {
-      if (rocrailPort == SWITCHPORT_SENSORS[s][0]) {
-        // Sensor for switchIndex found!
-        int sensorIndex = SWITCHPORT_SENSORS[s][2 - switchCommand];
-        mcLog2("Sending switch sensor event; rocrailPort=" + String(rocrailPort) + ", switchCommand=" + String(switchCommand) + ", sensorState=" + String(sensorState), LOG_DEBUG);
-        sendSensorEvent2MQTT(sensorIndex, sensorState);
-        return;
-      }
-    }
-  
-    mcLog2("No switch sensor found for rocrailPort=" + String(rocrailPort), LOG_DEBUG);
+void sendSwitchSensorEvent(int switchIndex, int switchCommand, bool sensorState) {
+  if (switchIndex < 0 || switchIndex > NUM_SWITCHES) {
+    // This should never happen
+    mcLog2("sendSwitchSensorEvent() received switchIndex out of bounds: " + String(switchIndex), LOG_CRIT);
+    return;
+  }
+
+  if (switchCommand < 0 || switchCommand > 1) {
+    // This should never happen
+    mcLog2("sendSwitchSensorEvent() received switchCommand out of bounds: " + String(switchCommand), LOG_CRIT);
+    return;
+  }
+
+  if (switchConfiguration[switchIndex].triggerSensors) {
+    int sensorIndex = switchConfiguration[switchIndex].sensorIndex[1 - switchCommand];
+    mcLog2("Sending switch sensor event for switch index=" + String(switchIndex) + ", rocrailPort=" + String(switchConfiguration[switchIndex].rocRailPort) + ", switchCommand=" + String(switchCommand) + ", sensorState=" + String(sensorState), LOG_DEBUG);
+    sendSensorEvent2MQTT(sensorIndex, sensorState);
   }
 }
 
