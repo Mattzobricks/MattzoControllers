@@ -76,8 +76,8 @@ const int NUM_MOTORSHIELDS = 1;
 // - motorShieldType: motor shield type
 // - minArduinoPower: minimum power setting for Arduino based motor shields
 // - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023)
-// - configMotorA: turning direction of motor A
-// - configMotorB: turning direction of motor B
+// - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused)
+// - configMotorB: same for motor B
 // - locoAddress: loco that this motor shields is attached to
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
