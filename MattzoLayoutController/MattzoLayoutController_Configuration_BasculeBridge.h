@@ -398,33 +398,33 @@ struct BridgeConfiguration {
       .powerDown = 100,
       .powerDown2 = 50,
 
-      .sensorDown = 1,
-      .sensorUp = 0,
+      .sensorDown = 0,
+      .sensorUp = 1,
 
       .delayOpen_ms = 0,
-      .delayClose_ms = 3000,
+      .delayClose_ms = 1000,
       .maxOpeningTime_ms = 20000,
       .maxClosingTime_ms = 20000,
-      .extraTimeAfterOpened_ms = 1000,
-      .extraTimeAfterClosed_ms = 2000,
+      .extraTimeAfterOpened_ms = 2500,
+      .extraTimeAfterClosed_ms = 1500,
     },
     {
       .servoIndex = 1,
 
-      .powerUp = 50,
-      .powerUp2 = 25,
-      .powerDown = 50,
-      .powerDown2 = 25,
+      .powerUp = -30,
+      .powerUp2 = -25,
+      .powerDown = -30,
+      .powerDown2 = -25,
 
-      .sensorDown = 3,
-      .sensorUp = 2,
+      .sensorDown = 2,
+      .sensorUp = 3,
 
-      .delayOpen_ms = 3000,
-      .delayClose_ms = 0,
+      .delayOpen_ms = 1000,
+      .delayClose_ms = 000,
       .maxOpeningTime_ms = 20000,
       .maxClosingTime_ms = 20000,
-      .extraTimeAfterOpened_ms = 0,
-      .extraTimeAfterClosed_ms = 3000,
+      .extraTimeAfterOpened_ms = 1000,
+      .extraTimeAfterClosed_ms = 250,
     }
   }
 };
