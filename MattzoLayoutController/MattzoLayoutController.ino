@@ -562,7 +562,7 @@ void handleSignalMessage(int rr_port) {
         // -> set aspect a for signal s
 
         // iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
-        for (int l = 0; l < NUM_SIGNAL_ASPECTS; l++) {
+        for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
           bool onOff = signals[s].aspectLEDMapping[a][l];
           mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + (onOff ? "on" : "off"), LOG_INFO);
           setSignalLED(signals[s].aspectLEDPort[l], onOff);

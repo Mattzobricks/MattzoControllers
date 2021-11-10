@@ -145,10 +145,10 @@ struct SwitchConfiguration {
 // Number of signal ports
 // A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
 // In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
-const int NUM_SIGNALPORTS = 1;
+const int NUM_SIGNALPORTS = 2;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D5 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D5, D6 };
 
 // Type of digital output pins for signal port
 // 0   : LED output pin on the ESP-8266
@@ -163,9 +163,9 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0 };
 // Number of signals
 const int NUM_SIGNALS = 1;
 // Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 2;
+const int NUM_SIGNAL_ASPECTS = 3;
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 1;
+const int NUM_SIGNAL_LEDS = 2;
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 const int NUM_SIGNAL_SERVOS = 1;
@@ -187,17 +187,19 @@ struct Signal {
   int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] =
 {
-  // signal 0: form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0
+  // signal 0: form signal with 3 aspects, controlled via Rocrail ports 1, 2 and 3, using servo index 0 (D4)
+  // The two signal LED ports (index 0 and 1) are used to switch off the yellow light for the lower wing on green and red aspect to save battery power
   {
-    .aspectRocrailPort = {1, 2},
-    .aspectLEDPort = {0},
+    .aspectRocrailPort = {1, 2, 3},
+    .aspectLEDPort = {0, 1},
     .aspectLEDMapping = {
-      {true},
-      {true},
+      {false, false},
+      {false, false},
+      {true, false}
     },
     .servoIndex = {0},
     .aspectServoAngle = {
-      {170, 115}
+      {90, 15, 160}
     }
   }
 };

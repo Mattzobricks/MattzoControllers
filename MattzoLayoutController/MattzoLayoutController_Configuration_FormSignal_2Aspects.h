@@ -145,17 +145,17 @@ struct SwitchConfiguration {
 // Number of signal ports
 // A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
 // In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
-const int NUM_SIGNALPORTS = 2;
+const int NUM_SIGNALPORTS = 0;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D5, D6 };
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {};
 
 // Type of digital output pins for signal port
 // 0   : LED output pin on the ESP-8266
 // 0x40: LED port on the 1st PCA9685
 // 0x41: LED port on the 2nd PCA9685
 // 0x42: LED port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0 };
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = {};
 
 
 // SIGNAL CONFIGURATION
@@ -163,9 +163,9 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0 };
 // Number of signals
 const int NUM_SIGNALS = 1;
 // Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 3;
+const int NUM_SIGNAL_ASPECTS = 2;
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 2;
+const int NUM_SIGNAL_LEDS = 0;
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 const int NUM_SIGNAL_SERVOS = 1;
@@ -187,18 +187,17 @@ struct Signal {
   int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] =
 {
-  // signal 0: form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0
+  // signal 0: a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D4)
   {
-    .aspectRocrailPort = {1, 2, 3},
-    .aspectLEDPort = {0, 1},
+    .aspectRocrailPort = {1, 2},
+    .aspectLEDPort = {},
     .aspectLEDMapping = {
-      {false, false},
-      {false, false},
-      {true, false}
+      {},
+      {},
     },
     .servoIndex = {0},
     .aspectServoAngle = {
-      {90, 15, 160}
+      {170, 115}
     }
   }
 };
