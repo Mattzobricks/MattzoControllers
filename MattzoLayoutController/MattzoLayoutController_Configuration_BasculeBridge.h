@@ -162,6 +162,8 @@ uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 const int NUM_SIGNALS = 0;
 // Maximum number of signal aspects (e.g. red, green, yellow)
 const int NUM_SIGNAL_ASPECTS = 2;
+// Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
+const int NUM_SIGNAL_LEDS = 2;
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 const int NUM_SIGNAL_SERVOS = 0;
@@ -172,10 +174,10 @@ struct Signal {
   int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
   // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
   // -1: no LED configured for this aspect
-  int aspectLEDPort[NUM_SIGNAL_ASPECTS];
+  int aspectLEDPort[NUM_SIGNAL_LEDS];
   // mappings between aspects and LEDs (often a diagonal matrix)
   // true: LED is mapped for this aspect
-  bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_ASPECTS];
+  bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_LEDS];
   // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
   // -1: no servo configured for this signal
   int servoIndex[NUM_SIGNAL_SERVOS];
