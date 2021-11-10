@@ -854,7 +854,7 @@ void levelCrossingCommand(int levelCrossingCommand) {
         levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
         levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
         levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
-        levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_OPENING_PERIOD_MS;
+        levelCrossing.servoAngleIncrementPerMS = fabs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_OPENING_PERIOD_MS;
         mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
         levelCrossing.lastStatusChangeTime_ms = millis();
         levelCrossing.boomBarrierActionInProgress = true;
@@ -867,7 +867,7 @@ void levelCrossingCommand(int levelCrossingCommand) {
       levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
       levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
       levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
-      levelCrossing.servoAngleIncrementPerMS = (float)abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_CLOSING_PERIOD_MS;
+      levelCrossing.servoAngleIncrementPerMS = fabs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) / LC_BOOM_BARRIER_CLOSING_PERIOD_MS;
       mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerMS * 1000) + " deg/s.", LOG_INFO);
       levelCrossing.lastStatusChangeTime_ms = millis();
       levelCrossing.closeBoomsImmediately = levelCrossing.boomBarrierActionInProgress;  // close booms immediately if booms were not fully open yet.
@@ -952,7 +952,7 @@ void levelCrossingLightLoop() {
       // fading lights
       int brightness = 0;
       if (lightsActive) {
-        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now_ms + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -768, 1280);
+        brightness = map(fabs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now_ms + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -768, 1280);
       }
       fadeSignalLED(LC_SIGNAL_PIN[s], brightness);
     } else {
