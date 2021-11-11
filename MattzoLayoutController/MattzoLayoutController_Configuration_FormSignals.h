@@ -96,7 +96,7 @@ uint8_t PCA9685_OE_PIN = D0;
 // SERVO WIRING CONFIGURATION
 
 // Number of servos
-const int NUM_SERVOS = 1;
+const int NUM_SERVOS = 4;
 
 struct ServoConfiguration {
   // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
@@ -111,9 +111,21 @@ struct ServoConfiguration {
 } servoConfiguration[NUM_SERVOS] =
 {
   {
-    .pin = D4,
+    .pin = D0,
     .pinType = 0
-  }
+  },
+  {
+    .pin = D1,
+    .pinType = 0
+  },
+  {
+    .pin = D2,
+    .pinType = 0
+  },
+  {
+    .pin = D3,
+    .pinType = 0
+  },
 };
 
 
@@ -145,27 +157,27 @@ struct SwitchConfiguration {
 // Number of signal ports
 // A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
 // In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
-const int NUM_SIGNALPORTS = 0;
+const int NUM_SIGNALPORTS = 2;
 
 // Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = {};
+uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
 
 // Type of digital output pins for signal port
 // 0   : LED output pin on the ESP-8266
 // 0x40: LED port on the 1st PCA9685
 // 0x41: LED port on the 2nd PCA9685
 // 0x42: LED port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = {};
+uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
 
 
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 1;
+const int NUM_SIGNALS = 4;
 // Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 2;
+const int NUM_SIGNAL_ASPECTS = 3;
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 0;
+const int NUM_SIGNAL_LEDS = 1;
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 const int NUM_SIGNAL_SERVOS = 1;
@@ -187,17 +199,62 @@ struct Signal {
   int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signals[NUM_SIGNALS] =
 {
-  // signal 0: a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D4)
+  // signal 0 (N5): a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D0)
   {
-    .aspectRocrailPort = {1, 2},
-    .aspectLEDPort = {},
+    .aspectRocrailPort = {1, 2, -1},
+    .aspectLEDPort = {-1},
     .aspectLEDMapping = {
-      {},
-      {},
+      {false},
+      {false},
+      {false},
     },
     .servoIndex = {0},
     .aspectServoAngle = {
-      {170, 115}
+      {170, 115, -1}
+    }
+  },
+  // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
+  {
+    .aspectRocrailPort = {3, 4, -1},
+    .aspectLEDPort = {-1},
+    .aspectLEDMapping = {
+      {false},
+      {false},
+      {false},
+    },
+    .servoIndex = {1},
+    .aspectServoAngle = {
+      {170, 115, -1}
+    }
+  },
+  // signal 3 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
+  // The signal LED port (index 0, D4) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
+  {
+    .aspectRocrailPort = {5, 6, 7},
+    .aspectLEDPort = {0},
+    .aspectLEDMapping = {
+      {false},
+      {false},
+      {true}
+    },
+    .servoIndex = {2},
+    .aspectServoAngle = {
+      {90, 15, 160}
+    }
+  },
+  // signal 4 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
+  // The signal LED port (index 1, D5) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
+  {
+    .aspectRocrailPort = {8, 9, 10},
+    .aspectLEDPort = {1},
+    .aspectLEDMapping = {
+      {false},
+      {false},
+      {true}
+    },
+    .servoIndex = {3},
+    .aspectServoAngle = {
+      {90, 15, 160}
     }
   }
 };
