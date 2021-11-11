@@ -129,73 +129,42 @@ struct ServoConfiguration {
 };
 
 
-// SWITCH CONFIGURATION
+// LED WIRING CONFIGURATION
 
-// Number of switches
-const int NUM_SWITCHES = 0;
+// Number of LEDs
+// LEDs are used in signals, level crossing lights or bascule bridge lights
+// As an example, 2 LEDs are required for a light signal with 2 aspects
+const int NUM_LEDS = 4;
 
-struct SwitchConfiguration {
-  int rocRailPort;
-  int servoIndex;
+struct LEDConfiguration {
+  // Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+  uint8_t pin;
 
-  // servo2Index: servo index for second servo (required for TrixBrix double slip switches). If unused, set to -1.
-  // servo2Reverse: set to true if second servo shall be reversed
-  int servo2Index;
-  bool servo2Reverse;
-
-  // feedback sensors
-  // set triggerSensors to true if used
-  // The first value in the sensorIndex is the index of the virtual sensor in the sensor array for the "straight" sensor, the second is for "turnout".
-  // Both referenced sensors must be virtual sensors.
-  bool triggerSensors;
-  int sensorIndex[2];
-} switchConfiguration[NUM_SWITCHES] = {};
-
-
-// SIGNAL WIRING CONFIGURATION
-
-// Number of signal ports (the number of signal LEDs, not the number of signals!)
-const int NUM_SIGNALPORTS = 4;
-
-// Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5, D6, D7 };
-
-// Type of digital output pins for signal LEDs
-// 0   : pin on the ESP-8266
-// 0x40: port on the 1st PCA9685
-// 0x41: port on the 2nd PCA9685
-// 0x42: port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0, 0, 0 };
-
-
-// SIGNAL CONFIGURATION
-
-// Number of signals
-const int NUM_SIGNALS = 0;
-// Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 2;
-// Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 2;
-// Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
-// If no form signals are used, just set to 0
-const int NUM_SIGNAL_SERVOS = 0;
-
-struct Signal {
-  // the port configured in Rocrail for an aspect
-  // 0: aspect not supported by this signal
-  int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
-  // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
-  // -1: no LED configured for this aspect
-  int aspectLEDPort[NUM_SIGNAL_LEDS];
-  // mappings between aspects and LEDs (often a diagonal matrix)
-  // true: LED is mapped for this aspect
-  bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_LEDS];
-  // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
-  // -1: no servo configured for this signal
-  int servoIndex[NUM_SIGNAL_SERVOS];
-  // the desired servo angle for the aspect (for form signals)
-  int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
-} signals[NUM_SIGNALS] = {};
+  // Type of digital output pins for led
+  // 0   : LED output pin on the ESP-8266
+  // 0x40: LED port on the 1st PCA9685
+  // 0x41: LED port on the 2nd PCA9685
+  // 0x42: LED port on the 3rd PCA9685 etc.
+  uint8_t pinType;
+} ledConfiguration[NUM_LEDS] =
+{
+  {
+    .pin = D4,
+    .pinType = 0
+  },
+  {
+    .pin = D5,
+    .pinType = 0
+  },
+  {
+    .pin = D6,
+    .pinType = 0
+  },
+  {
+    .pin = D7,
+    .pinType = 0
+  }
+};
 
 
 // SENSOR WIRING CONFIGURATION
@@ -237,6 +206,60 @@ int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
 // Digital output pin to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;
+
+
+
+// SWITCH CONFIGURATION
+
+// Number of switches
+const int NUM_SWITCHES = 0;
+
+struct SwitchConfiguration {
+  int rocRailPort;
+  int servoIndex;
+
+  // servo2Index: servo index for second servo (required for TrixBrix double slip switches). If unused, set to -1.
+  // servo2Reverse: set to true if second servo shall be reversed
+  int servo2Index;
+  bool servo2Reverse;
+
+  // feedback sensors
+  // set triggerSensors to true if used
+  // The first value in the sensorIndex is the index of the virtual sensor in the sensor array for the "straight" sensor, the second is for "turnout".
+  // Both referenced sensors must be virtual sensors.
+  bool triggerSensors;
+  int sensorIndex[2];
+} switchConfiguration[NUM_SWITCHES] = {};
+
+
+// SIGNAL CONFIGURATION
+
+// Number of signals
+const int NUM_SIGNALS = 0;
+// Maximum number of signal aspects (e.g. red, green, yellow)
+const int NUM_SIGNAL_ASPECTS = 2;
+// Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
+const int NUM_SIGNAL_LEDS = 2;
+// Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
+// If no form signals are used, just set to 0
+const int NUM_SIGNAL_SERVOS = 0;
+
+struct Signal {
+  // the port configured in Rocrail for an aspect
+  // 0: aspect not supported by this signal
+  int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
+  // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
+  // -1: no LED configured for this aspect
+  int aspectLEDPort[NUM_SIGNAL_LEDS];
+  // mappings between aspects and LEDs (often a diagonal matrix)
+  // true: LED is mapped for this aspect
+  bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_LEDS];
+  // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
+  // -1: no servo configured for this signal
+  int servoIndex[NUM_SIGNAL_SERVOS];
+  // the desired servo angle for the aspect (for form signals)
+  int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
+} signals[NUM_SIGNALS] = {};
 
 
 // LEVEL CROSSING CONFIGURATION

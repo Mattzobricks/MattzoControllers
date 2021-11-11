@@ -221,12 +221,12 @@ void setup() {
   }
 
   // initialize signal pins
-  for (int i = 0; i < NUM_SIGNALPORTS; i++) {
-    if (SIGNALPORT_PIN_TYPE[i] == 0) {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    if (ledConfiguration[i].pinType == 0) {
       // signal connected directly to the controller
-      pinMode(SIGNALPORT_PIN[i], OUTPUT);
+      pinMode(ledConfiguration[i].pin, OUTPUT);
     }
-    else if (SIGNALPORT_PIN_TYPE[i] >= 0x40) {
+    else if (ledConfiguration[i].pinType >= 0x40) {
       // signal connected to PCA9685
       // no action required
     }
@@ -795,22 +795,22 @@ void setSignalLED(int signalIndex, bool ledState) {
   if (signalIndex < 0)
     return;
 
-  if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
-    digitalWrite(SIGNALPORT_PIN[signalIndex], ledState ? LOW : HIGH);
+  if (ledConfiguration[signalIndex].pinType == 0) {
+    digitalWrite(ledConfiguration[signalIndex].pin, ledState ? LOW : HIGH);
   }
 #if USE_PCA9685
-  else if (SIGNALPORT_PIN_TYPE[signalIndex] >= 0x40) {
+  else if (ledConfiguration[signalIndex].pinType >= 0x40) {
     if (ledState) {
       // full bright
-      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 4096, 0);
+      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 4096, 0);
       // half bright (strongly dimmed)
-      // pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 2048);
+      // pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 2048);
       // 3/4 bright (slightly dimmed)
-      // pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 3072);
+      // pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 3072);
     }
     else {
       // off
-      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096);
+      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 4096);
     }
   }
 #endif
@@ -823,22 +823,22 @@ void fadeSignalLED(int signalIndex, int brightness) {
 
   brightness = min(max(brightness, 0), 1023);
   
-  if (SIGNALPORT_PIN_TYPE[signalIndex] == 0) {
-    analogWrite(SIGNALPORT_PIN[signalIndex], 1023 - brightness);
+  if (ledConfiguration[signalIndex].pinType == 0) {
+    analogWrite(ledConfiguration[signalIndex].pin, 1023 - brightness);
   }
 #if USE_PCA9685
-  else if (SIGNALPORT_PIN_TYPE[signalIndex] >= 0x40) {
+  else if (ledConfiguration[signalIndex].pinType >= 0x40) {
     if (brightness == 1023) {
       // full bright
-      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096);
+      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 4096);
     }
     else if (brightness == 0) {
       // off
-      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 4096, 0);
+      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 4096, 0);
     }
     else {
       // some other brightness value
-      pca9685[SIGNALPORT_PIN_TYPE[signalIndex] - 0x40].setPWM(SIGNALPORT_PIN[signalIndex], 0, 4096 - brightness * 4);
+      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 4096 - brightness * 4);
     }
   }
 #endif

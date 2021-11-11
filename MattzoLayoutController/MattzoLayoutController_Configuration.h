@@ -133,6 +133,78 @@ struct ServoConfiguration {
 };
 
 
+// LED WIRING CONFIGURATION
+
+// Number of LEDs
+// LEDs are used in signals, level crossing lights or bascule bridge lights
+// As an example, 2 LEDs are required for a light signal with 2 aspects
+const int NUM_LEDS = 2;
+
+struct LEDConfiguration {
+  // Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+  uint8_t pin;
+
+  // Type of digital output pins for led
+  // 0   : LED output pin on the ESP-8266
+  // 0x40: LED port on the 1st PCA9685
+  // 0x41: LED port on the 2nd PCA9685
+  // 0x42: LED port on the 3rd PCA9685 etc.
+  uint8_t pinType;
+} ledConfiguration[NUM_LEDS] =
+{
+  {
+    .pin = D4,
+    .pinType = 0
+  },
+  {
+    .pin = D5,
+    .pinType = 0
+  }
+};
+
+
+// SENSOR WIRING CONFIGURATION
+
+// Set to true to enable remote sensors.
+// Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
+// Remote sensors can be used for level crossings in Autonomous Mode
+// If you do not control a level crossing in Autonomous Mode with this controller, set to false!
+const bool REMOTE_SENSORS_ENABLED = false;
+
+// Number of sensors connected or connectable to the controller
+const int NUM_SENSORS = 6;
+
+// Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
+// If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+// If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
+uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7 };
+
+// Type of digital input pins for sensors
+// 0   : pin on the ESP-8266
+// 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
+// 0x11: virtual sensor, triggered when bascule bridge is fully open or closed.
+// 0x20: local sensor, connected to a port on the 1st MCP23017
+// 0x21: local sensor, connected to a port on the 2nd MCP23017
+// 0x22: local sensor, connected to a port on the 3rd MCP23017 etc.
+const int LOCAL_SENSOR_PIN_TYPE = 0;
+const int REMOTE_SENSOR_PIN_TYPE = 0x10;
+const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
+const int MCP23017_SENSOR_PIN_TYPE = 0x20;
+uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { LOCAL_SENSOR_PIN_TYPE, LOCAL_SENSOR_PIN_TYPE };
+
+// If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
+// If sensor is local or virtual, the value has no meaning (e.g. set to zero)
+int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
+
+
+// STATUS LED WIRING CONFIGURATION
+
+// Digital output pin to monitor controller operation (typically a LED)
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+uint8_t STATUS_LED_PIN = D8;
+
+
+
 // SWITCH CONFIGURATION
 
 // Number of switches
@@ -190,24 +262,6 @@ struct SwitchConfiguration {
 };
 
 
-// SIGNAL WIRING CONFIGURATION
-
-// Number of signal ports
-// A signal port is a LED of a light signal, a level crossing signal or a bascule bridge light
-// In most cases, 2 pins are required for a light signal with 2 aspects (more aspects are supported)
-const int NUM_SIGNALPORTS = 2;
-
-// Digital pins for signal LEDs (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-uint8_t SIGNALPORT_PIN[NUM_SIGNALPORTS] = { D4, D5 };
-
-// Type of digital output pins for signal port
-// 0   : LED output pin on the ESP-8266
-// 0x40: LED port on the 1st PCA9685
-// 0x41: LED port on the 2nd PCA9685
-// 0x42: LED port on the 3rd PCA9685 etc.
-uint8_t SIGNALPORT_PIN_TYPE[NUM_SIGNALPORTS] = { 0, 0 };
-
-
 // SIGNAL CONFIGURATION
 
 // Number of signals
@@ -249,47 +303,6 @@ struct Signal {
     .aspectServoAngle = {}
   },
 };
-
-
-// SENSOR WIRING CONFIGURATION
-
-// Set to true to enable remote sensors.
-// Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
-// Remote sensors can be used for level crossings in Autonomous Mode
-// If you do not control a level crossing in Autonomous Mode with this controller, set to false!
-const bool REMOTE_SENSORS_ENABLED = false;
-
-// Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 6;
-
-// Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
-// If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
-// If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { D6, D7, 0, 0, 0, 0 };
-
-// Type of digital input pins for sensors
-// 0   : pin on the ESP-8266
-// 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
-// 0x11: virtual sensor, triggered when bascule bridge is fully open or closed.
-// 0x20: local sensor, connected to a port on the 1st MCP23017
-// 0x21: local sensor, connected to a port on the 2nd MCP23017
-// 0x22: local sensor, connected to a port on the 3rd MCP23017 etc.
-const int LOCAL_SENSOR_PIN_TYPE = 0;
-const int REMOTE_SENSOR_PIN_TYPE = 0x10;
-const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
-const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { LOCAL_SENSOR_PIN_TYPE, LOCAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE, VIRTUAL_SENSOR_PIN_TYPE };
-
-// If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
-// If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 0, 0 };
-
-
-// STATUS LED WIRING CONFIGURATION
-
-// Digital output pin to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-uint8_t STATUS_LED_PIN = D8;
 
 
 // LEVEL CROSSING CONFIGURATION
