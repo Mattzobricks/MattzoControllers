@@ -562,13 +562,15 @@ void handleSignalMessage(int rr_port) {
 }
 
 
-void sendSensorEvent2MQTT(int sensorPort, bool sensorState) {
+void sendSensorEvent2MQTT(int sensorIndex, bool sensorState) {
+  int sensorPort = sensorIndex + 1;
+
   if (sensorPort < 0) {
     mcLog2("Sensor message skipped (sensorPort = " + String(sensorPort) + ")", LOG_DEBUG);
     return;
   }
 
-  String sensorRocId = MATTZO_CONTROLLER_TYPE + String(mattzoControllerId) + "-" + String(sensorPort + 1);  // e.g. "MattzoController12345-3"
+  String sensorRocId = MATTZO_CONTROLLER_TYPE + String(mattzoControllerId) + "-" + String(sensorPort);  // e.g. "MattzoController12345-3"
   String stateString = sensorState ? "true" : "false";
 
   // compile mqtt message. Parameters:
@@ -576,7 +578,7 @@ void sendSensorEvent2MQTT(int sensorPort, bool sensorState) {
   //   bus: controller number
   //   address: port number (internal port number plus 1)
   // both id or bus/address can be used in Rocrail. If id is used, it superseeds the combination of bus and address
-  String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(mattzoControllerId) + "\" addr=\"" + String(sensorPort + 1) + "\" state=\"" + stateString + "\"/>";
+  String mqttMessage = "<fb id=\"" + sensorRocId + "\" bus=\"" + String(mattzoControllerId) + "\" addr=\"" + String(sensorPort) + "\" state=\"" + stateString + "\"/>";
   mcLog2("Sending MQTT message: " + mqttMessage, LOG_DEBUG);
   char mqttMessage_char[255];   // message is usually 61 chars, so 255 chars should be enough
   mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
