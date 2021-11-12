@@ -362,52 +362,59 @@ const unsigned int LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS = 30000;
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
 bool BASCULE_BRIDGE_CONNECTED = false;
 
-// Port configured for the bascule bridge in Rocrail
-const int BASCULE_BRIDGE_RR_PORT = 1;
-
 // Number of bridge Leafs (equals number of bridge servos)
-const int NUM_BASCULE_BRIDGE_LEAFS = 2;
+const int NUM_BASCULE_BRIDGE_LEAFS = 0;
 
-// Servo pins for bridge motor control
-const int BASCULE_BRIDGE_SERVO_INDEX[NUM_BASCULE_BRIDGE_LEAFS] = { 0, 1 };
+struct BridgeLeafConfiguration {
+  // Servo pin for bridge motor control
+  int servoIndex;
 
-// Motor power settings for bridge operations
-// Use negative values to reverse servo
-const int BASCULE_BRIDGE_POWER_UP = 100;  // Motor power for pulling the bridge up (0 .. 100)
-const int BASCULE_BRIDGE_POWER_UP2 = 50;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 100)
-const int BASCULE_BRIDGE_POWER_DOWN = 100;  // Motor power for letting the bridge down (0 .. 100)
-const int BASCULE_BRIDGE_POWER_DOWN2 = 50;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 100)
+  // Motor power settings for bridge operations (use negative values to reverse servo)
+  int powerUp;  // Motor power for pulling the bridge up (0 .. 100)
+  int powerUp2;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 100)
+  int powerDown;  // Motor power for letting the bridge down (0 .. 100)
+  int powerDown2;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 100)
 
-// Signal ports (set to -1 for "not connected")
-const int BASCULE_BRIDGE_SIGNAL_RIVER_STOP = 0;  // signal port that is activated when bridge is not in the "up" position (index in the SIGNALPORT_PIN array)
-const int BASCULE_BRIDGE_SIGNAL_RIVER_PREP = -1;  // signal port that is activated in addition to the "stop" port when bridge is opening (index in the SIGNALPORT_PIN array)
-const int BASCULE_BRIDGE_SIGNAL_RIVER_GO = 1;  // signal port that is activated when bridge has reached the "up" position (index in the SIGNALPORT_PIN array)
-const int BASCULE_BRIDGE_SIGNAL_BLINK_LIGHT = -1;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
+  // Sensor ports
+  // local sensors that indicate "bridge leaf down" for each bridge leaf (index in the SENSOR_PIN array)
+  int sensorDown;
+  // same for "up"
+  int sensorUp;
 
-// Sensor ports
-// local sensors that indicate "bridge leaf down" for each bridge leaf (index in the SENSOR_PIN array)
-const int BASCULE_BRIDGE_SENSOR_DOWN[NUM_BASCULE_BRIDGE_LEAFS] = { 0, 2 };
-// same for "up"
-const int BASCULE_BRIDGE_SENSOR_UP[NUM_BASCULE_BRIDGE_LEAFS] = { 1, 3 };
-// virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
-// Must be set to -1 to skip virtual "bridge fully down" sensor events
-const int BASCULE_BRIDGE_SENSOR_FULLY_DOWN = 4;
-// same for "up"
-const int BASCULE_BRIDGE_SENSOR_FULLY_UP = 5;
+  // Timings (in milli seconds)
+  // Delay for opening the bridge leaf (in milliseconds)
+  int delayOpen_ms;
+  // Delay for closing the bridge leaf (in milliseconds)
+  int delayClose_ms;
+  // Maximum allowed time for opening the bridge from releasing the closing sensor until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
+  int maxOpeningTime_ms;
+  // Same for closing the bridge
+  int maxClosingTime_ms;
+  // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
+  int extraTimeAfterOpened_ms;
+  // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
+  int extraTimeAfterClosed_ms;
+};
 
-// Timings (in milli seconds)
-// Delay for opening the bridge leaf (in milliseconds)
-const int BASCULE_BRIDGE_LEAF_DELAY_OPEN_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 0, 3000 };
-// Delay for closing the bridge leaf (in milliseconds)
-const int BASCULE_BRIDGE_LEAF_DELAY_CLOSE_MS[NUM_BASCULE_BRIDGE_LEAFS] = { 3000, 0 };
-// Maximum allowed time for opening the bridge from releasing the closing sensor until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
-const unsigned int BASCULE_BRIDGE_MAX_OPENING_TIME_MS = 20000;
-// Same for closing the bridge
-const unsigned int BASCULE_BRIDGE_MAX_CLOSING_TIME_MS = 20000;
-// Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_OPENED_MS = 1500;
-// Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
-const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 2000;
+struct BridgeConfiguration {
+  // Port configured for the bascule bridge in Rocrail
+  int rocRailPort;
+
+  // Signal ports (set to -1 for "not connected")
+  int signalRiverStop;  // signal port that is activated when bridge is not in the "up" position (index in the SIGNALPORT_PIN array)
+  int signalRiverPrep;  // signal port that is activated in addition to the "stop" port when bridge is opening (index in the SIGNALPORT_PIN array)
+  int signalRiverGo;  // signal port that is activated when bridge has reached the "up" position (index in the SIGNALPORT_PIN array)
+  int signalBlinkLight;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
+
+  // virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
+  // Must be set to -1 to skip virtual "bridge fully down" sensor events
+  int sensorFullyDown;
+  // same for "up"
+  int sensorFullyUp;
+
+  // Bridge leafs
+  BridgeLeafConfiguration leafConfiguration[NUM_BASCULE_BRIDGE_LEAFS];
+} bridgeConfiguration = {};
 
 
 // SPEEDOMETER CONFIGURATION
