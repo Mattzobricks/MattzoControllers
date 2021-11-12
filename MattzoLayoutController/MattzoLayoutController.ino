@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration_BasculeBridge.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -213,17 +213,17 @@ void setup() {
 
   // initialize sensor pins
   for (int i = 0; i < NUM_SENSORS; i++) {
-    if (SENSOR_PIN_TYPE[i] == LOCAL_SENSOR_PIN_TYPE) {
+    if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE) {
       // sensor connected directly to the controller
-      pinMode(SENSOR_PIN[i], INPUT_PULLUP);
-      sensorTriggerState[i] = (SENSOR_PIN[i] == D8) ? HIGH : LOW;
+      pinMode(sensorConfiguration[i].pin, INPUT_PULLUP);
+      sensorTriggerState[i] = (sensorConfiguration[i].pin == D8) ? HIGH : LOW;
     }
-    else if (SENSOR_PIN_TYPE[i] >= MCP23017_SENSOR_PIN_TYPE) {
+    else if (sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
       // sensor connected to MCP23017
 #if USE_MCP23017
-      int m = SENSOR_PIN_TYPE[i] - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
-      mcp23017[m].pinMode(SENSOR_PIN[i], INPUT);
-      mcp23017[m].pullUp(SENSOR_PIN[i], HIGH); // turn on a 100K pull-up resistor internally
+      int m = sensorConfiguration[i].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
+      mcp23017[m].pinMode(sensorConfiguration[i].pin, INPUT);
+      mcp23017[m].pullUp(sensorConfiguration[i].pin, HIGH); // turn on a 100K pull-up resistor internally
       sensorTriggerState[i] = LOW;
 #endif
     }
@@ -607,17 +607,17 @@ void setLEDBySensorStates() {
 void monitorSensors() {
   for (int i = 0; i < NUM_SENSORS; i++) {
     // monitor local sensors
-    if (SENSOR_PIN_TYPE[i] == LOCAL_SENSOR_PIN_TYPE || SENSOR_PIN_TYPE[i] >= MCP23017_SENSOR_PIN_TYPE) {
+    if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE || sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
       int sensorValue;
-      if (SENSOR_PIN_TYPE[i] == LOCAL_SENSOR_PIN_TYPE) {
+      if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE) {
         // sensor directly connected to ESP8266
-        sensorValue = digitalRead(SENSOR_PIN[i]);
+        sensorValue = digitalRead(sensorConfiguration[i].pin);
       }
-      else if (SENSOR_PIN_TYPE[i] >= MCP23017_SENSOR_PIN_TYPE) {
+      else if (sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
         // sensor connected to MCP23017
   #if USE_MCP23017
-        int m = SENSOR_PIN_TYPE[i] - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
-        sensorValue = mcp23017[m].digitalRead(SENSOR_PIN[i]);
+        int m = sensorConfiguration[i].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
+        sensorValue = mcp23017[m].digitalRead(sensorConfiguration[i].pin);
   #endif
       }
   
@@ -652,9 +652,9 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState) {
   // find sensor in sensor array
   // if found, handle level crossing sensor event
   for (int s = 0; s < NUM_SENSORS; s++) {
-    if (SENSOR_PIN_TYPE[s] == REMOTE_SENSOR_PIN_TYPE) {
-      if (SENSOR_REMOTE_MATTZECONTROLLER_ID[s] == mcId) {
-        if (SENSOR_PIN[s] == sensorAddress) {
+    if (sensorConfiguration[s].pinType == REMOTE_SENSOR_PIN_TYPE) {
+      if (sensorConfiguration[s].remoteMattzoControllerId == mcId) {
+        if (sensorConfiguration[s].pin == sensorAddress) {
           mcLog2("Remote sensor " + String(mcId) + ":" + String(sensorAddress) + " found.", LOG_DEBUG);
           if (sensorState) {
             handleLevelCrossingSensorEvent(s);

@@ -173,32 +173,48 @@ struct LEDConfiguration {
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
 // Remote sensors can be used for level crossings in Autonomous Mode
 // If you do not control a level crossing in Autonomous Mode with this controller, set to false!
-const bool REMOTE_SENSORS_ENABLED = false;
+#define REMOTE_SENSORS_ENABLED false
 
 // Number of sensors connected or connectable to the controller
-const int NUM_SENSORS = 2;
+#define NUM_SENSORS 2
 
-// Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
-// If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
-// If sensor is a virtual sensor, the value has no meaning (e.g. set to zero).
-uint8_t SENSOR_PIN[NUM_SENSORS] = { 0, 0 };
-
-// Type of digital input pins for sensors
-// 0   : pin on the ESP-8266
+// Constants for type of digital input pins for sensors
+// 0   : local sensor on the ESP-8266 (D0 .. D8)
 // 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
 // 0x11: virtual sensor, triggered when bascule bridge is fully open or closed.
 // 0x20: local sensor, connected to a port on the 1st MCP23017
 // 0x21: local sensor, connected to a port on the 2nd MCP23017
 // 0x22: local sensor, connected to a port on the 3rd MCP23017 etc.
-const int LOCAL_SENSOR_PIN_TYPE = 0;
-const int REMOTE_SENSOR_PIN_TYPE = 0x10;
-const int VIRTUAL_SENSOR_PIN_TYPE = 0x11;
-const int MCP23017_SENSOR_PIN_TYPE = 0x20;
-uint8_t SENSOR_PIN_TYPE[NUM_SENSORS] = { VIRTUAL_SENSOR_PIN_TYPE , VIRTUAL_SENSOR_PIN_TYPE };
+#define LOCAL_SENSOR_PIN_TYPE 0
+#define REMOTE_SENSOR_PIN_TYPE 0x10
+#define VIRTUAL_SENSOR_PIN_TYPE 0x11
+#define MCP23017_SENSOR_PIN_TYPE 0x20
 
-// If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
-// If sensor is local or virtual, the value has no meaning (e.g. set to zero)
-int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
+struct SensorConfiguration {
+  // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
+  // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+  // If sensor is a virtual sensor, the value has no meaning (set to -1 by convention).
+  uint8_t pin;
+
+  // Type of digital input pins for sensors
+  uint8_t pinType;
+
+  // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
+  // If sensor is local or virtual, the value has no meaning (set to -1 by convention)
+  int remoteMattzoControllerId;
+} sensorConfiguration[NUM_SENSORS] =
+{
+  {
+    .pin = -1,
+    .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = -1,
+    .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+};
 
 
 // STATUS LED WIRING CONFIGURATION
@@ -324,10 +340,10 @@ const bool LC_SIGNALS_FADING = true;
 
 // LEVEL CROSSING SENSORS
 
-// Virtual sensor for "booms closed" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have closed.
+// Virtual sensor for "booms closed" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have closed.
 // Must be set to -1 to skip virtual "booms closed" sensor event
 const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = 0;
-// Virtual sensor for "booms opened" feedback event (index in the SENSOR_PIN array). This virtual sensor is triggered after the boom barriers have opened.
+// Virtual sensor for "booms opened" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have opened.
 // Must be set to -1 to skip virtual "booms opened" sensor event
 const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = 1;
 
@@ -340,7 +356,7 @@ const int LC_NUM_TRACKS = 2;
 // Number of level crossing sensors
 const int LC_NUM_SENSORS = 4;
 
-// Sensor array (indices within the SENSOR_PIN array)
+// Sensor array (indices within the sensorConfiguration array)
 // Sensors may occur twice (if sensor is used both as inbound and outbound sensor)
 const int LC_SENSORS_INDEX[LC_NUM_SENSORS] = { 0, 1, 2, 3 };
 
@@ -376,7 +392,7 @@ struct BridgeLeafConfiguration {
   int powerDown2;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 100)
 
   // Sensor ports
-  // local sensors that indicate "bridge leaf down" for each bridge leaf (index in the SENSOR_PIN array)
+  // local sensors that indicate "bridge leaf down" for each bridge leaf (index in the sensorConfiguration array)
   int sensorDown;
   // same for "up"
   int sensorUp;
@@ -406,7 +422,7 @@ struct BridgeConfiguration {
   int signalRiverGo;  // signal port that is activated when bridge has reached the "up" position (index in the SIGNALPORT_PIN array)
   int signalBlinkLight;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
 
-  // virtual sensor that indiciates "bridge fully down" (index in the SENSOR_PIN array). This virtual sensor is triggered after the "extra time after closed".
+  // virtual sensor that indiciates "bridge fully down" (index in the sensorConfiguration array). This virtual sensor is triggered after the "extra time after closed".
   // Must be set to -1 to skip virtual "bridge fully down" sensor events
   int sensorFullyDown;
   // same for "up"
@@ -425,7 +441,7 @@ bool SPEEDOMETER_CONNECTED = false;
 // Number of sensors connected or connectable to the controller (must be 2 - do not change!)
 const int SM_NUM_SENSORS = 2;
 
-// Indexes in the sensor array used for measuring speed
+// Indexes in the sensorConfiguration array used for measuring speed
 // Only local sensors are supported
 const int SM_SENSORS_INDEX[SM_NUM_SENSORS] = { 0, 1 };
 
