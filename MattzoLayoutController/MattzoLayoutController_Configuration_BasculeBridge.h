@@ -460,8 +460,8 @@ struct BridgeConfiguration {
 
       .delayOpen_ms = 0,
       .delayClose_ms = 1000,
-      .maxOpeningTime_ms = 20000,
-      .maxClosingTime_ms = 20000,
+      .maxOpeningTime_ms = 10000,
+      .maxClosingTime_ms = 10000,
       .extraTimeAfterOpened_ms = 2500,
       .extraTimeAfterClosed_ms = 1500,
     },
@@ -478,8 +478,8 @@ struct BridgeConfiguration {
 
       .delayOpen_ms = 1000,
       .delayClose_ms = 000,
-      .maxOpeningTime_ms = 20000,
-      .maxClosingTime_ms = 20000,
+      .maxOpeningTime_ms = 5000,
+      .maxClosingTime_ms = 5000,
       .extraTimeAfterOpened_ms = 1000,
       .extraTimeAfterClosed_ms = 250,
     }

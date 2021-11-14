@@ -1235,6 +1235,7 @@ void basculeBridgeLoop() {
 
       case BridgeStatus::ERRoR:
         mcLog2("New bridge status: Bridge error.", LOG_DEBUG);
+        sendSensorEvent2MQTT(bridgeConfiguration.sensorFullyUp, false);
         sendSensorEvent2MQTT(bridgeConfiguration.sensorFullyDown, false);
         break;
     }
