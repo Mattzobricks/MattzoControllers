@@ -30,9 +30,11 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // 
 
                                                                              
 // SERVO VARIABLES AND CONSTANTS
-
-// Create servo objects to control servos
-Servo servo[NUM_SERVOS];
+// Servo array
+struct MattzoServo {
+  Servo servo;      // Servo object to control servos
+  unsigned long lastSwitchingAction_ms = 0;
+} mattzoServo[NUM_SERVOS];
 
 // Create PWM Servo Driver object (for PCA9685)
 #if USE_PCA9685
@@ -41,31 +43,24 @@ Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #endif
 
-// Time after servo operation until servo power is switched off (in milliseconds; 3000 = 3 sec.)
-// Presently only supported when using PCA9685
-const int SERVOSLEEPMODEAFTER_MS = 3000;
-
-// time when servos will go to sleep mode
-bool servoSleepMode = false;
-unsigned long servoSleepModeFrom_ms = 0;
+// Power management for PCA9685
+// The PWM signals on the PCA9685 can be automatically turned off after a servo operation to prevent servos from overheat and to save electricity.
+// Time after which servos will go to sleep mode (in milliseconds; 3000 = 3 sec.)
+const int PCA9685_POWER_OFF_AFTER_MS = 3000;
+// Flag that keeps the present sleep mode state
+bool pca9685SleepMode = false;
+unsigned long pca9685SleepModeFrom_ms = 0;
 
 
 // SWITCH VARIABLES AND CONSTANTS
-// Switch array
-struct MattzoSwitch {
-  unsigned long lastSwitchingAction_ms = 0;
-  bool servosAttached = false;
-} mattzoSwitch[NUM_SWITCHES];
-
-// Delay after which servo is detached after flipping a switch
-const int SWITCH_DETACH_DELAY = 3000;
+// Delay after which servo is detached after flipping a switch (for directly connected servos)
+const int SERVO_DETACH_DELAY = 3000;
 
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
-const int SERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SERVO_MIN.
-const int SERVO_MIN = 75;           // a good first guess for the minimum angle of TrixBrix servos is 70
-const int SERVO_START = 80;         // position after boot-up. For TrixBrix servos, this is more or less the middle position
-const int SERVO_MAX = 85;           // a good first guess for the maximum angle of TrixBrix servos is 90
-const int SERVO_MAX_ALLOWED = 120;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SERVO_MAX.
+const int SWITCHSERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
+const int SWITCHSERVO_MIN = 75;           // a good first guess for the minimum angle of TrixBrix servos is 70
+const int SWITCHSERVO_MAX = 85;           // a good first guess for the maximum angle of TrixBrix servos is 90
+const int SWITCHSERVO_MAX_ALLOWED = 110;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
 
 
 // SENSOR VARIABLES AND CONSTANTS
@@ -187,7 +182,7 @@ void setup() {
   // Switch PCA9685 off
   if (PCA9685_OE_PIN_INSTALLED) {
     pinMode(PCA9685_OE_PIN, OUTPUT);
-    setServoSleepMode(true);
+    setPCA9685SleepMode(true);
   }
 #endif
 
@@ -362,32 +357,32 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
 
     // query param1 attribute. This is the "straight" position of the switch servo motor.
-    // defaults to SERVO_MIN
-    int rr_param1 = SERVO_MIN;
+    // defaults to SWITCHSERVO_MIN
+    int rr_param1 = SWITCHSERVO_MIN;
     if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
       mcLog2("param1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
     }
-    if (rr_param1 < SERVO_MIN_ALLOWED || rr_param1 > SERVO_MAX_ALLOWED) {
+    if (rr_param1 < SWITCHSERVO_MIN_ALLOWED || rr_param1 > SWITCHSERVO_MAX_ALLOWED) {
       // Reset angle back to standard if angle is out of bounds
       // User has obviously forgotten to configure servo angle in Rocrail properly
       // To protect the servo, the default value is used
       mcLog2("param1 attribute out of bounds. Using default value.", LOG_DEBUG);
-      rr_param1 = SERVO_MIN;
+      rr_param1 = SWITCHSERVO_MIN;
     }
     mcLog2("param1: " + String(rr_param1), LOG_DEBUG);
 
     // query value1 attribute. This is the "turnout" position of the switch servo motor.
-    // defaults to SERVO_MAX
-    int rr_value1 = SERVO_MAX;
+    // defaults to SWITCHSERVO_MAX
+    int rr_value1 = SWITCHSERVO_MAX;
     if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
       mcLog2("value1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
     }
-    if (rr_value1 < SERVO_MIN_ALLOWED || rr_value1 > SERVO_MAX_ALLOWED) {
+    if (rr_value1 < SWITCHSERVO_MIN_ALLOWED || rr_value1 > SWITCHSERVO_MAX_ALLOWED) {
       // Reset angle back to standard if angle is out of bounds
       // User has obviously forgotten to configure servo angle in Rocrail properly
       // To protect the servo, the default value is used
       mcLog2("value1 attribute out of bounds. Using default value.", LOG_DEBUG);
-      rr_value1 = SERVO_MAX;
+      rr_value1 = SWITCHSERVO_MAX;
     }
     mcLog2("value1: " + String(rr_value1), LOG_DEBUG);
 
@@ -397,7 +392,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     sendSwitchSensorEvent(switchIndex, 1 - switchCommand, false);
 
     // flip switch
-    mattzoSwitch[switchIndex].lastSwitchingAction_ms = millis();
     int servoAngle = (switchCommand == 1) ? rr_param1 : rr_value1;
     mcLog2("Turning servo of switch index " + String(switchIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
     setServoAngle(switchConfiguration[switchIndex].servoIndex, servoAngle);
@@ -407,7 +401,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog2("Turning 2nd servo of switch index " + String(switchIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
       setServoAngle(switchConfiguration[switchIndex].servo2Index, servoAngle);
     }
-    mattzoSwitch[switchIndex].servosAttached = true;
 
     // trigger virtual switch sensor on new switching side
     sendSwitchSensorEvent(switchIndex, switchCommand, true);
@@ -548,12 +541,12 @@ void handleSignalMessage(int rr_port) {
         }
 
         // set the desired servo angle of the form signal
-        for (int servo = 0; servo < NUM_SIGNAL_SERVOS; servo++) {
+        for (int servoIndex = 0; servoIndex < NUM_SIGNAL_SERVOS; servoIndex++) {
           // skip servo if servo pin < 0 (this means "not used")
-          if (signals[s].servoIndex[servo] >= 0) {
-            int servoAngle = signals[s].aspectServoAngle[servo][a];
-            mcLog2("Turning servo index " + String(servo) + " of signal " + String(s) + " to " + String(servoAngle), LOG_INFO);
-            setServoAngle(signals[s].servoIndex[servo], servoAngle);
+          if (signals[s].servoIndex[servoIndex] >= 0) {
+            int servoAngle = signals[s].aspectServoAngle[servoIndex][a];
+            mcLog2("Turning servo index " + String(servoIndex) + " of signal " + String(s) + " to " + String(servoAngle), LOG_INFO);
+            setServoAngle(signals[s].servoIndex[servoIndex], servoAngle);
           }
         }
       }
@@ -674,17 +667,23 @@ void setServoAngle(int servoIndex, int servoAngle) {
   mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
   if (servoIndex >= 0 && servoIndex < NUM_SERVOS) {
     if (servoConfiguration[servoIndex].pinType == 0) {
-      if (!servo[servoIndex].attached()) {
-        servo[servoIndex].attach(servoConfiguration[servoIndex].pin);
+      if (!mattzoServo[servoIndex].servo.attached()) {
+        mcLog2("Attaching servo index " + String(servoIndex), LOG_DEBUG);
+        mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin);
       }
-      servo[servoIndex].write(servoAngle);
+      mattzoServo[servoIndex].servo.write(servoAngle);
+      mattzoServo[servoIndex].lastSwitchingAction_ms = millis();
     }
 #if USE_PCA9685
     else if (SWITCHPORT_PIN_TYPE[servoIndex] >= 0x40) {
-      setServoSleepMode(false);
+      setPCA9685SleepMode(false);
       pca9685[servoConfiguration[servoIndex].pinType - 0x40].setPWM(servoConfiguration[servoIndex].pin, 0, mapAngle2PulseLength(servoAngle));
     }
 #endif
+    else {
+      // this should not happen
+      mcLog2("WARNING: servo index " + String(servoIndex) + " unknown pinType " + String(servoConfiguration[servoIndex].pinType), LOG_ALERT);
+    }
   }
   else {
     // this should not happen
@@ -699,52 +698,43 @@ int mapAngle2PulseLength(int angle) {
   return map(angle, 0, 180, PULSE_MIN, PULSE_MAX);
 }
 
-// Switches servo power supply on or off (presently supported for PCA9685 only)
-void setServoSleepMode(bool onOff) {
+// Switches PCA9685 power on or off
+void setPCA9685SleepMode(bool onOff) {
   if (PCA9685_OE_PIN_INSTALLED) {
-    if (servoSleepMode != onOff) {
+    if (pca9685SleepMode != onOff) {
+      // if sleep mode change was detected, set new sleep mode state (on or off)
       digitalWrite(PCA9685_OE_PIN, onOff ? HIGH : LOW);
-      servoSleepMode = onOff;
+      pca9685SleepMode = onOff;
       if (onOff) {
-        mcLog("Servo power turned off.");
+        mcLog("PCA9685 power turned off.");
       } else {
-        mcLog("Servo power turned on.");
+        mcLog("PCA9685 power turned on.");
       }
-    }
-    if (!onOff) {
-      servoSleepModeFrom_ms = millis() + SERVOSLEEPMODEAFTER_MS;
+
+      if (!onOff) {
+        // if sleep mode was just disabled, reset sleep timer
+        pca9685SleepModeFrom_ms = millis() + PCA9685_POWER_OFF_AFTER_MS;
+      }
     }
   }
 }
 
 void checkEnableServoSleepMode() {
-  // Checks if servos can be set to sleep mode (presently supported for PCA9685 only)
-  if (millis() > servoSleepModeFrom_ms) {
-    setServoSleepMode(true);
-  }
-
-  // Checks if directly wired servos shall be detached
-  for (int s = 0; s < NUM_SWITCHES; s++) {
-    if (mattzoSwitch[s].servosAttached && millis() >= mattzoSwitch[s].lastSwitchingAction_ms + SWITCH_DETACH_DELAY) {
-      int servoIndex = switchConfiguration[s].servoIndex;
-      detachServo(servoIndex);
-
-      int servo2Index = switchConfiguration[s].servo2Index;
-      if (servo2Index >= 0)
-        detachServo(servo2Index);
-
-      mattzoSwitch[s].servosAttached = false;
+  // Detach directly connected servos if required
+  for (int servoIndex = 0; servoIndex < NUM_SERVOS; servoIndex++) {
+    if (servoConfiguration[servoIndex].pinType == 0) {
+      if (millis() >= mattzoServo[servoIndex].lastSwitchingAction_ms + SERVO_DETACH_DELAY) {
+        if (mattzoServo[servoIndex].servo.attached()) {
+          mcLog2("Detaching servo index " + String(servoIndex), LOG_DEBUG);
+          mattzoServo[servoIndex].servo.detach();
+        }
+      }
     }
   }
-}
 
-void detachServo(int servoIndex) {
-  // detach only directly connected servos
-  if (servoConfiguration[servoIndex].pinType == 0) {
-    if (servo[servoIndex].attached()) {
-      mcLog2("Detaching servo index " + String(servoIndex), LOG_DEBUG);
-      servo[servoIndex].detach();
-    }
+  // Switch PCA9685 power off if required
+  if (PCA9685_OE_PIN_INSTALLED && millis() > pca9685SleepModeFrom_ms && !pca9685SleepMode) {
+    setPCA9685SleepMode(true);
   }
 }
 
