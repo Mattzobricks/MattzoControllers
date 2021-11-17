@@ -96,7 +96,7 @@ uint8_t PCA9685_OE_PIN = D0;
 // SERVO WIRING CONFIGURATION
 
 // Number of servos
-const int NUM_SERVOS = 4;
+const int NUM_SERVOS = 6;
 
 struct ServoConfiguration {
   // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
@@ -124,6 +124,14 @@ struct ServoConfiguration {
   },
   {
     .pin = D3,
+    .pinType = 0
+  },
+  {
+    .pin = D6,
+    .pinType = 0
+  },
+  {
+    .pin = D7,
     .pinType = 0
   },
 };
@@ -231,7 +239,7 @@ struct SwitchConfiguration {
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 4;
+const int NUM_SIGNALS = 6;
 // Maximum number of signal aspects (e.g. red, green, yellow)
 const int NUM_SIGNAL_ASPECTS = 3;
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
@@ -268,7 +276,7 @@ struct Signal {
     },
     .servoIndex = {0},
     .aspectServoAngle = {
-      {170, 115, -1}
+      {180, 90, 0}
     }
   },
   // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
@@ -285,7 +293,7 @@ struct Signal {
       {170, 115, -1}
     }
   },
-  // signal 3 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
+  // signal 2 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
   // The signal LED port (index 0, D4) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
   {
     .aspectRocrailPort = {5, 6, 7},
@@ -300,7 +308,7 @@ struct Signal {
       {90, 15, 160}
     }
   },
-  // signal 4 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
+  // signal 3 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
   // The signal LED port (index 1, D5) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
   {
     .aspectRocrailPort = {8, 9, 10},
@@ -313,6 +321,34 @@ struct Signal {
     .servoIndex = {3},
     .aspectServoAngle = {
       {90, 15, 160}
+    }
+  },
+  // signal 4 (Vs3): distant form signal with 3 aspects, controlled via Rocrail ports 11, 12 and 13, using servo index 4 (D6)
+  {
+    .aspectRocrailPort = {11, 12, 13},
+    .aspectLEDPort = {-1},
+    .aspectLEDMapping = {
+      {false},
+      {false},
+      {false}
+    },
+    .servoIndex = {4},
+    .aspectServoAngle = {
+      {8, 70, 113}
+    }
+  },
+  // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
+  {
+    .aspectRocrailPort = {14, 15, 16},
+    .aspectLEDPort = {-1},
+    .aspectLEDMapping = {
+      {false},
+      {false},
+      {false}
+    },
+    .servoIndex = {5},
+    .aspectServoAngle = {
+      {8, 70, 113}
     }
   }
 };
