@@ -57,10 +57,10 @@ unsigned long pca9685SleepModeFrom_ms = 0;
 const int SERVO_DETACH_DELAY = 3000;
 
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
-const int SWITCHSERVO_MIN_ALLOWED = 50;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
+const int SWITCHSERVO_MIN_ALLOWED = 40;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
 const int SWITCHSERVO_MIN = 75;           // a good first guess for the minimum angle of TrixBrix servos is 70
 const int SWITCHSERVO_MAX = 85;           // a good first guess for the maximum angle of TrixBrix servos is 90
-const int SWITCHSERVO_MAX_ALLOWED = 110;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
+const int SWITCHSERVO_MAX_ALLOWED = 120;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
 
 
 // SENSOR VARIABLES AND CONSTANTS
