@@ -260,7 +260,7 @@ const int NUM_SIGNAL_LEDS = 2;
 // If no form signals are used, just set to 0
 const int NUM_SIGNAL_SERVOS = 0;
 
-struct Signal {
+struct SignalConfiguration {
   // the port configured in Rocrail for an aspect
   // 0: aspect not supported by this signal
   int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
@@ -275,7 +275,7 @@ struct Signal {
   int servoIndex[NUM_SIGNAL_SERVOS];
   // the desired servo angle for the aspect (for form signals)
   int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
-} signals[NUM_SIGNALS] = {};
+} signalConfiguration[NUM_SIGNALS] = {};
 
 
 // LEVEL CROSSING CONFIGURATION
