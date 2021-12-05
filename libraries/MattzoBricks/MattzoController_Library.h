@@ -165,7 +165,7 @@ bool statusLEDState = false;
 
 void setStatusLED(bool ledState) {
   if (STATUS_LED_PIN_INSTALLED) {
-    digitalWrite(STATUS_LED_PIN, ledState ? HIGH : LOW);
+    digitalWrite(STATUS_LED_PIN, (ledState ^ STATUS_LED_REVERSE) ? HIGH : LOW);
   }
 }
 
