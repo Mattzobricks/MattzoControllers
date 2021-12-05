@@ -112,6 +112,11 @@ struct ServoConfiguration {
   // 0x41: port on the 2nd PCA9685
   // 0x42: port on the 3rd PCA9685 etc.
   uint8_t pinType;
+
+  // set to true if servo shall be detached from PWM signal a couple of seconds after usage
+  // this feature is helpful to prevent blocking servo from burning down, it saves power and reduced servo flattering
+  // for bascule bridges, the feature must be switched off!
+  bool detachAfterUsage;
 } servoConfiguration[NUM_SERVOS] = {};
 
 
