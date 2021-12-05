@@ -324,96 +324,89 @@ struct SignalConfiguration {
 // LEVEL CROSSING CONFIGURATION
 
 // General switch for level crossing (false = no level crossing connected; true = level crossing connected)
-const bool LEVEL_CROSSING_CONNECTED = false;
-
-// Port configured for the level crossing in Rocrail
-// Attention: make sure the port does not conflict with a switch port!
-// -1 indicates "no port" = "does not accept rocrail commands" (useful for autonomous mode)
-const int LEVEL_CROSSING_RR_PORT = 1;
-
-// LEVEL CROSSING BOOM BARRIERS
+const bool LEVEL_CROSSING_CONNECTED = true;
 
 // Number of boom barrier servos configured for the level crossing
 const int LC_NUM_BOOM_BARRIERS = 4;
 
-// Servo ports (indices in the SWITCHPORT_PIN array)
-// servo 1 and 2 represents primary barriers, servo 3 and subsequent servos represents secondary barriers
-uint8_t LC_BOOM_BARRIER_SERVO_PIN[LC_NUM_BOOM_BARRIERS] = { 0, 1, 2, 3 };
-
-// Closing timespan for all boom barriers
-const unsigned int LC_BOOM_BARRIER_CLOSING_PERIOD_MS = 2500;
-// Delay until primary boom barriers start closing
-const unsigned int LC_BOOM_BARRIER1_CLOSING_DELAY_MS = 2000;
-// Delay until secondary boom barriers start closing
-const unsigned int LC_BOOM_BARRIER2_CLOSING_DELAY_MS = 4000;
-// Opening timespan for all boom barriers
-const unsigned int LC_BOOM_BARRIER_OPENING_PERIOD_MS = 3000;
-
-// Servo angles for "up" and "down" positions (primary booms)
-// Approximate angles for TrixBrix boom barrier servos to start with:
-// - If servo is connected directly to the ESP8266:
-// -- Right hand traffic: 0, left hand traffic: 180
-// - If servo is connected to PCA9685:
-// -- Right hand traffic: 30, left hand traffic: 143
-const unsigned int LC_BOOM_BARRIER_ANGLE_PRIMARY_UP = 0;
-const unsigned int LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN = 87;
-
-// Servo angles for "up" and "down" positions (secondary booms)
-// Approximate angles for TrixBrix boom barrier servos to start with:
-// - If servo is connected directly to the ESP8266:
-// -- Right hand traffic: 180, left hand traffic: 0
-// - If servo is connected to PCA9685:
-// -- Right hand traffic: 143, left hand traffic: 30
-const unsigned int LC_BOOM_BARRIER_ANGLE_SECONDARY_UP = 180;
-const unsigned int LC_BOOM_BARRIER_ANGLE_SECONDARY_DOWN = 90;
-
-// LEVEL CROSSING SIGNALS
-
 // Number of signals configured for the level crossing
-const int LC_NUM_SIGNALS = 4;
-
-// Signal ports (indices in the SIGNALPORT_PIN array)
-uint8_t LC_SIGNAL_PIN[LC_NUM_SIGNALS] = { 0, 1, 2, 3 };
-
-// Signal flash period in milliseconds (full cycle).
-const unsigned int LC_SIGNAL_FLASH_PERIOD_MS = 1500;
-
-// Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism)
-const bool LC_SIGNALS_FADING = true;
-
-// LEVEL CROSSING SENSORS
-
-// Virtual sensor for "booms closed" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have closed.
-// Must be set to -1 to skip virtual "booms closed" sensor event
-const int LEVEL_CROSSING_SENSOR_BOOMS_CLOSED = -1;
-// Virtual sensor for "booms opened" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have opened.
-// Must be set to -1 to skip virtual "booms opened" sensor event
-const int LEVEL_CROSSING_SENSOR_BOOMS_OPENED = -1;
-
-// Autonomous Mode enabled?
-const bool LC_AUTONOMOUS_MODE = false;
-
-// Number of tracks leading over the level crossing
-const int LC_NUM_TRACKS = 2;
+const int LC_NUM_LEDS = 4;
 
 // Number of level crossing sensors
 const int LC_NUM_SENSORS = 4;
 
-// Sensor array (indices within the sensorConfiguration array)
-// Sensors may occur twice (if sensor is used both as inbound and outbound sensor)
-const int LC_SENSORS_INDEX[LC_NUM_SENSORS] = { 0, 1, 2, 3 };
+// Number of tracks leading over the level crossing
+const int LC_NUM_TRACKS = 2;
 
-// Track index of the sensor (0: track 1, 1: track 2 etc.)
-const int LC_SENSORS_TRACK[LC_NUM_SENSORS] = { 0, 0, 1, 1 };
+// Sensors (required for autonomous mode only)
+struct LevelCrossingSensorConfiguration {
+  // Sensor index (index within the sensorConfiguration array)
+  int sensorIndex;
+  // Track index of the sensor (0: track 1, 1: track 2 etc.)
+  int track;
+  // Purpose of the sensor (0: inbound / 1: outbound / 2: both)
+  int purpose;
+  // Orientation of the sensor (0: plus side / 1: minus side)
+  int orientation;
+};
 
-// Purpose of the sensor (0: inbound / 1: outbound / 2: both)
-const int LC_SENSORS_PURPOSE[LC_NUM_SENSORS] = { 2, 2, 2, 2 };
+struct LevelCrossingConfiguration {
+  // Port configured in Rocrail for the level crossing
+  // Attention: make sure the port does not conflict with a switch port!
+  // -1 indicates "no port" = "does not accept rocrail commands". Useful for autonomous mode.
+  int rocRailPort;
 
-// Orientation of the sensor (0: plus side / 1: minus side)
-const int LC_SENSORS_ORIENTATION[LC_NUM_SENSORS] = { 0, 1, 0, 1 };
+  // BOOM BARRIER CONFIGURATION
+  // Servo ports (indices in the SWITCHPORT_PIN array)
+  // servo 1 and 2 represents primary barriers, servo 3 and subsequent servos represents secondary barriers
+  uint8_t servoIndex[LC_NUM_BOOM_BARRIERS];
 
-// Timeout after which axle counters are reset and the track is released (in milliseconds)
-const unsigned int LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS = 30000;
+  // Timings
+  // Closing timespan for all boom barriers
+  unsigned int bbClosingPeriod_ms;
+  // Delay until primary boom barriers start closing
+  unsigned int bbClosingDelayPrimary_ms;
+  // Delay until secondary boom barriers start closing
+  unsigned int bbClosingDelaySecondary_ms;
+  // Opening timespan for all boom barriers
+  unsigned int bbOpeningPeriod_ms;
+  // Servo angles for "up" and "down" positions
+  // Approximate closed (opened) angles for TrixBrix boom barrier servos to start with:
+  // - If servo is connected directly to the ESP8266:
+  // -- Primary booms: Right hand traffic: 0 (90), left hand traffic: 180 (90)
+  // -- Secondary booms: Right hand traffic: 180 (90), left hand traffic: 0 (90)
+  // - If servo is connected to PCA9685:
+  // -- Primary booms: Right hand traffic: 30 (87), left hand traffic: 143 (87)
+  // -- Secondary booms: Right hand traffic: 143 (87), left hand traffic: 30 (87)
+  unsigned int bbAnglePrimaryUp;
+  unsigned int bbAnglePrimaryDown;
+  unsigned int bbAngleSecondaryUp;
+  unsigned int bbAngleSecondaryDown;
+
+  // FLASHING LIGHT (LED) CONFIGURATION
+  // Signal ports (indices in the SIGNALPORT_PIN array)
+  uint8_t ledIndex[LC_NUM_LEDS];
+  // Signal flashing period in milliseconds (full cycle).
+  unsigned int ledFlashingPeriod_ms;
+  // Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism)
+  bool ledsFading;
+
+  // VIRTUAL SENSOR CONFIGURATION
+  // Virtual sensor for "booms closed" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have closed.
+  // Must be set to -1 to skip virtual "booms closed" sensor event
+  int sensorIndexBoomsClosed;
+  // Virtual sensor for "booms opened" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have opened.
+  // Must be set to -1 to skip virtual "booms opened" sensor event
+  int sensorIndexBoomsOpened;
+
+  // AUTONOMOUS MODE CONFIGURATION
+  // Autonomous Mode enabled?
+  bool autonomousModeEnabled;
+  // Timeout after which axle counters are reset and the track is released (in milliseconds)
+  unsigned int trackReleaseTimeout_ms;
+  // Sensors
+  LevelCrossingSensorConfiguration sensorConfiguration[LC_NUM_SENSORS];
+} levelCrossingConfiguration = {};
 
 
 // BASCULE BRIDGE CONFIGURATION
