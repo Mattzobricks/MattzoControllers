@@ -285,7 +285,7 @@ struct SignalConfiguration {
 // LEVEL CROSSING CONFIGURATION
 
 // General switch for level crossing (false = no level crossing connected; true = level crossing connected)
-const bool LEVEL_CROSSING_CONNECTED = true;
+const bool LEVEL_CROSSING_CONNECTED = false;
 
 // Number of boom barrier servos configured for the level crossing
 const int LC_NUM_BOOM_BARRIERS = 4;
@@ -482,22 +482,8 @@ struct BridgeConfiguration {
 
 // SPEEDOMETER CONFIGURATION
 
-// Speedometer installed?
-bool SPEEDOMETER_CONNECTED = false;
-
-// Number of sensors connected or connectable to the controller (must be 2 - do not change!)
-const int SM_NUM_SENSORS = 2;
-
-// Indexes in the sensorConfiguration array used for measuring speed
-// Only local sensors are supported
-const int SM_SENSORS_INDEX[SM_NUM_SENSORS] = { 0, 1 };
-
-// Maximum number of magnets attached to a train
-const int SM_MAX_VALUES = 20;
-
-// Distance between the sensors in mm
-// SM_DISTANCE must be larger than the distance of the magnets on the train
-const float SM_DISTANCE = 1000;
+// General switch for speedometer (false = no speedometer connected; true = speedometer connected)
+bool SPEEDOMETER_CONNECTED = true;
 
 enum struct SpeedometerSpeedUnit
 {
@@ -516,20 +502,25 @@ enum struct SpeedometerLengthUnit
   METERS
 };
 
-// speed unit (for display only - internally, mm/s is used)
-const SpeedometerSpeedUnit SM_SPEEDUNIT = SpeedometerSpeedUnit::STUDS_PER_SECOND;
-
-// length unit (for display only - internally, mm is used)
-const SpeedometerLengthUnit SM_LENGTHUNIT = SpeedometerLengthUnit::STUDS;
-
-// Timeout to reset the speedometer when nothing is happening anymore (in ms)
-const unsigned int SM_TIMEOUT = 10000;
-
-// Minimum time between two measurements (in ms)
-const unsigned int SM_TIME_BETWEEN_MEASUREMENTS = 10000;
-
-// Minimum time to display the speed on the display before switching to a "Screensaver" (in ms)
-const unsigned int SM_TIME_TO_SHOW_RESULTS = 20000;
+struct SpeedometerConfiguration {
+  // speed unit (for display only - internally, mm/s is used)
+  SpeedometerSpeedUnit speedUnit;
+  // length unit (for display only - internally, mm is used)
+  SpeedometerLengthUnit lengthUnit;
+  // Indexes in the sensorConfiguration array used for measuring speed
+  // There are always two sensors. The sensors MUST have the indices 0 and 1!
+  // Only local sensors are supported
+  int sensorIndex[2];
+  // Distance between the sensors in mm
+  // SM_DISTANCE must be larger than the distance between the magnets on the train
+  float distance;
+  // Timeout to reset the speedometer when nothing is happening anymore (in ms)
+  unsigned int timeOut;
+  // Minimum time between two measurements (in ms)
+  unsigned int timeBetweenMeasurements;
+  // Minimum time to display the speed on the display before switching to a "Screensaver" (in ms)
+  unsigned int timeToShowResults;
+} speedometerConfiguration = {};
 
 
 // ****************

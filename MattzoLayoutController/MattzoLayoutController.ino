@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration_LevelCrossing.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -148,14 +148,15 @@ struct Bridge {
 
 
 // SPEEDOMETER VARIABLES AND CONSTANTS
+// Maximum number of magnets that can be attached to a train
+const int SM_MAX_VALUES = 20;
+
 struct Speedometer {
   bool occupied = false;
-  SpeedometerLengthUnit lengthUnit = SM_LENGTHUNIT;
-  SpeedometerSpeedUnit speedUnit = SM_SPEEDUNIT;
 
   int startSensor;
   int endSensor;
-  int wheelcounter[SM_NUM_SENSORS] = {-1, -1};
+  int wheelcounter[2] = {-1, -1};
 
   float startTime[SM_MAX_VALUES];
   float endTime[SM_MAX_VALUES];
@@ -1533,48 +1534,48 @@ void updateDisplay() {
 #if USE_U8G2
   float trainspeed  = speedometer.actualTrainSpeed;
   float trainlength = speedometer.actualTrainLength;
-  String speedUnit;
-  String lengthUnit;
+  String speedUnitString;
+  String lengthUnitString;
 
-  switch (speedometer.speedUnit) {
+  switch (speedometerConfiguration.speedUnit) {
     case SpeedometerSpeedUnit::STUDS_PER_SECOND:
       trainspeed = trainspeed / 8;
-      speedUnit = "studs/s";
+      speedUnitString = "studs/s";
       break;
 
     case SpeedometerSpeedUnit::MILLIMETERS_PER_SECOND:
-      speedUnit = "mm/s";
+      speedUnitString = "mm/s";
       break;
 
     case SpeedometerSpeedUnit::KILOMETER_PER_HOUR:
       trainspeed = trainspeed * 3600 / 1000000;
-      speedUnit = "km/h";
+      speedUnitString = "km/h";
       break;
 
     case SpeedometerSpeedUnit::MILES_PER_HOUR:
       trainspeed = trainspeed * 3600 / 1609340;
-      speedUnit = "studs";
+      speedUnitString = "studs";
       break;
   }
 
-  switch (speedometer.lengthUnit) {
+  switch (speedometerConfiguration.lengthUnit) {
     case SpeedometerLengthUnit::STUDS:
       trainlength = trainlength / 8;
-      lengthUnit = "studs";
+      lengthUnitString = "studs";
       break;
 
     case SpeedometerLengthUnit::MILLIMETERS:
-      lengthUnit = "mm";
+      lengthUnitString = "mm";
       break;
 
     case SpeedometerLengthUnit::CENTIMETERS:
       trainlength = trainlength / 10;
-      lengthUnit = "cm";
+      lengthUnitString = "cm";
       break;
 
     case SpeedometerLengthUnit::METERS:
       trainlength = trainlength / 1000;
-      lengthUnit = "m";
+      lengthUnitString = "m";
       break;
   }
 
@@ -1586,17 +1587,17 @@ void updateDisplay() {
   u8g2.setCursor(5, 25);
 
   if (trainspeed <= 0) {
-    u8g2.print("Speed: ? " + speedUnit);
+    u8g2.print("Speed: ? " + speedUnitString);
   } else {
-    u8g2.print("Speed: " + String((int)(trainspeed + 0.5)) + " " + speedUnit);
+    u8g2.print("Speed: " + String((int)(trainspeed + 0.5)) + " " + speedUnitString);
   }
 
   u8g2.setCursor(5, 50);
-  if (speedometer.lengthUnit != SpeedometerLengthUnit::NO_INDICATION) {
+  if (speedometerConfiguration.lengthUnit != SpeedometerLengthUnit::NO_INDICATION) {
     if (trainlength <= 0) {
-      u8g2.print("Length: ? " + lengthUnit);
+      u8g2.print("Length: ? " + lengthUnitString);
     } else {
-      u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnit);
+      u8g2.print("Length: " + String((int)(trainlength + 0.5)) + " " + lengthUnitString);
     }
   }
 
@@ -1610,18 +1611,11 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
 
   mcLog2("Checking if sensor " + String(triggeredSensor) + " is a speedometer sensor...", LOG_DEBUG);
 
-  // Iterate speedometer sensors
   // Check if triggered sensors is a speedometer sensor
-  bool isSpeedoMeterSensor = false;
-  for (int sms = 0; sms < SM_NUM_SENSORS; sms++) {
-    if (SM_SENSORS_INDEX[sms] == triggeredSensor) {
-       //Serial.println("sensor " + String(triggeredSensor) + " is a speedometer sensor...");
-       isSpeedoMeterSensor = true;
-       break;
-    }
+  if (speedometerConfiguration.sensorIndex[0] != triggeredSensor && speedometerConfiguration.sensorIndex[1] != triggeredSensor) {
+    // no speedometer sensor -> return
+    return;
   }
-
-  if (!isSpeedoMeterSensor) return;
 
   if (speedometer.occupied) {
 
@@ -1654,7 +1648,7 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
       speedometer.endTime[wcEnd] = speedometer.lastMeasurementEvent;
 
       float timeDiffSpeed  = (speedometer.endTime[wcEnd] - speedometer.startTime[wcEnd]) / 1000;
-      speedometer.trainSpeed[wcEnd] = SM_DISTANCE / timeDiffSpeed;
+      speedometer.trainSpeed[wcEnd] = speedometerConfiguration.distance / timeDiffSpeed;
 
       if (wcEnd == 0) {
         speedometer.trainLength[wcEnd]   = 0;
@@ -1682,7 +1676,7 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
     }
 
     // no length measurement or wheelcounter similar or timeout
-    if (millis() >= speedometer.lastMeasurementEvent + SM_TIMEOUT){
+    if (millis() >= speedometer.lastMeasurementEvent + speedometerConfiguration.timeOut){
       mcLog2("Speedometer reset (2)!", LOG_INFO);
       speedometer.occupied = false;
       speedometer.wheelcounter[speedometer.startSensor] = -1;
@@ -1695,11 +1689,11 @@ void handleSpeedometerSensorEvent(int triggeredSensor) {
   //-------------------------------------------------
   // Speedometer is free, handle startSensor-Events
   //-------------------------------------------------
-  if (!speedometer.occupied && millis() - speedometer.measurementDone >= SM_TIME_BETWEEN_MEASUREMENTS) {
+  if (!speedometer.occupied && millis() - speedometer.measurementDone >= speedometerConfiguration.timeBetweenMeasurements) {
     speedometer.lastMeasurementEvent = millis();
 
     speedometer.startSensor = triggeredSensor;
-    speedometer.endSensor   = (SM_NUM_SENSORS - 1) - triggeredSensor;
+    speedometer.endSensor   = 1 - triggeredSensor;
     speedometer.occupied = true;
     speedometer.wheelcounter[speedometer.startSensor] = 0;
     speedometer.wheelcounter[speedometer.endSensor]   = -1;
@@ -1717,7 +1711,7 @@ void speedometerLoop() {
 
   if (speedometer.occupied) {
     // no length measurement or wheelcounter smilar or timeout
-    if (millis() >= speedometer.lastMeasurementEvent + SM_TIMEOUT) {
+    if (millis() >= speedometer.lastMeasurementEvent + speedometerConfiguration.timeOut) {
       mcLog2("Speedometer reset (1)!", LOG_INFO);
       speedometer.occupied = false;
       speedometer.wheelcounter[speedometer.startSensor] = -1;
@@ -1734,10 +1728,10 @@ void speedometerLoop() {
 
   unsigned long actMillis = millis();
 
-  if (!speedometer.occupied && actMillis - speedometer.measurementDone < SM_TIME_BETWEEN_MEASUREMENTS && actMillis - speedometer.lastMeasurementEvent > 1000) {
-      int remaningDuration = (SM_TIME_BETWEEN_MEASUREMENTS - (millis() - speedometer.measurementDone)) / 1000;
+  if (!speedometer.occupied && actMillis - speedometer.measurementDone < speedometerConfiguration.timeBetweenMeasurements && actMillis - speedometer.lastMeasurementEvent > 1000) {
+      int remaningDuration = (speedometerConfiguration.timeBetweenMeasurements - (millis() - speedometer.measurementDone)) / 1000;
       if ((remaningDuration < 5 || remaningDuration % 5 == 0) && remaningDuration > 0){
-        mcLog2("Minimum time between measurements: " + String((int)(SM_TIME_BETWEEN_MEASUREMENTS - (millis() - speedometer.measurementDone)) / 1000) + " seconds remaining", LOG_DEBUG);
+        mcLog2("Minimum time between measurements: " + String((int)(speedometerConfiguration.timeBetweenMeasurements - (millis() - speedometer.measurementDone)) / 1000) + " seconds remaining", LOG_DEBUG);
         speedometer.lastMeasurementEvent = actMillis;
       }
     }
@@ -1746,7 +1740,7 @@ void speedometerLoop() {
 
 #if USE_U8G2
   // display the very cool MattzoBricks screensaver
-  if (!speedometer.occupied && actMillis - speedometer.measurementDone >= SM_TIME_TO_SHOW_RESULTS && actMillis - speedometer.animationDelay >= 100) {
+  if (!speedometer.occupied && actMillis - speedometer.measurementDone >= speedometerConfiguration.timeToShowResults && actMillis - speedometer.animationDelay >= 100) {
     static byte rotor = 0;
 
     u8g2.clearBuffer();
