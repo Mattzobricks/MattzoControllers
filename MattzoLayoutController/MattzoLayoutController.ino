@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "MattzoLayoutController_Configuration_LevelCrossing.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -85,11 +85,11 @@ struct LevelCrossing {
 
   bool boomBarrierActionInProgress = true;
   bool closeBoomsImmediately = false;
-  float servoAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
-  float servoAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
+  float servoAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
+  float servoAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
   float servoAngleIncrementPerSec = 0;
-  float servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
-  float servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
+  float servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
+  float servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
   unsigned long lastBoomBarrierTick_ms = 0;
 
   unsigned int sensorEventCounter[LC_NUM_TRACKS][2][2];
@@ -328,7 +328,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
 
     // Check if port is used to control a level crossing
-    if (LEVEL_CROSSING_CONNECTED && (rr_port1 == LEVEL_CROSSING_RR_PORT)) {
+    if (LEVEL_CROSSING_CONNECTED && (rr_port1 == levelCrossingConfiguration.rocRailPort)) {
       mcLog2("This is a level crossing command.", LOG_DEBUG);
       levelCrossingCommand(switchCommand);
       return;
@@ -537,7 +537,7 @@ void handleSignalMessage(int rr_port) {
         for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
           bool onOff = signalConfiguration[s].aspectLEDMapping[a][l];
           mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + (onOff ? "on" : "off"), LOG_INFO);
-          setSignalLED(signalConfiguration[s].aspectLEDPort[l], onOff);
+          setLED(signalConfiguration[s].aspectLEDPort[l], onOff);
         }
 
         // set the desired servo angle of the form signal
@@ -762,54 +762,54 @@ void sendSwitchSensorEvent(int switchIndex, int switchCommand, bool sensorState)
 
 
 // switches a signal on or off
-void setSignalLED(int signalIndex, bool ledState) {
-  if (signalIndex < 0)
+void setLED(int ledIndex, bool ledState) {
+  if (ledIndex < 0)
     return;
 
-  if (ledConfiguration[signalIndex].pinType == 0) {
-    digitalWrite(ledConfiguration[signalIndex].pin, ledState ? LOW : HIGH);
+  if (ledConfiguration[ledIndex].pinType == 0) {
+    digitalWrite(ledConfiguration[ledIndex].pin, ledState ? LOW : HIGH);
   }
 #if USE_PCA9685
-  else if (ledConfiguration[signalIndex].pinType >= 0x40) {
+  else if (ledConfiguration[ledIndex].pinType >= 0x40) {
     if (ledState) {
       // full bright
-      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 4096, 0);
+      pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 4096, 0);
       // half bright (strongly dimmed)
-      // pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 2048);
+      // pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 0, 2048);
       // 3/4 bright (slightly dimmed)
-      // pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 3072);
+      // pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 0, 3072);
     }
     else {
       // off
-      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 4096);
+      pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 0, 4096);
     }
   }
 #endif
 }
 
 // fades a signal. "brightness" is a value between 0 (off) and 1023 (full bright)
-void fadeSignalLED(int signalIndex, int brightness) {
-  if (signalIndex < 0)
+void fadeLED(int ledIndex, int brightness) {
+  if (ledIndex < 0)
     return;
 
   brightness = min(max(brightness, 0), 1023);
   
-  if (ledConfiguration[signalIndex].pinType == 0) {
-    analogWrite(ledConfiguration[signalIndex].pin, 1023 - brightness);
+  if (ledConfiguration[ledIndex].pinType == 0) {
+    analogWrite(ledConfiguration[ledIndex].pin, 1023 - brightness);
   }
 #if USE_PCA9685
-  else if (ledConfiguration[signalIndex].pinType >= 0x40) {
+  else if (ledConfiguration[ledIndex].pinType >= 0x40) {
     if (brightness == 1023) {
       // full bright
-      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 4096);
+      pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 0, 4096);
     }
     else if (brightness == 0) {
       // off
-      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 4096, 0);
+      pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 4096, 0);
     }
     else {
       // some other brightness value
-      pca9685[ledConfiguration[signalIndex].pinType - 0x40].setPWM(ledConfiguration[signalIndex].pin, 0, 4096 - brightness * 4);
+      pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 0, 4096 - brightness * 4);
     }
   }
 #endif
@@ -821,29 +821,29 @@ void levelCrossingCommand(int levelCrossingCommand) {
   if (levelCrossingCommand == 0) { // open
     if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::OPEN) {
       // If level crossing operates in autonomous mode, check if a track is occupied
-      if (!LC_AUTONOMOUS_MODE || !lcIsOccupied()) {
+      if (!levelCrossingConfiguration.autonomousModeEnabled || !lcIsOccupied()) {
         levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
-        levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_UP;
-        levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_UP;
-        levelCrossing.servoAngleIncrementPerSec = abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) * 1000 / LC_BOOM_BARRIER_OPENING_PERIOD_MS;
+        levelCrossing.servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
+        levelCrossing.servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
+        levelCrossing.servoAngleIncrementPerSec = abs(levelCrossingConfiguration.bbAnglePrimaryUp - levelCrossingConfiguration.bbAnglePrimaryDown) * 1000 / levelCrossingConfiguration.bbOpeningPeriod_ms;
         mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerSec) + " deg/s.", LOG_INFO);
         levelCrossing.lastStatusChangeTime_ms = millis();
         levelCrossing.boomBarrierActionInProgress = true;
-        sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_CLOSED, false);
+        sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsClosed, false);
       }
     }
   }
   else if (levelCrossingCommand == 1) { // closed
     if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::CLOSED) {
       levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
-      levelCrossing.servoTargetAnglePrimaryBooms = LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN;
-      levelCrossing.servoTargetAngleSecondaryBooms = LC_BOOM_BARRIER_ANGLE_SECONDARY_DOWN;
-      levelCrossing.servoAngleIncrementPerSec = abs(LC_BOOM_BARRIER_ANGLE_PRIMARY_UP - LC_BOOM_BARRIER_ANGLE_PRIMARY_DOWN) * 1000 / LC_BOOM_BARRIER_CLOSING_PERIOD_MS;
+      levelCrossing.servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryDown;
+      levelCrossing.servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryDown;
+      levelCrossing.servoAngleIncrementPerSec = abs(levelCrossingConfiguration.bbAnglePrimaryUp - levelCrossingConfiguration.bbAnglePrimaryDown) * 1000 / levelCrossingConfiguration.bbClosingPeriod_ms;
       mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerSec) + " deg/s.", LOG_INFO);
       levelCrossing.lastStatusChangeTime_ms = millis();
       levelCrossing.closeBoomsImmediately = levelCrossing.boomBarrierActionInProgress;  // close booms immediately if booms were not fully open yet.
       levelCrossing.boomBarrierActionInProgress = true;
-      sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_OPENED, false);
+      sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsOpened, false);
     }
   }
   else {
@@ -870,7 +870,7 @@ void boomBarrierLoop() {
   }
   
   // Move primary booms?
-  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + LC_BOOM_BARRIER1_CLOSING_DELAY_MS) && levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
+  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms) && levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
     if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {
       newServoAnglePrimaryBooms = min(levelCrossing.servoAnglePrimaryBooms + servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
     }
@@ -883,7 +883,7 @@ void boomBarrierLoop() {
   }
 
   // Move secondary booms?
-  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + LC_BOOM_BARRIER2_CLOSING_DELAY_MS) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
+  if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelaySecondary_ms) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
     // Yepp, move secondary booms!
     if (levelCrossing.servoAngleSecondaryBooms < levelCrossing.servoTargetAngleSecondaryBooms) {
       newServoAngleSecondaryBooms = min(levelCrossing.servoAngleSecondaryBooms + servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
@@ -897,55 +897,55 @@ void boomBarrierLoop() {
   }
 
   for (int bb = 0; bb < LC_NUM_BOOM_BARRIERS; bb++) {
-    setServoAngle(LC_BOOM_BARRIER_SERVO_PIN[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
+    setServoAngle(levelCrossingConfiguration.servoIndex[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
   }
 
   // Final boom barrier position reached?
   if ((levelCrossing.servoAnglePrimaryBooms == levelCrossing.servoTargetAnglePrimaryBooms) && (levelCrossing.servoAngleSecondaryBooms == levelCrossing.servoTargetAngleSecondaryBooms)) {
     levelCrossing.boomBarrierActionInProgress = false;
     if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN) {
-      sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_OPENED, true);
+      sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsOpened, true);
     }
     else {
-      sendSensorEvent2MQTT(LEVEL_CROSSING_SENSOR_BOOMS_CLOSED, true);
+      sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsClosed, true);
     }
   }
 }
 
 void levelCrossingLightLoop() {
-  // alternate all signal LEDs every LC_SIGNAL_FLASH_PERIOD_MS / 2 milliseconds
+  // alternate all signal LEDs every levelCrossingConfiguration.ledFlashingPeriod_ms / 2 milliseconds
   unsigned long now_ms = millis();
   bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || levelCrossing.boomBarrierActionInProgress;
-  bool alternatePeriod = (now_ms % LC_SIGNAL_FLASH_PERIOD_MS) > (LC_SIGNAL_FLASH_PERIOD_MS / 2);
+  bool alternatePeriod = (now_ms % levelCrossingConfiguration.ledFlashingPeriod_ms) > (levelCrossingConfiguration.ledFlashingPeriod_ms / 2);
 
-  for (int s = 0; s < LC_NUM_SIGNALS; s++) {
-    if (LC_SIGNALS_FADING) {
+  for (int s = 0; s < LC_NUM_LEDS; s++) {
+    if (levelCrossingConfiguration.ledsFading) {
       // fading lights
       int brightness = 0;
       if (lightsActive) {
-        brightness = map(abs(LC_SIGNAL_FLASH_PERIOD_MS / 2 - ((now_ms + LC_SIGNAL_FLASH_PERIOD_MS * s / 2) % LC_SIGNAL_FLASH_PERIOD_MS)), 0, LC_SIGNAL_FLASH_PERIOD_MS / 2, -768, 1280);
+        brightness = map(abs(levelCrossingConfiguration.ledFlashingPeriod_ms / 2 - ((now_ms + levelCrossingConfiguration.ledFlashingPeriod_ms * s / 2) % levelCrossingConfiguration.ledFlashingPeriod_ms)), 0, levelCrossingConfiguration.ledFlashingPeriod_ms / 2, -768, 1280);
       }
-      fadeSignalLED(LC_SIGNAL_PIN[s], brightness);
+      fadeLED(levelCrossingConfiguration.ledIndex[s], brightness);
     } else {
       // flashing lights
-      setSignalLED(LC_SIGNAL_PIN[s], lightsActive && (((s % 2) == 0) ^ alternatePeriod));
+      setLED(levelCrossingConfiguration.ledIndex[s], lightsActive && (((s % 2) == 0) ^ alternatePeriod));
     }
   }
 }
 
 // Handle level crossing sensor events
 void handleLevelCrossingSensorEvent(int triggeredSensor) {
-  if (!LEVEL_CROSSING_CONNECTED || !LC_AUTONOMOUS_MODE) return;
+  if (!LEVEL_CROSSING_CONNECTED || !levelCrossingConfiguration.autonomousModeEnabled) return;
 
   mcLog2("Checking if sensor " + String(triggeredSensor) + " is a level crossing sensor...", LOG_DEBUG);
 
   // Iterate level crossing sensors
   for (int lcs = 0; lcs < LC_NUM_SENSORS; lcs++) {
     // Check if triggered sensors is level crossing sensor
-    if (LC_SENSORS_INDEX[lcs] == triggeredSensor) {
-      int track = LC_SENSORS_TRACK[lcs];
-      int purposeConfig = LC_SENSORS_PURPOSE[lcs];
-      int orientation = LC_SENSORS_ORIENTATION[lcs];
+    if (triggeredSensor == levelCrossingConfiguration.sensorConfiguration[lcs].sensorIndex) {
+      int track = levelCrossingConfiguration.sensorConfiguration[lcs].track;
+      int purposeConfig = levelCrossingConfiguration.sensorConfiguration[lcs].purpose;
+      int orientation = levelCrossingConfiguration.sensorConfiguration[lcs].orientation;
 
       mcLog2("> Sensor " + String(triggeredSensor) + " is a level crossing sensor, track " + String(track) + ", purpose " + String(purposeConfig) + ", orientation " + (String(orientation) ? "-" : "+"), LOG_DEBUG);
 
@@ -985,7 +985,7 @@ void handleLevelCrossingSensorEvent(int triggeredSensor) {
         }
       }
 
-      levelCrossing.trackOccupiedTimeout_ms[track] = millis() + LC_AUTONOMOUS_MODE_TRACK_TIMEOUT_MS;
+      levelCrossing.trackOccupiedTimeout_ms[track] = millis() + levelCrossingConfiguration.trackReleaseTimeout_ms;
       writeLevelCrossingStatusInfo();
     }
   }
@@ -1045,7 +1045,7 @@ void levelCrossingLoop() {
   if (LEVEL_CROSSING_CONNECTED) {
     boomBarrierLoop();
     levelCrossingLightLoop();
-    if (LC_AUTONOMOUS_MODE) {
+    if (levelCrossingConfiguration.autonomousModeEnabled) {
       checkLevelCrossingTrackTimeouts();
     }
   }
@@ -1095,40 +1095,40 @@ void setBridgeLights() {
 
   switch (bridge.bridgeStatus) {
   case BridgeStatus::CLOSED:
-    setSignalLED(bridgeConfiguration.signalRiverStop, true);
-    setSignalLED(bridgeConfiguration.signalRiverPrep, false);
-    setSignalLED(bridgeConfiguration.signalRiverGo, false);
-    setSignalLED(bridgeConfiguration.signalBlinkLight, false);
+    setLED(bridgeConfiguration.signalRiverStop, true);
+    setLED(bridgeConfiguration.signalRiverPrep, false);
+    setLED(bridgeConfiguration.signalRiverGo, false);
+    setLED(bridgeConfiguration.signalBlinkLight, false);
     break;
   case BridgeStatus::OPENING:
-    setSignalLED(bridgeConfiguration.signalRiverStop, blinkState);
-    setSignalLED(bridgeConfiguration.signalRiverPrep, true);
-    setSignalLED(bridgeConfiguration.signalRiverGo, false);
-    setSignalLED(bridgeConfiguration.signalBlinkLight, flashState);
+    setLED(bridgeConfiguration.signalRiverStop, blinkState);
+    setLED(bridgeConfiguration.signalRiverPrep, true);
+    setLED(bridgeConfiguration.signalRiverGo, false);
+    setLED(bridgeConfiguration.signalBlinkLight, flashState);
     break;
   case BridgeStatus::OPENED:
-    setSignalLED(bridgeConfiguration.signalRiverStop, false);
-    setSignalLED(bridgeConfiguration.signalRiverPrep, false);
-    setSignalLED(bridgeConfiguration.signalRiverGo, true);
-    setSignalLED(bridgeConfiguration.signalBlinkLight, false);
+    setLED(bridgeConfiguration.signalRiverStop, false);
+    setLED(bridgeConfiguration.signalRiverPrep, false);
+    setLED(bridgeConfiguration.signalRiverGo, true);
+    setLED(bridgeConfiguration.signalBlinkLight, false);
     break;
   case BridgeStatus::CLOSING:
-    setSignalLED(bridgeConfiguration.signalRiverStop, true);
-    setSignalLED(bridgeConfiguration.signalRiverPrep, false);
-    setSignalLED(bridgeConfiguration.signalRiverGo, false);
-    setSignalLED(bridgeConfiguration.signalBlinkLight, flashState);
+    setLED(bridgeConfiguration.signalRiverStop, true);
+    setLED(bridgeConfiguration.signalRiverPrep, false);
+    setLED(bridgeConfiguration.signalRiverGo, false);
+    setLED(bridgeConfiguration.signalBlinkLight, flashState);
     break;
   case BridgeStatus::UNDEFINED:
-    setSignalLED(bridgeConfiguration.signalRiverStop, blinkState);
-    setSignalLED(bridgeConfiguration.signalRiverPrep, !blinkState);
-    setSignalLED(bridgeConfiguration.signalRiverGo, blinkState);
-    setSignalLED(bridgeConfiguration.signalBlinkLight, !blinkState);
+    setLED(bridgeConfiguration.signalRiverStop, blinkState);
+    setLED(bridgeConfiguration.signalRiverPrep, !blinkState);
+    setLED(bridgeConfiguration.signalRiverGo, blinkState);
+    setLED(bridgeConfiguration.signalBlinkLight, !blinkState);
     break;
   case BridgeStatus::ERRoR:
-    setSignalLED(bridgeConfiguration.signalRiverStop, flashState);
-    setSignalLED(bridgeConfiguration.signalRiverPrep, !blinkState);
-    setSignalLED(bridgeConfiguration.signalRiverGo, blinkState);
-    setSignalLED(bridgeConfiguration.signalBlinkLight, !flashState);
+    setLED(bridgeConfiguration.signalRiverStop, flashState);
+    setLED(bridgeConfiguration.signalRiverPrep, !blinkState);
+    setLED(bridgeConfiguration.signalRiverGo, blinkState);
+    setLED(bridgeConfiguration.signalBlinkLight, !flashState);
     break;
   }
 }
