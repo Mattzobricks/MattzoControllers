@@ -171,6 +171,7 @@ const bool AUTO_LIGHTS = false;
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to true if LED is installed (if not: false)
 uint8_t STATUS_LED_PIN = 0;
+bool STATUS_LED_REVERSE = false;
 
 
 // ****************
