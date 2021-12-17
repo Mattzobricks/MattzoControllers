@@ -52,14 +52,14 @@
 // PCA9685 WIRING CONFIGURATION
 
 // PCA9685 port expander used?
-#define USE_PCA9685 false
+#define USE_PCA9685 true
 
 // PCA9685 OE pin supported?
 bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
 uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained PCA9685 port extenders
-#define NUM_PCA9685s 1
+#define NUM_PCA9685s 2
 
 
 // Infos for I/O port expander MCP23017
@@ -87,16 +87,20 @@ uint8_t PCA9685_OE_PIN = D0;
 // MCP23017 WIRING CONFIGURATION
 
 // MCP23017 port expander used?
-#define USE_MCP23017 false
+#define USE_MCP23017 true
 
 // Number of chained MCP23017 port extenders
-#define NUM_MCP23017s 1
+#define NUM_MCP23017s 2
+
+
+// U8g2 Display used?
+#define USE_U8G2 false
 
 
 // SERVO WIRING CONFIGURATION
 
 // Number of servos
-const int NUM_SERVOS = 6;
+const int NUM_SERVOS = 16;
 
 struct ServoConfiguration {
   // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
@@ -116,34 +120,84 @@ struct ServoConfiguration {
 } servoConfiguration[NUM_SERVOS] =
 {
   {
-    .pin = D0,
-    .pinType = 0,
-    .detachAfterUsage = true
+    .pin = 0,
+    .pinType = 0x40,
+    .detachAfterUsage = false
   },
   {
-    .pin = D1,
-    .pinType = 0,
-    .detachAfterUsage = true
+    .pin = 1,
+    .pinType = 0x40,
+    .detachAfterUsage = false
   },
   {
-    .pin = D2,
-    .pinType = 0,
-    .detachAfterUsage = true
+    .pin = 2,
+    .pinType = 0x40,
+    .detachAfterUsage = false
   },
   {
-    .pin = D3,
-    .pinType = 0,
-    .detachAfterUsage = true
+    .pin = 3,
+    .pinType = 0x40,
+    .detachAfterUsage = false
   },
   {
-    .pin = D6,
-    .pinType = 0,
-    .detachAfterUsage = true
+    .pin = 4,
+    .pinType = 0x40,
+    .detachAfterUsage = false
   },
   {
-    .pin = D7,
-    .pinType = 0,
-    .detachAfterUsage = true
+    .pin = 5,
+    .pinType = 0x40,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 6,
+    .pinType = 0x40,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 7,
+    .pinType = 0x40,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 0,
+    .pinType = 0x41,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 1,
+    .pinType = 0x41,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 2,
+    .pinType = 0x41,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 3,
+    .pinType = 0x41,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 4,
+    .pinType = 0x41,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 5,
+    .pinType = 0x41,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 6,
+    .pinType = 0x41,
+    .detachAfterUsage = false
+  },
+  {
+    .pin = 7,
+    .pinType = 0x41,
+    .detachAfterUsage = false
   },
 };
 
@@ -153,10 +207,10 @@ struct ServoConfiguration {
 // Number of LEDs
 // LEDs are used in signals, level crossing lights or bascule bridge lights
 // As an example, 2 LEDs are required for a light signal with 2 aspects
-const int NUM_LEDS = 2;
+const int NUM_LEDS = 6;
 
 struct LEDConfiguration {
-// Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+  // Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
   uint8_t pin;
 
   // Type of digital output pins for led
@@ -171,12 +225,28 @@ struct LEDConfiguration {
 } ledConfiguration[NUM_LEDS] =
 {
   {
-    .pin = D4,
-    .pinType = 0
+    .pin = 14,
+    .pinType = 0x21
   },
   {
-    .pin = D5,
-    .pinType = 0
+    .pin = 15,
+    .pinType = 0x21
+  },
+  {
+    .pin = 8,
+    .pinType = 0x40
+  },
+  {
+    .pin = 9,
+    .pinType = 0x40
+  },
+  {
+    .pin = 8,
+    .pinType = 0x41
+  },
+  {
+    .pin = 9,
+    .pinType = 0x41
   }
 };
 
@@ -190,7 +260,7 @@ struct LEDConfiguration {
 #define REMOTE_SENSORS_ENABLED false
 
 // Number of sensors connected or connectable to the controller
-#define NUM_SENSORS 0
+#define NUM_SENSORS 30
 
 // Constants for type of digital input pins for sensors
 // 0   : local sensor on the ESP-8266 (D0 .. D8)
@@ -203,6 +273,7 @@ struct LEDConfiguration {
 #define REMOTE_SENSOR_PIN_TYPE 0x10
 #define VIRTUAL_SENSOR_PIN_TYPE 0x11
 #define MCP23017_SENSOR_PIN_TYPE 0x20
+#define MCP23017_SENSOR_PIN_TYPE2 0x21
 
 struct SensorConfiguration {
   // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
@@ -216,22 +287,174 @@ struct SensorConfiguration {
   // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
   // If sensor is local or virtual, the value has no meaning (set to -1 by convention)
   int remoteMattzoControllerId;
-} sensorConfiguration[NUM_SENSORS] = {};
+} sensorConfiguration[NUM_SENSORS] =
+{
+  {
+    .pin = 0,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 1,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 2,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 3,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 4,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 5,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 6,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 7,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 8,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 9,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 10,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 11,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 12,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 13,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 14,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 15,
+    .pinType = MCP23017_SENSOR_PIN_TYPE,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 0,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 1,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 2,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 3,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 4,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 5,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 6,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 7,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 8,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 9,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 10,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 11,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 12,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+  {
+    .pin = 13,
+    .pinType = MCP23017_SENSOR_PIN_TYPE2,
+    .remoteMattzoControllerId = -1
+  },
+};
 
 
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-uint8_t STATUS_LED_PIN = D8;
-bool STATUS_LED_REVERSE = false;
+uint8_t STATUS_LED_PIN = D4;
+bool STATUS_LED_REVERSE = true;
 
 
 
 // SWITCH CONFIGURATION
 
 // Number of switches
-const int NUM_SWITCHES = 0;
+const int NUM_SWITCHES = 16;
 
 struct SwitchConfiguration {
   int rocRailPort;
@@ -244,24 +467,154 @@ struct SwitchConfiguration {
 
   // feedback sensors
   // set triggerSensors to true if used
-  // The first value in the sensorIndex is the index of the virtual sensor in the sensor array for the "straight" sensor, the second is for "turnout".
+  // The first value in the sensorIndex is the index of the virtual sensor in the sensorConfiguration array for the "straight" sensor, the second is for "turnout".
   // Both referenced sensors must be virtual sensors.
   bool triggerSensors;
   int sensorIndex[2];
-} switchConfiguration[NUM_SWITCHES] = {};
+} switchConfiguration[NUM_SWITCHES] =
+{
+  {
+    .rocRailPort = 1,
+    .servoIndex = 0,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 2,
+    .servoIndex = 1,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 3,
+    .servoIndex = 2,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 4,
+    .servoIndex = 3,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 5,
+    .servoIndex = 4,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 6,
+    .servoIndex = 5,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 7,
+    .servoIndex = 6,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 8,
+    .servoIndex = 7,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 9,
+    .servoIndex = 8,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 10,
+    .servoIndex = 9,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 11,
+    .servoIndex = 10,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 12,
+    .servoIndex = 11,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 13,
+    .servoIndex = 12,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 14,
+    .servoIndex = 13,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 15,
+    .servoIndex = 14,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  },
+  {
+    .rocRailPort = 16,
+    .servoIndex = 15,
+    .servo2Index = -1,
+    .servo2Reverse = -1,
+    .triggerSensors = false,
+    .sensorIndex = {-1, -1}
+  }
+};
 
 
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 6;
+const int NUM_SIGNALS = 3;
 // Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 3;
+const int NUM_SIGNAL_ASPECTS = 2;
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 1;
+const int NUM_SIGNAL_LEDS = 2;
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
-const int NUM_SIGNAL_SERVOS = 1;
+const int NUM_SIGNAL_SERVOS = 0;
 
 struct SignalConfiguration {
   // the port configured in Rocrail for an aspect
@@ -280,91 +633,35 @@ struct SignalConfiguration {
   int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
 } signalConfiguration[NUM_SIGNALS] =
 {
-  // signal 0 (N5): a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D0)
   {
-    .aspectRocrailPort = {1, 2, -1},
-    .aspectLEDPort = {-1},
+    .aspectRocrailPort = {1, 2},
+    .aspectLEDPort = {0, 1},
     .aspectLEDMapping = {
-      {false},
-      {false},
-      {false},
+      {true, false},
+      {false, true}
     },
-    .servoIndex = {0},
-    .aspectServoAngle = {
-      {180, 90, 0}
-    }
+    .servoIndex = {},
+    .aspectServoAngle = {}
   },
-  // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
   {
-    .aspectRocrailPort = {3, 4, -1},
-    .aspectLEDPort = {-1},
+    .aspectRocrailPort = {3, 4},
+    .aspectLEDPort = {2, 3},
     .aspectLEDMapping = {
-      {false},
-      {false},
-      {false},
+      {true, false},
+      {false, true}
     },
-    .servoIndex = {1},
-    .aspectServoAngle = {
-      {170, 115, -1}
-    }
+    .servoIndex = {},
+    .aspectServoAngle = {}
   },
-  // signal 2 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
-  // The signal LED port (index 0, D4) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
   {
-    .aspectRocrailPort = {5, 6, 7},
-    .aspectLEDPort = {0},
+    .aspectRocrailPort = {5, 6},
+    .aspectLEDPort = {4, 5},
     .aspectLEDMapping = {
-      {false},
-      {false},
-      {true}
+      {true, false},
+      {false, true}
     },
-    .servoIndex = {2},
-    .aspectServoAngle = {
-      {90, 15, 160}
-    }
-  },
-  // signal 3 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
-  // The signal LED port (index 1, D5) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
-  {
-    .aspectRocrailPort = {8, 9, 10},
-    .aspectLEDPort = {1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {true}
-    },
-    .servoIndex = {3},
-    .aspectServoAngle = {
-      {90, 15, 160}
-    }
-  },
-  // signal 4 (Vs3): distant form signal with 3 aspects, controlled via Rocrail ports 11, 12 and 13, using servo index 4 (D6)
-  {
-    .aspectRocrailPort = {11, 12, 13},
-    .aspectLEDPort = {-1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {false}
-    },
-    .servoIndex = {4},
-    .aspectServoAngle = {
-      {8, 70, 113}
-    }
-  },
-  // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
-  {
-    .aspectRocrailPort = {14, 15, 16},
-    .aspectLEDPort = {-1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {false}
-    },
-    .servoIndex = {5},
-    .aspectServoAngle = {
-      {8, 70, 113}
-    }
+    .servoIndex = {},
+    .aspectServoAngle = {}
   }
 };
 
@@ -520,7 +817,7 @@ struct BridgeConfiguration {
 // SPEEDOMETER CONFIGURATION
 
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
-bool SPEEDOMETER_CONNECTED = true;
+bool SPEEDOMETER_CONNECTED = false;
 
 enum struct SpeedometerSpeedUnit
 {

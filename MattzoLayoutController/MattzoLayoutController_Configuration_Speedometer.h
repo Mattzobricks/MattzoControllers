@@ -133,6 +133,9 @@ struct LEDConfiguration {
 
   // Type of digital output pins for led
   // 0   : LED output pin on the ESP-8266
+  // 0x20: LED port on the 1st MCP23017
+  // 0x21: LED port on the 2nd MCP23017
+  // 0x22: LED port on the 3rd MCP23017 etc.
   // 0x40: LED port on the 1st PCA9685
   // 0x41: LED port on the 2nd PCA9685
   // 0x42: LED port on the 3rd PCA9685 etc.
