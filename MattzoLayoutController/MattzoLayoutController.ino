@@ -195,16 +195,25 @@ void setup() {
   setupU8g2();
 #endif
 
-  // initialize signal pins
+  int m;
+
+  // initialize LED pins
   for (int i = 0; i < NUM_LEDS; i++) {
     if (ledConfiguration[i].pinType == 0) {
-      // signal connected directly to the controller
+      // LED connected directly to the controller
       pinMode(ledConfiguration[i].pin, OUTPUT);
     }
     else if (ledConfiguration[i].pinType >= 0x40) {
-      // signal connected to PCA9685
+      // LED connected to PCA9685
       // no action required
     }
+#if USE_MCP23017
+    else if (ledConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE && ledConfiguration[i].pinType < 0x40) {
+      // LED connected to MCP23017
+      m = ledConfiguration[i].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
+      mcp23017[m].pinMode(ledConfiguration[i].pin, OUTPUT);
+    }
+#endif
   }
 
   // initialize sensor pins
@@ -214,15 +223,15 @@ void setup() {
       pinMode(sensorConfiguration[i].pin, INPUT_PULLUP);
       sensorTriggerState[i] = (sensorConfiguration[i].pin == D8) ? HIGH : LOW;
     }
-    else if (sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
-      // sensor connected to MCP23017
 #if USE_MCP23017
-      int m = sensorConfiguration[i].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
+    else if (sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE && sensorConfiguration[i].pinType < 0x40) {
+      // sensor connected to MCP23017
+      m = sensorConfiguration[i].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
       mcp23017[m].pinMode(sensorConfiguration[i].pin, INPUT);
       mcp23017[m].pullUp(sensorConfiguration[i].pin, HIGH); // turn on a 100K pull-up resistor internally
       sensorTriggerState[i] = LOW;
-#endif
     }
+#endif
     sensorState[i] = false;
   }
 
@@ -609,13 +618,13 @@ void monitorSensors() {
         // sensor directly connected to ESP8266
         sensorValue = digitalRead(sensorConfiguration[i].pin);
       }
-      else if (sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
-        // sensor connected to MCP23017
   #if USE_MCP23017
+      else if (sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE && sensorConfiguration[i].pinType < 0x40) {
+        // sensor connected to MCP23017
         int m = sensorConfiguration[i].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
         sensorValue = mcp23017[m].digitalRead(sensorConfiguration[i].pin);
-  #endif
       }
+  #endif
   
       if (sensorValue == sensorTriggerState[i]) {
         // Contact -> report contact immediately
@@ -772,6 +781,7 @@ void setLED(int ledIndex, bool ledState) {
   }
 #if USE_PCA9685
   else if (ledConfiguration[ledIndex].pinType >= 0x40) {
+    // LED connected to PCA9685
     if (ledState) {
       // full bright
       pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 4096, 0);
@@ -784,6 +794,13 @@ void setLED(int ledIndex, bool ledState) {
       // off
       pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 0, 4096);
     }
+  }
+#endif
+#if USE_MCP23017
+  else if (ledConfiguration[ledIndex].pinType >= MCP23017_SENSOR_PIN_TYPE && ledConfiguration[ledIndex].pinType < 0x40) {
+    // LED connected to MCP23017
+    int m = ledConfiguration[ledIndex].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
+    mcp23017[m].digitalWrite(ledConfiguration[ledIndex].pin, ledState ? LOW : HIGH);
   }
 #endif
 }
@@ -812,6 +829,14 @@ void fadeLED(int ledIndex, int brightness) {
       // some other brightness value
       pca9685[ledConfiguration[ledIndex].pinType - 0x40].setPWM(ledConfiguration[ledIndex].pin, 0, 4096 - brightness * 4);
     }
+  }
+#endif
+#if USE_MCP23017
+  else if (ledConfiguration[ledIndex].pinType >= MCP23017_SENSOR_PIN_TYPE && ledConfiguration[ledIndex].pinType < 0x40) {
+    // LED connected to MCP23017
+    // The MCP23017 does not support analog output. If brightness is above 512, switch LED on, else off.
+    int m = ledConfiguration[ledIndex].pinType - MCP23017_SENSOR_PIN_TYPE;  // index of the MCP23017
+    mcp23017[m].digitalWrite(ledConfiguration[ledIndex].pin, brightness > 512 ? LOW : HIGH);
   }
 #endif
 }
