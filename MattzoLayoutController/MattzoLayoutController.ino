@@ -17,7 +17,7 @@
 #endif
 
 #if USE_MCP23017
-#include "Adafruit_MCP23017.h"
+#include "Adafruit_MCP23017.h"                // Adafruit MCP23017 library. Tested with version 1.3.0. Does NOT work with library version 2 or above.
 Adafruit_MCP23017 mcp23017[NUM_MCP23017s];
 #endif
 
@@ -247,7 +247,7 @@ void setupPCA9685() {
 void setupMCP23017() {
   for (int m = 0; m < NUM_MCP23017s; m++) {
     mcp23017[m] = Adafruit_MCP23017();
-    mcp23017[m].begin();
+    mcp23017[m].begin(m);
   }
 }
 #endif
