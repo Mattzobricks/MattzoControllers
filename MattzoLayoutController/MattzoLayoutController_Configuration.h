@@ -94,7 +94,7 @@ uint8_t PCA9685_OE_PIN = D0;
 
 
 // U8g2 Display used?
-#define USE_U8G2 true
+#define USE_U8G2 false
 
 
 // SERVO WIRING CONFIGURATION
