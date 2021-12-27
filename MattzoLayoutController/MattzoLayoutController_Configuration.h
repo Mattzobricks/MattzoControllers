@@ -485,7 +485,7 @@ struct BridgeConfiguration {
 // SPEEDOMETER CONFIGURATION
 
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
-bool SPEEDOMETER_CONNECTED = true;
+bool SPEEDOMETER_CONNECTED = false;
 
 enum struct SpeedometerSpeedUnit
 {
