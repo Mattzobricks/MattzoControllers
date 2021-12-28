@@ -448,10 +448,10 @@ struct SpeedometerConfiguration {
   .speedUnit = SpeedometerSpeedUnit::STUDS_PER_SECOND,
   .lengthUnit = SpeedometerLengthUnit::STUDS,
   .sensorIndex = {0, 1},  // must be 0 and 1!
-  .distance = 1000,
-  .timeOut = 5000,
-  .timeBetweenMeasurements = 5000,
-  .timeToShowResults = 10000
+  .distance = 792,  // 99 studs
+  .timeOut = 3000,
+  .timeBetweenMeasurements = 3000,
+  .timeToShowResults = 5000
 };
 
 
