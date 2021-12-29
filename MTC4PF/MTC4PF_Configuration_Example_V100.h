@@ -36,11 +36,11 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
   locoConf[0] = (MattzoLocoConfiguration) {
-    .locoName = "BR52",
-    .locoAddress = 52,
+    .locoName = "V100",
+    .locoAddress = 100,
     .accelerationInterval = 100,
-    .accelerateStep = 2,
-    .brakeStep = 2
+    .accelerateStep = 5,
+    .brakeStep = 10
   };
 
   return locoConf;
@@ -77,14 +77,14 @@ const int NUM_MOTORSHIELDS = 1;
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-  msConf[0] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "BR52",
+  msConf[0] = (MattzoMotorShieldConfiguration){
+      .motorShieldName = "V100",
       .motorShieldType = MotorShieldType::L9110,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = 1,
       .configMotorB = 1,
-      .locoAddress = 52
+      .locoAddress = 100
   };
 
   return msConf;
@@ -136,6 +136,7 @@ const bool AUTO_LIGHTS = true;
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;
+bool STATUS_LED_REVERSE = false;
 
 // Report battery level
 const bool REPORT_BATTERYLEVEL = false;           // set to true or false to allow or omit battery level reports

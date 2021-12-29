@@ -18,11 +18,6 @@
 
 
 
-// **********************************************************************************
-// Example file for configuring the MTC4PF to control a train with L9110 motor shield
-// **********************************************************************************
-
-
 // ***********
 // MattzoLocos
 // ***********
@@ -41,11 +36,11 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
   locoConf[0] = (MattzoLocoConfiguration) {
-    .locoName = "L7938",
-    .locoAddress = 7938,
+    .locoName = "BR52",
+    .locoAddress = 52,
     .accelerationInterval = 100,
-    .accelerateStep = 3,
-    .brakeStep = 10
+    .accelerateStep = 2,
+    .brakeStep = 2
   };
 
   return locoConf;
@@ -83,13 +78,13 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "L7938",
-      .motorShieldType = MotorShieldType::LEGO_IR_8884,
+      .motorShieldName = "BR52",
+      .motorShieldType = MotorShieldType::L9110,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = 1,
-      .configMotorB = 0,
-      .locoAddress = 7938
+      .configMotorB = 1,
+      .locoAddress = 52
   };
 
   return msConf;
@@ -103,7 +98,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 // Type of motor shield directly wired to the controller.
 // (The different motor shield types are defined in MTC4PF.ino)
 // Set to MotorShieldType::NONE if only virtual motor shields are used!
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::NONE;
+const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
 // Constants for motor shield type L298N
 #define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
@@ -116,27 +111,23 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::NONE;
 #define in4 D6  // pin for motor B direction control (reverse).
 
 // Constants for motorshield type Lego IR Receiver 8884
-#define IR_LED_PIN D0			// pin on which the IR LED is installed.
+#define IR_LED_PIN D7			// pin on which the IR LED is installed.
 #define IR_CHANNEL 0			// channel number selected on the Lego IR Receiver 8884. May be 0, 1, 2 or 3.
-#define IR_PORT_RED 1     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
+#define IR_PORT_RED 0     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 #define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
 
 // NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
 // If changed, the number of array values for FUNCTION_PIN below must be changed as well.
 // You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 6;
+const int NUM_FUNCTIONS = 2;
 
 // Digital pins for function output
 // For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
-// In this example:
-// D8: interior lightning
-// D1, D2: front lights. D1 on: red. D2 on: white.
-// D5, D6, D7: rear lights. D5+D6+D7 on: white. D5 on: red.
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D8, D1, D2, D5, D6, D7 };
+uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D2 };
 
 // The loco address for which the function pin will be triggered.
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
-int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0, 0, 0, 0, 0 };
+int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0 };
 
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and even numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
@@ -144,7 +135,7 @@ const bool AUTO_LIGHTS = true;
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-uint8_t STATUS_LED_PIN = D4;
+uint8_t STATUS_LED_PIN = D8;
 bool STATUS_LED_REVERSE = false;
 
 // Report battery level
@@ -169,37 +160,3 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MTC4PF";
-
-
-
-
-/*
-// execute light event
-// IF DESIRED, YOU MAY UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
-void lightEvent(LightEventType le, int locoIndex) {
-  if (!AUTO_LIGHTS)
-    return;
-
-  for (int i = 1; i < NUM_FUNCTIONS; i++) {
-    if (locoIndex == 0 || locoIndex == FUNCTION_PIN_LOCO_ADDRESS[i]) {
-      switch (le) {
-      case LightEventType::STOP:
-        mcLog("Light event stop");
-        // switch all functions off but the interior light
-        functionCommand[i] = false;
-        break;
-      case LightEventType::FORWARD:
-        mcLog("Light event forward");
-        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
-        functionCommand[i] = (i == 2) || (i == 3);
-        break;
-      case LightEventType::REVERSE:
-        mcLog("Light event reverse");
-        // UPDATE THIS CODE SO THAT IT FITS YOUR NEEDS!
-        functionCommand[i] = (i != 2);
-        break;
-      }
-    }
-  }
-}
-*/

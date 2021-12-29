@@ -223,6 +223,7 @@ const bool AUTO_LIGHTS = true;
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D8;
+bool STATUS_LED_REVERSE = false;
 
 // Report battery level
 const bool REPORT_BATTERYLEVEL = false;           // set to true or false to allow or omit battery level reports
