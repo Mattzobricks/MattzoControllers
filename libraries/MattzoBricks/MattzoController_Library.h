@@ -350,7 +350,7 @@ void setupSysLog(char *deviceHostname) {
     syslog.deviceHostname(deviceHostname);
     syslog.appName(SYSLOG_APP_NAME);
     syslog.defaultPriority(LOG_KERN);
-    syslog.logMask(LOG_UPTO(LOG_INFO));
+    syslog.logMask(LOG_UPTO(LOG_DEBUG));
     syslog.log(LOG_INFO, "Syslog setup done.");
   }
 }
