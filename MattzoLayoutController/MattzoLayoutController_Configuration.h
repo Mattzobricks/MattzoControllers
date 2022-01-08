@@ -93,10 +93,6 @@ uint8_t PCA9685_OE_PIN = D0;
 #define NUM_MCP23017s 1
 
 
-// U8g2 Display used?
-#define USE_U8G2 false
-
-
 // SERVO WIRING CONFIGURATION
 
 // Number of servos
