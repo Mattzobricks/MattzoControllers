@@ -1,4 +1,4 @@
-// MattzoController Network Configuration
+// MattzoController Configuration
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
 // License:
@@ -291,7 +291,7 @@ struct SignalConfiguration {
     },
     .servoIndex = {0},
     .aspectServoAngle = {
-      {180, 90, 0}
+      {180, 90, -1}
     }
   },
   // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)

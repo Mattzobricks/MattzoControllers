@@ -1,4 +1,4 @@
-// MattzoController Network Configuration
+// MattzoController Configuration
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
 // License:
