@@ -30,6 +30,12 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // 
 
                                                                              
 // SERVO VARIABLES AND CONSTANTS
+// Delay after which servo is detached after flipping a switch (for directly connected servos only)
+#define SERVO_DETACH_DELAY 2000
+
+// Maximum time that the detach procedure procedure will wait until the PWM signal is low and therefore ready to be detached (for directly connected servos only)
+#define MAX_WAIT_FOR_LOW_MS 100
+
 // Servo array
 struct MattzoServo {
   Servo servo;      // Servo object to control servos
@@ -46,27 +52,24 @@ Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
 // Power management for PCA9685
 // The PWM signals on the PCA9685 can be automatically turned off after a servo operation to prevent servos from overheat and to save electricity.
 // Time after which servos will go to sleep mode (in milliseconds; 3000 = 3 sec.)
-const int PCA9685_POWER_OFF_AFTER_MS = 3000;
+#define PCA9685_POWER_OFF_AFTER_MS 2000
 // Flag that keeps the present sleep mode state
 bool pca9685SleepMode = false;
 unsigned long pca9685SleepModeFrom_ms = 0;
 
 
 // SWITCH VARIABLES AND CONSTANTS
-// Delay after which servo is detached after flipping a switch (for directly connected servos)
-const int SERVO_DETACH_DELAY = 3000;
-
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
-const int SWITCHSERVO_MIN_ALLOWED = 40;   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
-const int SWITCHSERVO_MIN = 75;           // a good first guess for the minimum angle of TrixBrix servos is 70
-const int SWITCHSERVO_MAX = 85;           // a good first guess for the maximum angle of TrixBrix servos is 90
-const int SWITCHSERVO_MAX_ALLOWED = 120;  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
+#define SWITCHSERVO_MIN_ALLOWED 40   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
+#define SWITCHSERVO_MIN 75           // a good first guess for the minimum angle of TrixBrix servos is 70
+#define SWITCHSERVO_MAX 85           // a good first guess for the maximum angle of TrixBrix servos is 90
+#define SWITCHSERVO_MAX_ALLOWED 120  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
 
 
 // SENSOR VARIABLES AND CONSTANTS
 
 // Time in milliseconds until release event is reported after sensor has lost contact
-const int SENSOR_RELEASE_TICKS = 100;
+#define SENSOR_RELEASE_TICKS_MS 100
 bool sensorState[NUM_SENSORS];
 int sensorTriggerState[NUM_SENSORS];
 unsigned long lastSensorContact_ms[NUM_SENSORS];
@@ -403,7 +406,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
     // flip switch
     int servoAngle = (switchCommand == 1) ? rr_param1 : rr_value1;
-    mcLog2("Turning servo of switch index " + String(switchIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+    mcLog2("Flipping switch index " + String(switchIndex) + " to angle " + String(servoAngle), LOG_INFO);
     setServoAngle(switchConfiguration[switchIndex].servoIndex, servoAngle);
     // if double slip switch, a second servo might need to be switched
     if (switchConfiguration[switchIndex].servo2Index >= 0) {
@@ -543,10 +546,12 @@ void handleSignalMessage(int rr_port) {
         // found the aspect that corresponds with rr_port
         // -> set aspect a for signal s
 
+        mcLog2("Setting signal index " + String(s) + " to aspect that maps with rr port " + String(rr_port), LOG_INFO);
+
         // iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
         for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
           bool onOff = signalConfiguration[s].aspectLEDMapping[a][l];
-          mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + (onOff ? "on" : "off"), LOG_INFO);
+          mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + (onOff ? "on" : "off"), LOG_DEBUG);
           setLED(signalConfiguration[s].aspectLEDPort[l], onOff);
         }
 
@@ -555,7 +560,7 @@ void handleSignalMessage(int rr_port) {
           // skip servo if servo pin < 0 (this means "not used")
           if (signalConfiguration[s].servoIndex[servoIndex] >= 0) {
             int servoAngle = signalConfiguration[s].aspectServoAngle[servoIndex][a];
-            mcLog2("Turning servo index " + String(servoIndex) + " of signal " + String(s) + " to " + String(servoAngle), LOG_INFO);
+            mcLog2("Turning servo index " + String(servoIndex) + " of signal " + String(s) + " to " + String(servoAngle), LOG_DEBUG);
             setServoAngle(signalConfiguration[s].servoIndex[servoIndex], servoAngle);
           }
         }
@@ -615,7 +620,7 @@ void monitorSensors() {
     if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE || sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
       int sensorValue;
       if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE) {
-        // sensor directly connected to ESP8266
+        // sensor directly connected to ESP-8266
         sensorValue = digitalRead(sensorConfiguration[i].pin);
       }
   #if USE_MCP23017
@@ -638,8 +643,8 @@ void monitorSensors() {
         lastSensorContact_ms[i] = millis();
       }
       else {
-        // No contact for SENSOR_RELEASE_TICKS milliseconds -> report sensor has lost contact
-        if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS)) {
+        // No contact for SENSOR_RELEASE_TICKS_MS milliseconds -> report sensor has lost contact
+        if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS_MS)) {
           mcLog2("Sensor " + String(i) + " released.", LOG_INFO);
           sendSensorEvent2MQTT(i, false);
           sensorState[i] = false;
@@ -735,8 +740,17 @@ void checkEnableServoSleepMode() {
     if (servoConfiguration[servoIndex].pinType == 0 && servoConfiguration[servoIndex].detachAfterUsage) {
       if (millis() >= mattzoServo[servoIndex].lastSwitchingAction_ms + SERVO_DETACH_DELAY) {
         if (mattzoServo[servoIndex].servo.attached()) {
-          mcLog2("Detaching servo index " + String(servoIndex), LOG_DEBUG);
+          // wait for a LOW PWM signal
+          unsigned long startWaitForLow_ms = millis();
+          // begin by waiting for a HIGH PWM signal
+          while (digitalRead(servoConfiguration[servoIndex].pin) == LOW && millis() - startWaitForLow_ms < MAX_WAIT_FOR_LOW_MS) {
+          }
+          // now wait for a LOW PWM signal
+          while (digitalRead(servoConfiguration[servoIndex].pin) == HIGH && millis() - startWaitForLow_ms < MAX_WAIT_FOR_LOW_MS) {
+          }
+          // detach the servo NOW!
           mattzoServo[servoIndex].servo.detach();
+          mcLog2("Detaching servo index " + String(servoIndex) + " while pin state was " + String(digitalRead(servoConfiguration[servoIndex].pin) + ", waited " + String(millis() - startWaitForLow_ms) + " ms for low PWM signal."), LOG_DEBUG);
         }
       }
     }
