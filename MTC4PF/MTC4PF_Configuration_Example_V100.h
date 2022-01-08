@@ -129,6 +129,10 @@ uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D2 };
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
 int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0 };
 
+// PWM value for function output
+// max: 1023
+int FUNCTION_PWM_VALUE[NUM_FUNCTIONS] = { 1023, 1023 };
+
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and even numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
 const bool AUTO_LIGHTS = true;

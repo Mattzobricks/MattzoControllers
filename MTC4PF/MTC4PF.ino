@@ -6,9 +6,9 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-// ****************************************
-// TARGET-PLATTFORM for this sketch: ESP-12
-// ****************************************
+// ******************************************
+// TARGET-PLATTFORM for this sketch: ESP-8266
+// ******************************************
 
 // The following #include directives need some enum definitions before the compiler gets to them...
 // MOTORSHIELD_TYPE represents the type motor shield that this controller uses.
@@ -674,7 +674,9 @@ void setLights() {
           powerFunctions.single_pwm(MattzoPowerFunctionsPort::BLUE, irPwmLevel);
           break;
         default:
-          digitalWrite(FUNCTION_PIN[i], onOff ? HIGH : LOW);
+          int pwmValue = onOff ? FUNCTION_PWM_VALUE[i] : 0;
+          analogWrite(FUNCTION_PIN[i], pwmValue);
+          mcLog("Setting PWM value of pin " + String(FUNCTION_PIN[i]) + " to " + String(pwmValue));
       } // of switch
     } // of if
   } // of for

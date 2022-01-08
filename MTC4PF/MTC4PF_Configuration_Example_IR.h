@@ -130,13 +130,17 @@ const int NUM_FUNCTIONS = 6;
 // For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
 // In this example:
 // D8: interior lightning
-// D1, D2: front lights. D1 on: red. D2 on: white.
-// D5, D6, D7: rear lights. D5+D6+D7 on: white. D5 on: red.
+// D1, D2: front lights (Duo-LEDs with resistors). D1 on: red. D2 on: white.
+// D5, D6, D7: rear lights (RGB LEDs without resistors). D5+D6+D7 on: white. D5 on: red.
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D8, D1, D2, D5, D6, D7 };
 
 // The loco address for which the function pin will be triggered.
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
 int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0, 0, 0, 0, 0 };
+
+// PWM value for function output
+// max: 1023
+int FUNCTION_PWM_VALUE[NUM_FUNCTIONS] = { 1023, 1023, 1023, 620, 620, 620 };
 
 // Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and even numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.

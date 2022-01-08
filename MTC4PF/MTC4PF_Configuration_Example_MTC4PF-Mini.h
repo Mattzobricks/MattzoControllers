@@ -125,6 +125,10 @@ const int NUM_FUNCTIONS = 2;
 // For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
 uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D0, D2 };
 
+// PWM value for function output
+// max: 1023
+int FUNCTION_PWM_VALUE[NUM_FUNCTIONS] = { 1023, 1023 };
+
 // The loco address for which the function pin will be triggered.
 // You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
 int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0 };
