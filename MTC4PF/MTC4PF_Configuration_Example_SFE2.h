@@ -68,7 +68,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 //   and an additional "push" waggon in the middle of the train with an L9110 motorshield).
 
 // Number of motor shields controlled by this controller
-const int NUM_MOTORSHIELDS = 1;
+const int NUM_MOTORSHIELDS = 0;
 
 // List of motor shields that are controlled by this controller
 // The parameters have the following meaning:
@@ -81,17 +81,6 @@ const int NUM_MOTORSHIELDS = 1;
 // - locoAddress: loco that this motor shields is attached to
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
-
-  msConf[0] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "SFE",
-      .motorShieldType = MotorShieldType::L9110,
-      .minArduinoPower = MIN_ARDUINO_POWER,
-      .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = -1,
-      .configMotorB = 0,
-      .locoAddress = 10020
-  };
-
   return msConf;
 }
 
@@ -107,13 +96,13 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
 // Constants for motor shield type L298N
 #define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
-#define enB D0  // PWM signal pin for motor B. Relevant for L298N only.
+#define enB D1  // PWM signal pin for motor B. Relevant for L298N only.
 
 // Constants for motor shield type L298N and L9110
-#define in1 D1  // pin for motor A direction control (forward).
-#define in2 D2  // pin for motor A direction control (reverse).
-#define in3 D3  // pin for motor B direction control (forward).
-#define in4 D3  // pin for motor B direction control (reverse).
+#define in1 D3  // pin for motor A direction control (forward).
+#define in2 D4  // pin for motor A direction control (reverse).
+#define in3 D5  // pin for motor B direction control (forward).
+#define in4 D6  // pin for motor B direction control (reverse).
 
 // Constants for motorshield type Lego IR Receiver 8884
 #define IR_LED_PIN D5			// pin on which the IR LED is installed.
@@ -162,7 +151,7 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 // ****************
 
 // Trigger emergency brake upon disconnect
-#define TRIGGER_EBREAK_UPON_DISCONNECT true
+#define TRIGGER_EBREAK_UPON_DISCONNECT false
 
 
 // ***************
@@ -170,4 +159,4 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 // ***************
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MTC4PF-SFE1";
+const char* SYSLOG_APP_NAME = "MTC4PF-SFE2";
