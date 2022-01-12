@@ -157,10 +157,10 @@ void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controll
 
     // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
     bool fnchangedstate;
-    if (!XmlParser::tryReadBoolAttr(message, "fnchangedstate", &fnchangedstate))
+    if (!XmlParser::tryReadBoolAttr(message, fnchanged == 0 ? "fn" : "fnchangedstate", &fnchangedstate))
     {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'fn' command' but couldn't read 'fnchangedstate' attribute.");
+        log4MC::vlogf(LOG_WARNING, "MQTT: Received 'fn' command' for 'f%u' but couldn't read '%s' attribute.", fnchanged, fnchanged == 0 ? "fn" : "fnchangedstate");
         return;
     }
 
