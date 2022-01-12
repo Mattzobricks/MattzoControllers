@@ -39,6 +39,7 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // 
 // Servo array
 struct MattzoServo {
   Servo servo;      // Servo object to control servos
+  boolean isAttached = false;
   unsigned long lastSwitchingAction_ms = 0;
 } mattzoServo[NUM_SERVOS];
 
@@ -46,13 +47,14 @@ struct MattzoServo {
 #if USE_PCA9685
 #include <Adafruit_PWMServoDriver.h>              // Adafruit PWM Servo Driver Library for PCA9685 port expander. Tested with version 2.4.0.
 Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
-#define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+#define SERVO_FREQ 50 // Most analogue servos run at ~50 Hz PWM frequency
 #endif
 
 // Power management for PCA9685
 // The PWM signals on the PCA9685 can be automatically turned off after a servo operation to prevent servos from overheat and to save electricity.
 // Time after which servos will go to sleep mode (in milliseconds; 3000 = 3 sec.)
-#define PCA9685_POWER_OFF_AFTER_MS 2000
+// MUST BE GREATER THAN SERVO_DETACH_DELAY BY AT LEAST 20 ms (one PWM cycle on 50 Hz)!
+#define PCA9685_POWER_OFF_AFTER_MS 3000
 // Flag that keeps the present sleep mode state
 bool pca9685SleepMode = false;
 unsigned long pca9685SleepModeFrom_ms = 0;
@@ -682,16 +684,16 @@ void setServoAngle(int servoIndex, int servoAngle) {
   mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
   if (servoIndex >= 0 && servoIndex < NUM_SERVOS) {
     if (servoConfiguration[servoIndex].pinType == 0) {
-      if (!mattzoServo[servoIndex].servo.attached()) {
+      if (!mattzoServo[servoIndex].isAttached) {
         mcLog2("Attaching servo index " + String(servoIndex), LOG_DEBUG);
         mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin);
       }
       mattzoServo[servoIndex].servo.write(servoAngle);
-      mattzoServo[servoIndex].lastSwitchingAction_ms = millis();
     }
 #if USE_PCA9685
     else if (servoConfiguration[servoIndex].pinType >= 0x40) {
       setPCA9685SleepMode(false);
+      mcLog2("Attaching servo index " + String(servoIndex) + " to PCA9685 PWM signal.", LOG_DEBUG);
       pca9685[servoConfiguration[servoIndex].pinType - 0x40].setPWM(servoConfiguration[servoIndex].pin, 0, mapAngle2PulseLength(servoAngle));
     }
 #endif
@@ -699,6 +701,10 @@ void setServoAngle(int servoIndex, int servoAngle) {
       // this should not happen
       mcLog2("WARNING: servo index " + String(servoIndex) + " unknown pinType " + String(servoConfiguration[servoIndex].pinType), LOG_ALERT);
     }
+
+    // Set values required for later servo detaching (power off)
+    mattzoServo[servoIndex].lastSwitchingAction_ms = millis();
+    mattzoServo[servoIndex].isAttached = true;
   }
   else {
     // this should not happen
@@ -713,45 +719,59 @@ int mapAngle2PulseLength(int angle) {
   return map(angle, 0, 180, PULSE_MIN, PULSE_MAX);
 }
 
-// Switches PCA9685 power on or off
+// Switches PCA9685 sleep mode on or off via OE pin
+// true: sleep mode on (power PCA9685 down)
+// false: sleep mode off (power PCA9685 up)
 void setPCA9685SleepMode(bool onOff) {
   if (PCA9685_OE_PIN_INSTALLED) {
-    if (pca9685SleepMode != onOff) {
-      // if sleep mode change was detected, set new sleep mode state (on or off)
-      digitalWrite(PCA9685_OE_PIN, onOff ? HIGH : LOW);
-      pca9685SleepMode = onOff;
-      if (onOff) {
-        mcLog("PCA9685 power turned off.");
-      } else {
-        mcLog("PCA9685 power turned on.");
-      }
-
-      if (!onOff) {
-        // if sleep mode was just disabled, reset sleep timer
-        pca9685SleepModeFrom_ms = millis() + PCA9685_POWER_OFF_AFTER_MS;
-      }
+    if (onOff && !pca9685SleepMode) {
+      // power down PCA9685
+      mcLog2("PCA9685 OE pin power off.", LOG_DEBUG);
     }
+    else if (!onOff) {
+      if (pca9685SleepMode) {
+        // power up PCA9685
+        mcLog2("PCA9685 OE pin power on, sleep mode timer set to " + String(PCA9685_POWER_OFF_AFTER_MS) + " ms.", LOG_DEBUG);
+      } else {
+        // PCA9685 is presently powered up, just reset sleep mode timer
+        // mcLog2("PCA9685 OE pin is still powered on, resetting sleep mode timer.", LOG_DEBUG);
+      }
+      pca9685SleepModeFrom_ms = millis() + PCA9685_POWER_OFF_AFTER_MS;
+    }
+
+    digitalWrite(PCA9685_OE_PIN, onOff ? HIGH : LOW);
+    pca9685SleepMode = onOff;
   }
 }
 
 void checkEnableServoSleepMode() {
-  // Detach directly connected servos if required
   for (int servoIndex = 0; servoIndex < NUM_SERVOS; servoIndex++) {
-    if (servoConfiguration[servoIndex].pinType == 0 && servoConfiguration[servoIndex].detachAfterUsage) {
-      if (millis() >= mattzoServo[servoIndex].lastSwitchingAction_ms + SERVO_DETACH_DELAY) {
-        if (mattzoServo[servoIndex].servo.attached()) {
-          // wait for a LOW PWM signal
-          unsigned long startWaitForLow_ms = millis();
-          // begin by waiting for a HIGH PWM signal
-          while (digitalRead(servoConfiguration[servoIndex].pin) == LOW && millis() - startWaitForLow_ms < MAX_WAIT_FOR_LOW_MS) {
-          }
-          // now wait for a LOW PWM signal
-          while (digitalRead(servoConfiguration[servoIndex].pin) == HIGH && millis() - startWaitForLow_ms < MAX_WAIT_FOR_LOW_MS) {
-          }
-          // detach the servo NOW!
-          mattzoServo[servoIndex].servo.detach();
-          mcLog2("Detaching servo index " + String(servoIndex) + " while pin state was " + String(digitalRead(servoConfiguration[servoIndex].pin) + ", waited " + String(millis() - startWaitForLow_ms) + " ms for low PWM signal."), LOG_DEBUG);
+    // Check if servo shall be detached after usage, if it is active and if it's time to detach it
+    if (servoConfiguration[servoIndex].detachAfterUsage
+      && mattzoServo[servoIndex].isAttached 
+      && (millis() >= mattzoServo[servoIndex].lastSwitchingAction_ms + SERVO_DETACH_DELAY)) {
+
+      // Detach directly connected servo
+      if (servoConfiguration[servoIndex].pinType == 0) {
+        // wait for a LOW PWM signal
+        unsigned long startWaitForLow_ms = millis();
+        // begin by waiting for a HIGH PWM signal
+        while (digitalRead(servoConfiguration[servoIndex].pin) == LOW && millis() - startWaitForLow_ms < MAX_WAIT_FOR_LOW_MS) {
         }
+        // now wait for a LOW PWM signal
+        while (digitalRead(servoConfiguration[servoIndex].pin) == HIGH && millis() - startWaitForLow_ms < MAX_WAIT_FOR_LOW_MS) {
+        }
+        // detach the servo NOW!
+        mattzoServo[servoIndex].servo.detach();
+        mattzoServo[servoIndex].isAttached = false;
+        mcLog2("Detached servo index " + String(servoIndex) + ", waited " + String(millis() - startWaitForLow_ms) + " ms for low PWM signal.", LOG_DEBUG);
+      }
+
+      // Switch off PWM signal for servo connected via PCA9685
+      else if (servoConfiguration[servoIndex].pinType >= 0x40) {
+        pca9685[servoConfiguration[servoIndex].pinType - 0x40].setPWM(servoConfiguration[servoIndex].pin, 0, 4096);
+        mattzoServo[servoIndex].isAttached = false;
+        mcLog2("Detached servo index " + String(servoIndex) + " from PCA9685 PWM signal.", LOG_DEBUG);
       }
     }
   }

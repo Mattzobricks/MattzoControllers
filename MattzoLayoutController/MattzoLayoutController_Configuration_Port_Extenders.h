@@ -55,8 +55,8 @@
 #define USE_PCA9685 true
 
 // PCA9685 OE pin supported?
-bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
-uint8_t PCA9685_OE_PIN = D0;
+bool PCA9685_OE_PIN_INSTALLED = true;  // set to true if OE pin is connected (false if not)
+uint8_t PCA9685_OE_PIN = D7;
 
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 2
@@ -118,83 +118,83 @@ struct ServoConfiguration {
   {
     .pin = 0,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 1,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 2,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 3,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 4,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 5,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 6,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 7,
     .pinType = 0x40,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 0,
     .pinType = 0x41,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 1,
     .pinType = 0x41,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 2,
     .pinType = 0x41,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 3,
     .pinType = 0x41,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 4,
     .pinType = 0x41,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 5,
     .pinType = 0x41,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 6,
     .pinType = 0x41,
-    .detachAfterUsage = false
+    .detachAfterUsage = true
   },
   {
     .pin = 7,
     .pinType = 0x41,
-    .detachAfterUsage = false
-  },
+    .detachAfterUsage = true
+  }
 };
 
 
