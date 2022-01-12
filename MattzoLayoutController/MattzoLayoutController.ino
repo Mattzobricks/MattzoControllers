@@ -250,6 +250,8 @@ void setupPCA9685() {
   for (int p = 0; p < NUM_PCA9685s; p++) {
     pca9685[p] = Adafruit_PWMServoDriver(0x40 + p);
     pca9685[p].begin();
+    pca9685[p].reset();
+    pca9685[p].begin();
     pca9685[p].setOscillatorFrequency(27000000);
     pca9685[p].setPWMFreq(SERVO_FREQ);
     delay(10);
