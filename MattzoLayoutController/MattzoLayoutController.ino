@@ -9,7 +9,7 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "MattzoLayoutController_Configuration.h" // this file should be placed in the same folder
+#include "My_MLC_Configurations\MattzoLayoutController_Configuration_mega_Xmas2021.h" // this file should be placed in the same folder
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
 
 #if USE_PCA9685
@@ -31,7 +31,7 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // 
                                                                              
 // SERVO VARIABLES AND CONSTANTS
 // Delay after which servo is detached after flipping a switch (for directly connected servos only)
-#define SERVO_DETACH_DELAY 2000
+#define SERVO_DETACH_DELAY 1000
 
 // Maximum time that the detach procedure procedure will wait until the PWM signal is low and therefore ready to be detached (for directly connected servos only)
 #define MAX_WAIT_FOR_LOW_MS 100
@@ -54,7 +54,7 @@ Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
 // The PWM signals on the PCA9685 can be automatically turned off after a servo operation to prevent servos from overheat and to save electricity.
 // Time after which servos will go to sleep mode (in milliseconds; 3000 = 3 sec.)
 // MUST BE GREATER THAN SERVO_DETACH_DELAY BY AT LEAST 20 ms (one PWM cycle on 50 Hz)!
-#define PCA9685_POWER_OFF_AFTER_MS 3000
+#define PCA9685_POWER_OFF_AFTER_MS 2000
 // Flag that keeps the present sleep mode state
 bool pca9685SleepMode = false;
 unsigned long pca9685SleepModeFrom_ms = 0;
