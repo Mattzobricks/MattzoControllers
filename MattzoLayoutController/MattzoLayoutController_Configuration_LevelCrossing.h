@@ -358,7 +358,7 @@ struct LevelCrossingConfiguration {
   uint8_t ledIndex[LC_NUM_LEDS];
   // Signal flashing period in milliseconds (full cycle).
   unsigned int ledFlashingPeriod_ms;
-  // Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism)
+  // Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism; does not work with MCP23017)
   bool ledsFading;
 
   // VIRTUAL SENSOR CONFIGURATION
