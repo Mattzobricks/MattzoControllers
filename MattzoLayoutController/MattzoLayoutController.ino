@@ -769,12 +769,14 @@ void checkEnableServoSleepMode() {
         mcLog2("Detached servo index " + String(servoIndex) + ", waited " + String(millis() - startWaitForLow_ms) + " ms for low PWM signal.", LOG_DEBUG);
       }
 
+#if USE_PCA9685
       // Switch off PWM signal for servo connected via PCA9685
       else if (servoConfiguration[servoIndex].pinType >= 0x40) {
         pca9685[servoConfiguration[servoIndex].pinType - 0x40].setPWM(servoConfiguration[servoIndex].pin, 0, 4096);
         mattzoServo[servoIndex].isAttached = false;
         mcLog2("Detached servo index " + String(servoIndex) + " from PCA9685 PWM signal.", LOG_DEBUG);
       }
+#endif
     }
   }
 
