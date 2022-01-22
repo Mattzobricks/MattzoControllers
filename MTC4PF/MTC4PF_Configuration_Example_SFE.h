@@ -144,6 +144,24 @@ int FUNCTION_PWM_VALUE[NUM_FUNCTIONS] = { 300, 600, 1023 };
 // To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
 const bool AUTO_LIGHTS = true;
 
+/*
+This is what the switch structure in the lightEvent() function should look like:
+
+      switch (le) {
+      case LightEventType::STOP:
+        mcLog("Light event stop");
+        break;
+      case LightEventType::FORWARD:
+        mcLog("Light event forward");
+        functionCommand[i] = true;
+        break;
+      case LightEventType::REVERSE:
+        mcLog("Light event reverse");
+        functionCommand[i] = (i == 0);
+        break;
+      }
+*/
+
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D4;
