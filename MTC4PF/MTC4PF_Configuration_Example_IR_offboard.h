@@ -44,15 +44,15 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
     .locoName = "EME",
     .locoAddress = 10194,
     .accelerationInterval = 100,
-    .accelerateStep = 3,
-    .brakeStep = 10
+    .accelerateStep = 20,
+    .brakeStep = 20
   };
   locoConf[1] = (MattzoLocoConfiguration){
     .locoName = "MAE",
     .locoAddress = 10219,
     .accelerationInterval = 100,
-    .accelerateStep = 3,
-    .brakeStep = 10
+    .accelerateStep = 20,
+    .brakeStep = 20
   };
 
   return locoConf;
@@ -254,7 +254,7 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::LEGO_IR_8884;
 #define IR_LED_PIN D5			// pin on which the IR LED is installed.
 
 // Digital output PIN to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = false;  // set to false if no LED is installed
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D4;
 bool STATUS_LED_REVERSE = true;
 

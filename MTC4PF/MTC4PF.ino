@@ -133,6 +133,8 @@ public:
   int _configMotorA = 0;  // 1 = forward, 0 not installed, -1 = reverse
   int _configMotorB = 0;
   int _irChannel = -1;    // IR channel. May be 0, 1, 2 or 3. -1 = not installed
+  MattzoPowerFunctionsPwm pfPowerLevelRed;
+  MattzoPowerFunctionsPwm pfPowerLevelBlue;
 
   // Methods
   void initMattzoMotorShield(MattzoMotorShieldConfiguration c) {
@@ -163,6 +165,9 @@ MattzoPowerFunctions powerFunctions0(IR_LED_PIN, 0);
 MattzoPowerFunctions powerFunctions1(IR_LED_PIN, 1);
 MattzoPowerFunctions powerFunctions2(IR_LED_PIN, 2);
 MattzoPowerFunctions powerFunctions3(IR_LED_PIN, 3);
+
+// Waiting time between two consecutive motor transmissions
+#define WAIT_BETWEEN_IR_TRANSMISSIONS_MS 100
 
 
 struct TrainLight {
@@ -444,8 +449,6 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
 
   // Motorshield specific constants and variables
   int irSpeed = 0;
-  MattzoPowerFunctionsPwm pfPowerLevelRed;
-  MattzoPowerFunctionsPwm pfPowerLevelBlue;
   
   // Walk through all motor shields and check if they belong to the loco. If yes, set power!
   for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
@@ -525,50 +528,12 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
         if (loco._maxTrainSpeed > 0) {
           irSpeed = newTrainSpeed * MAX_IR_POWERVALUE / loco._maxTrainSpeed;
         }
-        pfPowerLevelRed = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorA * irSpeed);
-        pfPowerLevelBlue = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorB * irSpeed);
+        myMattzoMotorShields[i].pfPowerLevelRed = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorA * irSpeed);
+        myMattzoMotorShields[i].pfPowerLevelBlue = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorB * irSpeed);
         mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR channel: " + String(myMattzoMotorShields[i]._irChannel) + ", speed: " + irSpeed + ")");
 
-        // red port
-        if (myMattzoMotorShields[i]._configMotorA) {
-          mcLog("  Setting red port...");
-          switch (myMattzoMotorShields[i]._irChannel) {
-            case 0:
-              powerFunctions0.single_pwm(MattzoPowerFunctionsPort::RED, pfPowerLevelRed);
-              break;
-            case 1:
-              powerFunctions1.single_pwm(MattzoPowerFunctionsPort::RED, pfPowerLevelRed);
-              break;
-            case 2:
-              powerFunctions2.single_pwm(MattzoPowerFunctionsPort::RED, pfPowerLevelRed);
-              break;
-            case 3:
-              powerFunctions3.single_pwm(MattzoPowerFunctionsPort::RED, pfPowerLevelRed);
-              break;
-            default:
-              ;
-          }
-        }
-        // blue port
-        if (myMattzoMotorShields[i]._configMotorB) {
-          mcLog("  Setting blue port...");
-          switch (myMattzoMotorShields[i]._irChannel) {
-            case 0:
-              powerFunctions0.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPowerLevelBlue);
-              break;
-            case 1:
-              powerFunctions1.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPowerLevelBlue);
-              break;
-            case 2:
-              powerFunctions2.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPowerLevelBlue);
-              break;
-            case 3:
-              powerFunctions3.single_pwm(MattzoPowerFunctionsPort::BLUE, pfPowerLevelBlue);
-              break;
-            default:
-              ;
-          }
-        }
+        // Force immediate IR transmission
+        transmitIRCommandsImmediate(i);
 
         break;
 
@@ -595,6 +560,64 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
   }
 
   loco._currentTrainSpeed = newTrainSpeed;
+}
+
+void transmitIRCommandsRoutine() {
+  static long lastIRTransmission = 0;
+  static int nextMotorShieldIndex = 0;
+
+  if (millis() < lastIRTransmission + WAIT_BETWEEN_IR_TRANSMISSIONS_MS)
+    return;
+
+  lastIRTransmission = millis();
+  nextMotorShieldIndex = transmitIRCommandsImmediate(nextMotorShieldIndex);
+}
+
+int transmitIRCommandsImmediate(int nextMotorShieldIndex) {
+  for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
+    int motorShieldIndex = (i + nextMotorShieldIndex) % NUM_MOTORSHIELDS;
+    if (myMattzoMotorShields[motorShieldIndex]._motorShieldType == MotorShieldType::LEGO_IR_8884) {
+      // red port
+      if (myMattzoMotorShields[motorShieldIndex]._configMotorA) {
+        // mcLog("SH" + String(motorShieldIndex) + "/RED/CH" + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + "...");
+        switch (myMattzoMotorShields[motorShieldIndex]._irChannel) {
+          case 0:
+            powerFunctions0.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+            break;
+          case 1:
+            powerFunctions1.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+            break;
+          case 2:
+            powerFunctions2.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+            break;
+          case 3:
+            powerFunctions3.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+        }
+        nextMotorShieldIndex = motorShieldIndex + 1;
+        return nextMotorShieldIndex;
+      }
+      // blue port
+      if (myMattzoMotorShields[motorShieldIndex]._configMotorB) {
+        // mcLog("SH" + String(motorShieldIndex) + "/BLUE/CH" + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + "...");
+        switch (myMattzoMotorShields[motorShieldIndex]._irChannel) {
+          case 0:
+            powerFunctions0.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+            break;
+          case 1:
+            powerFunctions1.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+            break;
+          case 2:
+            powerFunctions2.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+            break;
+          case 3:
+            powerFunctions3.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+        }
+        nextMotorShieldIndex = motorShieldIndex + 1;
+        return nextMotorShieldIndex;
+      }
+    }
+  }
+  return nextMotorShieldIndex;
 }
 
 // gently adapt train speed (increase/decrease slowly)
@@ -697,7 +720,7 @@ void setTrainLightState(int trainLightIndex, TrainLightStatus trainLightStatus) 
 
 #define EBREAK_HALFPERIOD_MS 500
 #define FLASH_HALFPERIOD_MS 750
-#define BLINK_PERIOD_MS 1000
+#define BLINK_PERIOD_MS 2000
 
 // switch lights on or off
 void setLights() {
@@ -844,6 +867,7 @@ void send4DMessage(int power, String locoName) {
 void loop() {
   loopMattzoController();
   accelerateTrainSpeed();
+  transmitIRCommandsRoutine();
   setLights();
   sendBatteryLevel2MQTT();
 }
