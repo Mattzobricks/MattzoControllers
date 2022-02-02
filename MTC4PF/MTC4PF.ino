@@ -530,7 +530,7 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
         }
         myMattzoMotorShields[i].pfPowerLevelRed = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorA * irSpeed);
         myMattzoMotorShields[i].pfPowerLevelBlue = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorB * irSpeed);
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR channel: " + String(myMattzoMotorShields[i]._irChannel) + ", speed: " + irSpeed + ")");
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR channel " + String(myMattzoMotorShields[i]._irChannel) + ", speed: " + irSpeed + ")");
 
         // Force immediate IR transmission
         transmitIRCommandsImmediate(i);
@@ -578,39 +578,39 @@ int transmitIRCommandsImmediate(int nextMotorShieldIndex) {
     int motorShieldIndex = (i + nextMotorShieldIndex) % NUM_MOTORSHIELDS;
     if (myMattzoMotorShields[motorShieldIndex]._motorShieldType == MotorShieldType::LEGO_IR_8884) {
       // red port
-      if (myMattzoMotorShields[motorShieldIndex]._configMotorA) {
-        // mcLog("SH" + String(motorShieldIndex) + "/RED/CH" + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + "...");
-        switch (myMattzoMotorShields[motorShieldIndex]._irChannel) {
-          case 0:
-            powerFunctions0.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
-            break;
-          case 1:
-            powerFunctions1.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
-            break;
-          case 2:
-            powerFunctions2.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
-            break;
-          case 3:
-            powerFunctions3.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+      if (myMattzoMotorShields[motorShieldIndex]._configMotorA || myMattzoMotorShields[motorShieldIndex]._configMotorB) {
+        if (myMattzoMotorShields[motorShieldIndex]._configMotorA) {
+          // mcLog("Transmitting IR power for motor shield " + String(motorShieldIndex) + ", CH" + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + "/RED...");
+          switch (myMattzoMotorShields[motorShieldIndex]._irChannel) {
+            case 0:
+              powerFunctions0.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+              break;
+            case 1:
+              powerFunctions1.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+              break;
+            case 2:
+              powerFunctions2.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+              break;
+            case 3:
+              powerFunctions3.single_pwm(MattzoPowerFunctionsPort::RED, myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed);
+          }
         }
-        nextMotorShieldIndex = motorShieldIndex + 1;
-        return nextMotorShieldIndex;
-      }
-      // blue port
-      if (myMattzoMotorShields[motorShieldIndex]._configMotorB) {
-        // mcLog("SH" + String(motorShieldIndex) + "/BLUE/CH" + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + "...");
-        switch (myMattzoMotorShields[motorShieldIndex]._irChannel) {
-          case 0:
-            powerFunctions0.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
-            break;
-          case 1:
-            powerFunctions1.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
-            break;
-          case 2:
-            powerFunctions2.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
-            break;
-          case 3:
-            powerFunctions3.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+        // blue port
+        if (myMattzoMotorShields[motorShieldIndex]._configMotorB) {
+          // mcLog("Transmitting IR power for motor shield " + String(motorShieldIndex) + ", CH" + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + "/BLUE...");
+          switch (myMattzoMotorShields[motorShieldIndex]._irChannel) {
+            case 0:
+              powerFunctions0.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+              break;
+            case 1:
+              powerFunctions1.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+              break;
+            case 2:
+              powerFunctions2.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+              break;
+            case 3:
+              powerFunctions3.single_pwm(MattzoPowerFunctionsPort::BLUE, myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue);
+          }
         }
         nextMotorShieldIndex = motorShieldIndex + 1;
         return nextMotorShieldIndex;
@@ -619,6 +619,14 @@ int transmitIRCommandsImmediate(int nextMotorShieldIndex) {
   }
   return nextMotorShieldIndex;
 }
+
+String redBlueStringByIRPort(MattzoPowerFunctionsPort port) {
+  if (port == MattzoPowerFunctionsPort::RED)
+    return "red";
+  else
+    return "blue";
+}
+
 
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed() {
