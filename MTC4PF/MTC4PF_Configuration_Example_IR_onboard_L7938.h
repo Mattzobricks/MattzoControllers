@@ -103,7 +103,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 // *************************
 
 // Number of train lights controlled by this controller
-#define NUM_TRAIN_LIGHTS 7
+#define NUM_TRAIN_LIGHTS 8
 
 // List of train lights including their configuration
 struct TrainLightConfiguration {
@@ -126,16 +126,16 @@ struct TrainLightConfiguration {
   {
     // 0: interior lighting
     .trainLightType = TrainLightType::DIRECTLY_WIRED,
-    .pin = D3,
+    .pin = D4,
     .irChannel = -1,
     .irPort = MattzoPowerFunctionsPort::BLUE,
-    .powerLevelOff = 0,
-    .powerLevelOn = MAX_ARDUINO_POWER,
+    .powerLevelOff = MAX_ARDUINO_POWER,
+    .powerLevelOn = 0,
   },
   {
     // 1: head lights / red
     .trainLightType = TrainLightType::DIRECTLY_WIRED,
-    .pin = D6,
+    .pin = D8,
     .irChannel = -1,
     .irPort = MattzoPowerFunctionsPort::BLUE,
     .powerLevelOff = 0,
@@ -144,7 +144,7 @@ struct TrainLightConfiguration {
   {
     // 2: head lights / white
     .trainLightType = TrainLightType::DIRECTLY_WIRED,
-    .pin = D8,
+    .pin = D6,
     .irChannel = -1,
     .irPort = MattzoPowerFunctionsPort::BLUE,
     .powerLevelOff = 0,
@@ -162,29 +162,38 @@ struct TrainLightConfiguration {
   {
     // 4: rear lights / red component
     .trainLightType = TrainLightType::DIRECTLY_WIRED,
-    .pin = D0,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
-    .powerLevelOff = 0,
-    .powerLevelOn = 300,
-  },
-  {
-    // 5: rear lights / green component
-    .trainLightType = TrainLightType::DIRECTLY_WIRED,
     .pin = D1,
     .irChannel = -1,
     .irPort = MattzoPowerFunctionsPort::BLUE,
     .powerLevelOff = 0,
-    .powerLevelOn = 600,
+    .powerLevelOn = 385,
   },
   {
-    // 6: rear lights / blue component
+    // 5: rear lights / green component
     .trainLightType = TrainLightType::DIRECTLY_WIRED,
     .pin = D2,
     .irChannel = -1,
     .irPort = MattzoPowerFunctionsPort::BLUE,
     .powerLevelOff = 0,
+    .powerLevelOn = 500,
+  },
+  {
+    // 6: rear lights / blue component
+    .trainLightType = TrainLightType::DIRECTLY_WIRED,
+    .pin = D3,
+    .irChannel = -1,
+    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .powerLevelOff = 0,
     .powerLevelOn = MAX_ARDUINO_POWER,
+  },
+  {
+    // 7: rear lights / ground
+    .trainLightType = TrainLightType::DIRECTLY_WIRED,
+    .pin = D0,
+    .irChannel = -1,
+    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .powerLevelOff = 0,
+    .powerLevelOn = 0,
   }
 };
 
@@ -509,7 +518,7 @@ const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::LEGO_IR_8884;
 #define IR_LED_PIN D5			// pin on which the IR LED is installed.
 
 // Digital output PIN to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+bool STATUS_LED_PIN_INSTALLED = false;  // set to false if no LED is installed
 uint8_t STATUS_LED_PIN = D4;
 bool STATUS_LED_REVERSE = true;
 

@@ -442,7 +442,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  mcLog("Unknown message, disregarded.");
+  // mcLog("Unknown message, disregarded.");
 }
 
 // set the motor(s) of a train to a desired speed
