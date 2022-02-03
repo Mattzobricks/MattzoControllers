@@ -79,7 +79,7 @@ class MattzoLoco;
 class MattzoMotorShield;
 
 // MattzoBricks library files
-#include "MTC4PF_Configuration_Example_IR_offboard.h"       // this file should be placed in the same folder
+#include "MTC4PF_Configuration_Example_IR_onboard_L7938.h"       // this file should be placed in the same folder
 #include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
 
 
@@ -267,7 +267,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   msg[length] = '\0';
 
-  mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
+  // mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
 
   XMLDocument xmlDocument;
   if(xmlDocument.Parse(msg)!= XML_SUCCESS){
@@ -275,7 +275,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     return;
   }
 
-  mcLog("Parsing XML successful");
+  // mcLog("Parsing XML successful");
 
   const char * rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
   int rr_addr = 0;
@@ -363,7 +363,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   // Check for fn message
   element = xmlDocument.FirstChildElement("fn");
   if (element != NULL) {
-    mcLog("<fn> node found. Processing fn message...");
+    // mcLog("Received fn message...");
 
     // -> process fn (function) message
 
@@ -373,7 +373,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog("addr attribute not found or wrong type. Message disregarded.");
       return;
     }
-    mcLog("addr: " + String(rr_addr));
+    // mcLog("addr: " + String(rr_addr));
 
     // query fnchanged attribute. This is information which function shall be set.
     int rr_functionNo;
@@ -381,26 +381,30 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       mcLog("fnchanged attribute not found or wrong type. Message disregarded.");
       return;
     }
-    mcLog("fnchanged: " + String(rr_functionNo));
+    // mcLog("fnchanged: " + String(rr_functionNo));
 
     // query fnchangedstate attribute. This is value if the function shall be set on or off
-    const char * rr_state = "xxxxxx";  // expected values are "true" or "false"
-    if (element->QueryStringAttribute("fnchangedstate", &rr_state) != XML_SUCCESS) {
+    const char * rr_state_String = "xxxxxx";  // expected values are "true" or "false"
+    bool rr_state;
+    if (element->QueryStringAttribute("fnchangedstate", &rr_state_String) != XML_SUCCESS) {
       mcLog("fnchangedstate attribute not found or wrong type.");
       return;
     }
-    if (strcmp(rr_state, "true")==0) {
-      mcLog("fnchangedstate: true");
-      handleRocrailFunction(rr_addr, rr_functionNo, true);
+    if (strcmp(rr_state_String, "true")==0) {
+      // mcLog("fnchangedstate: true");
+      rr_state = true;
     }
-    else if (strcmp(rr_state, "false")==0) {
-      mcLog("fnchangedstate: false");
-      handleRocrailFunction(rr_addr, rr_functionNo, false);
+    else if (strcmp(rr_state_String, "false")==0) {
+      // mcLog("fnchangedstate: false");
+      rr_state = false;
     }
     else {
       mcLog("unknown fnchangedstate value - disregarding message.");
       return;
     }
+
+    mcLog("Received fn message: loco address " + String(rr_addr) + ", fn" + String(rr_functionNo) + ", state=" + String(rr_state));
+    handleRocrailFunction(rr_addr, rr_functionNo, rr_state);
 
     return;
   }
@@ -698,21 +702,39 @@ void lightEvent(LightEventType le, int locoIndex) {
 
 // handle a rocrail function message
 void handleRocrailFunction(int locoAddress, int fnNo, bool fnOnOff) {
+  bool mapperFound = false;
+
   for (int fm_index = 0; fm_index < NUM_FUNCTION_MAPPINGS; fm_index++) {
     if (locoFunctionMappingConfiguration[fm_index].locoAddress == locoAddress) {
       if (locoFunctionMappingConfiguration[fm_index].fnNo == fnNo) {
         if (locoFunctionMappingConfiguration[fm_index].fnOnOff == fnOnOff) {
-          mcLog("Handling rocrail function loco address " + String(locoAddress) + ", fn" + String(fnNo) + ", state=" + String(fnOnOff));
           setTrainLightState(
             locoFunctionMappingConfiguration[fm_index].trainLightIndex,
             locoFunctionMappingConfiguration[fm_index].trainLightStatus
           );
-          return;
+          mapperFound = true;
         }
       }
     }
   }
-  mcLog("No action found for loco address " + String(locoAddress) + ", fn" + String(fnNo) + ", state=" + String(fnOnOff));
+  if (!mapperFound)
+    mcLog("No action found for loco address " + String(locoAddress) + ", fn" + String(fnNo) + ", state=" + String(fnOnOff));
+}
+
+// Return train light status string (for debugging reasons)
+String getTrainLightStatusString(TrainLightStatus trainLightStatus) {
+  switch (trainLightStatus) {
+    case TrainLightStatus::OFF:
+      return ("off");
+    case TrainLightStatus::ON:
+      return ("on");
+    case TrainLightStatus::FLASH:
+      return ("flash");
+    case TrainLightStatus::BLINK:
+      return ("blink");
+    default:
+      return ("undefined - check getTrainLightStatusString()");
+  }
 }
 
 // set a train light
@@ -722,7 +744,7 @@ void setTrainLightState(int trainLightIndex, TrainLightStatus trainLightStatus) 
     return;
   }
 
-  mcLog("Setting train light index " + String(trainLightIndex));
+  mcLog("Setting train light index " + String(trainLightIndex) + " to status " + getTrainLightStatusString(trainLightStatus));
   trainLight[trainLightIndex].desiredTrainLightState = trainLightStatus;
 }
 
