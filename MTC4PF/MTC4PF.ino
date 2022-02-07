@@ -448,7 +448,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 // set all motors of a train to a desired power level
 void setTrainSpeed(int newTrainSpeed, int locoIndex) {
   int desiredDirection;  // Desired direction. forward = 1, reverse = -1
-  int desiredPowerLevel;    // Desired power level (0..MAX_ARDUINO_POWER). Valid for all motor shield types.
+  int desiredPowerLevel;    // Desired power level (0..MAX_ARDUINO_POWER). Range valid for all motor shield types.
+  int desiredPower;         // Desired power (-MAX_ARDUINO_POWER .. MAX_ARDUINO_POWER). Range valid for all motor shield types.
   MattzoLoco& loco = myLocos[locoIndex];
 
   // Walk through all motor shields and check if they belong to the loco. If yes, set power!
@@ -457,17 +458,21 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
       // Determine desired direction.
       desiredDirection = (newTrainSpeed >= 0) ? 1 : -1;
 
-      // Calculate desired power on motor shield port
+      // Calculate desired power level for motor shield ports
       if (newTrainSpeed != 0) {
         desiredPowerLevel = map(abs(newTrainSpeed), 0, loco._maxTrainSpeed, myMattzoMotorShields[motorShieldIndex]._minArduinoPower, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower);
       }
       else {
         desiredPowerLevel = 0;
       }
+      
+      // Calculate desired power
+      desiredPower = desiredDirection * desiredPowerLevel;
 
       // Set power levels on motor shield ports
-      mcLog("Setting train speed " + String(newTrainSpeed * desiredDirection) + " (power: " + String(desiredPowerLevel * desiredDirection) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
-      setMotorShieldPower(motorShieldIndex, 0, desiredPowerLevel * desiredDirection);
+      mcLog("Setting train speed " + String(newTrainSpeed) + " (power: " + String(desiredPower) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
+      setMotorShieldPower(motorShieldIndex, 0, desiredPower);
+      setMotorShieldPower(motorShieldIndex, 1, desiredPower);
     } // of if
   } // of for
 
