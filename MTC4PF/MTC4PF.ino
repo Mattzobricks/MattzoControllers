@@ -445,116 +445,33 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   // mcLog("Unknown message, disregarded.");
 }
 
-// set the motor(s) of a train to a desired speed
+// set all motors of a train to a desired power level
 void setTrainSpeed(int newTrainSpeed, int locoIndex) {
-  boolean dir;
-  int power;  // power level for all arduino based motor shields (L298N, L9110, 4DBrix)
+  int desiredDirection;  // Desired direction. forward = 1, reverse = -1
+  int desiredPowerLevel;    // Desired power level (0..MAX_ARDUINO_POWER). Valid for all motor shield types.
   MattzoLoco& loco = myLocos[locoIndex];
 
-  // Motorshield specific constants and variables
-  int irSpeed = 0;
-  
   // Walk through all motor shields and check if they belong to the loco. If yes, set power!
   for (int motorShieldIndex = 0; motorShieldIndex < NUM_MOTORSHIELDS; motorShieldIndex++) {
     if (myMattzoMotorShields[motorShieldIndex].checkLocoAddress(loco._locoAddress)) {
+      // Determine desired direction.
+      desiredDirection = (newTrainSpeed >= 0) ? 1 : -1;
 
-
-      dir = loco._currentTrainSpeed >= 0;  // true = forward, false = reverse
-    
-      // Calculate arduino power
+      // Calculate desired power on motor shield port
       if (newTrainSpeed != 0) {
-        power = map(abs(newTrainSpeed), 0, loco._maxTrainSpeed, myMattzoMotorShields[motorShieldIndex]._minArduinoPower, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower);
+        desiredPowerLevel = map(abs(newTrainSpeed), 0, loco._maxTrainSpeed, myMattzoMotorShields[motorShieldIndex]._minArduinoPower, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower);
       }
       else {
-        power = 0;
+        desiredPowerLevel = 0;
       }
 
-      switch (myMattzoMotorShields[motorShieldIndex]._motorShieldType) {
-      case MotorShieldType::L298N:
-        // motor shield type L298N
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
-
-        // motor shield type L298N
-        // The preferred option to flip direction is to go via HIGH/HIGH on the input pins
-        if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
-          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
-            digitalWrite(in2, HIGH);
-            digitalWrite(in1, LOW);
-          }
-          else {
-            digitalWrite(in1, HIGH);
-            digitalWrite(in2, LOW);
-          }
-          analogWrite(enA, power);
-        }
-        if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
-          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
-            digitalWrite(in4, HIGH);
-            digitalWrite(in3, LOW);
-          }
-          else {
-            digitalWrite(in3, HIGH);
-            digitalWrite(in4, LOW);
-          }
-          analogWrite(enB, power);
-        }
-
-        break;
-
-      case MotorShieldType::L9110:
-        // motor shield type L9110
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
-
-        // motor shield type L9110
-        if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
-          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
-            analogWrite(in1, 0);
-            analogWrite(in2, power);
-          }
-          else {
-            analogWrite(in2, 0);
-            analogWrite(in1, power);
-          }
-        }
-        if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
-          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
-            analogWrite(in3, 0);
-            analogWrite(in4, power);
-          }
-          else {
-            analogWrite(in4, 0);
-            analogWrite(in3, power);
-          }
-        }
-
-        break;
-
-        // motor shield type Lego IR Receiver 8884
-      case MotorShieldType::LEGO_IR_8884:
-        if (loco._maxTrainSpeed > 0) {
-          irSpeed = newTrainSpeed * MAX_IR_POWERVALUE / loco._maxTrainSpeed;
-        }
-        myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed = powerFunctions0.speedToPwm(myMattzoMotorShields[motorShieldIndex]._configMotorA * irSpeed);
-        myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue = powerFunctions0.speedToPwm(myMattzoMotorShields[motorShieldIndex]._configMotorB * irSpeed);
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR channel " + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + ", speed: " + irSpeed + ")");
-
-        // Force immediate IR transmission
-        transmitIRCommandsImmediate(motorShieldIndex);
-
-        break;
-
-        // motor shield type 4DBrix WiFi Train Receiver
-      case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for 4DBrix WiFi Train Receiver " + myMattzoMotorShields[motorShieldIndex].getNiceName());
-        send4DMessage(power * myMattzoMotorShields[motorShieldIndex]._configMotorA * (dir ? 1 : -1), myMattzoMotorShields[motorShieldIndex]._motorShieldName);
-
-        break;
-
-      } // of switch
+      // Set power levels on motor shield ports
+      mcLog("Setting train speed " + String(newTrainSpeed * desiredDirection) + " (power: " + String(desiredPowerLevel * desiredDirection) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
+      setMotorShieldPower(motorShieldIndex, 0, desiredPowerLevel * desiredDirection);
     } // of if
   } // of for
 
-  // Execute light events
+  // Trigger light events
   if (newTrainSpeed == 0 && loco._currentTrainSpeed != 0) {
     lightEvent(LightEventType::STOP, locoIndex);
   }
@@ -566,6 +483,99 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
   }
 
   loco._currentTrainSpeed = newTrainSpeed;
+}
+
+void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPower) {
+  // Motorshield unspecific constants and variables
+  int desiredPowerLevel = abs(desiredPower);
+  int desiredDirection = (desiredPower >= 0) ? 1 : -1;
+  bool directionIsForward = desiredDirection >= 0;
+
+  // Motorshield specific constants and variables
+  int irPowerLevel = 0;   // Power level for the LEGO IR Receiver 8884
+
+  switch (myMattzoMotorShields[motorShieldIndex]._motorShieldType) {
+  case MotorShieldType::L298N:
+    // motor shield type L298N
+    // The preferred option to flip direction is to go via HIGH/HIGH on the input pins (set HIGH first, then LOW)
+    if (motorPortIndex == 0) {
+      if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
+        if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
+          digitalWrite(in2, HIGH);
+          digitalWrite(in1, LOW);
+        }
+        else {
+          digitalWrite(in1, HIGH);
+          digitalWrite(in2, LOW);
+        }
+        analogWrite(enA, desiredPowerLevel);
+      }
+    }
+    if (motorPortIndex == 1) {
+      if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
+        if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
+          digitalWrite(in4, HIGH);
+          digitalWrite(in3, LOW);
+        }
+        else {
+          digitalWrite(in3, HIGH);
+          digitalWrite(in4, LOW);
+        }
+        analogWrite(enB, desiredPowerLevel);
+      }
+    }
+    break;
+
+  case MotorShieldType::L9110:
+    // motor shield type L9110
+    if (motorPortIndex == 0) {
+      if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
+        if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
+          analogWrite(in1, 0);
+          analogWrite(in2, desiredPowerLevel);
+        }
+        else {
+          analogWrite(in2, 0);
+          analogWrite(in1, desiredPowerLevel);
+        }
+      }
+    }
+    if (motorPortIndex == 1) {
+      if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
+        if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
+          analogWrite(in3, 0);
+          analogWrite(in4, desiredPowerLevel);
+        }
+        else {
+          analogWrite(in4, 0);
+          analogWrite(in3, desiredPowerLevel);
+        }
+      }
+    }
+    break;
+
+  case MotorShieldType::LEGO_IR_8884:
+    // motor shield type Lego IR Receiver 8884
+    irPowerLevel = desiredPower * MAX_IR_POWERVALUE / MAX_ARDUINO_POWER;
+    if (motorPortIndex == 0) {
+      myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed = powerFunctions0.speedToPwm(myMattzoMotorShields[motorShieldIndex]._configMotorA * irPowerLevel);
+    }
+    else if (motorPortIndex == 1) {
+      myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue = powerFunctions0.speedToPwm(myMattzoMotorShields[motorShieldIndex]._configMotorB * irPowerLevel);
+    }
+    mcLog("Setting IR channel " + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + " port " + String(motorPortIndex) + " to " + String(irPowerLevel));
+    // Force immediate IR transmission
+    transmitIRCommandsImmediate(motorShieldIndex);
+    break;
+
+  case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
+    // motor shield type 4DBrix WiFi Train Receiver
+    if (motorPortIndex == 0) {
+      send4DMessage(desiredPower * myMattzoMotorShields[motorShieldIndex]._configMotorA, myMattzoMotorShields[motorShieldIndex]._motorShieldName);
+    }
+    break;
+
+  } // of switch
 }
 
 void transmitIRCommandsRoutine() {
