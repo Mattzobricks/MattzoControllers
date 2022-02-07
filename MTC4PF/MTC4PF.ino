@@ -31,8 +31,8 @@ const int MAX_ARDUINO_POWER = 1023;  // default maximum arduino power. May be ov
 // Train light types
 enum struct TrainLightType
 {
-  DIRECTLY_WIRED,
-  LEGO_IR_8884
+  ESP_OUTPUT_PIN,
+  POWER_FUNCTIONS
 };
 
 enum struct TrainLightStatus
@@ -191,7 +191,7 @@ void setup() {
   // initialize train light output pins
   mcLog("initializing train light pins");
   for (int tl = 0; tl < NUM_TRAIN_LIGHTS; tl++) {
-    if (trainLightConfiguration[tl].trainLightType == TrainLightType::DIRECTLY_WIRED) {
+    if (trainLightConfiguration[tl].trainLightType == TrainLightType::ESP_OUTPUT_PIN) {
       pinMode(trainLightConfiguration[tl].pin, OUTPUT);
     }
   }
@@ -455,27 +455,29 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
   int irSpeed = 0;
   
   // Walk through all motor shields and check if they belong to the loco. If yes, set power!
-  for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
-    if (myMattzoMotorShields[i].checkLocoAddress(loco._locoAddress)) {
+  for (int motorShieldIndex = 0; motorShieldIndex < NUM_MOTORSHIELDS; motorShieldIndex++) {
+    if (myMattzoMotorShields[motorShieldIndex].checkLocoAddress(loco._locoAddress)) {
+
+
       dir = loco._currentTrainSpeed >= 0;  // true = forward, false = reverse
     
       // Calculate arduino power
       if (newTrainSpeed != 0) {
-        power = map(abs(newTrainSpeed), 0, loco._maxTrainSpeed, myMattzoMotorShields[i]._minArduinoPower, myMattzoMotorShields[i]._maxArduinoPower);
+        power = map(abs(newTrainSpeed), 0, loco._maxTrainSpeed, myMattzoMotorShields[motorShieldIndex]._minArduinoPower, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower);
       }
       else {
         power = 0;
       }
 
-      switch (myMattzoMotorShields[i]._motorShieldType) {
+      switch (myMattzoMotorShields[motorShieldIndex]._motorShieldType) {
       case MotorShieldType::L298N:
         // motor shield type L298N
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[i].getNiceName());
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
 
         // motor shield type L298N
         // The preferred option to flip direction is to go via HIGH/HIGH on the input pins
-        if (myMattzoMotorShields[i]._configMotorA != 0) {
-          if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
+        if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
+          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
             digitalWrite(in2, HIGH);
             digitalWrite(in1, LOW);
           }
@@ -485,8 +487,8 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
           }
           analogWrite(enA, power);
         }
-        if (myMattzoMotorShields[i]._configMotorB != 0) {
-          if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
+        if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
+          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
             digitalWrite(in4, HIGH);
             digitalWrite(in3, LOW);
           }
@@ -501,11 +503,11 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
 
       case MotorShieldType::L9110:
         // motor shield type L9110
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[i].getNiceName());
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
 
         // motor shield type L9110
-        if (myMattzoMotorShields[i]._configMotorA != 0) {
-          if (dir ^ (myMattzoMotorShields[i]._configMotorA < 0)) {
+        if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
+          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
             analogWrite(in1, 0);
             analogWrite(in2, power);
           }
@@ -514,8 +516,8 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
             analogWrite(in1, power);
           }
         }
-        if (myMattzoMotorShields[i]._configMotorB != 0) {
-          if (dir ^ (myMattzoMotorShields[i]._configMotorB < 0)) {
+        if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
+          if (dir ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
             analogWrite(in3, 0);
             analogWrite(in4, power);
           }
@@ -532,19 +534,19 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
         if (loco._maxTrainSpeed > 0) {
           irSpeed = newTrainSpeed * MAX_IR_POWERVALUE / loco._maxTrainSpeed;
         }
-        myMattzoMotorShields[i].pfPowerLevelRed = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorA * irSpeed);
-        myMattzoMotorShields[i].pfPowerLevelBlue = powerFunctions0.speedToPwm(myMattzoMotorShields[i]._configMotorB * irSpeed);
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR channel " + String(myMattzoMotorShields[i]._irChannel) + ", speed: " + irSpeed + ")");
+        myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed = powerFunctions0.speedToPwm(myMattzoMotorShields[motorShieldIndex]._configMotorA * irSpeed);
+        myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue = powerFunctions0.speedToPwm(myMattzoMotorShields[motorShieldIndex]._configMotorB * irSpeed);
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (IR channel " + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + ", speed: " + irSpeed + ")");
 
         // Force immediate IR transmission
-        transmitIRCommandsImmediate(i);
+        transmitIRCommandsImmediate(motorShieldIndex);
 
         break;
 
         // motor shield type 4DBrix WiFi Train Receiver
       case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
-        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for 4DBrix WiFi Train Receiver " + myMattzoMotorShields[i].getNiceName());
-        send4DMessage(power * myMattzoMotorShields[i]._configMotorA * (dir ? 1 : -1), myMattzoMotorShields[i]._motorShieldName);
+        mcLog("Setting motor speed: " + String(newTrainSpeed) + " (power: " + String(power) + ") for 4DBrix WiFi Train Receiver " + myMattzoMotorShields[motorShieldIndex].getNiceName());
+        send4DMessage(power * myMattzoMotorShields[motorShieldIndex]._configMotorA * (dir ? 1 : -1), myMattzoMotorShields[motorShieldIndex]._motorShieldName);
 
         break;
 
@@ -801,29 +803,13 @@ void setLights() {
     // change light intensity if required
     if (desiredPowerLevel != actualPowerLevel) {
       switch (trainLightConfiguration[tl].trainLightType) {
-        case TrainLightType::DIRECTLY_WIRED:
+        case TrainLightType::ESP_OUTPUT_PIN:
           mcLog("Setting output pin " + String(trainLightConfiguration[tl].pin) + " to " + String(desiredPowerLevel));
+          // Scale 0..100 -> 0..MAX_ARDUINO_POWER
           analogWrite(trainLightConfiguration[tl].pin, desiredPowerLevel);
           break;
-        case TrainLightType::LEGO_IR_8884:
-          irPwmLevel = powerFunctions0.speedToPwm(desiredPowerLevel);
-          mcLog("Setting IR light on channel " + String(trainLightConfiguration[tl].irChannel) + " to power " + String(desiredPowerLevel));
-          switch (trainLightConfiguration[tl].irChannel) {
-            case 0:
-              powerFunctions0.single_pwm(trainLightConfiguration[tl].irPort, irPwmLevel);
-              break;
-            case 1:
-              powerFunctions1.single_pwm(trainLightConfiguration[tl].irPort, irPwmLevel);
-              break;
-            case 2:
-              powerFunctions2.single_pwm(trainLightConfiguration[tl].irPort, irPwmLevel);
-              break;
-            case 3:
-              powerFunctions3.single_pwm(trainLightConfiguration[tl].irPort, irPwmLevel);
-              break;
-            default:
-              ;
-          }
+        case TrainLightType::POWER_FUNCTIONS:
+          setMotorShieldPower(trainLightConfiguration[tl].motorShieldIndex, trainLightConfiguration[tl].motorPortIndex, desiredPowerLevel);
           break;
         default:
           ;
