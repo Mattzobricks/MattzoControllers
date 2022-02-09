@@ -208,39 +208,34 @@ void setup() {
   MattzoMotorShieldConfiguration* msConf = getMattzoMotorShieldConfiguration();
   for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
     myMattzoMotorShields[i].initMattzoMotorShield(*(msConf + i));
+
+    // initialize pins of directly wired motor shields (if any)
+    switch (myMattzoMotorShields[i].motorShieldType) {
+      case MotorShieldType::L298N:
+        // initialize motor pins for L298N
+        pinMode(myMattzoMotorShields[i].L298N_enA, OUTPUT);
+        pinMode(myMattzoMotorShields[i].L298N_enB, OUTPUT);
+        // fall through!
+      case MotorShieldType::L9110:
+        // initialize motor pins for L298N (continued) and L9110
+        pinMode(myMattzoMotorShields[i].in1, OUTPUT);
+        pinMode(myMattzoMotorShields[i].in2, OUTPUT);
+        pinMode(myMattzoMotorShields[i].in3, OUTPUT);
+        pinMode(myMattzoMotorShields[i].in4, OUTPUT);
+        break;
+      case MotorShieldType::LEGO_IR_8884:
+        // nothing to do here
+        break;
+      case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
+        // => nothing to do here
+        break;
+      default:
+        ;
+    }
   }
 
-  // initialize pins for built-in motor shield (if any)
-  mcLog("initializing built-in motor shield");
-  switch (MOTORSHIELD_TYPE) {
-    case MotorShieldType::L298N:
-      // initialize motor pins for L298N
-      pinMode(enA, OUTPUT);
-      pinMode(enB, OUTPUT);
-      // fall through!
-    case MotorShieldType::L9110:
-      // initialize motor pins for L298N (continued) and L9110
-      pinMode(in1, OUTPUT);
-      pinMode(in2, OUTPUT);
-      pinMode(in3, OUTPUT);
-      pinMode(in4, OUTPUT);
-      break;
-    case MotorShieldType::LEGO_IR_8884:
-      // Power Functions instance is initialized and mapped to the 
-      // IR pin in the global section at the beginning of the code
-      // => nothing to do here
-      break;
-    case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
-      // init handler for 4DBrix WiFi Train Receiver
-      // => nothing to do here
-      break;
-    default:
-      ;
-  }
-
-  mcLog("stopping all trains");
-
-  // stop all train motors
+  // stop all locos
+  mcLog("stopping all locos");
   for (int i=0; i < NUM_LOCOS; i++) {
     setTrainSpeed(0, i);
   }
@@ -506,27 +501,27 @@ void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPo
     if (motorPortIndex == 0) {
       if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
         if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
-          digitalWrite(in2, HIGH);
-          digitalWrite(in1, LOW);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in2, HIGH);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in1, LOW);
         }
         else {
-          digitalWrite(in1, HIGH);
-          digitalWrite(in2, LOW);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in1, HIGH);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in2, LOW);
         }
-        analogWrite(enA, desiredPowerLevel);
+        analogWrite(myMattzoMotorShields[motorShieldIndex].L298N_enA, desiredPowerLevel);
       }
     }
     if (motorPortIndex == 1) {
       if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
         if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
-          digitalWrite(in4, HIGH);
-          digitalWrite(in3, LOW);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in4, HIGH);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in3, LOW);
         }
         else {
-          digitalWrite(in3, HIGH);
-          digitalWrite(in4, LOW);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in3, HIGH);
+          digitalWrite(myMattzoMotorShields[motorShieldIndex].in4, LOW);
         }
-        analogWrite(enB, desiredPowerLevel);
+        analogWrite(myMattzoMotorShields[motorShieldIndex].L298N_enB, desiredPowerLevel);
       }
     }
     break;
@@ -536,24 +531,24 @@ void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPo
     if (motorPortIndex == 0) {
       if (myMattzoMotorShields[motorShieldIndex]._configMotorA != 0) {
         if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorA < 0)) {
-          analogWrite(in1, 0);
-          analogWrite(in2, desiredPowerLevel);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in1, 0);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in2, desiredPowerLevel);
         }
         else {
-          analogWrite(in2, 0);
-          analogWrite(in1, desiredPowerLevel);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in2, 0);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in1, desiredPowerLevel);
         }
       }
     }
     if (motorPortIndex == 1) {
       if (myMattzoMotorShields[motorShieldIndex]._configMotorB != 0) {
         if (directionIsForward ^ (myMattzoMotorShields[motorShieldIndex]._configMotorB < 0)) {
-          analogWrite(in3, 0);
-          analogWrite(in4, desiredPowerLevel);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in3, 0);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in4, desiredPowerLevel);
         }
         else {
-          analogWrite(in4, 0);
-          analogWrite(in3, desiredPowerLevel);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in4, 0);
+          analogWrite(myMattzoMotorShields[motorShieldIndex].in3, desiredPowerLevel);
         }
       }
     }

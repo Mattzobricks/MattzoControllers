@@ -53,7 +53,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 
 
 // *************
-// Motor shields
+// MOTOR SHIELDS
 // *************
 // Motor shields are usually electronical components attached to the MattzoTrainController.
 // They are controlled via PWM signals from the controller and handle the higher currents required
@@ -75,6 +75,8 @@ const int NUM_MOTORSHIELDS = 1;
 // - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
 // - locoAddress: loco that this motor shields is attached to
 // - motorShieldType: motor shield type
+// - L298N_enA, L298N_enB: PWM signal pin for motor A / B, if L298N is used.
+// - in1..in4: pin for motor direction control for motor shields L298N and L9110 (in1: forward motor A, in2: reverse motor A, in3: forward motor B, in4: reverse motor B).
 // - minArduinoPower: minimum power setting for Arduino based motor shields
 // - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023)
 // - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused). In case of LEGO IR Receiver 8884, this is the motor connected to the red port.
@@ -83,10 +85,21 @@ const int NUM_MOTORSHIELDS = 1;
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
+  // Type of motor shield directly wired to the controller.
+// (The different motor shield types are defined in MTC4PF.ino)
+// Set to MotorShieldType::NONE if only virtual motor shields are used!
+  const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
+
   msConf[0] = (MattzoMotorShieldConfiguration){
       .motorShieldName = "V100",
       .locoAddress = 100
       .motorShieldType = MotorShieldType::L9110,
+      .L298N_enA = D0,
+      .L298N_enB = D1,
+      .in1 = D3,
+      .in2 = D4,
+      .in3 = D5,
+      .in4 = D6,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = 1,
@@ -201,24 +214,9 @@ struct TrainLightTriggerConfiguration {
 };
 
 
-// ***************************
-// Controller wiring specifics
-// ***************************
-
-// Type of motor shield directly wired to the controller.
-// (The different motor shield types are defined in MTC4PF.ino)
-// Set to MotorShieldType::NONE if only virtual motor shields are used!
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
-
-// Constants for motor shield type L298N
-#define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
-#define enB D1  // PWM signal pin for motor B. Relevant for L298N only.
-
-// Constants for motor shield type L298N and L9110
-#define in1 D3  // pin for motor A direction control (forward).
-#define in2 D4  // pin for motor A direction control (reverse).
-#define in3 D5  // pin for motor B direction control (forward).
-#define in4 D6  // pin for motor B direction control (reverse).
+// ************************
+// CONTROLLER CONFIGURATION
+// ************************
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
@@ -234,7 +232,7 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 
 
 // ****************
-// Network settings
+// NETWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
@@ -242,7 +240,7 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 
 
 // ***************
-// Syslog settings
+// SYSLOG SETTINGS
 // ***************
 
 // Syslog application name
