@@ -85,7 +85,7 @@ class MattzoLoco;
 class MattzoMotorShield;
 
 // MattzoBricks library files
-#include "MTC4PF_Configuration_Example_V200.h"       // this file should be placed in the same folder
+#include "MTC4PF_Configuration_Example_V100.h"       // this file should be placed in the same folder
 #include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
 
 
@@ -485,10 +485,10 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
       // Set power levels on motor shield ports if they are configured for a motor
       mcLog("Setting train speed " + String(newTrainSpeed) + " (power: " + String(desiredPower) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
       if (myMattzoMotorShields[motorShieldIndex]._configMotorA) {
-        setMotorShieldPower(motorShieldIndex, 0, desiredPower);
+        setMotorShieldPower(motorShieldIndex, 0, desiredPower * myMattzoMotorShields[motorShieldIndex]._configMotorA);
       }
       if (myMattzoMotorShields[motorShieldIndex]._configMotorB) {
-        setMotorShieldPower(motorShieldIndex, 1, desiredPower);
+        setMotorShieldPower(motorShieldIndex, 1, desiredPower * myMattzoMotorShields[motorShieldIndex]._configMotorB);
       }
     } // of if
   } // of for
