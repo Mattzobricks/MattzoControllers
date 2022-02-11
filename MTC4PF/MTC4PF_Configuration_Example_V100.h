@@ -92,7 +92,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 
   msConf[0] = (MattzoMotorShieldConfiguration){
       .motorShieldName = "V100",
-      .locoAddress = 100
+      .locoAddress = 100,
       .motorShieldType = MotorShieldType::L9110,
       .L298N_enA = D0,
       .L298N_enB = D1,
@@ -218,17 +218,20 @@ struct TrainLightTriggerConfiguration {
 // CONTROLLER CONFIGURATION
 // ************************
 
+// Configuration for motorshield type Lego IR Receiver 8884
+#define IR_LED_PIN D5      // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
+
 // Digital output PIN to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-uint8_t STATUS_LED_PIN = D8;
-bool STATUS_LED_REVERSE = false;
+#define STATUS_LED_PIN_INSTALLED true
+#define STATUS_LED_PIN D8
+#define STATUS_LED_REVERSE false
 
 // Report battery level
-const bool REPORT_BATTERYLEVEL = false;           // set to true or false to allow or omit battery level reports
-const int SEND_BATTERYLEVEL_INTERVAL = 60000;     // interval for sending battery level in milliseconds
-const int BATTERY_PIN = A0;
+#define REPORT_BATTERYLEVEL false                 // set to true or false to allow or omit battery level reports
+#define SEND_BATTERYLEVEL_INTERVAL 60000          // interval for sending battery level in milliseconds
+#define BATTERY_PIN A0
 const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
-const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
+#define MAX_AI_VOLTAGE 5100                       // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
 
 
 // ****************
