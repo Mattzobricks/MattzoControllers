@@ -85,7 +85,7 @@ class MattzoLoco;
 class MattzoMotorShield;
 
 // MattzoBricks library files
-#include "MTC4PF_Configuration_Example_IR_onboard_L7938.h"       // this file should be placed in the same folder
+#include "MTC4PF_Configuration_Example_SFE2.h"       // this file should be placed in the same folder
 #include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
 
 
