@@ -200,10 +200,5 @@ const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20
 // Trigger emergency brake upon disconnect
 #define TRIGGER_EBREAK_UPON_DISCONNECT true
 
-
-// ***************
-// SYSLOG SETTINGS
-// ***************
-
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MTC4PF-V200";
