@@ -18,9 +18,9 @@
 
 
 
-// *******************************************************************************************
-// Example file for a train with LEGO IR Receiver 8884 and an onboard MTC4PF with train lights
-// *******************************************************************************************
+// *********************************************************************************************
+// Example file for a train with LEGO IR Receiver 8884 and an onboard MTC4PF with several lights
+// *********************************************************************************************
 
 
 // *****
@@ -44,8 +44,8 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
     .locoName = "L7938",
     .locoAddress = 7938,
     .accelerationInterval = 100,
-    .accelerateStep = 20,
-    .brakeStep = 20
+    .accelerateStep = 5,
+    .brakeStep = 10
   };
 
   return locoConf;
@@ -76,6 +76,8 @@ const int NUM_MOTORSHIELDS = 1;
 // - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
 // - locoAddress: loco that this motor shields is attached to
 // - motorShieldType: motor shield type
+// - L298N_enA, L298N_enB: PWM signal pin for motor A / B, if L298N is used.
+// - in1..in4: pin for motor direction control for motor shields L298N and L9110 (in1: forward motor A, in2: reverse motor A, in3: forward motor B, in4: reverse motor B).
 // - minArduinoPower: minimum power setting for Arduino based motor shields
 // - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023)
 // - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused). In case of LEGO IR Receiver 8884, this is the motor connected to the red port.
@@ -88,6 +90,12 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
       .motorShieldName = "L7938",
       .locoAddress = 7938,
       .motorShieldType = MotorShieldType::LEGO_IR_8884,
+      .L298N_enA = 0,
+      .L298N_enB = 0,
+      .in1 = 0,
+      .in2 = 0,
+      .in3 = 0,
+      .in4 = 0,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = 1,
@@ -108,19 +116,18 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 
 // List of train lights including their configuration
 struct TrainLightConfiguration {
-  // Train light type. Either some light that is directly wired to the ESP, or via an LEGO IR receiver 8884
+  // Train light type. Either some light that is directly wired to the ESP, or a light connected to a Power Functions motor port
   TrainLightType trainLightType;
-  // If light is directly wired to the ESP, the output pin; else: unused
+  // If light is directly wired to the ESP, the output pin; else: unused (set to -1)
   uint8_t pin;
-  // IR channel of the IR receiver that the light is connected to (relevant for LEGO IR receiver 8884 only)
-  uint8_t irChannel;
-  // IR port to which the PF lights are attached (MattzoPowerFunctionsPort::RED or ::BLUE; relevant for LEGO IR receiver 8884 only)
-  MattzoPowerFunctionsPort irPort;
-  // if directly connected: PWM value on output pin when light is off (usually 0)
-  // if connected via IR: IR power value when light is off (usually 0)
+  // If light in connected to motor shield: index of the motor shield. Usually 0 (the first and only one). Else: unused (set to -1)
+  int motorShieldIndex;
+  // If light in connected to motor shield: port A: 0; port B: 1. Else: unused (set to -1)
+  // ATTENTION: if a light is connected to a motor port, the corresponding configMotorA / configMotorB parameter in the motorshield configuration must be 0!
+  int motorPortIndex;
+  // light intensity (0..MAX_ARDUINO_POWER) if light is switched off. Usually = 0.
   int powerLevelOff;
-  // if directly connected: PWM value on output pin when light is on (max is MAX_ARDUINO_POWER = 1023)
-  // if connected via IR: IR power value when light in on (max. 100 = full bright).
+  // light intensity (0..MAX_ARDUINO_POWER) if light is switched on. Full bright = MAX_ARDUINO_POWER = 1023.
   int powerLevelOn;
 } trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 {
@@ -128,8 +135,8 @@ struct TrainLightConfiguration {
     // 0: interior lighting
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D4,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = MAX_ARDUINO_POWER,
     .powerLevelOn = 0,
   },
@@ -137,8 +144,8 @@ struct TrainLightConfiguration {
     // 1: head lights / red
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D8,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
     .powerLevelOn = MAX_ARDUINO_POWER,
   },
@@ -146,8 +153,8 @@ struct TrainLightConfiguration {
     // 2: head lights / white
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D6,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
     .powerLevelOn = MAX_ARDUINO_POWER,
   },
@@ -155,8 +162,8 @@ struct TrainLightConfiguration {
     // 3: head lights / ground
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D7,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
     .powerLevelOn = 0,
   },
@@ -164,8 +171,8 @@ struct TrainLightConfiguration {
     // 4: rear lights / red component
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D1,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
     .powerLevelOn = 385,
   },
@@ -173,8 +180,8 @@ struct TrainLightConfiguration {
     // 5: rear lights / green component
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D2,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
     .powerLevelOn = 500,
   },
@@ -182,8 +189,8 @@ struct TrainLightConfiguration {
     // 6: rear lights / blue component
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D3,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
     .powerLevelOn = MAX_ARDUINO_POWER,
   },
@@ -191,8 +198,8 @@ struct TrainLightConfiguration {
     // 7: rear lights / ground
     .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
     .pin = D0,
-    .irChannel = -1,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
     .powerLevelOn = 0,
   }
@@ -454,9 +461,8 @@ struct TrainLightTriggerConfiguration {
     .trainLightStatus = TrainLightStatus::ON
   },
 
-/*
+  // this section may be commented out to prevent the head and rear lights from being switched off upon stop
   // stop: all exterior lights off. front and rear lights off
-  // this section can be commented out to prevent the head and rear lights from being switched off upon stop
   {
     // head lights red off
     .locoAddress = 7938,
@@ -492,7 +498,6 @@ struct TrainLightTriggerConfiguration {
     .trainLightIndex = 6,
     .trainLightStatus = TrainLightStatus::OFF
   },
-*/
 };
 
 
@@ -500,23 +505,8 @@ struct TrainLightTriggerConfiguration {
 // CONTROLLER WIRING SPECIFICS
 // ***************************
 
-// Type of motor shield directly wired to the controller.
-// (The different motor shield types are defined in MTC4PF.ino)
-// Set to MotorShieldType::NONE if only virtual motor shields are used!
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::LEGO_IR_8884;
-
-// Constants for motor shield type L298N
-#define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
-#define enB D1  // PWM signal pin for motor B. Relevant for L298N only.
-
-// Constants for motor shield type L298N and L9110
-#define in1 D3  // pin for motor A direction control (forward).
-#define in2 D4  // pin for motor A direction control (reverse).
-#define in3 D5  // pin for motor B direction control (forward).
-#define in4 D6  // pin for motor B direction control (reverse).
-
 // Constants for motorshield type Lego IR Receiver 8884
-#define IR_LED_PIN D5			// pin on which the IR LED is installed.
+#define IR_LED_PIN D5			// pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = false;  // set to false if no LED is installed

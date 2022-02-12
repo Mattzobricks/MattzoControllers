@@ -85,7 +85,7 @@ class MattzoLoco;
 class MattzoMotorShield;
 
 // MattzoBricks library files
-#include "MTC4PF_Configuration_Example_V100.h"       // this file should be placed in the same folder
+#include "MTC4PF_Configuration_Example_IR_onboard_L7938.h"       // this file should be placed in the same folder
 #include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
 
 
@@ -574,10 +574,10 @@ void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPo
     // motor shield type Lego IR Receiver 8884
     irPowerLevel = desiredPower * MAX_IR_POWERVALUE / MAX_ARDUINO_POWER;
     if (motorPortIndex == 0) {
-      myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed = powerFunctions0.speedToPwm(desiredDirection * irPowerLevel);
+      myMattzoMotorShields[motorShieldIndex].pfPowerLevelRed = powerFunctions0.speedToPwm(irPowerLevel);
     }
     else if (motorPortIndex == 1) {
-      myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue = powerFunctions0.speedToPwm(desiredDirection * irPowerLevel);
+      myMattzoMotorShields[motorShieldIndex].pfPowerLevelBlue = powerFunctions0.speedToPwm(irPowerLevel);
     }
     mcLog("Setting IR channel " + String(myMattzoMotorShields[motorShieldIndex]._irChannel) + " port " + String(motorPortIndex) + " to " + String(irPowerLevel));
     // Force immediate IR transmission
