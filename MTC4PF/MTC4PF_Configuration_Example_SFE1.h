@@ -18,9 +18,9 @@
 
 
 
-// *****************************************************************************************************
-// Example file for a train with MTC4PF mini and 3 white LED head lights in series on the second PF port
-// *****************************************************************************************************
+// *********************************************************************************************
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield and lights
+// *********************************************************************************************
 
 
 // *****
@@ -41,10 +41,10 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
   locoConf[0] = (MattzoLocoConfiguration) {
-    .locoName = "V100",
-    .locoAddress = 100,
+    .locoName = "SFE",
+    .locoAddress = 10020,
     .accelerationInterval = 100,
-    .accelerateStep = 5,
+    .accelerateStep = 2,
     .brakeStep = 10
   };
 
@@ -85,21 +85,16 @@ const int NUM_MOTORSHIELDS = 1;
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-  // Type of motor shield directly wired to the controller.
-// (The different motor shield types are defined in MTC4PF.ino)
-// Set to MotorShieldType::NONE if only virtual motor shields are used!
-  const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
-
-  msConf[0] = (MattzoMotorShieldConfiguration){
-      .motorShieldName = "V100",
-      .locoAddress = 100,
+  msConf[0] = (MattzoMotorShieldConfiguration) {
+      .motorShieldName = "SFE",
+      .locoAddress = 10020,
       .motorShieldType = MotorShieldType::L9110,
-      .L298N_enA = D0,
-      .L298N_enB = D1,
-      .in1 = D3,
-      .in2 = D4,
-      .in3 = D5,
-      .in4 = D6,
+      .L298N_enA = 0,
+      .L298N_enB = 0,
+      .in1 = D1,
+      .in2 = D2,
+      .in3 = 0,
+      .in4 = 0,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
       .configMotorA = -1,
@@ -116,7 +111,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 // *************************
 
 // Number of train lights controlled by this controller
-#define NUM_TRAIN_LIGHTS 1
+#define NUM_TRAIN_LIGHTS 3
 
 // List of train lights including their configuration
 struct TrainLightConfiguration {
@@ -136,14 +131,32 @@ struct TrainLightConfiguration {
 } trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 {
   {
-    // head lights (3 LEDs in series, connected to motor shield)
-    .trainLightType = TrainLightType::POWER_FUNCTIONS,
-    .pin = D0,
+    // 0: head light / red component
+    .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+    .pin = D5,
     .motorShieldIndex = 0,
-    .motorPortIndex = 1,
+    .motorPortIndex = -1,
     .powerLevelOff = 0,
-    .powerLevelOn = MAX_ARDUINO_POWER
-  }
+    .powerLevelOn = 300,
+  },
+  {
+    // 1: head light / green component
+    .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+    .pin = D6,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
+    .powerLevelOff = 0,
+    .powerLevelOn = 600,
+  },
+  {
+    // 2: head light / blue component
+    .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+    .pin = D7,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
+    .powerLevelOff = 0,
+    .powerLevelOn = MAX_ARDUINO_POWER,
+  },
 };
 
 
@@ -154,7 +167,7 @@ struct TrainLightConfiguration {
 // Rocrail functions are used to MANUALLY switch train lights on and off
 
 // Number of function mappings
-#define NUM_FUNCTION_MAPPINGS 2
+#define NUM_FUNCTION_MAPPINGS 9
 
 // List of function mappings
 struct LocoFunctionMappingConfiguration {
@@ -165,22 +178,84 @@ struct LocoFunctionMappingConfiguration {
   TrainLightStatus trainLightStatus;
 } locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
 {
+  // fn1: forward mode. head light white
   {
-    .locoAddress = 100,
+    // head light red component on
+    .locoAddress = 10020,
     .fnNo = 1,
     .fnOnOff = true,
     .trainLightIndex = 0,
     .trainLightStatus = TrainLightStatus::ON
   },
   {
-    .locoAddress = 100,
+    // head light green component on
+    .locoAddress = 10020,
     .fnNo = 1,
-    .fnOnOff = false,
+    .fnOnOff = true,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light blue component on
+    .locoAddress = 10020,
+    .fnNo = 1,
+    .fnOnOff = true,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+
+  // fn2: backwards mode. head light red
+  {
+    // head light red component on
+    .locoAddress = 10020,
+    .fnNo = 2,
+    .fnOnOff = true,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .fnNo = 2,
+    .fnOnOff = true,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .fnNo = 2,
+    .fnOnOff = true,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+
+  // fn3: head light off
+  {
+    // head light red component off
+    .locoAddress = 10020,
+    .fnNo = 3,
+    .fnOnOff = true,
     .trainLightIndex = 0,
     .trainLightStatus = TrainLightStatus::OFF
-  }
+  },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .fnNo = 3,
+    .fnOnOff = true,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .fnNo = 3,
+    .fnOnOff = true,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
 };
-
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -189,7 +264,7 @@ struct LocoFunctionMappingConfiguration {
 // Triggers are used to AUTOMATICALLY switch train lights on and off
 
 // Number of train light triggers as defined just below
-#define NUM_TRAIN_LIGHT_TRIGGERS 2
+#define NUM_TRAIN_LIGHT_TRIGGERS 9
 
 // List of train light triggers
 struct TrainLightTriggerConfiguration {
@@ -199,18 +274,77 @@ struct TrainLightTriggerConfiguration {
   TrainLightStatus trainLightStatus;
 } trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
 {
+  // forward mode. head light white
   {
-    .locoAddress = 100,
+    // head light red component on
+    .locoAddress = 10020,
     .lightEventType = LightEventType::FORWARD,
     .trainLightIndex = 0,
     .trainLightStatus = TrainLightStatus::ON
   },
   {
-    .locoAddress = 100,
+    // head light green component on
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::FORWARD,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light blue component on
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::FORWARD,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+
+  // backward mode. head light red
+  {
+    // head light red component on
+    .locoAddress = 10020,
     .lightEventType = LightEventType::REVERSE,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::REVERSE,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::REVERSE,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+
+  // this section may be commented out to prevent the head and rear lights from being switched off upon stop
+/*
+  // stop: head light off
+  {
+    // head light red component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::STOP,
     .trainLightIndex = 0,
     .trainLightStatus = TrainLightStatus::OFF
   },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::STOP,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::STOP,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+*/
 };
 
 
@@ -218,20 +352,20 @@ struct TrainLightTriggerConfiguration {
 // CONTROLLER CONFIGURATION
 // ************************
 
-// Configuration for motorshield type Lego IR Receiver 8884
+// Constants for motorshield type Lego IR Receiver 8884
 #define IR_LED_PIN D5      // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
 // Digital output PIN to monitor controller operation (typically a LED)
-#define STATUS_LED_PIN_INSTALLED true
-#define STATUS_LED_PIN D8
-#define STATUS_LED_REVERSE false
+bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+uint8_t STATUS_LED_PIN = D4;
+bool STATUS_LED_REVERSE = true;
 
 // Report battery level
-#define REPORT_BATTERYLEVEL false                 // set to true or false to allow or omit battery level reports
-#define SEND_BATTERYLEVEL_INTERVAL 60000          // interval for sending battery level in milliseconds
-#define BATTERY_PIN A0
+const bool REPORT_BATTERYLEVEL = false;           // set to true or false to allow or omit battery level reports
+const int SEND_BATTERYLEVEL_INTERVAL = 60000;     // interval for sending battery level in milliseconds
+const int BATTERY_PIN = A0;
 const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
-#define MAX_AI_VOLTAGE 5100                       // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
+const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
 
 
 // ****************
@@ -242,4 +376,4 @@ const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20
 #define TRIGGER_EBREAK_UPON_DISCONNECT true
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MTC4PF-V100";
+const char* SYSLOG_APP_NAME = "MTC4PF-SFE1";

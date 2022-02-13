@@ -19,13 +19,13 @@
 
 
 // **********************************************************************************
-// Example file for configuring the MTC4PF to control a train with L9110 motor shield
+// Example file for configuring the MTC4PF to control a loco with lights but no motor
 // **********************************************************************************
 
 
-// ***********
-// MattzoLocos
-// ***********
+// *****
+// LOCOS
+// *****
 
 // Number of locos (aka. MattzoLocos) controlled by this controller
 const int NUM_LOCOS = 1;
@@ -53,103 +53,267 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 
 
 // *************
-// Motor shields
+// MOTOR SHIELDS
 // *************
-// Motor shields are usually electronical components attached to the MattzoTrainController.
-// They are controlled via PWM signals from the controller and handle the higher currents required
-// for train motors.
-// Beside those physically existing motor shields, they are also partly or completely virtual motor shields as:
-// - LEGO_IR_8884, and
-// - WIFI_TRAIN_RECEIVER_4DBRIX
-// It is important to note that one train can have MULTIPLE motor shields attached to it. This is relevant for the following scenarios:
-// - Infrared LED controls multiple motors in a single train
-// - More than one 4DBrix WiFi Train Receiver installed in a single train.
-// - Combining different motorshields into a single train is also possible (e.g. steam loco with 4DBrix receiver in the front 
-//   and an additional "push" waggon in the middle of the train with an L9110 motorshield).
 
-// Number of motor shields controlled by this controller
 const int NUM_MOTORSHIELDS = 0;
-
-// List of motor shields that are controlled by this controller
-// The parameters have the following meaning:
-// - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
-// - motorShieldType: motor shield type
-// - minArduinoPower: minimum power setting for Arduino based motor shields
-// - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023)
-// - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused)
-// - configMotorB: same for motor B
-// - locoAddress: loco that this motor shields is attached to
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
   return msConf;
 }
 
 
-// ***************************
-// Controller wiring specifics
-// ***************************
+// *************************
+// TRAIN LIGHT CONFIGURATION
+// *************************
 
-// Type of motor shield directly wired to the controller.
-// (The different motor shield types are defined in MTC4PF.ino)
-// Set to MotorShieldType::NONE if only virtual motor shields are used!
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
+// Number of train lights controlled by this controller
+#define NUM_TRAIN_LIGHTS 3
 
-// Constants for motor shield type L298N
-#define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
-#define enB D1  // PWM signal pin for motor B. Relevant for L298N only.
+// List of train lights including their configuration
+struct TrainLightConfiguration {
+  // Train light type. Either some light that is directly wired to the ESP, or a light connected to a Power Functions motor port
+  TrainLightType trainLightType;
+  // If light is directly wired to the ESP, the output pin; else: unused (set to -1)
+  uint8_t pin;
+  // If light in connected to motor shield: index of the motor shield. Usually 0 (the first and only one). Else: unused (set to -1)
+  int motorShieldIndex;
+  // If light in connected to motor shield: port A: 0; port B: 1. Else: unused (set to -1)
+  // ATTENTION: if a light is connected to a motor port, the corresponding configMotorA / configMotorB parameter in the motorshield configuration must be 0!
+  int motorPortIndex;
+  // light intensity (0..MAX_ARDUINO_POWER) if light is switched off. Usually = 0.
+  int powerLevelOff;
+  // light intensity (0..MAX_ARDUINO_POWER) if light is switched on. Full bright = MAX_ARDUINO_POWER = 1023.
+  int powerLevelOn;
+} trainLightConfiguration[NUM_TRAIN_LIGHTS] =
+{
+  {
+    // 0: head light / red component
+    .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+    .pin = D5,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
+    .powerLevelOff = 0,
+    .powerLevelOn = 300,
+  },
+  {
+    // 1: head light / green component
+    .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+    .pin = D6,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
+    .powerLevelOff = 0,
+    .powerLevelOn = 600,
+  },
+  {
+    // 2: head light / blue component
+    .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+    .pin = D7,
+    .motorShieldIndex = 0,
+    .motorPortIndex = -1,
+    .powerLevelOff = 0,
+    .powerLevelOn = MAX_ARDUINO_POWER,
+  },
+};
 
-// Constants for motor shield type L298N and L9110
-#define in1 D3  // pin for motor A direction control (forward).
-#define in2 D4  // pin for motor A direction control (reverse).
-#define in3 D5  // pin for motor B direction control (forward).
-#define in4 D6  // pin for motor B direction control (reverse).
+
+// ******************************
+// FUNCTION MAPPING CONFIGURATION
+// ******************************
+
+// Rocrail functions are used to MANUALLY switch train lights on and off
+
+// Number of function mappings
+#define NUM_FUNCTION_MAPPINGS 9
+
+// List of function mappings
+struct LocoFunctionMappingConfiguration {
+  int locoAddress;
+  uint8_t fnNo;
+  bool fnOnOff;
+  int trainLightIndex;
+  TrainLightStatus trainLightStatus;
+} locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
+{
+  // fn1: forward mode. head light red
+  {
+    // head light red component on
+    .locoAddress = 10020,
+    .fnNo = 1,
+    .fnOnOff = true,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .fnNo = 1,
+    .fnOnOff = true,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .fnNo = 1,
+    .fnOnOff = true,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+
+  // fn2: backwards mode. head light white
+  {
+    // head light red component on
+    .locoAddress = 10020,
+    .fnNo = 2,
+    .fnOnOff = true,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light green component on
+    .locoAddress = 10020,
+    .fnNo = 2,
+    .fnOnOff = true,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light blue component on
+    .locoAddress = 10020,
+    .fnNo = 2,
+    .fnOnOff = true,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+
+  // fn3: head light off
+  {
+    // head light red component off
+    .locoAddress = 10020,
+    .fnNo = 3,
+    .fnOnOff = true,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .fnNo = 3,
+    .fnOnOff = true,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .fnNo = 3,
+    .fnOnOff = true,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+};
+
+
+// *********************************
+// TRAIN LIGHT TRIGGER CONFIGURATION
+// *********************************
+
+// Triggers are used to AUTOMATICALLY switch train lights on and off
+
+// Number of train light triggers as defined just below
+#define NUM_TRAIN_LIGHT_TRIGGERS 9
+
+// List of train light triggers
+struct TrainLightTriggerConfiguration {
+  int locoAddress; // set to 0 to indicate "all locos"
+  LightEventType lightEventType;
+  int trainLightIndex;
+  TrainLightStatus trainLightStatus;
+} trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
+{
+  // forward mode. head light red
+  {
+    // head light red component on
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::FORWARD,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::FORWARD,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::FORWARD,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+
+
+
+  // backward mode. head light white
+  {
+    // head light red component on
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::REVERSE,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light green component on
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::REVERSE,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+  {
+    // head light blue component on
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::REVERSE,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::ON
+  },
+
+  // this section may be commented out to prevent the head and rear lights from being switched off upon stop
+/*
+  // stop: head light off
+  {
+    // head light red component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::STOP,
+    .trainLightIndex = 0,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light green component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::STOP,
+    .trainLightIndex = 1,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+  {
+    // head light blue component off
+    .locoAddress = 10020,
+    .lightEventType = LightEventType::STOP,
+    .trainLightIndex = 2,
+    .trainLightStatus = TrainLightStatus::OFF
+  },
+*/
+};
+
+
+// ************************
+// CONTROLLER CONFIGURATION
+// ************************
 
 // Constants for motorshield type Lego IR Receiver 8884
-#define IR_LED_PIN D5			// pin on which the IR LED is installed.
-#define IR_CHANNEL 0			// channel number selected on the Lego IR Receiver 8884. May be 0, 1, 2 or 3.
-#define IR_PORT_RED 0     // Usage of red  port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
-#define IR_PORT_BLUE 0    // Usage of blue port on Lego IR Receiver 8884: 1 = motor, default rotation; 0 = no motor connected; -1 = motor, reversed rotation
-
-// NUM_FUNCTIONS represents the number of Rocrail functions that are defined for this controller
-// If changed, the number of array values for FUNCTION_PIN below must be changed as well.
-// You should also check void lightEvent(), which is responsible for switching headlights from white to red etc.
-const int NUM_FUNCTIONS = 3;
-
-// Digital pins for function output
-// For lights conntected to LEGO IR Receiver 8884, use virtual function pins IR_LIGHT_RED and IR_LIGHT_BLUE
-// In this example:
-// D5, D6, D7: RGB components of an LED without resistors. D5+D6+D7 HIGH: white. D5 HIGH only: red.
-uint8_t FUNCTION_PIN[NUM_FUNCTIONS] = { D5, D6, D7 };
-
-// The loco address for which the function pin will be triggered.
-// You may fill that array up with zeros (0). Meaning: "all trains". Makes only sense if this controller is handling a single train only.
-int FUNCTION_PIN_LOCO_ADDRESS[NUM_FUNCTIONS] = { 0, 0, 0 };
-
-// PWM value for function output
-// max: 1023
-int FUNCTION_PWM_VALUE[NUM_FUNCTIONS] = { 300, 600, 1023 };
-
-// Automatic lights. If set to true, Functions with odd numbers (Fn1, Fn3...) are switch on when loco is going forward, and even numbers (Fn2, Fn4) when reverse. Set to false to disable the feature.
-// To set-up more advanced behaviour, find the lightEvent() function in the MTC4PF code and change it as desired.
-const bool AUTO_LIGHTS = true;
-
-/*
-This is what the switch structure in the lightEvent() function should look like:
-
-      switch (le) {
-      case LightEventType::STOP:
-        mcLog("Light event stop");
-        break;
-      case LightEventType::FORWARD:
-        mcLog("Light event forward");
-        functionCommand[i] = (i == 0);
-        break;
-      case LightEventType::REVERSE:
-        mcLog("Light event reverse");
-        functionCommand[i] = true;
-        break;
-      }
-*/
+#define IR_LED_PIN D5      // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
 // Digital output PIN to monitor controller operation (typically a LED)
 bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
@@ -165,16 +329,11 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 
 
 // ****************
-// Network settings
+// NETWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
 #define TRIGGER_EBREAK_UPON_DISCONNECT false
-
-
-// ***************
-// Syslog settings
-// ***************
 
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MTC4PF-SFE2";

@@ -18,9 +18,9 @@
 
 
 
-// *****************************************************************************************************
-// Example file for a train with MTC4PF mini and 3 white LED head lights in series on the second PF port
-// *****************************************************************************************************
+// *****************************************
+// Example file for a train with MTC4PF mini
+// *****************************************
 
 
 // *****
@@ -41,8 +41,8 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
   static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
   locoConf[0] = (MattzoLocoConfiguration) {
-    .locoName = "V100",
-    .locoAddress = 100,
+    .locoName = "V200",
+    .locoAddress = 200,
     .accelerationInterval = 100,
     .accelerateStep = 5,
     .brakeStep = 10
@@ -91,8 +91,8 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
   msConf[0] = (MattzoMotorShieldConfiguration){
-      .motorShieldName = "V100",
-      .locoAddress = 100,
+      .motorShieldName = "V200",
+      .locoAddress = 200,
       .motorShieldType = MotorShieldType::L9110,
       .L298N_enA = D0,
       .L298N_enB = D1,
@@ -102,8 +102,8 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
       .in4 = D6,
       .minArduinoPower = MIN_ARDUINO_POWER,
       .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = -1,
-      .configMotorB = 0,
+      .configMotorA = 1,
+      .configMotorB = -1,
       .irChannel = -1
   };
 
@@ -116,7 +116,7 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 // *************************
 
 // Number of train lights controlled by this controller
-#define NUM_TRAIN_LIGHTS 1
+#define NUM_TRAIN_LIGHTS 0
 
 // List of train lights including their configuration
 struct TrainLightConfiguration {
@@ -133,18 +133,7 @@ struct TrainLightConfiguration {
   int powerLevelOff;
   // light intensity (0..MAX_ARDUINO_POWER) if light is switched on. Full bright = MAX_ARDUINO_POWER = 1023.
   int powerLevelOn;
-} trainLightConfiguration[NUM_TRAIN_LIGHTS] =
-{
-  {
-    // head lights (3 LEDs in series, connected to motor shield)
-    .trainLightType = TrainLightType::POWER_FUNCTIONS,
-    .pin = D0,
-    .motorShieldIndex = 0,
-    .motorPortIndex = 1,
-    .powerLevelOff = 0,
-    .powerLevelOn = MAX_ARDUINO_POWER
-  }
-};
+} trainLightConfiguration[NUM_TRAIN_LIGHTS] = {};
 
 
 // ******************************
@@ -154,7 +143,7 @@ struct TrainLightConfiguration {
 // Rocrail functions are used to MANUALLY switch train lights on and off
 
 // Number of function mappings
-#define NUM_FUNCTION_MAPPINGS 2
+#define NUM_FUNCTION_MAPPINGS 0
 
 // List of function mappings
 struct LocoFunctionMappingConfiguration {
@@ -163,23 +152,7 @@ struct LocoFunctionMappingConfiguration {
   bool fnOnOff;
   int trainLightIndex;
   TrainLightStatus trainLightStatus;
-} locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
-{
-  {
-    .locoAddress = 100,
-    .fnNo = 1,
-    .fnOnOff = true,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::ON
-  },
-  {
-    .locoAddress = 100,
-    .fnNo = 1,
-    .fnOnOff = false,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::OFF
-  }
-};
+} locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] = {};
 
 
 // *********************************
@@ -189,7 +162,7 @@ struct LocoFunctionMappingConfiguration {
 // Triggers are used to AUTOMATICALLY switch train lights on and off
 
 // Number of train light triggers as defined just below
-#define NUM_TRAIN_LIGHT_TRIGGERS 2
+#define NUM_TRAIN_LIGHT_TRIGGERS 0
 
 // List of train light triggers
 struct TrainLightTriggerConfiguration {
@@ -197,21 +170,7 @@ struct TrainLightTriggerConfiguration {
   LightEventType lightEventType;
   int trainLightIndex;
   TrainLightStatus trainLightStatus;
-} trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
-{
-  {
-    .locoAddress = 100,
-    .lightEventType = LightEventType::FORWARD,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::ON
-  },
-  {
-    .locoAddress = 100,
-    .lightEventType = LightEventType::REVERSE,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::OFF
-  },
-};
+} trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] = {};
 
 
 // ************************
@@ -242,4 +201,4 @@ const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20
 #define TRIGGER_EBREAK_UPON_DISCONNECT true
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MTC4PF-V100";
+const char* SYSLOG_APP_NAME = "MTC4PF-V200";
