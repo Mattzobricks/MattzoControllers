@@ -76,8 +76,8 @@ const int NUM_MOTORSHIELDS = 1;
 // - motorShieldType: motor shield type
 // - L298N_enA, L298N_enB: PWM signal pin for motor A / B, if L298N is used.
 // - in1..in4: pin for motor direction control for motor shields L298N and L9110 (in1: forward motor A, in2: reverse motor A, in3: forward motor B, in4: reverse motor B).
-// - minArduinoPower: minimum power setting for Arduino based motor shields
-// - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023)
+// - minArduinoPower: minimum power (should be 0 for LEGO IR Receiver 8884)
+// - maxArduinoPower: maximum power (max. 1023)
 // - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused). In case of LEGO IR Receiver 8884, this is the motor connected to the red port.
 // - configMotorB: same for motor B; if IR receiver: blue port
 // - irChannel: if a LEGO IR Receiver 8884 is used, the selected channel of the receiver. May be 0, 1, 2 or 3. If the loco uses multiple IR receivers on different channels, additional motor shields for the loco are required.

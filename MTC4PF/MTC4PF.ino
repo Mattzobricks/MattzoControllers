@@ -85,7 +85,7 @@ class MattzoLoco;
 class MattzoMotorShield;
 
 // MattzoBricks library files
-#include "conf/examples/MTC4PF_conf_IR_onboard_L7938.h"       // this file should be placed in the same folder
+#include "conf/MTC4PF_conf.h"       // this file should be placed in the same folder
 #include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
 
 
@@ -185,7 +185,7 @@ MattzoPowerFunctions powerFunctions2(IR_LED_PIN, 2);
 MattzoPowerFunctions powerFunctions3(IR_LED_PIN, 3);
 
 // Waiting time between two consecutive motor transmissions
-#define WAIT_BETWEEN_IR_TRANSMISSIONS_MS 100
+#define WAIT_BETWEEN_IR_TRANSMISSIONS_MS 1000
 
 
 struct TrainLight {
