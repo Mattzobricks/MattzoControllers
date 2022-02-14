@@ -209,47 +209,54 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   // Check for fn message
   element = xmlDocument.FirstChildElement("fn");
   if (element != NULL) {
-    // mcLog("Received fn message...");
+    mcLog2("Received fn message...", LOG_DEBUG);
 
     // -> process fn (function) message
 
     // query addr attribute. This is the address of the loco as specified in Rocrail.
     // Must match the locoAddress of the train object.
     if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-      mcLog("addr attribute not found or wrong type. Message disregarded.");
+      mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_DEBUG);
       return;
     }
-    // mcLog("addr: " + String(rr_addr));
+    mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
 
     // query fnchanged attribute. This is information which function shall be set.
     int rr_functionNo;
     if (element->QueryIntAttribute("fnchanged", &rr_functionNo) != XML_SUCCESS) {
-      mcLog("fnchanged attribute not found or wrong type. Message disregarded.");
-      return;
+      // if fnchanged attribute not found -> f0 was changed.
+      rr_functionNo = 0;
     }
-    // mcLog("fnchanged: " + String(rr_functionNo));
+    mcLog2("fnchanged: f" + String(rr_functionNo), LOG_DEBUG);
 
     // query fnchangedstate attribute. This is value if the function shall be set on or off
     const char * rr_state_String = "xxxxxx";  // expected values are "true" or "false"
     bool rr_state;
-    if (element->QueryStringAttribute("fnchangedstate", &rr_state_String) != XML_SUCCESS) {
-      mcLog("fnchangedstate attribute not found or wrong type.");
-      return;
+    if (rr_functionNo > 0) {
+      if (element->QueryStringAttribute("fnchangedstate", &rr_state_String) != XML_SUCCESS) {
+        mcLog2("fnchangedstate attribute not found or wrong type.", LOG_DEBUG);
+        return;
+      }
+    } else {
+      if (element->QueryStringAttribute("f0", &rr_state_String) != XML_SUCCESS) {
+        mcLog2("f0 attribute not found or wrong type.", LOG_DEBUG);
+        return;
+      }
     }
     if (strcmp(rr_state_String, "true")==0) {
-      // mcLog("fnchangedstate: true");
+      mcLog2("fnchangedstate: true", LOG_DEBUG);
       rr_state = true;
     }
     else if (strcmp(rr_state_String, "false")==0) {
-      // mcLog("fnchangedstate: false");
+      mcLog2("fnchangedstate: false", LOG_DEBUG);
       rr_state = false;
     }
     else {
-      mcLog("unknown fnchangedstate value - disregarding message.");
+      mcLog2("unknown fnchangedstate value - disregarding message.", LOG_DEBUG);
       return;
     }
 
-    mcLog("Received fn message: loco address " + String(rr_addr) + ", fn" + String(rr_functionNo) + ", state=" + String(rr_state));
+    mcLog2("Received fn message: loco address " + String(rr_addr) + ", fn" + String(rr_functionNo) + ", state=" + String(rr_state), LOG_DEBUG);
     handleRocrailFunction(rr_addr, rr_functionNo, rr_state);
 
     return;
