@@ -318,5 +318,9 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 // Trigger emergency brake upon disconnect
 #define TRIGGER_EBREAK_UPON_DISCONNECT true
 
+// WiFi Hostname
+// Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
+const char* MC_HOSTNAME = "MTC4PF-TGV2";
+
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MTC4PF-TGV2";

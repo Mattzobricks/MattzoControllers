@@ -10,173 +10,16 @@
 // TARGET-PLATTFORM for this sketch: ESP-8266
 // ******************************************
 
-// The following #include directives need some enum definitions before the compiler gets to them...
-// MOTORSHIELD_TYPE represents the type motor shield that this controller uses.
-// 1 = L298N, 2 = L9110, 3 = Lego IR Receiver 8884
-// Types 1 and 2 are motorshields that are physically connected to the controller
-// Commands to type 3 are transmitted via an infrared LED
-enum struct MotorShieldType
-{
-  NONE = 0x0,
-  L298N = 0x1,
-  L9110 = 0x2,
-  LEGO_IR_8884 = 0x3,
-  WIFI_TRAIN_RECEIVER_4DBRIX = 0x4
-};
+#include <ESP8266WiFi.h>                                  // WiFi library for ESP-8266
+#include "lib/MattzoPowerFunctions.cpp"                   // Power Functions library (required for LEGO Infrared Receiver 8884)
+#include "MTC4PF.h"
+#include "conf/my/MTC4PF_conf.h"                          // MattzoController configuration file
+#include "lib/MattzoController_Library.cpp"               // MattzoController library file
 
-// Min and max useful power for Arduino based motor shields
-const int MIN_ARDUINO_POWER = 400;   // default minimum useful arduino power. May be overwritten in motor shield configuration
-const int MAX_ARDUINO_POWER = 1023;  // default maximum arduino power. May be overwritten in motor shield configuration
-
-// Train light types
-enum struct TrainLightType
-{
-  ESP_OUTPUT_PIN,
-  POWER_FUNCTIONS
-};
-
-enum struct TrainLightStatus
-{
-  OFF = 0x0,
-  ON = 0x1,
-  FLASH = 0x2,
-  BLINK = 0x3
-};
-
-enum struct LightEventType
-{
-  STOP = 0x0,
-  FORWARD = 0x1,
-  REVERSE = 0x2
-};
-
-
-#define MATTZO_CONTROLLER_TYPE "MTC4PF"
-#include <ESP8266WiFi.h>                // WiFi library for ESP-8266
-#include "MattzoPowerFunctions.h"       // Power Functions library (required for LEGO Infrared Receiver 8884)
-
-struct MattzoLocoConfiguration {
-  String locoName;
-  int locoAddress;
-  int accelerationInterval;
-  int accelerateStep;
-  int brakeStep;
-};
-
-struct MattzoMotorShieldConfiguration {
-  String motorShieldName;
-  int locoAddress;
-  MotorShieldType motorShieldType;
-  uint8_t L298N_enA;
-  uint8_t L298N_enB;
-  uint8_t in1;
-  uint8_t in2;
-  uint8_t in3;
-  uint8_t in4;
-  int minArduinoPower;
-  int maxArduinoPower;
-  int configMotorA;
-  int configMotorB;
-  int irChannel;
-};
-
-// Forward declaration
-class MattzoLoco;
-class MattzoMotorShield;
-
-// MattzoBricks library files
-#include "conf/MTC4PF_conf.h"       // this file should be placed in the same folder
-#include "MattzoController_Library.h"   // this file needs to be placed in the Arduino library folder
-
-
-
-// Class containing a locomotive object as defined in Rocrail
-class MattzoLoco {
-public:
-  // Members
-  String _locoName;                             // name of the loco as specified in Rocrail
-  int _locoAddress;                             // address of the loco in Rocrail
-  int _currentTrainSpeed = 0;                   // current speed of this train
-  int _targetTrainSpeed = 0;                    // Target speed of this train
-  int _maxTrainSpeed = 0;                       // Maximum speed of this train as configured in Rocrail
-  unsigned long _lastAccelerate = millis();     // time of the last speed adjustment
-
-  // Motor acceleration parameters
-  int _accelerationInterval = 100;       // pause between individual speed adjustments in milliseconds
-  int _accelerateStep = 1;               // acceleration increment for a single acceleration step
-  int _brakeStep = 2;                    // brake decrement for a single braking step
-
-  // Methods
-  void initMattzoLoco(MattzoLocoConfiguration c) {
-    _locoName = c.locoName;
-    _locoAddress = c.locoAddress;
-    _accelerationInterval = c.accelerationInterval;
-    _accelerateStep = c.accelerateStep;
-    _brakeStep = c.brakeStep;
-  };
-
-  String getNiceName() {
-    return _locoName + " (" + _locoAddress + ")";
-  }
-
-  // sets a new target speed
-  void setTargetTrainSpeed(int targetTrainSpeed) {
-    _targetTrainSpeed = targetTrainSpeed;
-    _lastAccelerate = millis() - _accelerationInterval;
-  }
-} myLocos[NUM_LOCOS];  // Objects for MattzoLocos
-
-
-// Base class for motor shields
-class MattzoMotorShield {
-public:
-  // Members
-  String _motorShieldName;
-  int _locoAddress;   // address of the Rocrail loco in which this motor shield is built-in
-  MotorShieldType _motorShieldType;
-  uint8_t _L298N_enA;
-  uint8_t _L298N_enB;
-  uint8_t _in1;
-  uint8_t _in2;
-  uint8_t _in3;
-  uint8_t _in4;
-  int _minArduinoPower = MIN_ARDUINO_POWER;  // minimum useful power setting
-  int _maxArduinoPower = MAX_ARDUINO_POWER;  // maximum useful power setting
-  int _configMotorA = 0;  // 1 = forward, 0 not installed, -1 = reverse
-  int _configMotorB = 0;
-  int _irChannel = -1;    // IR channel. May be 0, 1, 2 or 3. -1 = not installed
-  MattzoPowerFunctionsPwm pfPowerLevelRed;
-  MattzoPowerFunctionsPwm pfPowerLevelBlue;
-
-  // Methods
-  void initMattzoMotorShield(MattzoMotorShieldConfiguration c) {
-    _motorShieldName = c.motorShieldName;
-    _locoAddress = c.locoAddress;
-    _motorShieldType = c.motorShieldType;
-    _L298N_enA = c.L298N_enA;
-    _L298N_enB = c.L298N_enB;
-    _in1 = c.in1;
-    _in2 = c.in2;
-    _in3 = c.in3;
-    _in4 = c.in4;
-    _minArduinoPower = c.minArduinoPower;
-    _maxArduinoPower = c.maxArduinoPower;
-    _configMotorA = c.configMotorA;
-    _configMotorB = c.configMotorB;
-    _irChannel = c.irChannel;
-  }
-
-  String getNiceName() {
-    return _motorShieldName;
-  }
-
-  bool checkLocoAddress(int locoAddress) {
-    return (locoAddress == 0 || locoAddress == _locoAddress);
-  }
-} myMattzoMotorShields[NUM_MOTORSHIELDS];
-
-// maximum speed to power functions speed mapping function
-#define MAX_IR_POWERVALUE 100
+// Array of loco classes
+class MattzoLoco myLocos[NUM_LOCOS];
+// Array of motor shield classes
+class MattzoMotorShield myMattzoMotorShields[NUM_MOTORSHIELDS];
 
 // Power functions objects for LEGO IR Receiver 8884
 MattzoPowerFunctions powerFunctions0(IR_LED_PIN, 0);
@@ -184,20 +27,13 @@ MattzoPowerFunctions powerFunctions1(IR_LED_PIN, 1);
 MattzoPowerFunctions powerFunctions2(IR_LED_PIN, 2);
 MattzoPowerFunctions powerFunctions3(IR_LED_PIN, 3);
 
-// Waiting time between two consecutive motor transmissions
-#define WAIT_BETWEEN_IR_TRANSMISSIONS_MS 1000
+// Array of train light objects
+struct TrainLight trainLight[NUM_TRAIN_LIGHTS];
 
-
-struct TrainLight {
-  TrainLightStatus desiredTrainLightState = TrainLightStatus::OFF;
-  int actualPowerLevel = 0;
-} trainLight[NUM_TRAIN_LIGHTS];
-
-
-// Report battery level
+// Time of last battery level report message
 unsigned long lastBatteryLevelMsg = millis();   // Time of the last battery report
 
-// Global emergency brake flag.
+// Global emergency brake flag
 boolean ebreak = false;
 
 
@@ -858,7 +694,7 @@ void sendBatteryLevel2MQTT() {
       if (voltage > 99999) voltage = 99999;
 
       mcLog("sending battery level raw=" + String(a0Value) + ", mv=" + String(voltage));
-      String batteryMessage = mattzoControllerName + " raw=" + String(a0Value) + ", mv=" + String(voltage);
+      String batteryMessage = String(MC_HOSTNAME) + " raw=" + String(a0Value) + ", mv=" + String(voltage);
       char batteryMessage_char[batteryMessage.length() + 1];  // client name + 5 digits for voltage in mV plus terminating char
       batteryMessage.toCharArray(batteryMessage_char, batteryMessage.length() + 1);
 
