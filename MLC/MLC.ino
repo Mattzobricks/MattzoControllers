@@ -6,11 +6,11 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "conf/MLC_conf.h" // this file should be placed in the same folder
-#include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
+#include "conf/my/MLC_conf.h"                     // MattzoController configuration files
+#include "MLC.h"                                  // Header file
+#include "lib/MattzoController_Library.cpp"       // MattzoController library file
 
 #if USE_PCA9685
 #include <Wire.h>                                 // Built-in library for I2C
@@ -28,21 +28,6 @@ Adafruit_MCP23017 mcp23017[NUM_MCP23017s];
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); // in arduino ide pleas look at "File" - "Examples" - "U8g2" in the menu for examples
 #endif
 
-                                                                             
-// SERVO VARIABLES AND CONSTANTS
-// Delay after which servo is detached after flipping a switch (for directly connected servos only)
-#define SERVO_DETACH_DELAY 1000
-
-// Maximum time that the detach procedure procedure will wait until the PWM signal is low and therefore ready to be detached (for directly connected servos only)
-#define MAX_WAIT_FOR_LOW_MS 100
-
-// Servo array
-struct MattzoServo {
-  Servo servo;      // Servo object to control servos
-  boolean isAttached = false;
-  unsigned long lastSwitchingAction_ms = 0;
-} mattzoServo[NUM_SERVOS];
-
 // Create PWM Servo Driver object (for PCA9685)
 #if USE_PCA9685
 #include <Adafruit_PWMServoDriver.h>              // Adafruit PWM Servo Driver Library for PCA9685 port expander. Tested with version 2.4.0.
@@ -51,130 +36,23 @@ Adafruit_PWMServoDriver pca9685[NUM_PCA9685s];
 #endif
 
 // Power management for PCA9685
-// The PWM signals on the PCA9685 can be automatically turned off after a servo operation to prevent servos from overheat and to save electricity.
-// Time after which servos will go to sleep mode (in milliseconds; 3000 = 3 sec.)
-// MUST BE GREATER THAN SERVO_DETACH_DELAY BY AT LEAST 20 ms (one PWM cycle on 50 Hz)!
-#define PCA9685_POWER_OFF_AFTER_MS 2000
 // Flag that keeps the present sleep mode state
 bool pca9685SleepMode = false;
+// Time from when sleep mode shall be entered
 unsigned long pca9685SleepModeFrom_ms = 0;
 
+// SERVO ARRAY
+struct MattzoServo mattzoServo[NUM_SERVOS];
 
-// SWITCH VARIABLES AND CONSTANTS
-// Default values for TrixBrix switches (in case servo angles are not transmitted)
-#define SWITCHSERVO_MIN_ALLOWED 40   // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
-#define SWITCHSERVO_MIN 75           // a good first guess for the minimum angle of TrixBrix servos is 70
-#define SWITCHSERVO_MAX 85           // a good first guess for the maximum angle of TrixBrix servos is 90
-#define SWITCHSERVO_MAX_ALLOWED 120  // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
-
-
-// SENSOR VARIABLES AND CONSTANTS
-
-// Time in milliseconds until release event is reported after sensor has lost contact
-#define SENSOR_RELEASE_TICKS_MS 100
+// SENSOR VARIABLES
 bool sensorState[NUM_SENSORS];
 int sensorTriggerState[NUM_SENSORS];
 unsigned long lastSensorContact_ms[NUM_SENSORS];
 
-
-// LEVEL CROSSING VARIABLES AND CONSTANTS
-enum struct LevelCrossingStatus
-{
-  OPEN = 0x1,
-  CLOSED = 0x2,
-};
-
-struct LevelCrossing {
-  LevelCrossingStatus levelCrossingStatus = LevelCrossingStatus::OPEN;
-  unsigned long lastStatusChangeTime_ms = 0;
-
-  bool boomBarrierActionInProgress = true;
-  bool closeBoomsImmediately = false;
-  float servoAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-  float servoAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
-  float servoAngleIncrementPerSec = 0;
-  float servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-  float servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
-  unsigned long lastBoomBarrierTick_ms = 0;
-
-  unsigned int sensorEventCounter[LC_NUM_TRACKS][2][2];
-  bool trackOccupied[LC_NUM_TRACKS];
-  unsigned long trackOccupiedTimeout_ms[LC_NUM_TRACKS];
-} levelCrossing;
-
-
-// BASCULE BRIDGE VARIABLES AND CONSTANTS
-enum struct BridgeStatus
-{
-  CLOSED,
-  OPENING,
-  OPENED,
-  CLOSING,
-  UNDEFINED,
-  ERRoR,
-  UNCHANGED
-};
-
-enum struct BridgeLeafStatus
-{
-  CLOSED,
-  OPENING0,
-  OPENING1,
-  OPENING2,
-  OPENING3,
-  OPENED,
-  CLOSING0,
-  CLOSING1,
-  CLOSING2,
-  CLOSING3,
-  UNDEFINED,
-  ERRoR,
-  UNCHANGED
-};
-
-enum struct BridgeCommand
-{
-  UP = 0,
-  DOWN = 1,
-  NONE = 2
-};
-
-struct BridgeLeaf {
-  Servo bridgeLeafServo;
-  BridgeLeafStatus leafStatus = BridgeLeafStatus::UNDEFINED;
-  unsigned long leafTimer;
-};
-
-struct Bridge {
-  BridgeStatus bridgeStatus = BridgeStatus::UNDEFINED;
-  BridgeCommand bridgeCommand = BridgeCommand::NONE;
-  BridgeLeaf bridgeLeaf[NUM_BASCULE_BRIDGE_LEAFS];
-} bridge;
-
-
-// SPEEDOMETER VARIABLES AND CONSTANTS
-// Maximum number of magnets that can be attached to a train
-const int SM_MAX_VALUES = 20;
-
-struct Speedometer {
-  bool occupied = false;
-
-  int startSensor;
-  int endSensor;
-  int wheelcounter[2] = {-1, -1};
-
-  float startTime[SM_MAX_VALUES];
-  float endTime[SM_MAX_VALUES];
-  float trainSpeed[SM_MAX_VALUES];
-  float trainLength[SM_MAX_VALUES];
-
-  unsigned long lastMeasurementEvent = -99999;
-  unsigned long measurementDone = -99999;
-  unsigned long animationDelay = -99999;
-
-  float actualTrainSpeed  = 0;
-  float actualTrainLength = 0;
-} speedometer;
+// SPECIAL USE OBJECTS
+struct LevelCrossing levelCrossing;
+struct Bridge bridge;
+struct Speedometer speedometer;
 
 
 
@@ -241,7 +119,7 @@ void setup() {
   }
 
   // load config from EEPROM, initialize Wifi, MQTT etc.
-  setupMattzoController();
+  setupMattzoController(true);
 }
 
 #if USE_PCA9685
@@ -582,7 +460,7 @@ void sendSensorEvent2MQTT(int sensorIndex, bool sensorState) {
     return;
   }
 
-  String sensorRocId = MATTZO_CONTROLLER_TYPE + String(mattzoControllerId) + "-" + String(sensorPort);  // e.g. "MattzoController12345-3"
+  String sensorRocId = String(MC_HOSTNAME) + "-" + String(mattzoControllerId) + "-" + String(sensorPort);  // e.g. "MLC1-12345-3"
   String stateString = sensorState ? "true" : "false";
 
   // compile mqtt message. Parameters:

@@ -34,25 +34,12 @@ const char* WIFI_PASSWORD = "born2rail";
 // MQTT settings
 // *************
 
-// The IP address of the host on which your MQTT broker (e.g. mosquitto) is running.
-// The MQTT_BROKER_IP parameter will also accept hostnames (e.g. "mattzohub").
+// The IP address or hostname of the host on which your MQTT broker (e.g. mosquitto) is running.
 const char* MQTT_BROKER_IP = "192.168.178.57";
 const int MQTT_BROKER_PORT = 1883;
 
 // MQTT keep alive interval (in seconds)
 const int MQTT_KEEP_ALIVE_INTERVAL = 10;
-
-
-// *************
-// Ping settings
-// *************
-// Attention: pings were deprecated with issue #9 and replaced by MQTT last will messages
-
-// Set to true if pings should be sent
-const boolean SEND_PING = false;
-
-// Interval for sending pings in milliseconds (5000 ^= 5 seconds)
-const int SEND_PING_INTERVAL = 5000;
 
 
 // ************
@@ -74,7 +61,7 @@ const int LOGLEVEL_SERIAL = LOG_INFO;
 const int LOGLEVEL_SYSLOG = LOG_INFO;
 // Set to true if syslog shall be enabled
 const bool SYSLOG_ENABLED = true;
-// IP or hostname of the syslog server
+// IP address or hostname of the syslog server
 const char* SYSLOG_SERVER = MQTT_BROKER_IP;
 // Port of the syslog server
 const int SYSLOG_PORT = 514;
