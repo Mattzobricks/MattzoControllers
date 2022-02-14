@@ -80,9 +80,6 @@ void setup() {
       case MotorShieldType::LEGO_IR_8884:
         // nothing to do here
         break;
-      case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
-        // => nothing to do here
-        break;
       default:
         ;
     }
@@ -692,46 +689,6 @@ void sendBatteryLevel2MQTT() {
 
       mqttClient.publish("roc2bricks/battery", batteryMessage_char);
     }
-  }
-}
-
-// sends a message to a 4DBrix WiFi Train Receiver
-// - power is a value that indicates the desired power of the train motor. Useful values range from -1023 (full reverse) to 1023 (full forward). 0 means "stop".
-// - locoName is the name of the loco as chosen in the 4DBrix WiFi Train Receiver
-void send4DMessage(int power, String locoName) {
-  if (getConnectionStatus() == MCConnectionStatus::CONNECTED) {
-    // MQTT topic has max. 60 chars, so max. characters is LOCO_NAME is 50.
-    const int MAX_MQTT_TOPIC_LENGTH = 60;
-    char mqttTopicCharArray[MAX_MQTT_TOPIC_LENGTH];
-
-    // Prepare the 4-byte 4DBrix command string for train controller motor commands
-    // First character is always "D" (0x44).
-    char* mqttCommandBytes = "D\"!!";  // default ("stop!")
-    int powerValue4DBrix = 0;
-
-    // Second character indicates the direction of the motor
-    if (power > 0)
-    {
-      // forward
-      mqttCommandBytes[1] = 0x32;  // = "2"
-    }
-    else
-    {
-      // backward
-      mqttCommandBytes[1] = 0x2A;  // = "*"
-    }
-
-    // Third and fourth character contain the motor speed
-    powerValue4DBrix = min(abs(power), 1023);   // limit range to value between 0 to 1023.
-
-    mqttCommandBytes[2] = (byte)(powerValue4DBrix / 64 + 33);
-    mqttCommandBytes[3] = (byte)(powerValue4DBrix % 64 + 33);
-
-    // send MQTT command to MQTT broker
-    // mcLog("Sending 4DBrix command " + String(mqttCommandBytes) + " for loco " + locoName + ", power " + String(powerValue4DBrix));
-    String mqttTopicString = "nControl/" + String(locoName);
-    mqttTopicString.toCharArray(mqttTopicCharArray, MAX_MQTT_TOPIC_LENGTH);
-    mqttClient.publish(mqttTopicCharArray, mqttCommandBytes);
   }
 }
 

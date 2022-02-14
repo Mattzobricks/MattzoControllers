@@ -55,7 +55,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 // *************
 // MOTOR SHIELDS
 // *************
-
+// Number of motor shields connected to this controller
 const int NUM_MOTORSHIELDS = 0;
 MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];

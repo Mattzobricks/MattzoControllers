@@ -54,19 +54,7 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 // *************
 // MOTOR SHIELDS
 // *************
-// Motor shields are usually electronical components attached to the MattzoTrainController.
-// They are controlled via PWM signals from the controller and handle the higher currents required
-// for train motors.
-// Beside those physically existing motor shields, they are also partly or completely virtual motor shields as:
-// - LEGO_IR_8884, and
-// - WIFI_TRAIN_RECEIVER_4DBRIX
-// It is important to note that one train can have MULTIPLE motor shields attached to it. This is relevant for the following scenarios:
-// - Infrared LED controls multiple motors in a single train
-// - More than one 4DBrix WiFi Train Receiver installed in a single train.
-// - Combining different motorshields into a single train is also possible (e.g. steam loco with 4DBrix receiver in the front 
-//   and an additional "push" waggon in the middle of the train with an L9110 motorshield).
-
-// Number of motor shields controlled by this controller
+// Number of motor shields connected to this controller
 const int NUM_MOTORSHIELDS = 1;
 
 // List of motor shields that are controlled by this controller
