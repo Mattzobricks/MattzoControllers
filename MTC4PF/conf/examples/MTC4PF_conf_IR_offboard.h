@@ -80,7 +80,6 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 
 // List of motor shields that are controlled by this controller
 // The parameters have the following meaning:
-// - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
 // - locoAddress: loco that this motor shields is attached to
 // - motorShieldType: motor shield type
 // - minArduinoPower: minimum power (should be 0 for LEGO IR Receiver 8884)
@@ -92,7 +91,6 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "EME",
       .locoAddress = 10194,
       .motorShieldType = MotorShieldType::LEGO_IR_8884,
       .minArduinoPower = MIN_ARDUINO_POWER,
@@ -102,7 +100,6 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
       .irChannel = 0
   };
   msConf[1] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "MAE",
       .locoAddress = 10219,
       .motorShieldType = MotorShieldType::LEGO_IR_8884,
       .minArduinoPower = MIN_ARDUINO_POWER,

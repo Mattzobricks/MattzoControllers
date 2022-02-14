@@ -319,7 +319,7 @@ void setTrainSpeed(int newTrainSpeed, int locoIndex) {
       desiredPower = desiredDirection * desiredPowerLevel;
 
       // Set power levels on motor shield ports if they are configured for a motor
-      mcLog("Setting train speed " + String(newTrainSpeed) + " (power: " + String(desiredPower) + ") for motor shield " + myMattzoMotorShields[motorShieldIndex].getNiceName());
+      mcLog("Setting train speed " + String(newTrainSpeed) + " (power: " + String(desiredPower) + ") for motor shield index " + String(motorShieldIndex));
       if (myMattzoMotorShields[motorShieldIndex]._configMotorA) {
         setMotorShieldPower(motorShieldIndex, 0, desiredPower * myMattzoMotorShields[motorShieldIndex]._configMotorA);
       }
@@ -419,14 +419,6 @@ void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPo
     // Force immediate IR transmission
     transmitIRCommandsImmediate(motorShieldIndex);
     break;
-
-  case MotorShieldType::WIFI_TRAIN_RECEIVER_4DBRIX:
-    // motor shield type 4DBrix WiFi Train Receiver (uses motor port index 0 only)
-    if (motorPortIndex == 0) {
-      send4DMessage(desiredPower * desiredDirection, myMattzoMotorShields[motorShieldIndex]._motorShieldName);
-    }
-    break;
-
   } // of switch
 }
 

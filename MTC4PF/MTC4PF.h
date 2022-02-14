@@ -67,7 +67,6 @@ struct MattzoLocoConfiguration {
 
 // Motorshield configuration structure
 struct MattzoMotorShieldConfiguration {
-  String motorShieldName;
   int locoAddress;
   MotorShieldType motorShieldType;
   uint8_t L298N_enA;
@@ -123,7 +122,6 @@ public:
 class MattzoMotorShield {
 public:
   // Members
-  String _motorShieldName;
   int _locoAddress;   // address of the Rocrail loco in which this motor shield is built-in
   MotorShieldType _motorShieldType;
   uint8_t _L298N_enA;
@@ -142,7 +140,6 @@ public:
 
   // Methods
   void initMattzoMotorShield(MattzoMotorShieldConfiguration c) {
-    _motorShieldName = c.motorShieldName;
     _locoAddress = c.locoAddress;
     _motorShieldType = c.motorShieldType;
     _L298N_enA = c.L298N_enA;
@@ -156,10 +153,6 @@ public:
     _configMotorA = c.configMotorA;
     _configMotorB = c.configMotorB;
     _irChannel = c.irChannel;
-  }
-
-  String getNiceName() {
-    return _motorShieldName;
   }
 
   bool checkLocoAddress(int locoAddress) {

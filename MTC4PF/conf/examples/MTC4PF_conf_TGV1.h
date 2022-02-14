@@ -71,7 +71,6 @@ const int NUM_MOTORSHIELDS = 1;
 
 // List of motor shields that are controlled by this controller
 // The parameters have the following meaning:
-// - motorShieldName: usually the same as the name of the loco. If the 4DBrix WiFi Train Receiver is used, you can choose a different name here. Useful if a train has multiple 4DBrix receivers on board and the motor turning direction is different.
 // - locoAddress: loco that this motor shields is attached to
 // - motorShieldType: motor shield type
 // - L298N_enA, L298N_enB: PWM signal pin for motor A / B, if L298N is used.
@@ -85,7 +84,6 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
   static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
   msConf[0] = (MattzoMotorShieldConfiguration) {
-      .motorShieldName = "TGV1",
       .locoAddress = 10233,
       .motorShieldType = MotorShieldType::L9110,
       .L298N_enA = 0,
