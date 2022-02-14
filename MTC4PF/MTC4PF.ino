@@ -12,7 +12,7 @@
 
 #include <ESP8266WiFi.h>                                  // WiFi library for ESP-8266
 #include "lib/MattzoPowerFunctions.cpp"                   // Power Functions library (required for LEGO Infrared Receiver 8884)
-#include "MTC4PF.h"
+#include "MTC4PF.h"                                       // Header file
 #include "conf/my/MTC4PF_conf.h"                          // MattzoController configuration file
 #include "lib/MattzoController_Library.cpp"               // MattzoController library file
 
@@ -40,7 +40,7 @@ boolean ebreak = false;
 
 void setup() {
   // load config from EEPROM, initialize Wifi, MQTT etc.
-  setupMattzoController();
+  setupMattzoController(false);
 
   // initialize train light output pins
   mcLog("initializing train light pins");

@@ -172,23 +172,33 @@ void updateStatusLED() {
 // **************
 
 WiFiClient wifiClient;
+char hostname_char[50];
 
 // Status of the Wifi connection (true == "connected")
 bool lastKnownWifiConnectedStatus = false;
 
 // Setup wifi parameters and initiate connection process
-void setupWifi() {
+void setupWifi(bool addMattzoControllerIdToHostname) {
+  String hostname_String;
+
   delay(10);
-  Serial.println("Connecting as " + String(MC_HOSTNAME) + " to Wifi " + String(WIFI_SSID));
+  if (addMattzoControllerIdToHostname) {
+    hostname_String = String(MC_HOSTNAME) + "-" + String(mattzoControllerId);
+  } else {
+    hostname_String = String(MC_HOSTNAME);
+  }
+  hostname_String.toCharArray(hostname_char, hostname_String.length() + 1);
+
+  Serial.println("Connecting as " + hostname_String + " to Wifi " + String(WIFI_SSID));
 #if defined(ESP8266)
-  WiFi.hostname(MC_HOSTNAME);
+  WiFi.hostname(hostname_char);
 #elif defined(ESP32)
   // The following code SHOULD work without the disconnect and config lines, 
   // but it doesn't do its job for some ESP32s.
   // see https://github.com/espressif/arduino-esp32/issues/2537
   WiFi.disconnect(true);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-  WiFi.setHostname(MC_HOSTNAME);
+  WiFi.setHostname(hostname_char);
 #else
 #error "Error: this sketch is designed for ESP8266 or ESP32 only."
 #endif
@@ -261,7 +271,7 @@ void reconnectMQTT() {
     lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
 
     setStatusLED(true);
-    if (mqttClient.connect(MC_HOSTNAME, "rocrail/service/command", 0, false, lastWillMessage_char)) {
+    if (mqttClient.connect(hostname_char, "rocrail/service/command", 0, false, lastWillMessage_char)) {
       setStatusLED(false);
       mqttClient.subscribe("rocrail/service/command");
       mcLog("MQTT connected, listening on topic [rocrail/service/command].");
@@ -336,7 +346,7 @@ void mcLog(String msg) {
 // setup and loop function
 // ***********************
 
-void setupMattzoController() {
+void setupMattzoController(bool addMattzoControllerIdToHostname) {
   Serial.begin(115200);
   Serial.println("");
   Serial.println("MattzoController booting...");
@@ -346,7 +356,7 @@ void setupMattzoController() {
   }
   randomSeed(ESP.getCycleCount());
   mattzoControllerId = getMattzoControllerId();
-  setupWifi();
+  setupWifi(addMattzoControllerIdToHostname);
   setupSysLog();
   setupMQTT();
 
