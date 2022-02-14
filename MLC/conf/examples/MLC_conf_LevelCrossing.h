@@ -536,7 +536,7 @@ struct SpeedometerConfiguration {
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char* MC_HOSTNAME = "LevelCrossing1";
+const char* MC_HOSTNAME = "LEVELCROSSING1";
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "LevelCrossing1";
+const char* SYSLOG_APP_NAME = "LEVELCROSSING1";

@@ -535,15 +535,15 @@ struct SpeedometerConfiguration {
 
 
 // ****************
-// Network settings
+// NETWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
 #define TRIGGER_EBREAK_UPON_DISCONNECT true
 
+// WiFi Hostname
+// Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
+const char* MC_HOSTNAME = "BRIDGE1";
 
-// ***************
-// Syslog settings
-// ***************
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MLC";
+const char* SYSLOG_APP_NAME = "BRIDGE1";
