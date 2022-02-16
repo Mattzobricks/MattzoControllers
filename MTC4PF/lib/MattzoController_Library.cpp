@@ -52,7 +52,7 @@ using namespace tinyxml2;
 #include <Syslog.h>  // Syslog library
 
 // MattzoController network configuration
-#include "../conf/my/network_conf.h"
+#include "../conf/my/network_config.h"
 
 // Header file
 #include "MattzoController_Library.h"

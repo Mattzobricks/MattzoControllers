@@ -13,7 +13,7 @@
 #include <ESP8266WiFi.h>                                  // WiFi library for ESP-8266
 #include "lib/MattzoPowerFunctions.cpp"                   // Power Functions library (required for LEGO Infrared Receiver 8884)
 #include "MTC4PF.h"                                       // Header file
-#include "conf/my/MTC4PF_conf.h"                          // MattzoController configuration file
+#include "conf/my/controller_config.h"                          // MattzoController configuration file
 #include "lib/MattzoController_Library.cpp"               // MattzoController library file
 
 // Array of loco classes

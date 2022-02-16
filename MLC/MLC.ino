@@ -8,7 +8,7 @@
 
 #include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h>                                // Servo library
-#include "conf/my/MLC_conf.h"                     // MattzoController configuration files
+#include "conf/my/controller_config.h"                     // MattzoController configuration files
 #include "MLC.h"                                  // Header file
 #include "lib/MattzoController_Library.cpp"       // MattzoController library file
 
