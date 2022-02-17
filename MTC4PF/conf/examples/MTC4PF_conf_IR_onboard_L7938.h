@@ -159,7 +159,7 @@ struct TrainLightConfiguration {
     .motorShieldIndex = 0,
     .motorPortIndex = -1,
     .powerLevelOff = 0,
-    .powerLevelOn = 385,
+    .powerLevelOn = 250,
   },
   {
     // 5: rear lights / green component
@@ -168,7 +168,7 @@ struct TrainLightConfiguration {
     .motorShieldIndex = 0,
     .motorPortIndex = -1,
     .powerLevelOff = 0,
-    .powerLevelOn = 500,
+    .powerLevelOn = 600,
   },
   {
     // 6: rear lights / blue component
