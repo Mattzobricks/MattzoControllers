@@ -60,7 +60,7 @@ const int LOGLEVEL_SERIAL = LOG_INFO;
 // Log level for syslog output. Only message with a priority of the log level or greater will be logged.
 const int LOGLEVEL_SYSLOG = LOG_INFO;
 // Set to true if syslog shall be enabled
-const bool SYSLOG_ENABLED = true;
+const bool SYSLOG_ENABLED = false;
 // IP address or hostname of the syslog server
 const char* SYSLOG_SERVER = MQTT_BROKER_IP;
 // Port of the syslog server
