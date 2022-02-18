@@ -1,14 +1,16 @@
 # Mattzo Train Controller for Bluetooth devices (MTC4BT)
 
 
-The MTC4BT controller acts as a bridge between Bluetooth (Low Energy) devices and Rocrail. It currently supports the following type of BLE devices:
+The MTC4BT controller acts as a bridge between Bluetooth (Low Energy) devices and Rocrail.  
+It currently supports the following type of BLE devices:
 - [Lego Powered Up](https://www.lego.com/nl-nl/product/hub-88009)
 - [SBrick](https://sbrick.com/)
 
 > Please note the firmware only runs on [ESP32](https://www.espressif.com/en/products/socs/esp32) MCU's. 
 
 It has been tested succesfully with these boards:
-- esp32doit-devkit-v1
+- AZDelivery ESP32 NodeMCU Module (verified by [MattzoBricks](https://mattzobricks.com/forums/users/rbrink))
+- DOIT DEVKIT V1 ESP32-WROOM-32 Development Board (verified by [Steven Elston](https://mattzobricks.com/forums/users/steve1814))
 
 If you have tested the firmware succesfully with a different board, please let us know through [our forum](https://mattzobricks.com/forums/forum/mattzobricks-forum).
 
@@ -38,4 +40,4 @@ Controller Configuration
 [data_example/controller_config.json](data_example/controller_config.json)
 
 ---
-For more information visit https://mattzobricks.com
+For more information visit https://mattzobricks.com/controllers/mtc4bt
