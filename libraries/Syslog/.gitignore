@@ -1,8 +1,0 @@
-.pioenvs
-.piolibdeps
-.idea
-CMakeListsPrivate.txt
-/CMakeLists.txt
-/cmake-build-debug
-/lib
-/platformio.ini
