@@ -4,6 +4,19 @@
 #include "enums.h"
 #include "log4MC.h"
 
+// The priority at which the task should run.
+// Systems that include MPU support can optionally create tasks in a privileged (system) mode by setting bit portPRIVILEGE_BIT of the priority parameter.
+// For example, to create a privileged task at priority 2 the uxPriority parameter should be set to ( 2 | portPRIVILEGE_BIT ).
+#define Discovery_TaskPriority 1
+
+// If the value is tskNO_AFFINITY, the created task is not pinned to any CPU, and the scheduler can run it on any core available.
+// Values 0 or 1 indicate the index number of the CPU which the task should be pinned to.
+// Specifying values larger than (portNUM_PROCESSORS - 1) will cause the function to fail.
+#define Discovery_CoreID 1
+
+// The size of the task stack specified as the number of bytes.
+#define Discovery_StackDepth 3072
+
 // Blink duration in milliseconds. If all hubs if a loco are connected, its lights will blink for this duration.
 const uint32_t BLINK_AT_CONNECT_DURATION_IN_MS = 3000;
 
@@ -50,7 +63,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
     _hubScanner = new BLEHubScanner();
 
     // Start BLE device discovery task loop (will detect and connect to configured BLE devices).
-    xTaskCreatePinnedToCore(this->discoveryLoop, "DiscoveryLoop", 3072, this, 1, NULL, 1);
+    xTaskCreatePinnedToCore(this->discoveryLoop, "DiscoveryLoop", Discovery_StackDepth, this, Discovery_TaskPriority, NULL, Discovery_CoreID);
 }
 
 void MTC4BTController::Loop()
@@ -81,7 +94,7 @@ void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int ma
     BLELocomotive *loco = getLocomotive(locoAddress);
     if (!loco)
     {
-        // Not a loco under our control. Ignore message.
+        // Not a loco under our control. Ignore command.
         log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Lc command ignored.", locoAddress);
         return;
     }
@@ -92,44 +105,19 @@ void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int ma
     // Execute drive command.
     int8_t dirMultiplier = dirForward ? 1 : -1;
     loco->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
-
-    if (loco->GetAutoLightsEnabled())
-    {
-        // TODO: Determine lights on or off based on target motor speed percentage.
-        // locos[i]->SetLights(speed != 0);
-    }
 }
 
-void MTC4BTController::HandleFn(int locoAddress, MCFunction f, const bool on)
+void MTC4BTController::HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
     BLELocomotive *loco = getLocomotive(locoAddress);
     if (!loco)
     {
-        // Not a loco under our control. Ignore message.
-        log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Fn command ignored.", locoAddress);
+        // Not a loco under our control. Ignore trigger.
+        log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Trigger ignored.", locoAddress);
         return;
     }
 
-    // Get applicable functions from loco.
-    for (MCFunctionBinding *fn : loco->GetFn(f))
-    {
-        // Determine type of port.
-        switch (fn->GetPortConfiguration()->GetPortType())
-        {
-        case PortType::EspPin:
-        {
-            // Handle function locally on the controller.
-            MController::HandleFn(fn, on);
-            break;
-        }
-        case PortType::BleHubChannel:
-        {
-            // Let loco handle the function.
-            loco->HandleFn(fn, on);
-            break;
-        }
-        }
-    }
+    loco->TriggerEvent(source, eventType, eventId, value);
 }
 
 void MTC4BTController::discoveryLoop(void *parm)
@@ -150,47 +138,43 @@ void MTC4BTController::discoveryLoop(void *parm)
 
             for (BLEHub *hub : loco->Hubs)
             {
-                if (!hub->IsEnabled())
+                if (!hub->IsEnabled() || hub->IsConnected())
                 {
-                    // Skip to the next Hub.
+                    // Hub is not in use or already connected. Skip to the next Hub.
                     continue;
                 }
 
-                if (!hub->IsConnected())
+                if (hub->IsDiscovered())
                 {
-                    if (!hub->IsDiscovered())
+                    // Hub discovered, try to connect now.
+                    if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
                     {
-                        // Hub not discovered yet, add to list of hubs to discover.
-                        undiscoveredHubs.push_back(hub);
-                    }
-
-                    if (hub->IsDiscovered())
-                    {
-                        // Hub discovered, try to connect now.
-                        if (!hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
-                        {
-                            // Connect attempt failed. Will retry in next loop.
-                            log4MC::warn("Loop: Connect failed. Will retry...");
-                        }
-                        else
+                        if (loco->AllHubsConnected())
                         {
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
-                            if (loco->AllHubsConnected())
+                            if (controller->GetEmergencyBrake())
                             {
-                                if (controller->GetEmergencyBrake())
-                                {
-                                    // Pass current e-brake status from controller to loco.
-                                    loco->EmergencyBrake(true);
-                                }
-                                else
-                                {
-                                    // Blink lights for a while when connected.
-                                    loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
-                                }
+                                // Pass current e-brake status from controller to loco.
+                                loco->EmergencyBrake(true);
+                            }
+                            else
+                            {
+                                // Blink lights for a while when connected.
+                                loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
                             }
                         }
                     }
+                    else
+                    {
+                        // Connect attempt failed. Will retry in next loop.
+                        log4MC::warn("Loop: Connect failed. Will retry...");
+                    }
+                }
+                else
+                {
+                    // Hub not discovered yet, add to list of hubs to discover.
+                    undiscoveredHubs.push_back(hub);
                 }
             }
         }
@@ -210,7 +194,7 @@ void MTC4BTController::initLocomotives(std::vector<BLELocomotiveConfiguration *>
 {
     for (BLELocomotiveConfiguration *locoConfig : locoConfigs)
     {
-        // Keep an instance of the configured loco and pass it a reference to the controller.
+        // Keep an instance of the configured loco and pass it a reference to this controller.
         Locomotives.push_back(new BLELocomotive(locoConfig, this));
     }
 }

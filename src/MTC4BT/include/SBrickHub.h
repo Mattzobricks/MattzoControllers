@@ -10,10 +10,10 @@
 class SBrickHub : public BLEHub
 {
 public:
-    SBrickHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep);
+    SBrickHub(BLEHubConfiguration *config);
     bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
     void DriveTaskLoop();
-    int16_t MapSpeedPercToRaw(int speedPerc);
+    int16_t MapPwrPercToRaw(int pwrPerc);
 
     /**
      * @brief Callback function for notifications of a specific characteristic
@@ -23,9 +23,4 @@ public:
      * @param [in] isNotify 
      */
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
-    
-private:
-    std::array<uint8_t, 3> getDriveCommand(BLEHubChannel channel);
-    bool channelIsDrivingForward(BLEHubChannel channel);
-    uint8_t getRawChannelSpeed(BLEHubChannel channel);
 };

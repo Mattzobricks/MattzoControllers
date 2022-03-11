@@ -164,13 +164,10 @@ void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controll
         return;
     }
 
-    // Convert function number to string "fx";
-    char fnName[3];
-    sprintf(fnName, "f%u", fnchanged);
-
-    // Convert function string to enum;
-    MCFunction fn = functionMap()[fnName];
+    // Convert function number to string (format: fX);
+    char fnId[3];
+    sprintf(fnId, "f%u", fnchanged);
 
     // Ask controller to handle the function.
-    controller->HandleFn(addr, fn, fnchangedstate);
+    controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
 }

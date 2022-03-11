@@ -2,8 +2,7 @@
 
 #include <Arduino.h>
 
-#include "MCPortConfiguration.h"
-#include "MCFunctionBinding.h"
+#include "MCChannelConfig.h"
 
 struct MCConfiguration
 {
@@ -12,8 +11,5 @@ public:
     const char *ControllerName;
 
     // ESP32 pins.
-    std::vector<MCPortConfiguration *> EspPins;
-
-    // Functions.
-    std::vector<MCFunctionBinding *> Functions;
+    std::vector<MCChannelConfig *> EspPins;
 };

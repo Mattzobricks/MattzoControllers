@@ -9,8 +9,8 @@
 
 #define PU_MIN_SPEED_FORWARD 0
 #define PU_MAX_SPEED_FORWARD 126
-#define PU_MIN_SPEED_REVERSE 255
 #define PU_MAX_SPEED_REVERSE 128
+#define PU_MIN_SPEED_REVERSE 255
 
 enum PUHubLedColor
 {
@@ -32,10 +32,10 @@ enum PUHubLedColor
 class PUHub : public BLEHub
 {
 public:
-    PUHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep);
+    PUHub(BLEHubConfiguration *config);
     bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
     void DriveTaskLoop();
-    int16_t MapSpeedPercToRaw(int speedPerc);
+    int16_t MapPwrPercToRaw(int pwrPerc);
 
     /**
      * @brief Callback function for notifications of a specific characteristic

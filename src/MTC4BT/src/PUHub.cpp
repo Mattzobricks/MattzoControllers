@@ -8,8 +8,8 @@
 static BLEUUID remoteControlServiceUUID(PU_REMOTECONTROL_SERVICE_UUID);
 static BLEUUID remoteControlCharacteristicUUID(PU_REMOTECONTROL_CHARACTERISTIC_UUID);
 
-PUHub::PUHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep)
-    : BLEHub(config, speedStep, brakeStep)
+PUHub::PUHub(BLEHubConfiguration *config)
+    : BLEHub(config)
 {
   _hubLedPort = 0;
 }
@@ -48,32 +48,19 @@ void PUHub::DriveTaskLoop()
       // Determine current drive state.
       if (!motorFound && controller->GetAttachedDevice() == DeviceType::Motor)
       {
-        currentSpeedPerc = controller->GetCurrentSpeedPerc();
-        targetSpeedPerc = controller->GetTargetSpeedPerc();
+        currentSpeedPerc = controller->GetCurrentPwrPerc();
+        targetSpeedPerc = controller->GetTargetPwrPerc();
         motorFound = true;
       }
 
-      // Update current channel speeds, if we're not emergency braking.
-      if (_ebrake || controller->UpdateCurrentSpeedPerc())
+      // Update current channel pwr, if we're not emergency braking.
+      if (controller->UpdateCurrentPwrPerc())
       {
-        // Serial.print(channel);
-        // Serial.print(": rawspd=");
-        // Serial.println(MapSpeedPercToRaw(channel->GetCurrentSpeedPerc()));
-
         // Construct drive command.
-        byte targetSpeed = getRawChannelSpeedForController(controller);
+        byte targetSpeed = getRawChannelPwrForController(controller);
         byte setMotorCommand[8] = {0x81, (byte)controller->GetChannel(), 0x11, 0x51, 0x00, targetSpeed};
         int size = 6;
         writeValue(setMotorCommand, size);
-
-        // byte byteCmd[size + 2] = {(byte)(size + 2), 0x00};
-        // memcpy(byteCmd + 2, setMotorCommand, size);
-
-        // // Send drive command.
-        // if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
-        // {
-        //   log4MC::error("BLE : Drive failed. Unabled to write to characteristic.");
-        // }
       }
     }
 
@@ -102,19 +89,19 @@ void PUHub::DriveTaskLoop()
   }
 }
 
-int16_t PUHub::MapSpeedPercToRaw(int speedPerc)
+int16_t PUHub::MapPwrPercToRaw(int pwrPerc)
 {
-  if (speedPerc == 0)
+  if (pwrPerc == 0)
   {
     return 0; // 0 = float, 127 = stop motor
   }
 
-  if (speedPerc > 0)
+  if (pwrPerc > 0)
   {
-    return map(speedPerc, 0, 100, PU_MIN_SPEED_FORWARD, PU_MAX_SPEED_FORWARD);
+    return map(pwrPerc, 0, 100, PU_MIN_SPEED_FORWARD, PU_MAX_SPEED_FORWARD);
   }
 
-  return map(abs(speedPerc), 0, 100, PU_MIN_SPEED_REVERSE, PU_MAX_SPEED_REVERSE);
+  return map(abs(pwrPerc), 0, 100, PU_MIN_SPEED_REVERSE, PU_MAX_SPEED_REVERSE);
 }
 
 void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)

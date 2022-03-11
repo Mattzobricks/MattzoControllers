@@ -8,11 +8,9 @@
 
 using namespace std::placeholders;
 
-BLEHub::BLEHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep)
+BLEHub::BLEHub(BLEHubConfiguration *config)
 {
     _config = config;
-    _speedStep = speedStep;
-    _brakeStep = brakeStep;
 
     initChannelControllers();
 
@@ -52,16 +50,32 @@ std::string BLEHub::GetAddress()
     return _config->DeviceAddress->toString();
 }
 
-void BLEHub::Drive(const int16_t minSpeed, const int16_t speed)
+void BLEHub::Drive(const int16_t minPwrPerc, const int16_t pwrPerc)
 {
-    setTargetSpeedPercByAttachedDevice(DeviceType::Motor, minSpeed, speed);
+    setTargetPwrPercByAttachedDevice(DeviceType::Motor, minPwrPerc, pwrPerc);
 }
 
-void BLEHub::HandleFn(MCFunctionBinding *fn, bool on)
+int16_t BLEHub::GetCurrentDrivePwrPerc()
 {
-    BLEHubChannel channel = bleHubChannelMap()[fn->GetPortConfiguration()->GetAddress()];
-    log4MC::vlogf(LOG_DEBUG, "BLE : Hub handling function %u for channel %s.", fn->GetPortConfiguration()->GetAttachedDeviceType(), fn->GetPortConfiguration()->GetAddress().c_str());
-    setTargetSpeedPercForChannelByAttachedDevice(channel, fn->GetPortConfiguration()->GetAttachedDeviceType(), 0, on ? _config->LightPerc : 0);
+    for (BLEHubChannelController *controller : _channelControllers)
+    {
+        if (controller->GetAttachedDevice() == DeviceType::Motor)
+        {
+            return controller->GetCurrentPwrPerc();
+        }
+    }
+
+    return 0;
+}
+
+void BLEHub::Execute(MCLocoAction *action)
+{
+    BLEHubChannelController *channel = findControllerByChannel(bleHubChannelMap()[action->GetChannel()->GetAddress()]);
+
+    if (channel)
+    {
+        channel->SetTargetPwrPerc(action->GetTargetPowerPerc());
+    }
 }
 
 void BLEHub::BlinkLights(int durationInMs)
@@ -82,26 +96,11 @@ void BLEHub::EmergencyBrake(const bool enabled)
     // Set hub e-brake status.
     _ebrake = enabled;
 
-    if (_ebrake)
+    // Set e-brake on all channels.
+    for (BLEHubChannelController *channel : _channelControllers)
     {
-        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-braking on all channels.", _config->DeviceAddress->toString().c_str());
-
-        // Set e-brake on all channels.
-        for (int i = 0; i < _channelControllers.size(); i++)
-        {
-            _channelControllers.at(i)->EmergencyBrake();
-        }
+        channel->EmergencyBrake(_ebrake);
     }
-    else
-    {
-        log4MC::vlogf(LOG_DEBUG, "BLE : Hub %s e-brake lifted on all channels.", _config->DeviceAddress->toString().c_str());
-    }
-}
-
-// Returns a boolean value indicating whether the lights should automatically turn on when the train starts driving.
-bool BLEHub::GetAutoLightsEnabled()
-{
-    return _config->AutoLightsEnabled;
 }
 
 bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
@@ -112,9 +111,9 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
     if (NimBLEDevice::getClientListSize())
     {
         /** Special case when we already know this device, we send false as the
-     *  second argument in connect() to prevent refreshing the service database.
-     *  This saves considerable time and power.
-     */
+         *  second argument in connect() to prevent refreshing the service database.
+         *  This saves considerable time and power.
+         */
         _hub = NimBLEDevice::getClientByPeerAddress(_advertisedDevice->getAddress());
         if (_hub)
         {
@@ -154,10 +153,10 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         _hub->setClientCallbacks(_clientCallback, false);
 
         /** Set initial connection parameters: These settings are 15ms interval, 0 latency, 120ms timout.
-      * These settings are safe for 3 clients to connect reliably, can go faster if you have less connections. 
-      * Timeout should be a multiple of the interval, minimum is 100ms.
-      * Min interval: 12 * 1.25ms = 15, Max interval: 12 * 1.25ms = 15, 0 latency, 51 * 10ms = 510ms timeout
-      */
+         * These settings are safe for 3 clients to connect reliably, can go faster if you have less connections.
+         * Timeout should be a multiple of the interval, minimum is 100ms.
+         * Min interval: 12 * 1.25ms = 15, Max interval: 12 * 1.25ms = 15, 0 latency, 51 * 10ms = 510ms timeout
+         */
         _hub->setConnectionParams(12, 12, 0, 51);
 
         /** Set how long we are willing to wait for the connection to complete (seconds), default is 30. */
@@ -207,48 +206,35 @@ void BLEHub::initChannelControllers()
 {
     // TODO: This method should be made more robust to prevent config errors, like configuring the same channel twice.
 
-    for (MCPortConfiguration *config : _config->Channels)
+    for (MCChannelConfig *config : _config->Channels)
     {
-        _channelControllers.push_back(new BLEHubChannelController(config, _speedStep, _brakeStep));
+        _channelControllers.push_back(new BLEHubChannelController(config));
     }
 
     // log4MC::vlogf(LOG_INFO, "BLE : Hub %s channels initialized.", _config->DeviceAddress->toString().c_str());
 }
 
-void BLEHub::setTargetSpeedPercByAttachedDevice(DeviceType device, int16_t minSpeedPerc, int16_t speedPerc)
+void BLEHub::setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc)
 {
-    // Serial.print("Setting ");
-    // Serial.print(device);
-    // Serial.print(" for ");
-    // Serial.print(_channelControllers.size());
-    // Serial.println(" channel(s)");
-
-    for (int i = 0; i < _channelControllers.size(); i++)
+    for (BLEHubChannelController *controller : _channelControllers)
     {
-        BLEHubChannel channel = _channelControllers.at(i)->GetChannel();
-        setTargetSpeedPercForChannelByAttachedDevice(channel, device, minSpeedPerc, speedPerc);
+        if (controller->GetAttachedDevice() == device)
+        {
+            controller->SetMinPwrPerc(minPwrPerc);
+            controller->SetTargetPwrPerc(pwrPerc);
+        }
     }
 }
 
-void BLEHub::setTargetSpeedPercForChannelByAttachedDevice(BLEHubChannel channel, DeviceType device, int16_t minSpeedPerc, int16_t speedPerc)
+uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controller)
 {
-    BLEHubChannelController *controller = findControllerByChannel(channel);
-    if (controller != nullptr && controller->GetAttachedDevice() == device)
+    if (_blinkUntil > millis() && controller->GetAttachedDevice() == DeviceType::Light)
     {
-        controller->SetMinSpeedPerc(minSpeedPerc);
-        controller->SetTargetSpeedPerc(speedPerc);
-    }
-}
-
-uint8_t BLEHub::getRawChannelSpeedForController(BLEHubChannelController *controller)
-{
-    if ((_blinkUntil > millis() || _ebrake) && controller->GetAttachedDevice() == DeviceType::Light)
-    {
-        // Force blinking lights when requested or when e-brake is enabled.
-        controller->SetCurrentSpeedPerc(MCLightController::Blink() ? _config->LightPerc : 0);
+        // Force blinking lights (50% when on, 0% when off) when requested.
+        return MCLightController::Blink() ? 50 : 0;
     }
 
-    return MapSpeedPercToRaw(controller->GetCurrentSpeedPerc());
+    return MapPwrPercToRaw(controller->GetCurrentPwrPerc());
 }
 
 BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
@@ -284,7 +270,7 @@ bool BLEHub::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteris
     return _remoteControlCharacteristic != nullptr;
 }
 
-BaseType_t BLEHub::startDriveTask()
+bool BLEHub::startDriveTask()
 {
     // Determine drive task name.
     // char* taskName = "DT_";
