@@ -47,23 +47,28 @@ void MController::Setup(MCConfiguration *config)
 
 void MController::Loop()
 {
+    int currentPwrPerc;
+
     for (MCChannelController *channel : _channelControllers)
     {
         // Update channel e-brake status.
         channel->EmergencyBrake(GetEmergencyBrake());
 
         // Update current channel pwr (continue if request was ignored).
-        if(!channel->UpdateCurrentPwrPerc())
+        if (!channel->UpdateCurrentPwrPerc())
         {
             continue;
         }
+
+        // Get new pwr perc.
+        currentPwrPerc = channel->GetCurrentPwrPerc();
 
         if (channel->GetAttachedDevice() == DeviceType::Light)
         {
             MCLedBase *led = findLedByPinNumber(channel->GetChannel()->GetAddressAsEspPinNumber());
             if (led)
             {
-                led->SetCurrentPwrPerc(channel->GetCurrentPwrPerc());
+                led->SetCurrentPwrPerc(currentPwrPerc);
             }
         }
 
@@ -78,28 +83,30 @@ void MController::Loop()
                 case initializing:
                 {
                     // Two flashes per second.
-                    led->SetCurrentPwrPerc(MCLightController::TwoFlashesPerSecond() ? 100 : 0);
+                    currentPwrPerc = MCLightController::TwoFlashesPerSecond() ? 100 : 0;
                     break;
                 }
                 case MCConnectionStatus::connecting_wifi:
                 {
                     // One short flash per second (on 10%).
-                    led->SetCurrentPwrPerc(MCLightController::OneFlashPerSecond() ? 100 : 0);
+                    currentPwrPerc = MCLightController::OneFlashPerSecond() ? 100 : 0;
                     break;
                 }
                 case MCConnectionStatus::connecting_mqtt:
                 {
                     // Blink (on 50%).
-                    led->SetCurrentPwrPerc(MCLightController::Blink() ? 100 : 0);
+                    currentPwrPerc = MCLightController::Blink() ? 100 : 0;
                     break;
                 }
                 case connected:
                 {
                     // Off.
-                    led->SetCurrentPwrPerc(0);
+                    currentPwrPerc = 0;
                     break;
                 }
                 };
+
+                led->SetCurrentPwrPerc(currentPwrPerc);
             }
         }
     }

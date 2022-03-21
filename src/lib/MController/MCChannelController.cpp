@@ -87,12 +87,6 @@ bool MCChannelController::UpdateCurrentPwrPerc()
         return true;
     }
 
-    if (timeStamp < (_lastUpdate + 100))
-    {
-        // We don't respond to updates quicker than 5 milliseconds apart.
-        return false;
-    }
-
     // Update timestamp of last update.
     _lastUpdate = timeStamp;
 
