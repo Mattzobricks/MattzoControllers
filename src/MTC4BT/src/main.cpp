@@ -36,7 +36,7 @@ void handleMQTTMessageLoop(void *parm)
         }
 
         // Wait a while before trying again (allowing other tasks to do their work)?
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 

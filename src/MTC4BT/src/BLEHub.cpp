@@ -21,7 +21,6 @@ BLEHub::BLEHub(BLEHubConfiguration *config)
     _ebrake = false;
     _blinkLights = false;
     _blinkUntil = 0;
-    _isDiscovering = false;
     _isDiscovered = false;
     _isConnected = false;
     _remoteControlService = nullptr;
@@ -45,9 +44,14 @@ bool BLEHub::IsConnected()
     return _isConnected;
 }
 
-std::string BLEHub::GetAddress()
+std::string BLEHub::GetRawAddress()
 {
     return _config->DeviceAddress->toString();
+}
+
+NimBLEAddress BLEHub::GetAddress()
+{
+    return *_config->DeviceAddress;
 }
 
 void BLEHub::Drive(const int16_t minPwrPerc, const int16_t pwrPerc)
@@ -123,7 +127,9 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
                 _isDiscovered = false;
                 return false;
             }
-            /* Serial.println("Reconnected client"); */
+            
+            _isConnected = true;
+            Serial.println("Reconnected client");
         }
         /** We don't already have a client that knows this device,
          *  we will check for a client that is disconnected that we can use.
@@ -152,14 +158,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         }
         _hub->setClientCallbacks(_clientCallback, false);
 
-        /** Set initial connection parameters: These settings are 15ms interval, 0 latency, 120ms timout.
-         * These settings are safe for 3 clients to connect reliably, can go faster if you have less connections.
-         * Timeout should be a multiple of the interval, minimum is 100ms.
-         * Min interval: 12 * 1.25ms = 15, Max interval: 12 * 1.25ms = 15, 0 latency, 51 * 10ms = 510ms timeout
-         */
-        _hub->setConnectionParams(12, 12, 0, 51);
-
-        /** Set how long we are willing to wait for the connection to complete (seconds), default is 30. */
+        /** Set how long we are willing to wait for the connection to complete (seconds) */
         _hub->setConnectTimeout(ConnectDelayInSeconds);
 
         // Connect to the remote BLE Server.
@@ -216,12 +215,12 @@ void BLEHub::initChannelControllers()
 
 void BLEHub::setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc)
 {
-    for (BLEHubChannelController *controller : _channelControllers)
+    for (BLEHubChannelController *channel : _channelControllers)
     {
-        if (controller->GetAttachedDevice() == device)
+        if (channel->GetAttachedDevice() == device)
         {
-            controller->SetMinPwrPerc(minPwrPerc);
-            controller->SetTargetPwrPerc(pwrPerc);
+            channel->SetTargetPwrPerc(pwrPerc);
+            channel->SetMinPwrPerc(minPwrPerc);
         }
     }
 }
@@ -267,7 +266,7 @@ bool BLEHub::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteris
     // Obtain a reference to the remote control characteristic in the remote control service of the BLE server.
     _remoteControlCharacteristic = _remoteControlService->getCharacteristic(characteristicUUID);
 
-    return _remoteControlCharacteristic != nullptr;
+    return _remoteControlCharacteristic != nullptr; 
 }
 
 bool BLEHub::startDriveTask()

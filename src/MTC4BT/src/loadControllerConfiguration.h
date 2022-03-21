@@ -40,7 +40,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 
     // Allocate a temporary JsonDocument.
     // Don't forget to change the capacity to match your requirements!
-    // Use arduinojson.org/v6/assistant to compute the capacity.
+    // Use https://arduinojson.org/v6/assistant to compute the capacity.
     // Use the settings:
     // - Processor: ESP32
     // - Mode: Deserialize

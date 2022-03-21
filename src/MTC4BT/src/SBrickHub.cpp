@@ -3,8 +3,6 @@
 #include "SBrickHub.h"
 #include "log4MC.h"
 
-#define MAX_SBRICK_CHANNEL_COUNT 4
-
 static BLEUUID remoteControlServiceUUID(SBRICK_REMOTECONTROL_SERVICE_UUID);
 static BLEUUID remoteControlCharacteristicUUID(SBRICK_REMOTECONTROL_CHARACTERISTIC_UUID);
 
@@ -41,18 +39,18 @@ bool SBrickHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
     uint8_t byteWrite[2] = {CMD_SET_WATCHDOG_TIMEOUT, watchdogTimeOutInTensOfSeconds};
     if (!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false))
     {
-        log4MC::error("BLE : Writing remote control characteristic failed.");
+        log4MC::error("BLE : Writing remote control characteristic CMD_SET_WATCHDOG_TIMEOUT failed.");
         return false;
-    }
+    } 
+
+    log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout successfully set to s/10: %u", _remoteControlCharacteristic->readValue<uint8_t>());
 
     uint8_t byteRead[1] = {CMD_GET_WATCHDOG_TIMEOUT};
     if (!_remoteControlCharacteristic->writeValue(byteRead, sizeof(byteRead), false))
     {
-        log4MC::error("BLE : Writing remote control characteristic failed.");
+        log4MC::error("BLE : Writing remote control characteristic CMD_GET_WATCHDOG_TIMEOUT failed.");
         return false;
     }
-
-    log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout successfully set to s/10: ", _remoteControlCharacteristic->readValue<uint8_t>());
 
     return true;
 }
@@ -71,13 +69,10 @@ void SBrickHub::DriveTaskLoop()
 
     for (;;)
     {
-        // Update current channel pwr, if needed.
         for (BLEHubChannelController *channel : _channelControllers)
         {
-            if (!_ebrake)
-            {
-                channel->UpdateCurrentPwrPerc();
-            }
+            // Update current channel pwr, if needed.
+            channel->UpdateCurrentPwrPerc();
 
             switch (channel->GetChannel())
             {
@@ -119,14 +114,14 @@ void SBrickHub::DriveTaskLoop()
         // Send drive command.
         if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
         {
-            log4MC::error("BLE : Drive failed. Unabled to write to characteristic.");
+            log4MC::vlogf(LOG_ERR, "SBK : Drive failed. Unabled to write to SBrick characteristic.");
         }
 
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
         // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
         // Wait 50 milliseconds.
-        vTaskDelay(50 / portTICK_PERIOD_MS);
+        vTaskDelay(250 / portTICK_PERIOD_MS);
     }
 }
 

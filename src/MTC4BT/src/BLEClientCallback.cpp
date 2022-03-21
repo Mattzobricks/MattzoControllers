@@ -12,6 +12,12 @@ void BLEClientCallback::onConnect(NimBLEClient *client)
     {
         log4MC::vlogf(LOG_INFO, "BLE : Connected to hub '%s'.", client->getPeerAddress().toString().c_str());
 
+        /** Set initial connection parameters: 
+         * Timeout should be a multiple of the interval, minimum is 100ms.
+         * Min interval: 64 * 1.25ms = 80ms, Max interval: 64 * 1.25ms = 80ms, 0 latency, 56 * 10ms = 560ms timeout
+         */
+        client->updateConnParams(64, 64, 0, 56);
+
         _hub->_isConnected = true;
     }
 }
@@ -29,6 +35,6 @@ void BLEClientCallback::onDisconnect(NimBLEClient *client)
             vTaskDelete(_hub->_driveTaskHandle);
         }
 
-        client->disconnect();
+        // client->disconnect();
     }
 }

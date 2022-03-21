@@ -43,9 +43,8 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
         return;
     }
 
-    for (int i = 0; i < Hubs.size(); i++)
+    for (BLEHub *hub : Hubs)
     {
-        BLEHub *hub = Hubs.at(i);
         int16_t currentPwrPerc = hub->GetCurrentDrivePwrPerc();
         hub->Drive(minSpeed, pwrPerc);
 
@@ -121,13 +120,13 @@ void BLELocomotive::BlinkLights(int durationInMs)
     }
 
     // Handle blink on lights attached to channels of our hubs.
-    for (int i = 0; i < Hubs.size(); i++)
+    for (BLEHub *hub : Hubs)
     {
-        Hubs.at(i)->BlinkLights(durationInMs);
+        hub->BlinkLights(durationInMs);
     }
 }
 
-void BLELocomotive::EmergencyBrake(const bool enabled)
+void BLELocomotive::SetEmergencyBrake(const bool enabled)
 {
     if (!AllHubsConnected())
     {
@@ -184,7 +183,7 @@ BLEHub *BLELocomotive::getHubByAddress(std::string address)
 {
     for (BLEHub *hub : Hubs)
     {
-        if (hub->GetAddress().compare(address) == 0)
+        if (hub->GetRawAddress().compare(address) == 0)
         {
             return hub;
         }

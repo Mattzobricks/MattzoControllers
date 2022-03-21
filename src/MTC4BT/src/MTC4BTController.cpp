@@ -7,12 +7,12 @@
 // The priority at which the task should run.
 // Systems that include MPU support can optionally create tasks in a privileged (system) mode by setting bit portPRIVILEGE_BIT of the priority parameter.
 // For example, to create a privileged task at priority 2 the uxPriority parameter should be set to ( 2 | portPRIVILEGE_BIT ).
-#define Discovery_TaskPriority 1
+#define Discovery_TaskPriority 2
 
 // If the value is tskNO_AFFINITY, the created task is not pinned to any CPU, and the scheduler can run it on any core available.
 // Values 0 or 1 indicate the index number of the CPU which the task should be pinned to.
 // Specifying values larger than (portNUM_PROCESSORS - 1) will cause the function to fail.
-#define Discovery_CoreID 1
+#define Discovery_CoreID CONFIG_BT_NIMBLE_PINNED_TO_CORE
 
 // The size of the task stack specified as the number of bytes.
 #define Discovery_StackDepth 3072
@@ -21,7 +21,7 @@
 const uint32_t BLINK_AT_CONNECT_DURATION_IN_MS = 3000;
 
 // BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
-const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 5;
+const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 2;
 
 // Duration between BLE discovery and connect attempts in seconds.
 const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
@@ -51,15 +51,8 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
     // Setup MTC4BT specific controller configuration.
     initLocomotives(config->Locomotives);
 
-    // Initialize BLE client.
+    // Initialize BLE hub scanner.
     log4MC::info("Setup: Initializing BLE...");
-    NimBLEDevice::init("");
-
-    // Configure BLE scanner.
-    _scanner = NimBLEDevice::getScan();
-    _scanner->setInterval(45);
-    _scanner->setWindow(15);
-    _scanner->setActiveScan(true);
     _hubScanner = new BLEHubScanner();
 
     // Start BLE device discovery task loop (will detect and connect to configured BLE devices).
@@ -74,7 +67,7 @@ void MTC4BTController::Loop()
     // Handle e-brake on all locomotives.
     for (BLELocomotive *loco : Locomotives)
     {
-        loco->EmergencyBrake(GetEmergencyBrake());
+        loco->SetEmergencyBrake(GetEmergencyBrake());
     }
 }
 
@@ -130,9 +123,9 @@ void MTC4BTController::discoveryLoop(void *parm)
 
         for (BLELocomotive *loco : controller->Locomotives)
         {
+            // Loco is not in use or all hubs are already connected. Skip to the next loco.
             if (!loco->IsEnabled() || loco->AllHubsConnected())
             {
-                // Loco is not in use or all hubs are already connected. Skip to the next loco.
                 continue;
             }
 
@@ -153,16 +146,8 @@ void MTC4BTController::discoveryLoop(void *parm)
                         {
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
-                            if (controller->GetEmergencyBrake())
-                            {
-                                // Pass current e-brake status from controller to loco.
-                                loco->EmergencyBrake(true);
-                            }
-                            else
-                            {
-                                // Blink lights for a while when connected.
-                                loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
-                            }
+                            // Blink lights for a while when connected.
+                            loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
                         }
                     }
                     else
@@ -176,17 +161,19 @@ void MTC4BTController::discoveryLoop(void *parm)
                     // Hub not discovered yet, add to list of hubs to discover.
                     undiscoveredHubs.push_back(hub);
                 }
+
+                delay(50 / portTICK_PERIOD_MS);
             }
         }
 
         if (undiscoveredHubs.size() > 0)
         {
             // Start discovery for undiscovered hubs.
-            controller->_hubScanner->StartDiscovery(controller->_scanner, undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
-
-            // Delay next discovery/connect attempts for a while, allowing the background tasks of already connected Hubs to send their periodic drive commands.
-            delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
+            controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
         }
+
+        // Delay next discovery/connect attempts for a while, allowing the background tasks of already connected Hubs to send their periodic drive commands.
+        delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
     }
 }
 
