@@ -37,11 +37,11 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
   // Start MQTT task loop to handle queued messages.
   xTaskCreatePinnedToCore(handleMQTTMessageLoop, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
 
-  // Start task loop.
-  xTaskCreatePinnedToCore(taskLoop, "MQTTSubscriber", StackDepth, NULL, TaskPriority, NULL, CoreID);
-
   // Setup completed.
   _setupCompleted = true;
+
+  // Start task loop.
+  xTaskCreatePinnedToCore(taskLoop, "MQTTSubscriber", StackDepth, NULL, TaskPriority, NULL, CoreID);
 }
 
 int MattzoMQTTSubscriber::GetStatus()
@@ -172,7 +172,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 QueueHandle_t MattzoMQTTSubscriber::IncomingQueue = nullptr;
 int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
 int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 100;
-uint8_t MattzoMQTTSubscriber::TaskPriority = 1;
+uint8_t MattzoMQTTSubscriber::TaskPriority = 2;
 int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
 uint16_t MattzoMQTTSubscriber::MaxBufferSize = 1024;

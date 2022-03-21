@@ -12,7 +12,7 @@
 #include "MCMQTTConfiguration.h"
 
 // MQTT task priority.
-#define MQTT_TASK_PRIORITY 1
+#define MQTT_TASK_PRIORITY 2
 
 // MQTT handle message task core ID.
 #define MQTT_HANDLE_MESSAGE_TASK_COREID 1
