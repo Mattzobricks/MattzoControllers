@@ -6,11 +6,8 @@
 #include "log4MC.h"
 
 BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MController *controller)
+    : _config{config}, _controller{controller}
 {
-    _config = config;
-    _controller = controller;
-
-    initLights();
     initHubs();
 }
 
@@ -26,9 +23,8 @@ bool BLELocomotive::AllHubsConnected()
         return false;
     }
 
-    for (int i = 0; i < Hubs.size(); i++)
+    for (BLEHub *hub : Hubs)
     {
-        BLEHub *hub = Hubs.at(i);
         if (!hub->IsConnected())
         {
             return false;
@@ -38,7 +34,7 @@ bool BLELocomotive::AllHubsConnected()
     return true;
 }
 
-void BLELocomotive::Drive(const int16_t minSpeed, const int16_t speed)
+void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
 {
     if (!AllHubsConnected())
     {
@@ -47,34 +43,70 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t speed)
         return;
     }
 
-    for (int i = 0; i < Hubs.size(); i++)
+    for (BLEHub *hub : Hubs)
     {
-        BLEHub *hub = Hubs.at(i);
-        hub->Drive(minSpeed, speed);
+        int16_t currentPwrPerc = hub->GetCurrentDrivePwrPerc();
+        hub->Drive(minSpeed, pwrPerc);
+
+        if (currentPwrPerc == 0 && pwrPerc > 0)
+        {
+            // If we go from stand still (0%) to moving (not 0%), we need to let the controller know so it can possibly handle this event.
+            _controller->HandleTrigger(_config->_address, MCTriggerSource::Loco, "dirchanged", "", "forward");
+        }
+
+        if (currentPwrPerc == 0 && pwrPerc < 0)
+        {
+            // If we go from stand still (0%) to moving (not 0%), we need to let the controller know so it can possibly handle this event.
+            _controller->HandleTrigger(_config->_address, MCTriggerSource::Loco, "dirchanged", "", "backward");
+        }
+
+        if (currentPwrPerc != 0 && pwrPerc == 0)
+        {
+            // If we go from moving (not 0%) to stand still (0%), we need to let the controller know so it can possibly handle this event.
+            _controller->HandleTrigger(_config->_address, MCTriggerSource::Loco, "dirchanged", "", "stopped");
+        }
     }
 }
 
-std::vector<MCFunctionBinding *> BLELocomotive::GetFn(MCFunction func)
-{
-    return getFunctions(func);
-}
-
-void BLELocomotive::HandleFn(MCFunctionBinding *fn, const bool on)
+void BLELocomotive::TriggerEvent(MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
     if (!AllHubsConnected())
     {
-        // Ignore function command.
-        log4MC::vlogf(LOG_INFO, "Loco: %s ignored function command because not all its hubs are connected (yet).", _config->_name.c_str());
+        // Ignore trigger.
+        log4MC::vlogf(LOG_INFO, "Loco: %s ignored trigger because not all its hubs are connected (yet).", _config->_name.c_str());
 
-        // Return success anyway, because we don't want the controller to handle the function.
+        // Return success anyway, because we don't want the controller to handle the trigger.
         return;
     }
 
-    // Ask hub to handle function.
-    BLEHub *hub = getHubByAddress(fn->GetPortConfiguration()->GetParentAddress());
-    if (hub)
+    for (MCLocoEvent *event : _config->_events)
     {
-        hub->HandleFn(fn, on);
+        if (event->HasTrigger(source, eventType, eventId, value))
+        {
+            for (MCLocoAction *action : event->GetActions())
+            {
+                ChannelType portType = action->GetChannel()->GetChannelType();
+                switch (portType)
+                {
+                case ChannelType::BleHubChannel:
+                {
+                    // Ask hub to execute action.
+                    BLEHub *hub = getHubByAddress(action->GetChannel()->GetParentAddress());
+                    if (hub)
+                    {
+                        hub->Execute(action);
+                    }
+                    break;
+                }
+                case ChannelType::EspPinChannel:
+                {
+                    // Ask controller to execute action.
+                    _controller->Execute(action);
+                    break;
+                }
+                }
+            }
+        }
     }
 }
 
@@ -83,54 +115,29 @@ void BLELocomotive::BlinkLights(int durationInMs)
     if (!AllHubsConnected())
     {
         // Ignore blink request.
-        //log4MC::vlogf(LOG_INFO, "Loco: %s ignored blink lights request because not all its hubs are connected (yet).", _config->_name.c_str());
+        // log4MC::vlogf(LOG_INFO, "Loco: %s ignored blink lights request because not all its hubs are connected (yet).", _config->_name.c_str());
         return;
     }
 
     // Handle blink on lights attached to channels of our hubs.
-    for (int i = 0; i < Hubs.size(); i++)
+    for (BLEHub *hub : Hubs)
     {
-        Hubs.at(i)->BlinkLights(durationInMs);
+        hub->BlinkLights(durationInMs);
     }
 }
 
-void BLELocomotive::EmergencyBrake(const bool enabled)
+void BLELocomotive::SetEmergencyBrake(const bool enabled)
 {
     if (!AllHubsConnected())
     {
-        // Ignore function command.
-        //log4MC::vlogf(LOG_INFO, "Loco: %s ignored e-brake command because not all its hubs are connected (yet).", _config->_name.c_str());
+        // Ignore e-brake command (we're not driving anyway).
         return;
     }
 
-    // if (enabled)
-    // {
-    //     log4MC::vlogf(LOG_WARNING, "Loco: %s e-braking on all hubs.", _config->_name.c_str());
-    // }
-    // else
-    // {
-    //     log4MC::vlogf(LOG_WARNING, "Loco: %s releasing e-brake on all hubs.", _config->_name.c_str());
-    // }
-
-    // Handle e-brake on our leds connected to ESP pins of the controller.
-    for (MCLedBase *led : _espLeds)
+    // Handle e-brake on all channels of our hubs.
+    for (BLEHub *hub : Hubs)
     {
-        if (enabled)
-        {
-            // Blink when e-braking.
-            led->Write(MCLightController::Blink());
-        }
-        else
-        {
-            // Switch back to normal mode.
-            led->Switch(led->IsOn());
-        }
-    }
-
-    // Handle e-brake on lights attached to channels of our hubs.
-    for (int i = 0; i < Hubs.size(); i++)
-    {
-        Hubs.at(i)->EmergencyBrake(enabled);
+        hub->EmergencyBrake(enabled);
     }
 }
 
@@ -154,24 +161,6 @@ BLEHub *BLELocomotive::GetHub(uint index)
     return Hubs.at(index);
 }
 
-bool BLELocomotive::GetAutoLightsEnabled()
-{
-    return _config->_autoLightsEnabled;
-}
-
-void BLELocomotive::initLights()
-{
-    for (MCFunctionBinding *fn : _config->_functions)
-    {
-        MCPortConfiguration *deviceConfig = fn->GetPortConfiguration();
-        if (deviceConfig->GetAttachedDeviceType() == DeviceType::Light)
-        {
-            // Ask controller to create an led for us and keep a reference to it.
-            _espLeds.push_back(_controller->GetLed(deviceConfig->GetAddressAsEspPinNumber(), deviceConfig->IsInverted()));
-        }
-    }
-}
-
 void BLELocomotive::initHubs()
 {
     for (BLEHubConfiguration *hubConfig : _config->_hubs)
@@ -179,10 +168,10 @@ void BLELocomotive::initHubs()
         switch (hubConfig->HubType)
         {
         case BLEHubType::SBrick:
-            Hubs.push_back(new SBrickHub(hubConfig, _config->_speedStep, _config->_brakeStep));
+            Hubs.push_back(new SBrickHub(hubConfig));
             break;
         case BLEHubType::PU:
-            Hubs.push_back(new PUHub(hubConfig, _config->_speedStep, _config->_brakeStep));
+            Hubs.push_back(new PUHub(hubConfig));
             break;
         }
     }
@@ -194,29 +183,11 @@ BLEHub *BLELocomotive::getHubByAddress(std::string address)
 {
     for (BLEHub *hub : Hubs)
     {
-        if (hub->GetAddress().compare(address) == 0)
+        if (hub->GetRawAddress().compare(address) == 0)
         {
             return hub;
         }
     }
 
     return nullptr;
-}
-
-std::vector<MCFunctionBinding *> BLELocomotive::getFunctions(MCFunction f)
-{
-    std::vector<MCFunctionBinding *> functions;
-
-    if (AllHubsConnected())
-    {
-        for (MCFunctionBinding *fn : _config->_functions)
-        {
-            if (fn->GetFunction() == f)
-            {
-                functions.push_back(fn);
-            }
-        }
-    }
-
-    return functions;
 }

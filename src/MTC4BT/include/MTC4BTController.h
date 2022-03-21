@@ -29,8 +29,8 @@ public:
     // Handles the given loco command (if loco is under control if this controller).
     void HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward);
 
-    // Handles the given function for the specified loco (if loco is under control of this controller).
-    void HandleFn(int locoAddress, MCFunction f, const bool on);
+    // Handles the given trigger (if loco is under control of this controller).
+    void HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value);
 
 private:
     // Discovers new BLE devices.
@@ -45,9 +45,6 @@ private:
     // Reference to the configuration of this controller.
     MTC4BTConfiguration *_config;
 
-    // Reference to the BLE scanner used by this controller.
-    NimBLEScan *_scanner;
-    
     // Reference to the BLE Hub scanner used by this controller.
     BLEHubScanner *_hubScanner;
 };

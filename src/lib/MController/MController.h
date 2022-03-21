@@ -4,6 +4,8 @@
 #include "MattzoWifiClient.h"
 #include "MattzoMQTTSubscriber.h"
 #include "MCLedBase.h"
+#include "MCLocoAction.h"
+#include "MCChannelController.h"
 
 enum MCConnectionStatus
 {
@@ -28,30 +30,42 @@ public:
     // Updates emergency brake based on the current controller connection status and controls leds.
     void Loop();
 
-    // Returns an led instance for the requested pin, or creates one if it doesn't exist yet.
-    MCLedBase *GetLed(int pin, bool inverted);
-
     // Returns a boolean value indicating whether the e-brake flag is currently set or not.
     bool GetEmergencyBrake();
 
     // Sets the emergency brake flag to the given value.
     void SetEmergencyBrake(const bool enabled);
 
-    // Handles the given function locally on this controller.
-    void HandleFn(MCFunctionBinding *fn, const bool on);
+    // Executes the given action locally on this controller.
+    void Execute(MCLocoAction *action);
 
     // Abstract method required for derived controller implementations to handle e-brake.
-    virtual void HandleSys(const bool enabled) = 0;
+    virtual void HandleSys(const bool ebrake) = 0;
+
+    // Abstract method required to handle the given trigger (if loco is under control of this controller).
+    virtual void HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value) = 0;
 
 private:
-    // Initialized the status leds attached to this controller.
-    void initStatusLeds();
+    // Initializes the pin channels.
+    void initChannelControllers();
 
-    // Returns a list of references to functions of the given type configured for this controller.
-    std::vector<MCFunctionBinding *> getFunctions(MCFunction f);
+    // Returns the controller for the requested channel.
+    MCChannelController *findControllerByChannel(MCChannel *channel);
+
+    // Returns the led instance for the requested pin.
+    MCLedBase *findLedByPinNumber(int pin);
+
+    // Initializes an led instance, if it doesn't exist yet.
+    void initLed(int pwmChannel, int pin, bool inverted);
+
+    // Initializes a status led instance, if it doesn't exist yet.
+    void initStatusLed(int pwmChannel, int pin);
 
     // List of references to leds attached to this controller.
     std::vector<MCLedBase *> _espLeds;
+
+    // List of references to led controllers.
+    std::vector<MCChannelController *> _channelControllers;
 
     // Boolean value indicating whether emergency brake is currently enabled or not.
     bool _ebrake;

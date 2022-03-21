@@ -4,9 +4,10 @@
 #include <SPIFFS.h>
 
 #include "MTC4BTConfiguration.h"
-#include "MCFunctionBinding.h"
 
 #define DEFAULT_CONTROLLER_NAME "MTC4BT"
+#define DEFAULT_PWR_INC_STEP 10
+#define DEFAULT_PWR_DEC_STEP 10
 
 MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 {
@@ -39,7 +40,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 
     // Allocate a temporary JsonDocument.
     // Don't forget to change the capacity to match your requirements!
-    // Use arduinojson.org/v6/assistant to compute the capacity.
+    // Use https://arduinojson.org/v6/assistant to compute the capacity.
     // Use the settings:
     // - Processor: ESP32
     // - Mode: Deserialize
@@ -61,52 +62,24 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
     config->ControllerName = controllerName;
     log4MC::vlogf(LOG_INFO, "Config: Read controller name: %s", config->ControllerName);
 
-    // Iterate over ESP pins and copy values from the JsonDocument to PortConfiguration objects.
+    int16_t pwrIncStep = doc["pwrIncStep"] | DEFAULT_PWR_INC_STEP;
+    int16_t pwrDecStep = doc["pwrDecStep"] | DEFAULT_PWR_DEC_STEP;
+
+    // Iterate over ESP pins and copy values from the JsonDocument to MCChannelConfig objects.
     JsonArray espPinConfigs = doc["espPins"].as<JsonArray>();
     for (JsonObject espPinConfig : espPinConfigs)
     {
         // Use pin number as its device address.
         const std::string address = espPinConfig["pin"];
-        const bool inverted = espPinConfig["inverted"] | false;
+        int16_t pinPwrIncStep = espPinConfig["pwrIncStep"] | pwrIncStep;
+        int16_t pinPwrDecStep = espPinConfig["pwrDecStep"] | pwrDecStep;
+        const bool isInverted = espPinConfig["inverted"] | false;
         const std::string attachedDevice = espPinConfig["attachedDevice"] | "nothing";
 
-        config->EspPins.push_back(new MCPortConfiguration(PortType::EspPin, address, inverted, deviceTypeMap()[attachedDevice]));
+        MCChannel *espChannel = new MCChannel(ChannelType::EspPinChannel, address);
+        config->EspPins.push_back(new MCChannelConfig(espChannel, pinPwrIncStep, pinPwrDecStep, isInverted, deviceTypeMap()[attachedDevice]));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read ESP pin configuration (%u).", config->EspPins.size());
-
-    // Iterate over functions and copy values from the JsonDocument to Fn objects.
-    JsonArray fnConfigs = doc["fn"].as<JsonArray>();
-    for (JsonObject fnConfig : fnConfigs)
-    {
-        const char *fnName = fnConfig["name"];
-        const int pin = fnConfig["pin"];
-
-        // Check if there's an ESP pin with the specified address defined in the config.
-        MCPortConfiguration *fnDevice = nullptr;
-        for (int i = 0; i < config->EspPins.size(); i++)
-        {
-            MCPortConfiguration *espPin = config->EspPins.at(i);
-            if (espPin->GetAddressAsEspPinNumber() == pin)
-            {
-                fnDevice = espPin;
-                break;
-            }
-        }
-
-        if (fnDevice == nullptr)
-        {
-            log4MC::vlogf(LOG_ERR, "Config: ESP pin %u not configured in 'espPins' section.", pin);
-        }
-
-        // Check if the ESP pin with the specified address defined in the config has a light attached to it.
-        if (fnDevice->GetAttachedDeviceType() != DeviceType::Light)
-        {
-            log4MC::vlogf(LOG_ERR, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`.", pin);
-        }
-
-        config->Functions.push_back(new MCFunctionBinding(functionMap()[fnName], fnDevice));
-    }
-    log4MC::vlogf(LOG_INFO, "Config: Read function configuration (%u).", config->Functions.size());
 
     // Iterate over loco configs and copy values from the JsonDocument to BLELocomotiveConfiguration objects.
     JsonArray locoConfigs = doc["locos"].as<JsonArray>();
@@ -123,10 +96,8 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         // Read loco properties.
         const uint address = locoConfig["address"];
         const std::string name = locoConfig["name"]; // | "loco_" + locoConfig["address"];
-        int16_t speedStep = locoConfig["speedStep"] | 10;
-        int16_t brakeStep = locoConfig["brakeStep"] | 20;
-        const int16_t lightPerc = locoConfig["lightPerc"] | 100;
-        const bool autoLightsOnEnabled = locoConfig["autoLightsOnEnabled"] | false;
+        int16_t locoPwrIncStep = locoConfig["pwrIncStep"] | pwrIncStep;
+        int16_t locoPwrDecStep = locoConfig["pwrDecStep"] | pwrDecStep;
 
         // Iterate over hub configs and copy values from the JsonDocument to BLEHubConfiguration objects.
         std::vector<BLEHubConfiguration *> hubs;
@@ -137,117 +108,145 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             // Read hub specific properties.
             const std::string hubType = hubConfig["type"];
             const std::string address = hubConfig["address"];
+            int16_t hubPwrIncStep = hubConfig["pwrIncStep"] | locoPwrIncStep;
+            int16_t hubPwrDecStep = hubConfig["pwrDecStep"] | locoPwrDecStep;
 
             // Iterate over channel configs and copy values from the JsonDocument to PortConfiguration objects.
-            std::vector<MCPortConfiguration *> channels;
+            std::vector<MCChannelConfig *> channels;
             JsonArray channelConfigs = hubConfig["channels"].as<JsonArray>();
             for (JsonObject channelConfig : channelConfigs)
             {
                 // Read hub channel properties.
                 const std::string channel = channelConfig["channel"];
                 const std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
+                int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
+                int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
                 const char *dir = channelConfig["direction"] | "forward";
                 bool isInverted = strcmp(dir, "reverse") == 0;
 
-                channels.push_back(new MCPortConfiguration(PortType::BleHubChannel, channel, isInverted, deviceTypeMap()[attachedDevice]));
+                MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
+                hubChannel->SetParentAddress(address);
+                channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, deviceTypeMap()[attachedDevice]));
             }
 
-            hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, lightPerc, autoLightsOnEnabled, enabled));
+            hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, enabled));
         }
 
-        // Iterate over functions and copy values from the JsonDocument to Fn objects.
-        std::vector<MCFunctionBinding *> functions;
-        JsonArray fnConfigs = locoConfig["fn"].as<JsonArray>();
-        for (JsonObject fnConfig : fnConfigs)
+        // Iterate over events and copy values from the JsonDocument to MCLocoEvent objects.
+        std::vector<MCLocoEvent *> events;
+        JsonArray eventConfigs = locoConfig["events"].as<JsonArray>();
+        for (JsonObject eventConfig : eventConfigs)
         {
-            const char *fnName = fnConfig["name"];
-            const std::string port = fnConfig["device"]; // TODO: Should be named `port` in config too.
-
-            MCPortConfiguration *fnDevice = nullptr;
-            MCPortConfiguration *tmpDevice;
-
-            switch (portTypeMap()[port])
+            std::vector<MCLocoTrigger *> triggers;
+            JsonArray triggerConfigs = eventConfig["triggers"].as<JsonArray>();
+            for (JsonObject triggerConfig : triggerConfigs)
             {
-            case PortType::EspPin:
-            {
-                // Check if there's an ESP pin with the specified pin number in the controller config.
-                const int pin = fnConfig["pin"];
+                // Read trigger properties.
+                const std::string source = triggerConfig["source"] | "loco";
+                const std::string eventType = triggerConfig["eventType"];
+                const std::string eventId = triggerConfig["identifier"] | "";
+                const std::string value = triggerConfig["value"];
+                int8_t delayInMs = triggerConfig["delayInMs"] | 0;
 
-                for (int i = 0; i < config->EspPins.size(); i++)
-                {
-                    tmpDevice = config->EspPins.at(i);
-                    if (tmpDevice->GetAddressAsEspPinNumber() == pin)
-                    {
-                        fnDevice = tmpDevice;
-                        break;
-                    }
-                }
-
-                if (fnDevice == nullptr)
-                {
-                    log4MC::vlogf(LOG_ERR, "Config: ESP pin %u not configured in 'espPins' section.", pin);
-                }
-
-                // Check if the ESP pin with the specified address defined in the config has a light attached to it.
-                if (fnDevice->GetAttachedDeviceType() != DeviceType::Light)
-                {
-                    log4MC::vlogf(LOG_ERR, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`.", pin);
-                }
-
-                break;
+                triggers.push_back(new MCLocoTrigger(triggerSourceMap()[source], eventType, eventId, value, delayInMs));
             }
-            case PortType::BleHubChannel:
+
+            std::vector<MCLocoAction *> actions;
+            JsonArray actionConfigs = eventConfig["actions"].as<JsonArray>();
+            MCChannelConfig *foundChannel;
+            for (JsonObject actionConfig : actionConfigs)
             {
-                // Check if there's a hub with the specified address in the config.
-                const std::string address = fnConfig["address"];
-                const std::string channel = fnConfig["channel"];
+                // Read action properties.
+                const std::string device = actionConfig["device"] | "bleHub";
+                const std::string address = actionConfig["address"] | actionConfig["pin"];
+                const std::string channel = actionConfig["channel"];
+                int16_t pwrPerc = actionConfig["pwrPerc"] | 0;
 
-                std::string hubAddress;
-                for (BLEHubConfiguration *hub : hubs)
+                foundChannel = nullptr;
+
+                switch (channelTypeMap()[device])
                 {
-                    if (hub->DeviceAddress->toString().compare(address) == 0)
+                case ChannelType::EspPinChannel:
+                {
+                    // Check if there's an ESP pin with the specified pin number in the controller config.
+                    
+                    for(MCChannelConfig *channelConfig : config->EspPins)
                     {
-                        // Keep hub address for reference.
-                        hubAddress = hub->DeviceAddress->toString();
-
-                        // Check if the specified channel is defined in the hub config.
-                        for (int i = 0; i < hub->Channels.size(); i++)
+                        if (channelConfig->GetChannel()->GetAddress().compare(address) == 0)
                         {
-                            tmpDevice = hub->Channels.at(i);
-                            if (tmpDevice->GetAddress().compare(channel) == 0)
+                            foundChannel = channelConfig;
+                            break;
+                        }
+                    }
+
+                    if (foundChannel == nullptr)
+                    {
+                        log4MC::vlogf(LOG_WARNING, "Config: ESP pin %u not configured in 'espPins' section. Configured action ignored.", address);
+                        continue;
+                    }
+
+                    // Check if the ESP pin with the specified address defined in the config has a light attached to it.
+                    if (foundChannel->GetAttachedDeviceType() != DeviceType::Light)
+                    {
+                        log4MC::vlogf(LOG_WARNING, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`. Configured action ignored.", address);
+                        continue;
+                    }
+
+                    break;
+                }
+                case ChannelType::BleHubChannel:
+                {
+                    BLEHubConfiguration *foundHub = nullptr;
+
+                    if (actionConfig.containsKey("address"))
+                    {
+                        // Specific hub address specified, so find it.
+                        for (BLEHubConfiguration *hub : hubs)
+                        {
+                            if (hub->DeviceAddress->toString().compare(address) == 0)
                             {
-                                fnDevice = tmpDevice;
+                                foundHub = hub;
                                 break;
                             }
                         }
-
-                        break;
                     }
+                    else
+                    {
+                        // No hub address specified, so assume first hub.
+                        foundHub = hubs.at(0);
+                    }
+
+                    if (foundHub == nullptr)
+                    {
+                        log4MC::vlogf(LOG_ERR, "Config: Hub '%s' not configured in this loco's 'bleHubs' section.", address);
+                    }
+
+                    // Check if the specified channel is defined in the hub config.
+                    for (MCChannelConfig *channelConfig : foundHub->Channels)
+                    {
+                        if (channelConfig->GetChannel()->GetAddress().compare(channel) == 0)
+                        {
+                            foundChannel = channelConfig;
+                            break;
+                        }
+                    }
+
+                    if (foundChannel == nullptr)
+                    {
+                        log4MC::vlogf(LOG_ERR, "Config: Hub channel %s not configured in this loco's 'bleHubs' section.", channel);
+                    }
+
+                    break;
+                }
                 }
 
-                if (fnDevice == nullptr)
-                {
-                    log4MC::vlogf(LOG_ERR, "Config: Hub '%s' or channel %s not configured in this loco's 'bleHubs' section.", address, channel);
-                }
-
-                // Check if the given channel of the hub with the specified address defined in the config has a light attached to it.
-                if (fnDevice->GetAttachedDeviceType() != DeviceType::Light)
-                {
-                    log4MC::vlogf(LOG_ERR, "Config: Channel %s of hub '%s' in the 'bleHubs' section is not configured with `light` as the `attachedDevice`.", channel, address);
-                }
-
-                // Keep hub address for reference.
-                fnDevice->SetParentAddress(address);
-
-                break;
+                actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc));
             }
-            }
 
-            functions.push_back(new MCFunctionBinding(functionMap()[fnName], fnDevice));
+            events.push_back(new MCLocoEvent(triggers, actions));
         }
-        log4MC::vlogf(LOG_INFO, "Config: Read function configuration (%u).", functions.size());
 
-        config->Locomotives.push_back(new BLELocomotiveConfiguration(address, name, hubs, functions, speedStep, brakeStep, lightPerc, autoLightsOnEnabled, enabled));
+        config->Locomotives.push_back(new BLELocomotiveConfiguration(address, name, hubs, events, enabled));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read loco configuration (%u).", config->Locomotives.size());
 

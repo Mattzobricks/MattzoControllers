@@ -5,6 +5,5 @@
 class MCStatusLed : public MCLedBase
 {
 public:
-    MCStatusLed(int led_pin, bool inverted);
-    void Update(bool ebrakeEnabled);
+    MCStatusLed(int pwmChannel, int pin, bool inverted);
 };

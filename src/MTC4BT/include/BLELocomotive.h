@@ -6,8 +6,6 @@
 #include "BLELocomotiveConfiguration.h"
 #include "MCLedBase.h"
 
-#define AUTO_LIGHTS_ENABLED true
-
 class BLELocomotive
 {
 public:
@@ -23,20 +21,17 @@ public:
     bool AllHubsConnected();
 
     // Sets the given target speed for all motor channels for all hubs.
-    void Drive(const int16_t minSpeed, const int16_t speed);
+    void Drive(const int16_t minSpeed, const int16_t pwrPerc);
 
-    // Returns a list of functions that need to be handled.
-    std::vector<MCFunctionBinding *> GetFn(MCFunction func);
-
-    // Turns the specified function on/off.
-    void HandleFn(MCFunctionBinding *fn, const bool on);
+    // Triggers the given event for this loco.
+    void TriggerEvent(MCTriggerSource source, std::string eventType, std::string eventId, std::string value);
 
     // Makes all channels on all hubs with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
 
     // If true, immediately sets the current speed for all channels on all hubs to zero and makes all loco lights blink.
     // If false, releases the emergency brake, returning the loco to normal operations.
-    void EmergencyBrake(const bool enabled);
+    void SetEmergencyBrake(const bool enabled);
 
     // Returns the loco name.
     std::string GetLocoName();
@@ -50,12 +45,9 @@ public:
     // Returns the hub at the given index.
     BLEHub *GetHub(uint index);
 
-    // Returns a boolean value indicating whether the lights should automatically turn on when the loco starts driving.
-    bool GetAutoLightsEnabled();
-
 private:
     // Initialized the leds inside this loco.
-    void initLights();
+    // void initLights();
 
     // Initialized the hubs inside this loco.
     void initHubs();
@@ -64,9 +56,9 @@ private:
     BLEHub *getHubByAddress(std::string address);
 
     // Returns a list of references to functions of the given type configured for this loco.
-    std::vector<MCFunctionBinding *> getFunctions(MCFunction f);
+    // std::vector<MCFunctionBinding *> getFunctions(MCFunction f);
 
-    // List of references to leds inside this loco.
+    // Returns a list of references to leds inside this loco.
     std::vector<MCLedBase *> _espLeds;
 
     // Reference to the configuration of this loco.

@@ -3,19 +3,21 @@
 class MCLedBase
 {
 public:
-    MCLedBase(int led_pin, bool inverted);
+    MCLedBase(int pwmChannel, int pin, bool inverted = false);
+
     int GetPin();
-    void Switch(bool on);
-    bool IsOn();
-    void Write(bool on);
-    virtual void Update(bool ebrakeEnabled) = 0;
+
+    void SetCurrentPwrPerc(int16_t pwrPerc);
 
 private:
-    int _led_pin;
+    int _pwmChannel;
+    int _pin;
     bool _inverted;
-    bool _on;
 
-    // The following classes can access private members of MCLedBase.
+    void init();
+    int16_t mapPwrPercToRaw(int pwrPerc);
+
+    // The following (derived) classes can access private members of MCLedBase.
     friend class MCLed;
     friend class MCStatusLed;
 };

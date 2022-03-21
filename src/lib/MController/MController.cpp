@@ -1,7 +1,8 @@
 #include "MController.h"
-#include "MCPortConfiguration.h"
+#include "MCLightController.h"
+#include "MCChannelConfig.h"
 #include "MCStatusLed.h"
-#include "MCFunctionBinding.h"
+#include "MCLocoAction.h"
 #include "MCLed.h"
 #include "log4MC.h"
 
@@ -40,23 +41,142 @@ void MController::Setup(MCConfiguration *config)
     _config = config;
     _ebrake = false;
 
-    // Initialize any status LEDs.
-    initStatusLeds();
+    // Initialize local channel controllers.
+    initChannelControllers();
 }
 
 void MController::Loop()
 {
-    // E-brake is enabled when specifically requested (through MQTT) or when the controller is not connected.
-    bool ebrakeEnabled = _ebrake || GetConnectionStatus() != MCConnectionStatus::connected;
+    int currentPwrPerc;
 
-    // Update leds (taking e-brake into account).
-    for (MCLedBase *led : _espLeds)
+    for (MCChannelController *channel : _channelControllers)
     {
-        led->Update(ebrakeEnabled);
+        // Update channel e-brake status.
+        channel->EmergencyBrake(GetEmergencyBrake());
+
+        // Update current channel pwr (continue if request was ignored).
+        if (!channel->UpdateCurrentPwrPerc())
+        {
+            continue;
+        }
+
+        // Get new pwr perc.
+        currentPwrPerc = channel->GetCurrentPwrPerc();
+
+        if (channel->GetAttachedDevice() == DeviceType::Light)
+        {
+            MCLedBase *led = findLedByPinNumber(channel->GetChannel()->GetAddressAsEspPinNumber());
+            if (led)
+            {
+                led->SetCurrentPwrPerc(currentPwrPerc);
+            }
+        }
+
+        if (channel->GetAttachedDevice() == DeviceType::StatusLight)
+        {
+            MCLedBase *led = findLedByPinNumber(channel->GetChannel()->GetAddressAsEspPinNumber());
+            if (led)
+            {
+                switch (GetConnectionStatus())
+                {
+                case uninitialized:
+                case initializing:
+                {
+                    // Two flashes per second.
+                    currentPwrPerc = MCLightController::TwoFlashesPerSecond() ? 100 : 0;
+                    break;
+                }
+                case MCConnectionStatus::connecting_wifi:
+                {
+                    // One short flash per second (on 10%).
+                    currentPwrPerc = MCLightController::OneFlashPerSecond() ? 100 : 0;
+                    break;
+                }
+                case MCConnectionStatus::connecting_mqtt:
+                {
+                    // Blink (on 50%).
+                    currentPwrPerc = MCLightController::Blink() ? 100 : 0;
+                    break;
+                }
+                case connected:
+                {
+                    // Off.
+                    currentPwrPerc = 0;
+                    break;
+                }
+                };
+
+                led->SetCurrentPwrPerc(currentPwrPerc);
+            }
+        }
     }
 }
 
-MCLedBase *MController::GetLed(int pin, bool inverted)
+bool MController::GetEmergencyBrake()
+{
+    // E-brake is enabled when specifically requested (through MQTT) or when the controller is not connected.
+    return _ebrake || GetConnectionStatus() != MCConnectionStatus::connected;
+}
+
+void MController::SetEmergencyBrake(const bool enabled)
+{
+    _ebrake = enabled;
+}
+
+void MController::Execute(MCLocoAction *action)
+{
+    MCChannelController *channel = findControllerByChannel(action->GetChannel());
+
+    if (channel)
+    {
+        channel->SetTargetPwrPerc(action->GetTargetPowerPerc());
+    }
+}
+
+void MController::initChannelControllers()
+{
+    // TODO: This method should be made more robust to prevent config errors, like configuring the same channel twice.
+
+    for (int i = 0; i < _config->EspPins.size(); i++)
+    {
+        if (i >= 16)
+        {
+            // There are only 16 PWM channels available, so we must ignore the rest.
+            log4MC::warn("CTRL: Local channel initialization failed (too many ESP pins configured, max. is 16)!");
+            break;
+        }
+
+        MCChannelConfig *espPinConfig = _config->EspPins.at(i);
+        if (espPinConfig->GetAttachedDeviceType() == DeviceType::Light)
+        {
+            initLed(i, espPinConfig->GetChannel()->GetAddressAsEspPinNumber(), espPinConfig->IsInverted());
+        }
+
+        if (espPinConfig->GetAttachedDeviceType() == DeviceType::StatusLight)
+        {
+            initStatusLed(i, espPinConfig->GetChannel()->GetAddressAsEspPinNumber());
+        }
+
+        _channelControllers.push_back(new MCChannelController(espPinConfig));
+    }
+
+    log4MC::info("CTRL: Local channels initialized.");
+}
+
+MCChannelController *MController::findControllerByChannel(MCChannel *channel)
+{
+    for (MCChannelController *controller : _channelControllers)
+    {
+        if (controller->GetChannel() == channel)
+        {
+            return controller;
+        }
+    }
+
+    return nullptr;
+}
+
+MCLedBase *MController::findLedByPinNumber(int pin)
 {
     for (MCLedBase *led : _espLeds)
     {
@@ -66,59 +186,27 @@ MCLedBase *MController::GetLed(int pin, bool inverted)
         }
     }
 
+    return nullptr;
+}
+
+void MController::initLed(int pwmChannel, int pin, bool inverted)
+{
+    if (findLedByPinNumber(pin) != nullptr)
+    {
+        return;
+    }
+
     // If not found, define, initialize and add a new LED.
-    MCLed *led = new MCLed(pin, inverted);
-    _espLeds.push_back(led);
-    return led;
+    _espLeds.push_back(new MCLed(pwmChannel, pin, inverted));
 }
 
-bool MController::GetEmergencyBrake()
+void MController::initStatusLed(int pwmChannel, int pin)
 {
-    return _ebrake;
-}
-
-void MController::SetEmergencyBrake(const bool enabled)
-{
-    _ebrake = enabled;
-}
-
-void MController::HandleFn(MCFunctionBinding *fn, const bool on)
-{
-    MCPortConfiguration *ledConfig = fn->GetPortConfiguration();
-    log4MC::vlogf(LOG_DEBUG, "Ctrl: Handling function %u for pin %u.", ledConfig->GetAttachedDeviceType(), ledConfig->GetAddressAsEspPinNumber());
-    MCLedBase *led = GetLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
-
-    if (led)
+    if (findLedByPinNumber(pin) != nullptr)
     {
-        led->Switch(on);
-    }
-}
-
-void MController::initStatusLeds()
-{
-    // Find the ESP pins configured with the "status" led function.
-    for (MCFunctionBinding *fn : getFunctions(MCFunction::Status))
-    {
-        MCPortConfiguration *ledConfig = fn->GetPortConfiguration();
-        log4MC::vlogf(LOG_INFO, "Ctrl: Found status led attached to ESP pin %u. Initializing...", ledConfig->GetAddressAsEspPinNumber());
-        MCStatusLed *statusLed = new MCStatusLed(ledConfig->GetAddressAsEspPinNumber(), ledConfig->IsInverted());
-        _espLeds.push_back(statusLed);
-    }
-}
-
-std::vector<MCFunctionBinding *> MController::getFunctions(MCFunction f)
-{
-    std::vector<MCFunctionBinding *> functions;
-
-    MCFunctionBinding *fn;
-    for (int i = 0; i < _config->Functions.size(); i++)
-    {
-        fn = _config->Functions.at(i);
-        if (fn->GetFunction() == f)
-        {
-            functions.push_back(fn);
-        }
+        return;
     }
 
-    return functions;
+    // If not found, define, initialize and add a new status LED.
+    _espLeds.push_back(new MCStatusLed(pwmChannel, pin, false));
 }

@@ -2,28 +2,29 @@
 
 #include <map>
 
-enum PortType
+enum ChannelType
 {
-    EspPin = 0,
+    EspPinChannel = 0,
     BleHubChannel
 };
 
 // String switch paridgam
-struct portTypeMap : public std::map<std::string, PortType>
+struct channelTypeMap : public std::map<std::string, ChannelType>
 {
-    portTypeMap()
+    channelTypeMap()
     {
-        this->operator[]("espPin") = PortType::EspPin;
-        this->operator[]("bleHub") = PortType::BleHubChannel;
+        this->operator[]("espPin") = ChannelType::EspPinChannel;
+        this->operator[]("bleHub") = ChannelType::BleHubChannel;
     };
-    ~portTypeMap() {}
+    ~channelTypeMap() {}
 };
 
 enum DeviceType
 {
     Nothing,
     Motor,
-    Light
+    Light,
+    StatusLight
 };
 
 // String switch paridgam
@@ -35,8 +36,30 @@ struct deviceTypeMap : public std::map<std::string, DeviceType>
         this->operator[]("nothing") = DeviceType::Nothing;
         this->operator[]("motor") = DeviceType::Motor;
         this->operator[]("light") = DeviceType::Light;
+        this->operator[]("status") = DeviceType::StatusLight;
     };
     ~deviceTypeMap() {}
+};
+
+enum MCTriggerSource
+{
+    // Locomotive.
+    Loco,
+
+    // RocRail.
+    RocRail
+};
+
+// String switch paridgam
+struct triggerSourceMap : public std::map<std::string, MCTriggerSource>
+{
+    triggerSourceMap()
+    {
+        this->operator[]("") = MCTriggerSource::Loco;
+        this->operator[]("loco") = MCTriggerSource::Loco;
+        this->operator[]("rr") = MCTriggerSource::RocRail;
+    };
+    ~triggerSourceMap(){}
 };
 
 // Function supported by the generic controller.

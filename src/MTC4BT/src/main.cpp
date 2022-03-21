@@ -28,7 +28,7 @@ void handleMQTTMessageLoop(void *parm)
             // Output message to serial for debug.
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
-            // Parse message and translate to a BLE command for loco hub(s).
+            // Parse message and translate to an action for devices attached to this controller.
             MTC4BTMQTTHandler::Handle(message, controller);
 
             // Erase message from memory by freeing it.
@@ -36,7 +36,7 @@ void handleMQTTMessageLoop(void *parm)
         }
 
         // Wait a while before trying again (allowing other tasks to do their work)?
-        // vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 

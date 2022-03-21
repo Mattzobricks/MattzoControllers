@@ -6,10 +6,7 @@
 #include "BLEHubChannel.h"
 #include "BLEHubChannelController.h"
 #include "BLEHubConfiguration.h"
-#include "MCFunctionBinding.h"
-
-#define AUTO_LIGHTS_ENABLED true
-#define AUTO_LIGHTS_DISABLED false
+#include "MCLocoAction.h"
 
 // The priority at which the task should run.
 // Systems that include MPU support can optionally create tasks in a privileged (system) mode by setting bit portPRIVILEGE_BIT of the priority parameter.
@@ -19,7 +16,7 @@
 // If the value is tskNO_AFFINITY, the created task is not pinned to any CPU, and the scheduler can run it on any core available.
 // Values 0 or 1 indicate the index number of the CPU which the task should be pinned to.
 // Specifying values larger than (portNUM_PROCESSORS - 1) will cause the function to fail.
-#define BLE_CoreID 1
+#define BLE_CoreID CONFIG_BT_NIMBLE_PINNED_TO_CORE
 
 // The size of the task stack specified as the number of bytes.
 #define BLE_StackDepth 2048
@@ -58,7 +55,7 @@ enum struct MessageType
 class BLEHub
 {
 public:
-    BLEHub(BLEHubConfiguration *config, int16_t speedStep, int16_t brakeStep);
+    BLEHub(BLEHubConfiguration *config);
 
     // Returns a boolean value indicating whether this BLE hub is enabled (in use).
     bool IsEnabled();
@@ -69,18 +66,20 @@ public:
     // Returns a boolean value indicating whether we are connected to the BLE hub.
     bool IsConnected();
 
+    // Returns the hub's raw address.
+    std::string GetRawAddress();
+
     // Returns the hub's address.
-    std::string GetAddress();
+    NimBLEAddress GetAddress();
 
-    // Sets the given target speed for the respective channels (by their index).
-    // The number of speeds specified should match the actual number of BLE hub channels.
-    // void Drive(const int16_t channelSpeedPercs[]);
+    // Sets the given target power perc for all motor channels.
+    void Drive(const int16_t minPwrPerc, const int16_t pwrPerc);
 
-    // Sets the given target speed for all motor channels.
-    void Drive(const int16_t minSpeed, const int16_t speed);
+    // Gets the current power perc for any motor channel.
+    int16_t GetCurrentDrivePwrPerc();
 
-    // Handles the given function.
-    void HandleFn(MCFunctionBinding *fn, bool on);
+    // Executes the given action.
+    void Execute(MCLocoAction *action);
 
     // Makes all channels with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
@@ -88,9 +87,6 @@ public:
     // If true, immediately sets the current speed for all channels to zero.
     // If false, releases the emergency brake.
     void EmergencyBrake(const bool enabled);
-
-    // Returns a boolean value indicating whether the lights should automatically turn on when the train starts driving.
-    bool GetAutoLightsEnabled();
 
     // Method used to connect to the BLE hub.
     bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
@@ -102,24 +98,21 @@ public:
     virtual void DriveTaskLoop() = 0;
 
     // Abstract method used to map a speed percentile (-100% - 100%) to a raw speed value.
-    virtual int16_t MapSpeedPercToRaw(int speedPerc) = 0;
+    virtual int16_t MapPwrPercToRaw(int pwrPerc) = 0;
 
     // Abstract callback method used to handle hub notifications.
     virtual void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) = 0;
 
 private:
     void initChannelControllers();
-    void setTargetSpeedPercByAttachedDevice(DeviceType device, int16_t minSpeedPerc, int16_t speedPerc);
-    void setTargetSpeedPercForChannelByAttachedDevice(BLEHubChannel channel, DeviceType device, int16_t minSpeedPerc, int16_t speedPerc);
-    uint8_t getRawChannelSpeedForController(BLEHubChannelController *controller);
+    void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
+    uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
     BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
-    BaseType_t startDriveTask();
+    bool startDriveTask();
     static void driveTaskImpl(void *);
 
     BLEHubConfiguration *_config;
-    int16_t _speedStep;
-    int16_t _brakeStep;
     std::vector<BLEHubChannelController *> _channelControllers;
 
     TaskHandle_t _driveTaskHandle;
@@ -130,7 +123,6 @@ private:
     bool _ebrake;
     bool _blinkLights;
     ulong _blinkUntil;
-    bool _isDiscovering;
     bool _isDiscovered;
     bool _isConnected;
     uint16_t _watchdogTimeOutInTensOfSeconds;

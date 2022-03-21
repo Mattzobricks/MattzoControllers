@@ -12,9 +12,17 @@ public:
     // Public members
 
     // Starts device discovery (if not already discovering).
-    void StartDiscovery(NimBLEScan *scanner, std::vector<BLEHub*>& hubs, const uint32_t scanDurationInSeconds);
+    void StartDiscovery(std::vector<BLEHub*>& hubs, const uint32_t scanDurationInSeconds);
 
+private:
     // Private members
+
+    // Reference to the BLE scanner used by this controller.
+    NimBLEScan *_scanner;
+
+    // Reference to the device callback.
     NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
+
+    // Boolean value indicating whether scanner is active.
     bool _isDiscovering;
 };
