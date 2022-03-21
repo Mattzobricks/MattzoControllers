@@ -31,7 +31,7 @@ public:
 
     // If true, immediately sets the current speed for all channels on all hubs to zero and makes all loco lights blink.
     // If false, releases the emergency brake, returning the loco to normal operations.
-    void EmergencyBrake(const bool enabled);
+    void SetEmergencyBrake(const bool enabled);
 
     // Returns the loco name.
     std::string GetLocoName();

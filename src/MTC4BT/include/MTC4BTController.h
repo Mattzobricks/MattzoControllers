@@ -45,9 +45,6 @@ private:
     // Reference to the configuration of this controller.
     MTC4BTConfiguration *_config;
 
-    // Reference to the BLE scanner used by this controller.
-    NimBLEScan *_scanner;
-    
     // Reference to the BLE Hub scanner used by this controller.
     BLEHubScanner *_hubScanner;
 };

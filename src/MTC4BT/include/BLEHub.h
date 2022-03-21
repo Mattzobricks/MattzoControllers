@@ -16,7 +16,7 @@
 // If the value is tskNO_AFFINITY, the created task is not pinned to any CPU, and the scheduler can run it on any core available.
 // Values 0 or 1 indicate the index number of the CPU which the task should be pinned to.
 // Specifying values larger than (portNUM_PROCESSORS - 1) will cause the function to fail.
-#define BLE_CoreID 1
+#define BLE_CoreID CONFIG_BT_NIMBLE_PINNED_TO_CORE
 
 // The size of the task stack specified as the number of bytes.
 #define BLE_StackDepth 2048
@@ -66,8 +66,11 @@ public:
     // Returns a boolean value indicating whether we are connected to the BLE hub.
     bool IsConnected();
 
+    // Returns the hub's raw address.
+    std::string GetRawAddress();
+
     // Returns the hub's address.
-    std::string GetAddress();
+    NimBLEAddress GetAddress();
 
     // Sets the given target power perc for all motor channels.
     void Drive(const int16_t minPwrPerc, const int16_t pwrPerc);
@@ -120,7 +123,6 @@ private:
     bool _ebrake;
     bool _blinkLights;
     ulong _blinkUntil;
-    bool _isDiscovering;
     bool _isDiscovered;
     bool _isConnected;
     uint16_t _watchdogTimeOutInTensOfSeconds;
