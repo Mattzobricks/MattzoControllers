@@ -50,20 +50,20 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
 
         if (currentPwrPerc == 0 && pwrPerc > 0)
         {
-            // If we go from stand still (0%) to moving (not 0%), we need to let the controller know so it can possibly handle this event.
-            _controller->HandleTrigger(_config->_address, MCTriggerSource::Loco, "dirchanged", "", "forward");
+            // If we go from stand still (0%) to moving forward (> 0%), we trigger this event because we must possibly handle it.
+            TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "forward");
         }
 
         if (currentPwrPerc == 0 && pwrPerc < 0)
         {
-            // If we go from stand still (0%) to moving (not 0%), we need to let the controller know so it can possibly handle this event.
-            _controller->HandleTrigger(_config->_address, MCTriggerSource::Loco, "dirchanged", "", "backward");
+            // If we go from stand still (0%) to moving backward (< 0%), we trigger this event because we must possibly handle it.
+            TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "backward");
         }
 
         if (currentPwrPerc != 0 && pwrPerc == 0)
         {
-            // If we go from moving (not 0%) to stand still (0%), we need to let the controller know so it can possibly handle this event.
-            _controller->HandleTrigger(_config->_address, MCTriggerSource::Loco, "dirchanged", "", "stopped");
+            // If we go from moving (not 0%) to stand still (0%), we trigger this event because we must possibly handle it.
+            TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "stopped");
         }
     }
 }
