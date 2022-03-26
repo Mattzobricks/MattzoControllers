@@ -18,7 +18,7 @@
 #define MQTT_HANDLE_MESSAGE_TASK_COREID 1
 
 // The size of the MQTT task stack specified as the number of bytes.
-#define MQTT_TASK_STACK_DEPTH 2048
+#define MQTT_TASK_STACK_DEPTH 3072
 
 // Number of message received the MQTT queue can hold before we start dropping them.
 // Please note the more messages allowed to be queued, the more (heap) memory we consume.
