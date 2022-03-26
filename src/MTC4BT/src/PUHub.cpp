@@ -43,22 +43,22 @@ void PUHub::DriveTaskLoop()
         int16_t currentSpeedPerc = 0;
         int16_t targetSpeedPerc = 0;
 
-        for (BLEHubChannelController *controller : _channelControllers)
+        for (BLEHubChannelController *channel : _channelControllers)
         {
             // Determine current drive state.
-            if (!motorFound && controller->GetAttachedDevice() == DeviceType::Motor)
+            if (!motorFound && channel->GetAttachedDevice() == DeviceType::Motor)
             {
-                currentSpeedPerc = controller->GetCurrentPwrPerc();
-                targetSpeedPerc = controller->GetTargetPwrPerc();
+                currentSpeedPerc = channel->GetCurrentPwrPerc();
+                targetSpeedPerc = channel->GetTargetPwrPerc();
                 motorFound = true;
             }
 
             // Update current channel pwr.
-            controller->UpdateCurrentPwrPerc();
+            channel->UpdateCurrentPwrPerc();
 
             // Construct drive command.
-            byte channelPwr = getRawChannelPwrForController(controller);
-            byte setMotorCommand[8] = {0x81, (byte)controller->GetChannel(), 0x11, 0x51, 0x00, channelPwr};
+            byte channelPwr = getRawChannelPwrForController(channel);
+            byte setMotorCommand[6] = {0x81, (byte)channel->GetChannel(), 0x11, 0x51, 0x00, channelPwr};
             writeValue(setMotorCommand, 6);
         }
 
@@ -143,11 +143,15 @@ void PUHub::parsePortMessage(uint8_t *pData)
         if (pData[5] == 0x0017)
         {
             _hubLedPort = port;
-            log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB light at port %x", port);
+            log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB LED at port %x", port);
         }
     }
 }
 
+/**
+ * @brief Set the color of the HUB LED with predefined colors
+ * @param [in] color one of the available hub colors
+ */
 void PUHub::setLedColor(PUHubLedColor color)
 {
     if (_hubLedPort == 0)
@@ -160,6 +164,67 @@ void PUHub::setLedColor(PUHubLedColor color)
 
     byte setColor[6] = {0x81, _hubLedPort, 0x11, 0x51, 0x00, color};
     writeValue(setColor, 6);
+}
+
+/**
+ * @brief Set the color of the HUB LED with HSV values 
+ * @param [in] hue 0..360 
+ * @param [in] saturation 0..1 
+ * @param [in] value 0..1
+ */
+void PUHub::setLedHSVColor(int hue, double saturation, double value)
+{
+    hue = hue % 360; // map hue to 0..360
+    double huePart = hue / 60.0;
+    double fract = huePart - floor(huePart);
+
+    double p = value * (1. - saturation);
+    double q = value * (1. - saturation * fract);
+    double t = value * (1. - saturation * (1. - fract));
+
+    if (huePart >= 0.0 && huePart < 1.0)
+    {
+        setLedRGBColor((char)(value * 255), (char)(t * 255), (char)(p * 255));
+    }
+    else if (huePart >= 1.0 && huePart < 2.0)
+    {
+        setLedRGBColor((char)(q * 255), (char)(value * 255), (char)(p * 255));
+    }
+    else if (huePart >= 2.0 && huePart < 3.0)
+    {
+        setLedRGBColor((char)(p * 255), (char)(value * 255), (char)(t * 255));
+    }
+    else if (huePart >= 3.0 && huePart < 4.0)
+    {
+        setLedRGBColor((char)(p * 255), (char)(q * 255), (char)(value * 255));
+    }
+    else if (huePart >= 4.0 && huePart < 5.0)
+    {
+        setLedRGBColor((char)(t * 255), (char)(p * 255), (char)(value * 255));
+    }
+    else if (huePart >= 5.0 && huePart < 6.0)
+    {
+        setLedRGBColor((char)(value * 255), (char)(p * 255), (char)(q * 255));
+    }
+    else
+    {
+        setLedRGBColor(0, 0, 0);
+    }
+}
+
+/**
+ * @brief Set the color of the HUB LED with RGB values 
+ * @param [in] red 0..255 
+ * @param [in] green 0..255 
+ * @param [in] blue 0..255 
+ */
+void PUHub::setLedRGBColor(char red, char green, char blue)
+{
+    byte setRGBMode[8] = {0x41, _hubLedPort, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00};
+    writeValue(setRGBMode, 8);
+
+    byte setRGBColor[8] = {0x81, _hubLedPort, 0x11, 0x51, 0x01, red, green, blue};
+    writeValue(setRGBColor, 8);
 }
 
 void PUHub::writeValue(byte command[], int size)

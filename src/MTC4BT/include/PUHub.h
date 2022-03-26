@@ -29,6 +29,19 @@ enum PUHubLedColor
     NONE = 255
 };
 
+enum struct PUDeviceType
+{
+    UNKNOWNDEVICE = 0,
+    SIMPLE_MEDIUM_LINEAR_MOTOR = 1,
+    TRAIN_MOTOR = 2,
+    LIGHT = 8,
+    HUB_LED = 23,
+    MEDIUM_LINEAR_MOTOR = 38,
+    MOVE_HUB_MEDIUM_LINEAR_MOTOR = 39,
+    TECHNIC_LARGE_LINEAR_MOTOR = 46,  // Technic Control+
+    TECHNIC_XLARGE_LINEAR_MOTOR = 47, // Technic Control+
+};
+
 class PUHub : public BLEHub
 {
 public:
@@ -42,7 +55,7 @@ public:
      * @param [in] pBLERemoteCharacteristic The pointer to the characteristic
      * @param [in] pData The pointer to the received data
      * @param [in] length The length of the data array
-     * @param [in] isNotify 
+     * @param [in] isNotify
      */
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
@@ -51,5 +64,7 @@ private:
 
     void parsePortMessage(uint8_t *pData);
     void setLedColor(PUHubLedColor color);
+    void setLedHSVColor(int hue, double saturation, double value);
+    void setLedRGBColor(char red, char green, char blue);
     void writeValue(byte command[], int size);
 };
