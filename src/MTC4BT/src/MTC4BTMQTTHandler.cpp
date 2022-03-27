@@ -129,6 +129,13 @@ void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controll
         return;
     }
 
+    if (!controller->HasLocomotive(addr))
+    {
+        // Not a loco under our control. Ignore message.
+        log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
+        return;
+    }
+
     // Get number of function that changed.
     int fnchanged;
     if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged)) {
