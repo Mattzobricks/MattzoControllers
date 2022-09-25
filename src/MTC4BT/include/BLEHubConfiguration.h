@@ -4,6 +4,7 @@
 
 #include "NimBLEAddress.h"
 #include "MCChannelConfig.h"
+#include <vector>
 
 enum BLEHubType
 {

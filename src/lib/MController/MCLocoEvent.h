@@ -2,6 +2,7 @@
 
 #include "MCLocoTrigger.h"
 #include "MCLocoAction.h"
+#include <vector>
 
 // Loco event
 class MCLocoEvent
