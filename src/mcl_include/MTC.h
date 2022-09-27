@@ -1,12 +1,6 @@
-
-#include <EEPROM.h>
-#include <ArduinoOTA.h>  // Over the air update library
-#include <WiFiUdp.h>  // Library required for syslog
-#include <Syslog.h>  // Syslog library
-#include <PubSubClient.h>
-#include <tinyxml2.h>
-using namespace tinyxml2;
-
+/*
+ * General header file
+ */
 
 #include <MattzoController_Library.h> 
                                        // Header file
