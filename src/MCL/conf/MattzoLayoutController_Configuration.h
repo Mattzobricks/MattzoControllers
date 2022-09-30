@@ -181,12 +181,9 @@ int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0 };
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
-//bool
-const int STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-//uint7_t
-const int STATUS_LED_PIN = D8;
-// bool
-const int STATUS_LED_REVERSE=false;
+const bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+const uint8_t STATUS_LED_PIN = D8;
+const bool STATUS_LED_REVERSE=false;
 
 
 // LEVEL CROSSING CONFIGURATION
@@ -319,7 +316,7 @@ const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 // ****************
 
 // Trigger emergency brake upon disconnect
-const int TRIGGER_EBREAK_UPON_DISCONNECT=true;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT=true;
 
 // ***************
 // Syslog settings

@@ -314,12 +314,12 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 // ************************
 
 // Constants for motorshield type Lego IR Receiver 8884
-#define IR_LED_PIN D5      // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
+const u_int8_t IR_LED_PIN=D5;      // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
 // Digital output PIN to monitor controller operation (typically a LED)
-const int STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-const int STATUS_LED_PIN = D4;
-const int STATUS_LED_REVERSE = true;
+const bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+const u_int8_t STATUS_LED_PIN = D4;
+const bool STATUS_LED_REVERSE = true;
 
 // Report battery level
 const bool REPORT_BATTERYLEVEL = false;           // set to true or false to allow or omit battery level reports
@@ -334,7 +334,7 @@ const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltag
 // ****************
 
 // Trigger emergency brake upon disconnect
-const int TRIGGER_EBREAK_UPON_DISCONNECT=true;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT=true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used

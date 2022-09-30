@@ -18,10 +18,10 @@ extern const char* SYSLOG_SERVER;
 extern const int SYSLOG_PORT;
 extern const char* OTA_PASSWORD;
 
-extern const int IR_LED_PIN;
-extern const int STATUS_LED_PIN;
-extern const int STATUS_LED_PIN_INSTALLED;
-extern const int STATUS_LED_REVERSE;
-extern const int TRIGGER_EBREAK_UPON_DISCONNECT;
+extern const uint8_t IR_LED_PIN;
+extern const uint8_t STATUS_LED_PIN;
+extern const bool STATUS_LED_PIN_INSTALLED;
+extern const bool STATUS_LED_REVERSE;
+extern const bool TRIGGER_EBREAK_UPON_DISCONNECT;
 extern const char* MC_HOSTNAME;
 extern const char* SYSLOG_APP_NAME;
