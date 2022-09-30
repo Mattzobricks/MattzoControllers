@@ -181,8 +181,9 @@ int SENSOR_REMOTE_MATTZECONTROLLER_ID[NUM_SENSORS] = { 0, 0, 0, 0, 12345, 12345,
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
-bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
-uint8_t STATUS_LED_PIN = D8;
+const bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+const uint8_t STATUS_LED_PIN = D8;
+const bool STATUS_LED_REVERSE=false;
 
 
 // LEVEL CROSSING CONFIGURATION
@@ -315,7 +316,7 @@ const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 // ****************
 
 // Trigger emergency brake upon disconnect
-#define TRIGGER_EBREAK_UPON_DISCONNECT false
+const bool TRIGGER_EBREAK_UPON_DISCONNECT=false;
 
 
 // ***************
@@ -323,3 +324,4 @@ const unsigned int BASCULE_BRIDGE_EXTRA_TIME_AFTER_CLOSED_MS = 500;
 // ***************
 // Syslog application name
 const char* SYSLOG_APP_NAME = "MLC";
+const char* MC_HOSTNAME = "MLC-4";

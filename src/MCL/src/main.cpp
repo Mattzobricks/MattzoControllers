@@ -9,16 +9,16 @@
 #define MATTZO_CONTROLLER_TYPE "MattzoLayoutController"
 
 #include "MTC.h"
-#include "MCL.h"
 #include <Servo.h>                                // Servo library
 #include "MattzoController_Library.h"             // this file needs to be placed in the Arduino library folder
+
+#include "../conf/MattzoLayoutController_Configuration.h" 
+#include "../conf/network_config.h"
 
 #if USE_PCA9685
 #include <Wire.h>                                 // Built-in library for I2C
 #endif
-
-#include "../conf/MattzoLayoutController_Configuration.h" 
-#include "../conf/network_config.h"
+#include "MCL.h"
 
 
 // SERVO VARIABLES AND CONSTANTS

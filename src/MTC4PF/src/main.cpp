@@ -13,8 +13,7 @@
 #include "MTC4PF.h"
 
 #include "../conf/default/network_config.h"
-//#include "../conf/default/controller_config.h"
-#include "../conf/examples/MTC4PF_conf_V200.h"
+#include "../conf/default/controller_config.h"
 
 // Array of loco classes
 class MattzoLoco myLocos[NUM_LOCOS];
