@@ -2,8 +2,7 @@
  * General header file
  */
 
-#include <MattzoController_Library.h> 
-                                       // Header file
+#include <MattzoController_Library.h>
 /*
  Variables that MUST be declared in the MTC4PF_conf_<loco>.h, otherwise a link/compilation error will occurr
 */
