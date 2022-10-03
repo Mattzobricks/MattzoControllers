@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "src/MTC4PF"
+		},
+		{
+			"name": "MLC",
+			"path": "src/MLC"
+		},
+		{
+			"name": "MTC4BT",
+			"path": "src/MTC4BT"
+		}
+	],
+	"settings": {}
+}
