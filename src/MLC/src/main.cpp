@@ -9,8 +9,8 @@
 //#include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h> 
 #include "MTC.h"                               // Servo library
-#include "../conf/default/controller_config.h"
-#include "../conf/default/network_config.h"
+#include "../conf/my/controller_config.h"
+#include "../conf/my/network_config.h"
 #include "MattzoController_Library.h"       // MattzoController library file
 
 #if USE_PCA9685
