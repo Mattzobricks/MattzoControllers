@@ -565,7 +565,7 @@ void lightEvent(LightEventType le, int locoIndex) {
 }
 
 // handle a rocrail function message
-setTrainLightState(int locoAddress, int fnNo, bool fnOnOff) {
+void handleRocrailFunction(int locoAddress, int fnNo, bool fnOnOff) {
   bool mapperFound = false;
 
   for (int fm_index = 0; fm_index < NUM_FUNCTION_MAPPINGS; fm_index++) {
