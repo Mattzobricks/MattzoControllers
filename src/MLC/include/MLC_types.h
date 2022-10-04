@@ -34,7 +34,7 @@ typedef struct  {
   // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
   // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
   // If sensor is a virtual sensor, the value has no meaning (set to -1 by convention).
-  uint8_t pin;
+  int8_t pin;
 
   // Type of digital input pins for sensors
   uint8_t pinType;
