@@ -233,23 +233,7 @@ const bool STATUS_LED_REVERSE = false;
 // Number of switches
 const int NUM_SWITCHES = 0;
 
-struct SwitchConfiguration {
-  int rocRailPort;
-  int servoIndex;
-
-  // servo2Index: servo index for second servo (required for TrixBrix double slip switches). If unused, set to -1.
-  // servo2Reverse: set to true if second servo shall be reversed
-  int servo2Index;
-  bool servo2Reverse;
-
-  // feedback sensors
-  // set triggerSensors to true if used
-  // The first value in the sensorIndex is the index of the virtual sensor in the sensor array for the "straight" sensor, the second is for "turnout".
-  // Both referenced sensors must be virtual sensors.
-  bool triggerSensors;
-  int sensorIndex[2];
-} switchConfiguration[NUM_SWITCHES] = {};
-
+TSwitchConfiguration switchConfiguration[NUM_SWITCHES] = {};
 
 // SIGNAL CONFIGURATION
 
@@ -263,22 +247,7 @@ const int NUM_SIGNAL_LEDS = 1;
 // If no form signals are used, just set to 0
 const int NUM_SIGNAL_SERVOS = 1;
 
-struct SignalConfiguration {
-  // the port configured in Rocrail for an aspect
-  // 0: aspect not supported by this signal
-  int aspectRocrailPort[NUM_SIGNAL_ASPECTS];
-  // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
-  // -1: no LED configured for this aspect
-  int aspectLEDPort[NUM_SIGNAL_LEDS];
-  // mappings between aspects and LEDs (often a diagonal matrix)
-  // true: LED is mapped for this aspect
-  bool aspectLEDMapping[NUM_SIGNAL_ASPECTS][NUM_SIGNAL_LEDS];
-  // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
-  // -1: no servo configured for this signal
-  int servoIndex[NUM_SIGNAL_SERVOS];
-  // the desired servo angle for the aspect (for form signals)
-  int aspectServoAngle[NUM_SIGNAL_SERVOS][NUM_SIGNAL_ASPECTS];
-} signalConfiguration[NUM_SIGNALS] =
+TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
   // signal 0 (N5): a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D0)
   {
@@ -386,75 +355,7 @@ const int LC_NUM_SENSORS = 4;
 // Number of tracks leading over the level crossing
 const int LC_NUM_TRACKS = 2;
 
-// Sensors (required for autonomous mode only)
-struct LevelCrossingSensorConfiguration {
-  // Sensor index (index within the sensorConfiguration array)
-  int sensorIndex;
-  // Track index of the sensor (0: track 1, 1: track 2 etc.)
-  int track;
-  // Purpose of the sensor (0: inbound / 1: outbound / 2: both)
-  int purpose;
-  // Orientation of the sensor (0: plus side / 1: minus side)
-  int orientation;
-};
-
-struct LevelCrossingConfiguration {
-  // Port configured in Rocrail for the level crossing
-  // Attention: make sure the port does not conflict with a switch port!
-  // -1 indicates "no port" = "does not accept rocrail commands". Useful for autonomous mode.
-  int rocRailPort;
-
-  // BOOM BARRIER CONFIGURATION
-  // Servo ports (indices in the SWITCHPORT_PIN array)
-  // servo 1 and 2 represents primary barriers, servo 3 and subsequent servos represents secondary barriers
-  uint8_t servoIndex[LC_NUM_BOOM_BARRIERS];
-
-  // Timings
-  // Closing timespan for all boom barriers
-  unsigned int bbClosingPeriod_ms;
-  // Delay until primary boom barriers start closing
-  unsigned int bbClosingDelayPrimary_ms;
-  // Delay until secondary boom barriers start closing
-  unsigned int bbClosingDelaySecondary_ms;
-  // Opening timespan for all boom barriers
-  unsigned int bbOpeningPeriod_ms;
-  // Servo angles for "up" and "down" positions
-  // Approximate closed (opened) angles for TrixBrix boom barrier servos to start with:
-  // - If servo is connected directly to the ESP8266:
-  // -- Primary booms: Right hand traffic: 0 (90), left hand traffic: 180 (90)
-  // -- Secondary booms: Right hand traffic: 180 (90), left hand traffic: 0 (90)
-  // - If servo is connected to PCA9685:
-  // -- Primary booms: Right hand traffic: 30 (87), left hand traffic: 143 (87)
-  // -- Secondary booms: Right hand traffic: 143 (87), left hand traffic: 30 (87)
-  unsigned int bbAnglePrimaryUp;
-  unsigned int bbAnglePrimaryDown;
-  unsigned int bbAngleSecondaryUp;
-  unsigned int bbAngleSecondaryDown;
-
-  // FLASHING LIGHT (LED) CONFIGURATION
-  // Signal ports (indices in the SIGNALPORT_PIN array)
-  uint8_t ledIndex[LC_NUM_LEDS];
-  // Signal flashing period in milliseconds (full cycle).
-  unsigned int ledFlashingPeriod_ms;
-  // Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism)
-  bool ledsFading;
-
-  // VIRTUAL SENSOR CONFIGURATION
-  // Virtual sensor for "booms closed" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have closed.
-  // Must be set to -1 to skip virtual "booms closed" sensor event
-  int sensorIndexBoomsClosed;
-  // Virtual sensor for "booms opened" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have opened.
-  // Must be set to -1 to skip virtual "booms opened" sensor event
-  int sensorIndexBoomsOpened;
-
-  // AUTONOMOUS MODE CONFIGURATION
-  // Autonomous Mode enabled?
-  bool autonomousModeEnabled;
-  // Timeout after which axle counters are reset and the track is released (in milliseconds)
-  unsigned int trackReleaseTimeout_ms;
-  // Sensors
-  LevelCrossingSensorConfiguration sensorConfiguration[LC_NUM_SENSORS];
-} levelCrossingConfiguration = {};
+TLevelCrossingConfiguration levelCrossingConfiguration = {};
 
 
 // BASCULE BRIDGE CONFIGURATION
@@ -465,56 +366,9 @@ bool BASCULE_BRIDGE_CONNECTED = false;
 // Number of bridge Leafs (equals number of bridge servos)
 const int NUM_BASCULE_BRIDGE_LEAFS = 0;
 
-struct BridgeLeafConfiguration {
-  // Servo pin for bridge motor control
-  int servoIndex;
 
-  // Motor power settings for bridge operations (use negative values to reverse servo)
-  int powerUp;  // Motor power for pulling the bridge up (0 .. 100)
-  int powerUp2;  // Motor power for pulling the bridge up after the "bridge up" sensor has been triggered (0 .. 100)
-  int powerDown;  // Motor power for letting the bridge down (0 .. 100)
-  int powerDown2;  // Motor power for closing the bridge down after the "bridge down" sensor has been triggered (0 .. 100)
 
-  // Sensor ports
-  // local sensors that indicate "bridge leaf down" for each bridge leaf (index in the sensorConfiguration array)
-  int sensorDown;
-  // same for "up"
-  int sensorUp;
-
-  // Timings (in milli seconds)
-  // Delay for opening the bridge leaf (in milliseconds)
-  int delayOpen_ms;
-  // Delay for closing the bridge leaf (in milliseconds)
-  int delayClose_ms;
-  // Maximum allowed time for opening the bridge from releasing the closing sensor until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
-  int maxOpeningTime_ms;
-  // Same for closing the bridge
-  int maxClosingTime_ms;
-  // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
-  int extraTimeAfterOpened_ms;
-  // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
-  int extraTimeAfterClosed_ms;
-};
-
-struct BridgeConfiguration {
-  // Port configured for the bascule bridge in Rocrail
-  int rocRailPort;
-
-  // Signal ports (set to -1 for "not connected")
-  int signalRiverStop;  // signal port that is activated when bridge is not in the "up" position (index in the SIGNALPORT_PIN array)
-  int signalRiverPrep;  // signal port that is activated in addition to the "stop" port when bridge is opening (index in the SIGNALPORT_PIN array)
-  int signalRiverGo;  // signal port that is activated when bridge has reached the "up" position (index in the SIGNALPORT_PIN array)
-  int signalBlinkLight;  // signal port for a blinking light that indicates opening/closing action (index in the SIGNALPORT_PIN array)
-
-  // virtual sensor that indiciates "bridge fully down" (index in the sensorConfiguration array). This virtual sensor is triggered after the "extra time after closed".
-  // Must be set to -1 to skip virtual "bridge fully down" sensor events
-  int sensorFullyDown;
-  // same for "up"
-  int sensorFullyUp;
-
-  // Bridge leafs
-  BridgeLeafConfiguration leafConfiguration[NUM_BASCULE_BRIDGE_LEAFS];
-} bridgeConfiguration = {};
+TBridgeConfiguration bridgeConfiguration = {};
 
 
 // SPEEDOMETER CONFIGURATION
@@ -522,42 +376,8 @@ struct BridgeConfiguration {
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
 bool SPEEDOMETER_CONNECTED = true;
 
-enum struct SpeedometerSpeedUnit
-{
-  STUDS_PER_SECOND,
-  MILLIMETERS_PER_SECOND,
-  KILOMETER_PER_HOUR,
-  MILES_PER_HOUR
-};
 
-enum struct SpeedometerLengthUnit
-{
-  NO_INDICATION,
-  STUDS,
-  MILLIMETERS,
-  CENTIMETERS,
-  METERS
-};
-
-struct SpeedometerConfiguration {
-  // speed unit (for display only - internally, mm/s is used)
-  SpeedometerSpeedUnit speedUnit;
-  // length unit (for display only - internally, mm is used)
-  SpeedometerLengthUnit lengthUnit;
-  // Indexes in the sensorConfiguration array used for measuring speed
-  // There are always two sensors. The sensors MUST have the indices 0 and 1!
-  // Only local sensors are supported
-  int sensorIndex[2];
-  // Distance between the sensors in mm
-  // SM_DISTANCE must be larger than the distance between the magnets on the train
-  float distance;
-  // Timeout to reset the speedometer when nothing is happening anymore (in ms)
-  unsigned int timeOut;
-  // Minimum time between two measurements (in ms)
-  unsigned int timeBetweenMeasurements;
-  // Minimum time to display the speed on the display before switching to a "Screensaver" (in ms)
-  unsigned int timeToShowResults;
-} speedometerConfiguration = {};
+TSpeedometerConfiguration speedometerConfiguration = {};
 
 
 // ****************
