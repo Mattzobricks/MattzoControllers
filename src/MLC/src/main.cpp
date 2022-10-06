@@ -83,8 +83,6 @@ void setup() {
   setupU8g2();
 #endif
 
-  int m;
-
   // initialize LED pins
   for (int i = 0; i < NUM_LEDS; i++) {
     if (ledConfiguration[i].pinType == 0) {
@@ -159,7 +157,7 @@ void setupU8g2() {
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   char msg[length + 1];
-  for (int i = 0; i < length; i++) {
+  for (unsigned int i = 0; i < length; i++) {
     msg[i] = (char)payload[i];
   }
   msg[length] = '\0';
@@ -491,7 +489,6 @@ void sendEmergencyBrake2MQTT(String emergencyBrakeReason) {
 // Switches LED on if one or more sensors has contact
 // Switches LED off if no sensor has contact
 void setLEDBySensorStates() {
-  bool ledOnOff = false;
   for (int i = 0; i < NUM_SENSORS; i++) {
     if (sensorState[i]) {
       statusLEDState = true;
@@ -907,7 +904,7 @@ void handleLevelCrossingSensorEvent(int triggeredSensor) {
       }
 
       for (int purpose = purposeFrom; purpose <= purposeTo; purpose++) {
-        int count = ++(levelCrossing.sensorEventCounter[track][purpose][orientation]);
+        unsigned int count = ++(levelCrossing.sensorEventCounter[track][purpose][orientation]);
 
         // Inbound event?
         if (purpose == 0) {
@@ -1078,6 +1075,9 @@ void setBridgeLights() {
     setLED(bridgeConfiguration.signalRiverGo, blinkState);
     setLED(bridgeConfiguration.signalBlinkLight, !flashState);
     break;
+  case BridgeStatus::UNCHANGED:
+  default:
+    break; // do nothing  
   }
 }
 
@@ -1143,6 +1143,9 @@ void basculeBridgeLoop() {
             nextBridgeStatus = BridgeStatus::CLOSING;
           }
           break;
+        case BridgeStatus::UNCHANGED:
+        default:
+          break; // do nothing
       }
     }
   }
@@ -1176,6 +1179,9 @@ void basculeBridgeLoop() {
         sendSensorEvent2MQTT(bridgeConfiguration.sensorFullyUp, false);
         sendSensorEvent2MQTT(bridgeConfiguration.sensorFullyDown, false);
         break;
+      case BridgeStatus::UNCHANGED:
+      default:
+        break; // do nothing  
     }
   }
 
@@ -1327,6 +1333,9 @@ void processBridgeLeaf(int leafIndex) {
               nextBridgeLeafStatus = BridgeLeafStatus::OPENED;
             }
             break;
+          case BridgeLeafStatus::UNCHANGED:
+          default:
+            break; // do nothing
         }
         break;
 
@@ -1387,6 +1396,10 @@ void processBridgeLeaf(int leafIndex) {
             }
             nextBridgeLeafStatus = BridgeLeafStatus::CLOSED;
             break;
+           case BridgeLeafStatus::UNCHANGED:
+           default:
+             // do nothing
+             break; 
         }
         break;
 

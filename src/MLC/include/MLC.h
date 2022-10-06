@@ -105,7 +105,7 @@ struct BridgeLeaf {
 struct Bridge {
   BridgeStatus bridgeStatus = BridgeStatus::UNDEFINED;
   BridgeCommand bridgeCommand = BridgeCommand::NONE;
-  BridgeLeaf bridgeLeaf[NUM_BASCULE_BRIDGE_LEAFS];
+  BridgeLeaf bridgeLeaf[MAX_NUM_BASCULE_BRIDGE_LEAFS];
 };
 
 

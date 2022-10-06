@@ -42,7 +42,7 @@ PubSubClient mqttClient(wifiClient);
 // EEPROM ID String. If found in EEPROM, the controller id is deemed to be set and used by the controller; if not, a random controller id is generated and stored in EEPROM memory
 String eepromIDString = "MattzoController";
 // mattzoControllerId. Read from EEPROM when booting the controller.
-unsigned int mattzoControllerId;
+int mattzoControllerId;
 
 int getMattzoControllerId() {
   int controllerNoHiByte;
