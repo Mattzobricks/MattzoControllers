@@ -107,6 +107,7 @@ typedef struct  {
 // Number of level crossing sensors
 #define MAX_LC_NUM_SENSORS  8
 
+#define MAX_LC_NUM_TRACKS  4
 
 typedef struct  {
   // Port configured in Rocrail for the level crossing

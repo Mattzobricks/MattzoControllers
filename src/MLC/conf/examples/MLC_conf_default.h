@@ -315,7 +315,7 @@ const bool LEVEL_CROSSING_CONNECTED = false;
 const int LC_NUM_SENSORS = 4;
 
 // Number of tracks leading over the level crossing
-const int LC_NUM_TRACKS = 2;
+#define LC_NUM_TRACKS 2
 
 
 TLevelCrossingConfiguration levelCrossingConfiguration = {};

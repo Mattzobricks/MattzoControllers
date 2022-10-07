@@ -55,9 +55,9 @@ struct LevelCrossing {
   float servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
   unsigned long lastBoomBarrierTick_ms = 0;
 
-  unsigned int sensorEventCounter[LC_NUM_TRACKS][2][2];
-  bool trackOccupied[LC_NUM_TRACKS];
-  unsigned long trackOccupiedTimeout_ms[LC_NUM_TRACKS];
+  unsigned int sensorEventCounter[MAX_LC_NUM_TRACKS][2][2];
+  bool trackOccupied[MAX_LC_NUM_TRACKS];
+  unsigned long trackOccupiedTimeout_ms[MAX_LC_NUM_TRACKS];
 };
 
 // BASCULE BRIDGE STRUCTS
