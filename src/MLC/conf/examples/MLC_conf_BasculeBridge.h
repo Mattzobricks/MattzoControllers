@@ -213,12 +213,12 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] = {};
 // Number of signals
 const int NUM_SIGNALS = 0;
 // Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 2;
+#define NUM_SIGNAL_ASPECTS  2
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 2;
+#define NUM_SIGNAL_LEDS  2
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
-const int NUM_SIGNAL_SERVOS = 0;
+#define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 
@@ -229,10 +229,10 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 const bool LEVEL_CROSSING_CONNECTED = false;
 
 // Number of boom barrier servos configured for the level crossing
-const int LC_NUM_BOOM_BARRIERS = 4;
+#define  LC_NUM_BOOM_BARRIERS 4
 
 // Number of signals configured for the level crossing
-const int LC_NUM_LEDS = 4;
+#define LC_NUM_LEDS 4
 
 // Number of level crossing sensors
 const int LC_NUM_SENSORS = 4;
@@ -251,7 +251,7 @@ TLevelCrossingConfiguration levelCrossingConfiguration = {};
 bool BASCULE_BRIDGE_CONNECTED = true;
 
 // Number of bridge Leafs (equals number of bridge servos)
-const int NUM_BASCULE_BRIDGE_LEAFS = 2;
+#define NUM_BASCULE_BRIDGE_LEAFS 2
 
 
 TBridgeConfiguration bridgeConfiguration = 

@@ -107,10 +107,6 @@ typedef struct  {
 // Number of level crossing sensors
 #define MAX_LC_NUM_SENSORS  8
 
-// Number of tracks leading over the level crossing
-#define MAX_LC_NUM_TRACKS  4
-
-
 
 typedef struct  {
   // Port configured in Rocrail for the level crossing
@@ -188,17 +184,17 @@ typedef struct {
 
   // Timings (in milli seconds)
   // Delay for opening the bridge leaf (in milliseconds)
-  int delayOpen_ms;
+  long unsigned int delayOpen_ms;
   // Delay for closing the bridge leaf (in milliseconds)
-  int delayClose_ms;
+  long unsigned int delayClose_ms;
   // Maximum allowed time for opening the bridge from releasing the closing sensor until the opening sensor must have been triggered. After this time has passed, the bridge motor is stopped for safety reasons.
-  int maxOpeningTime_ms;
+  long unsigned int maxOpeningTime_ms;
   // Same for closing the bridge
-  int maxClosingTime_ms;
+  long unsigned int maxClosingTime_ms;
   // Extra time after the "bridge up" sensor has been triggered until the bridge motor is stopped.
-  int extraTimeAfterOpened_ms;
+  long unsigned int extraTimeAfterOpened_ms;
   // Extra time after the "bridge down" sensor has been triggered until the bridge motor is stopped.
-  int extraTimeAfterClosed_ms;
+  long unsigned int extraTimeAfterClosed_ms;
 } TBridgeLeafConfiguration;
 
 #define MAX_NUM_BASCULE_BRIDGE_LEAFS  4

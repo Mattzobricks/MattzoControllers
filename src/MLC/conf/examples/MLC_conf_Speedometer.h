@@ -231,10 +231,10 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 const bool LEVEL_CROSSING_CONNECTED = false;
 
 // Number of boom barrier servos configured for the level crossing
-const int LC_NUM_BOOM_BARRIERS = 4;
+#define LC_NUM_BOOM_BARRIERS  4
 
 // Number of signals configured for the level crossing
-const int LC_NUM_LEDS = 4;
+#define LC_NUM_LEDS  4
 
 // Number of level crossing sensors
 const int LC_NUM_SENSORS = 4;
@@ -250,8 +250,12 @@ TLevelCrossingConfiguration levelCrossingConfiguration = {};
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
 bool BASCULE_BRIDGE_CONNECTED = false;
 
+//Must be defined, but are zero
+#define NUM_SIGNAL_ASPECTS 0
+#define NUM_SIGNAL_LEDS 0
+#define NUM_SIGNAL_SERVOS 0
 // Number of bridge Leafs (equals number of bridge servos)
-const int NUM_BASCULE_BRIDGE_LEAFS = 0;
+#define NUM_BASCULE_BRIDGE_LEAFS 0
 
 TBridgeConfiguration bridgeConfiguration = {};
 

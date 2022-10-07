@@ -6,14 +6,15 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-//#include <ESP8266WiFi.h>                          // WiFi library for ESP-8266
 #include <Servo.h> 
 #include "MTC.h" 
 #include "MLC_types.h"
 
 #include "../conf/my/controller_config.h"
 #include "../conf/my/network_config.h"
+
 #include "MattzoController_Library.h"       // MattzoController library file
+#include "MLC_check.h"
 
 #if USE_PCA9685
 #include <Wire.h>                                // Built-in library for I2C
@@ -55,13 +56,16 @@ int sensorTriggerState[NUM_SENSORS];
 unsigned long lastSensorContact_ms[NUM_SENSORS];
 
 // SPECIAL USE OBJECTS
-struct LevelCrossing levelCrossing;
+LevelCrossing levelCrossing;
 struct Bridge bridge;
 struct Speedometer speedometer;
 
 
 
 void setup() {
+#if USE_MCP23017
+  int m;
+#endif
   Serial.begin(115200);
 
   // initialize PWM Servo Driver object (for PCA9685)
@@ -1536,6 +1540,10 @@ void updateDisplay() {
     case SpeedometerLengthUnit::METERS:
       trainlength = trainlength / 1000;
       lengthUnitString = "m";
+      break;
+    case SpeedometerLengthUnit::NO_INDICATION:
+    default:
+      // do nothing
       break;
   }
 
