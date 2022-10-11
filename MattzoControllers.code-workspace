@@ -10,6 +10,15 @@
 		{
 			"name": "MTC4BT",
 			"path": "src/MTC4BT"
+		},
+		{
+			"path": "src/lib"
+		},
+		{
+			"path": "src/mlc_include"
+		},
+		{
+			"path": "src/mlc_lib"
 		}
 	],
 	"settings": {}
