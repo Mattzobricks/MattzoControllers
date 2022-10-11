@@ -183,11 +183,11 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
     }
     catch(const std::exception& e)
     {
-        log4MC::vlogf(LOG_EMERG,"Cought exception: %s",e.what() );
+        log4MC::vlogf(LOG_EMERG,"Caught exception: %s",e.what() );
     }
     catch(...)
     {
-        log4MC::fatal("Cought an unkown execption");
+        log4MC::fatal("Caught an unknown exception");
     }
 }    
     
