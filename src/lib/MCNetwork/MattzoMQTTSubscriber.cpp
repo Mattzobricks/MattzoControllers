@@ -144,40 +144,53 @@ void MattzoMQTTSubscriber::reconnect()
 /// <param name="parm"></param>
 void MattzoMQTTSubscriber::taskLoop(void *parm)
 {
-    if (!_setupCompleted)
+    try
     {
-        const char *message = "MQTT: Setup not completed. Execute .Setup() first.";
-        log4MC::error(message);
-        throw message;
-    }
-
-    // Loop forever.
-    for (;;)
-    {
-        // Wait for connection to Wifi (because we need it to contact the broker).
-        MattzoWifiClient::Assert();
-
-        // Wait for connection to MQTT (because we need it to send messages to the broker).
-        if (!mqttSubscriberClient.connected())
+        /* code */
+        if (!_setupCompleted)
         {
-            reconnect();
+            const char *message = "MQTT: Setup not completed. Execute .Setup() first.";
+            log4MC::error(message);
+            throw message;
         }
 
-        if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000)
+        // Loop forever.
+        for (;;)
         {
-            lastPing = millis();
+            // Wait for connection to Wifi (because we need it to contact the broker).
+            MattzoWifiClient::Assert();
 
-            // Send a ping message.
-            sendMessage("roc2bricks/ping", _subscriberName);
+            // Wait for connection to MQTT (because we need it to send messages to the broker).
+            if (!mqttSubscriberClient.connected())
+            {
+                reconnect();
+            }
+
+            if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000)
+            {
+                lastPing = millis();
+
+                // Send a ping message.
+                sendMessage("roc2bricks/ping", _subscriberName);
+            }
+
+            // Allow the MQTT client to process incoming messages and maintain its connection to the server.
+            mqttSubscriberClient.loop();
+
+            // Wait a while before trying again (allowing other tasks to do their work).
+            vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
         }
-
-        // Allow the MQTT client to process incoming messages and maintain its connection to the server.
-        mqttSubscriberClient.loop();
-
-        // Wait a while before trying again (allowing other tasks to do their work).
-        vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
     }
-}
+    catch(const std::exception& e)
+    {
+        log4MC::vlogf(LOG_EMERG,"Cought exception: %s",e.what() );
+    }
+    catch(...)
+    {
+        log4MC::fatal("Cought an unkown execption");
+    }
+}    
+    
 
 // Initialize static members.
 QueueHandle_t MattzoMQTTSubscriber::IncomingQueue = nullptr;
