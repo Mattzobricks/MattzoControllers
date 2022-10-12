@@ -16,6 +16,24 @@ MCNetworkConfiguration *networkConfig;
 MTC4BTController *controller;
 MTC4BTConfiguration *controllerConfig;
 
+#ifdef ESP32
+#ifdef TICKER
+void handleTickerLoop(void *param){
+    static long minuteTicker = 0;
+    for (;;){
+        log4MC::vlogf(LOG_INFO,"Minutes uptime: %ld",minuteTicker);
+        minuteTicker++;
+        //vTaskDelay(6000 / portTICK_PERIOD_MS);
+        delay(60000);
+    }
+}
+void setupTicker()
+{
+    xTaskCreatePinnedToCore(handleTickerLoop, "TickerHandler", 10000, NULL, 2, NULL, 1);
+    delay(500);
+}
+#endif
+#endif
 void handleMQTTMessageLoop(void *parm)
 {
     for (;;)
@@ -77,6 +95,12 @@ void setup()
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
+    #ifdef ESP32
+    #ifdef TICKER
+    setupTicker();
+    log4MC::info("Ticker started");
+    #endif
+    #endif
 }
 
 void loop()
