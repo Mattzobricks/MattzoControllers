@@ -17,8 +17,6 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-
-
 // ***************************
 // Controller wiring specifics
 // ***************************
@@ -48,19 +46,17 @@
 // -- fully off: pwm.setPWM(port, 0, 4096);
 // Additional reference: https://learn.adafruit.com/16-channel-pwm-servo-driver?view=all
 
-
 // PCA9685 WIRING CONFIGURATION
 
 // PCA9685 port expander used?
 #define USE_PCA9685 false
 
 // PCA9685 OE pin supported?
-bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
+bool PCA9685_OE_PIN_INSTALLED = false; // set to true if OE pin is connected (false if not)
 uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 1
-
 
 // Infos for I/O port expander MCP23017
 // Usage:
@@ -83,7 +79,6 @@ uint8_t PCA9685_OE_PIN = D0;
 // - Connecting sensors to the MCP23017 is simple.
 // - Just connect one of of the cable pair to GND, the other one to one of the ports of the MCP23017.
 
-
 // MCP23017 WIRING CONFIGURATION
 
 // MCP23017 port expander used?
@@ -92,26 +87,19 @@ uint8_t PCA9685_OE_PIN = D0;
 // Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
 
-
 // SERVO WIRING CONFIGURATION
 
 // Number of servos
 const int NUM_SERVOS = 2;
 
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
-{
-  {
-    .pin = D0,
-    .pinType = 0,
-    .detachAfterUsage = false
-  },
-  {
-    .pin = D1,
-    .pinType = 0,
-    .detachAfterUsage = false
-  }
-};
-
+    {
+        {.pin = D0,
+         .pinType = 0,
+         .detachAfterUsage = false},
+        {.pin = D1,
+         .pinType = 0,
+         .detachAfterUsage = false}};
 
 // LED WIRING CONFIGURATION
 
@@ -121,17 +109,11 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
 const int NUM_LEDS = 2;
 
 TLEDConfiguration ledConfiguration[NUM_LEDS] =
-{
-  {
-    .pin = D4,
-    .pinType = 0
-  },
-  {
-    .pin = D3,
-    .pinType = 0
-  }
-};
-
+    {
+        {.pin = D4,
+         .pinType = 0},
+        {.pin = D3,
+         .pinType = 0}};
 
 // SENSOR WIRING CONFIGURATION
 
@@ -157,48 +139,33 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 #define MCP23017_SENSOR_PIN_TYPE 0x20
 
 TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
-{
-  {
-    .pin = D2,
-    .pinType = LOCAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
-  {
-    .pin = D5,
-    .pinType = LOCAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
-  {
-    .pin = D6,
-    .pinType = LOCAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
-  {
-    .pin = D7,
-    .pinType = LOCAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
-  {
-    .pin = -1,
-    .pinType = VIRTUAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
-  {
-    .pin = -1,
-    .pinType = VIRTUAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
+    {
+        {.pin = D2,
+         .pinType = LOCAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
+        {.pin = D5,
+         .pinType = LOCAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
+        {.pin = D6,
+         .pinType = LOCAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
+        {.pin = D7,
+         .pinType = LOCAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
+        {.pin = -1,
+         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
+        {.pin = -1,
+         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
 };
-
 
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
-const bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+const bool STATUS_LED_PIN_INSTALLED = true; // set to false if no LED is installed
 const uint8_t STATUS_LED_PIN = D8;
 const bool STATUS_LED_REVERSE = false;
-
-
 
 // SWITCH CONFIGURATION
 
@@ -207,21 +174,19 @@ const int NUM_SWITCHES = 0;
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] = {};
 
-
 // SIGNAL CONFIGURATION
 
 // Number of signals
 const int NUM_SIGNALS = 0;
 // Maximum number of signal aspects (e.g. red, green, yellow)
-#define NUM_SIGNAL_ASPECTS  2
+#define NUM_SIGNAL_ASPECTS 2
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-#define NUM_SIGNAL_LEDS  2
+#define NUM_SIGNAL_LEDS 2
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 #define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
-
 
 // LEVEL CROSSING CONFIGURATION
 
@@ -229,7 +194,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 const bool LEVEL_CROSSING_CONNECTED = false;
 
 // Number of boom barrier servos configured for the level crossing
-#define  LC_NUM_BOOM_BARRIERS 4
+#define LC_NUM_BOOM_BARRIERS 4
 
 // Number of signals configured for the level crossing
 #define LC_NUM_LEDS 4
@@ -240,10 +205,7 @@ const int LC_NUM_SENSORS = 4;
 // Number of tracks leading over the level crossing
 #define LC_NUM_TRACKS 2
 
-
-
 TLevelCrossingConfiguration levelCrossingConfiguration = {};
-
 
 // BASCULE BRIDGE CONFIGURATION
 
@@ -253,79 +215,73 @@ bool BASCULE_BRIDGE_CONNECTED = true;
 // Number of bridge Leafs (equals number of bridge servos)
 #define NUM_BASCULE_BRIDGE_LEAFS 2
 
-
-TBridgeConfiguration bridgeConfiguration = 
-{
-  .rocRailPort = 1,
-
-  .signalRiverStop = 0,
-  .signalRiverPrep = -1,
-  .signalRiverGo = 1,
-  .signalBlinkLight = -1,
-
-  .sensorFullyDown = 4,
-  .sensorFullyUp = 5,
-
-  .leafConfiguration = {
+TBridgeConfiguration bridgeConfiguration =
     {
-      .servoIndex = 0,
+        .rocRailPort = 1,
 
-      .powerUp = 100,
-      .powerUp2 = 50,
-      .powerDown = 100,
-      .powerDown2 = 50,
+        .signalRiverStop = 0,
+        .signalRiverPrep = -1,
+        .signalRiverGo = 1,
+        .signalBlinkLight = -1,
 
-      .sensorDown = 0,
-      .sensorUp = 1,
+        .sensorFullyDown = 4,
+        .sensorFullyUp = 5,
 
-      .delayOpen_ms = 0,
-      .delayClose_ms = 1000,
-      .maxOpeningTime_ms = 10000,
-      .maxClosingTime_ms = 10000,
-      .extraTimeAfterOpened_ms = 2500,
-      .extraTimeAfterClosed_ms = 1500,
-    },
-    {
-      .servoIndex = 1,
+        .leafConfiguration = {
+            {
+                .servoIndex = 0,
 
-      .powerUp = -30,
-      .powerUp2 = -25,
-      .powerDown = -30,
-      .powerDown2 = -25,
+                .powerUp = 100,
+                .powerUp2 = 50,
+                .powerDown = 100,
+                .powerDown2 = 50,
 
-      .sensorDown = 2,
-      .sensorUp = 3,
+                .sensorDown = 0,
+                .sensorUp = 1,
 
-      .delayOpen_ms = 1000,
-      .delayClose_ms = 000,
-      .maxOpeningTime_ms = 5000,
-      .maxClosingTime_ms = 5000,
-      .extraTimeAfterOpened_ms = 1000,
-      .extraTimeAfterClosed_ms = 250,
-    }
-  }
-};
+                .delayOpen_ms = 0,
+                .delayClose_ms = 1000,
+                .maxOpeningTime_ms = 10000,
+                .maxClosingTime_ms = 10000,
+                .extraTimeAfterOpened_ms = 2500,
+                .extraTimeAfterClosed_ms = 1500,
+            },
+            {
+                .servoIndex = 1,
 
+                .powerUp = -30,
+                .powerUp2 = -25,
+                .powerDown = -30,
+                .powerDown2 = -25,
+
+                .sensorDown = 2,
+                .sensorUp = 3,
+
+                .delayOpen_ms = 1000,
+                .delayClose_ms = 000,
+                .maxOpeningTime_ms = 5000,
+                .maxClosingTime_ms = 5000,
+                .extraTimeAfterOpened_ms = 1000,
+                .extraTimeAfterClosed_ms = 250,
+            }}};
 
 // SPEEDOMETER CONFIGURATION
 
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
 bool SPEEDOMETER_CONNECTED = true;
 
-
 TSpeedometerConfiguration speedometerConfiguration = {};
-
 
 // ****************
 // NETWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
-const bool TRIGGER_EBREAK_UPON_DISCONNECT=true;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char* MC_HOSTNAME = "BRIDGE1";
+const char *MC_HOSTNAME = "BRIDGE1";
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "BRIDGE1";
+const char *SYSLOG_APP_NAME = "BRIDGE1";

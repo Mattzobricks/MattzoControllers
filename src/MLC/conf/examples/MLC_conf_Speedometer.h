@@ -17,8 +17,6 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-
-
 // ***************************
 // Controller wiring specifics
 // ***************************
@@ -48,19 +46,17 @@
 // -- fully off: pwm.setPWM(port, 0, 4096);
 // Additional reference: https://learn.adafruit.com/16-channel-pwm-servo-driver?view=all
 
-
 // PCA9685 WIRING CONFIGURATION
 
 // PCA9685 port expander used?
 #define USE_PCA9685 false
 
 // PCA9685 OE pin supported?
-bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
+bool PCA9685_OE_PIN_INSTALLED = false; // set to true if OE pin is connected (false if not)
 uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 1
-
 
 // Infos for I/O port expander MCP23017
 // Usage:
@@ -83,7 +79,6 @@ uint8_t PCA9685_OE_PIN = D0;
 // - Connecting sensors to the MCP23017 is simple.
 // - Just connect one of of the cable pair to GND, the other one to one of the ports of the MCP23017.
 
-
 // MCP23017 WIRING CONFIGURATION
 
 // MCP23017 port expander used?
@@ -92,10 +87,8 @@ uint8_t PCA9685_OE_PIN = D0;
 // Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
 
-
 // U8g2 Display used?
 #define USE_U8G2 true
-
 
 // SERVO WIRING CONFIGURATION
 
@@ -103,22 +96,21 @@ uint8_t PCA9685_OE_PIN = D0;
 const int NUM_SERVOS = 0;
 
 struct ServoConfiguration {
-  // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-  uint8_t pin;
+    // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+    uint8_t pin;
 
-  // Type of digital output pins for switch servos
-  // 0   : pin on the ESP-8266
-  // 0x40: port on the 1st PCA9685
-  // 0x41: port on the 2nd PCA9685
-  // 0x42: port on the 3rd PCA9685 etc.
-  uint8_t pinType;
+    // Type of digital output pins for switch servos
+    // 0   : pin on the ESP-8266
+    // 0x40: port on the 1st PCA9685
+    // 0x41: port on the 2nd PCA9685
+    // 0x42: port on the 3rd PCA9685 etc.
+    uint8_t pinType;
 
-  // set to true if servo shall be detached from PWM signal a couple of seconds after usage
-  // this feature is helpful to prevent blocking servo from burning down, it saves power and reduced servo flattering
-  // for bascule bridges, the feature must be switched off!
-  bool detachAfterUsage;
+    // set to true if servo shall be detached from PWM signal a couple of seconds after usage
+    // this feature is helpful to prevent blocking servo from burning down, it saves power and reduced servo flattering
+    // for bascule bridges, the feature must be switched off!
+    bool detachAfterUsage;
 } servoConfiguration[NUM_SERVOS] = {};
-
 
 // LED WIRING CONFIGURATION
 
@@ -128,20 +120,19 @@ struct ServoConfiguration {
 const int NUM_LEDS = 0;
 
 struct LEDConfiguration {
-  // Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-  uint8_t pin;
+    // Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+    uint8_t pin;
 
-  // Type of digital output pins for led
-  // 0   : LED output pin on the ESP-8266
-  // 0x20: LED port on the 1st MCP23017
-  // 0x21: LED port on the 2nd MCP23017
-  // 0x22: LED port on the 3rd MCP23017 etc.
-  // 0x40: LED port on the 1st PCA9685
-  // 0x41: LED port on the 2nd PCA9685
-  // 0x42: LED port on the 3rd PCA9685 etc.
-  uint8_t pinType;
+    // Type of digital output pins for led
+    // 0   : LED output pin on the ESP-8266
+    // 0x20: LED port on the 1st MCP23017
+    // 0x21: LED port on the 2nd MCP23017
+    // 0x22: LED port on the 3rd MCP23017 etc.
+    // 0x40: LED port on the 1st PCA9685
+    // 0x41: LED port on the 2nd PCA9685
+    // 0x42: LED port on the 3rd PCA9685 etc.
+    uint8_t pinType;
 } ledConfiguration[NUM_LEDS] = {};
-
 
 // SENSOR WIRING CONFIGURATION
 
@@ -167,40 +158,33 @@ struct LEDConfiguration {
 #define MCP23017_SENSOR_PIN_TYPE 0x20
 
 struct SensorConfiguration {
-  // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
-  // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
-  // If sensor is a virtual sensor, the value has no meaning (set to -1 by convention).
-  uint8_t pin;
+    // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
+    // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+    // If sensor is a virtual sensor, the value has no meaning (set to -1 by convention).
+    uint8_t pin;
 
-  // Type of digital input pins for sensors
-  uint8_t pinType;
+    // Type of digital input pins for sensors
+    uint8_t pinType;
 
-  // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
-  // If sensor is local or virtual, the value has no meaning (set to -1 by convention)
-  int remoteMattzoControllerId;
+    // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
+    // If sensor is local or virtual, the value has no meaning (set to -1 by convention)
+    int remoteMattzoControllerId;
 } sensorConfiguration[NUM_SENSORS] =
-{
-  {
-    .pin = D6,
-    .pinType = LOCAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
-  {
-    .pin = D7,
-    .pinType = LOCAL_SENSOR_PIN_TYPE,
-    .remoteMattzoControllerId = -1
-  },
+    {
+        {.pin = D6,
+         .pinType = LOCAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
+        {.pin = D7,
+         .pinType = LOCAL_SENSOR_PIN_TYPE,
+         .remoteMattzoControllerId = -1},
 };
-
 
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
-const bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+const bool STATUS_LED_PIN_INSTALLED = true; // set to false if no LED is installed
 const uint8_t STATUS_LED_PIN = D4;
 const bool STATUS_LED_REVERSE = true;
-
-
 
 // SWITCH CONFIGURATION
 
@@ -208,7 +192,6 @@ const bool STATUS_LED_REVERSE = true;
 const int NUM_SWITCHES = 0;
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] = {};
-
 
 // SIGNAL CONFIGURATION
 
@@ -224,17 +207,16 @@ const int NUM_SIGNAL_SERVOS = 0;
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 
-
 // LEVEL CROSSING CONFIGURATION
 
 // General switch for level crossing (false = no level crossing connected; true = level crossing connected)
 const bool LEVEL_CROSSING_CONNECTED = false;
 
 // Number of boom barrier servos configured for the level crossing
-#define LC_NUM_BOOM_BARRIERS  4
+#define LC_NUM_BOOM_BARRIERS 4
 
 // Number of signals configured for the level crossing
-#define LC_NUM_LEDS  4
+#define LC_NUM_LEDS 4
 
 // Number of level crossing sensors
 const int LC_NUM_SENSORS = 4;
@@ -244,13 +226,12 @@ const int LC_NUM_SENSORS = 4;
 
 TLevelCrossingConfiguration levelCrossingConfiguration = {};
 
-
 // BASCULE BRIDGE CONFIGURATION
 
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
 bool BASCULE_BRIDGE_CONNECTED = false;
 
-//Must be defined, but are zero
+// Must be defined, but are zero
 #define NUM_SIGNAL_ASPECTS 0
 #define NUM_SIGNAL_LEDS 0
 #define NUM_SIGNAL_SERVOS 0
@@ -259,34 +240,31 @@ bool BASCULE_BRIDGE_CONNECTED = false;
 
 TBridgeConfiguration bridgeConfiguration = {};
 
-
 // SPEEDOMETER CONFIGURATION
 
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
 bool SPEEDOMETER_CONNECTED = true;
 
 TSpeedometerConfiguration speedometerConfiguration =
-{
-  .speedUnit = SpeedometerSpeedUnit::STUDS_PER_SECOND,
-  .lengthUnit = SpeedometerLengthUnit::STUDS,
-  .sensorIndex = {0, 1},  // must be 0 and 1!
-  .distance = 792,  // 99 studs
-  .timeOut = 3000,
-  .timeBetweenMeasurements = 3000,
-  .timeToShowResults = 5000
-};
-
+    {
+        .speedUnit = SpeedometerSpeedUnit::STUDS_PER_SECOND,
+        .lengthUnit = SpeedometerLengthUnit::STUDS,
+        .sensorIndex = {0, 1}, // must be 0 and 1!
+        .distance = 792,       // 99 studs
+        .timeOut = 3000,
+        .timeBetweenMeasurements = 3000,
+        .timeToShowResults = 5000};
 
 // ****************
 // NETWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
-const bool TRIGGER_EBREAK_UPON_DISCONNECT=true;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char* MC_HOSTNAME = "Speedometer1";
+const char *MC_HOSTNAME = "Speedometer1";
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "Speedometer1";
+const char *SYSLOG_APP_NAME = "Speedometer1";

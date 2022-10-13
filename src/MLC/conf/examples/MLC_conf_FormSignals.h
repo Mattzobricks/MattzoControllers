@@ -17,8 +17,6 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-
-
 // ***************************
 // Controller wiring specifics
 // ***************************
@@ -48,19 +46,17 @@
 // -- fully off: pwm.setPWM(port, 0, 4096);
 // Additional reference: https://learn.adafruit.com/16-channel-pwm-servo-driver?view=all
 
-
 // PCA9685 WIRING CONFIGURATION
 
 // PCA9685 port expander used?
 #define USE_PCA9685 false
 
 // PCA9685 OE pin supported?
-bool PCA9685_OE_PIN_INSTALLED = false;  // set to true if OE pin is connected (false if not)
+bool PCA9685_OE_PIN_INSTALLED = false; // set to true if OE pin is connected (false if not)
 uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 1
-
 
 // Infos for I/O port expander MCP23017
 // Usage:
@@ -83,7 +79,6 @@ uint8_t PCA9685_OE_PIN = D0;
 // - Connecting sensors to the MCP23017 is simple.
 // - Just connect one of of the cable pair to GND, the other one to one of the ports of the MCP23017.
 
-
 // MCP23017 WIRING CONFIGURATION
 
 // MCP23017 port expander used?
@@ -92,61 +87,47 @@ uint8_t PCA9685_OE_PIN = D0;
 // Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
 
-
 // SERVO WIRING CONFIGURATION
 
 // Number of servos
 const int NUM_SERVOS = 6;
 
 struct ServoConfiguration {
-  // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-  uint8_t pin;
+    // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+    uint8_t pin;
 
-  // Type of digital output pins for switch servos
-  // 0   : pin on the ESP-8266
-  // 0x40: port on the 1st PCA9685
-  // 0x41: port on the 2nd PCA9685
-  // 0x42: port on the 3rd PCA9685 etc.
-  uint8_t pinType;
+    // Type of digital output pins for switch servos
+    // 0   : pin on the ESP-8266
+    // 0x40: port on the 1st PCA9685
+    // 0x41: port on the 2nd PCA9685
+    // 0x42: port on the 3rd PCA9685 etc.
+    uint8_t pinType;
 
-  // set to true if servo shall be detached from PWM signal a couple of seconds after usage
-  // this feature is helpful to prevent blocking servo from burning down, it saves power and reduced servo flattering
-  // for bascule bridges, the feature must be switched off!
-  bool detachAfterUsage;
+    // set to true if servo shall be detached from PWM signal a couple of seconds after usage
+    // this feature is helpful to prevent blocking servo from burning down, it saves power and reduced servo flattering
+    // for bascule bridges, the feature must be switched off!
+    bool detachAfterUsage;
 } servoConfiguration[NUM_SERVOS] =
-{
-  {
-    .pin = D0,
-    .pinType = 0,
-    .detachAfterUsage = true
-  },
-  {
-    .pin = D1,
-    .pinType = 0,
-    .detachAfterUsage = true
-  },
-  {
-    .pin = D2,
-    .pinType = 0,
-    .detachAfterUsage = true
-  },
-  {
-    .pin = D3,
-    .pinType = 0,
-    .detachAfterUsage = true
-  },
-  {
-    .pin = D6,
-    .pinType = 0,
-    .detachAfterUsage = true
-  },
-  {
-    .pin = D7,
-    .pinType = 0,
-    .detachAfterUsage = true
-  },
+    {
+        {.pin = D0,
+         .pinType = 0,
+         .detachAfterUsage = true},
+        {.pin = D1,
+         .pinType = 0,
+         .detachAfterUsage = true},
+        {.pin = D2,
+         .pinType = 0,
+         .detachAfterUsage = true},
+        {.pin = D3,
+         .pinType = 0,
+         .detachAfterUsage = true},
+        {.pin = D6,
+         .pinType = 0,
+         .detachAfterUsage = true},
+        {.pin = D7,
+         .pinType = 0,
+         .detachAfterUsage = true},
 };
-
 
 // LED WIRING CONFIGURATION
 
@@ -156,30 +137,24 @@ struct ServoConfiguration {
 const int NUM_LEDS = 2;
 
 struct LEDConfiguration {
-// Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
-  uint8_t pin;
+    // Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
+    uint8_t pin;
 
-  // Type of digital output pins for led
-  // 0   : LED output pin on the ESP-8266
-  // 0x20: LED port on the 1st MCP23017
-  // 0x21: LED port on the 2nd MCP23017
-  // 0x22: LED port on the 3rd MCP23017 etc.
-  // 0x40: LED port on the 1st PCA9685
-  // 0x41: LED port on the 2nd PCA9685
-  // 0x42: LED port on the 3rd PCA9685 etc.
-  uint8_t pinType;
+    // Type of digital output pins for led
+    // 0   : LED output pin on the ESP-8266
+    // 0x20: LED port on the 1st MCP23017
+    // 0x21: LED port on the 2nd MCP23017
+    // 0x22: LED port on the 3rd MCP23017 etc.
+    // 0x40: LED port on the 1st PCA9685
+    // 0x41: LED port on the 2nd PCA9685
+    // 0x42: LED port on the 3rd PCA9685 etc.
+    uint8_t pinType;
 } ledConfiguration[NUM_LEDS] =
-{
-  {
-    .pin = D4,
-    .pinType = 0
-  },
-  {
-    .pin = D5,
-    .pinType = 0
-  }
-};
-
+    {
+        {.pin = D4,
+         .pinType = 0},
+        {.pin = D5,
+         .pinType = 0}};
 
 // SENSOR WIRING CONFIGURATION
 
@@ -205,28 +180,25 @@ struct LEDConfiguration {
 #define MCP23017_SENSOR_PIN_TYPE 0x20
 
 struct SensorConfiguration {
-  // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
-  // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
-  // If sensor is a virtual sensor, the value has no meaning (set to -1 by convention).
-  uint8_t pin;
+    // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
+    // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
+    // If sensor is a virtual sensor, the value has no meaning (set to -1 by convention).
+    uint8_t pin;
 
-  // Type of digital input pins for sensors
-  uint8_t pinType;
+    // Type of digital input pins for sensors
+    uint8_t pinType;
 
-  // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
-  // If sensor is local or virtual, the value has no meaning (set to -1 by convention)
-  int remoteMattzoControllerId;
+    // If sensor is a remote sensor, the MattzoControllerId of the MattzoController to which the sensor is connected must be entered into this array.
+    // If sensor is local or virtual, the value has no meaning (set to -1 by convention)
+    int remoteMattzoControllerId;
 } sensorConfiguration[NUM_SENSORS] = {};
-
 
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
-const bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+const bool STATUS_LED_PIN_INSTALLED = true; // set to false if no LED is installed
 const uint8_t STATUS_LED_PIN = D8;
 const bool STATUS_LED_REVERSE = false;
-
-
 
 // SWITCH CONFIGURATION
 
@@ -248,95 +220,36 @@ const int NUM_SIGNAL_LEDS = 1;
 const int NUM_SIGNAL_SERVOS = 1;
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
-{
-  // signal 0 (N5): a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D0)
-  {
-    .aspectRocrailPort = {1, 2, -1},
-    .aspectLEDPort = {-1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {false},
-    },
-    .servoIndex = {0},
-    .aspectServoAngle = {
-      {180, 90, -1}
-    }
-  },
-  // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
-  {
-    .aspectRocrailPort = {3, 4, -1},
-    .aspectLEDPort = {-1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {false},
-    },
-    .servoIndex = {1},
-    .aspectServoAngle = {
-      {170, 115, -1}
-    }
-  },
-  // signal 2 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
-  // The signal LED port (index 0, D4) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
-  {
-    .aspectRocrailPort = {5, 6, 7},
-    .aspectLEDPort = {0},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {true}
-    },
-    .servoIndex = {2},
-    .aspectServoAngle = {
-      {90, 15, 160}
-    }
-  },
-  // signal 3 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
-  // The signal LED port (index 1, D5) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
-  {
-    .aspectRocrailPort = {8, 9, 10},
-    .aspectLEDPort = {1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {true}
-    },
-    .servoIndex = {3},
-    .aspectServoAngle = {
-      {90, 15, 160}
-    }
-  },
-  // signal 4 (Vs3): distant form signal with 3 aspects, controlled via Rocrail ports 11, 12 and 13, using servo index 4 (D6)
-  {
-    .aspectRocrailPort = {11, 12, 13},
-    .aspectLEDPort = {-1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {false}
-    },
-    .servoIndex = {4},
-    .aspectServoAngle = {
-      {8, 70, 113}
-    }
-  },
-  // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
-  {
-    .aspectRocrailPort = {14, 15, 16},
-    .aspectLEDPort = {-1},
-    .aspectLEDMapping = {
-      {false},
-      {false},
-      {false}
-    },
-    .servoIndex = {5},
-    .aspectServoAngle = {
-      {8, 70, 113}
-    }
-  }
-};
-
+    {
+        // signal 0 (N5): a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D0)
+        {
+            .aspectRocrailPort = {1, 2, -1},
+            .aspectLEDPort = {-1},
+            .aspectLEDMapping = {
+                {false},
+                {false},
+                {false},
+            },
+            .servoIndex = {0},
+            .aspectServoAngle = {{180, 90, -1}}},
+        // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
+        {.aspectRocrailPort = {3, 4, -1}, .aspectLEDPort = {-1}, .aspectLEDMapping = {
+                                                                     {false},
+                                                                     {false},
+                                                                     {false},
+                                                                 },
+         .servoIndex = {1},
+         .aspectServoAngle = {{170, 115, -1}}},
+        // signal 2 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
+        // The signal LED port (index 0, D4) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
+        {.aspectRocrailPort = {5, 6, 7}, .aspectLEDPort = {0}, .aspectLEDMapping = {{false}, {false}, {true}}, .servoIndex = {2}, .aspectServoAngle = {{90, 15, 160}}},
+        // signal 3 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
+        // The signal LED port (index 1, D5) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
+        {.aspectRocrailPort = {8, 9, 10}, .aspectLEDPort = {1}, .aspectLEDMapping = {{false}, {false}, {true}}, .servoIndex = {3}, .aspectServoAngle = {{90, 15, 160}}},
+        // signal 4 (Vs3): distant form signal with 3 aspects, controlled via Rocrail ports 11, 12 and 13, using servo index 4 (D6)
+        {.aspectRocrailPort = {11, 12, 13}, .aspectLEDPort = {-1}, .aspectLEDMapping = {{false}, {false}, {false}}, .servoIndex = {4}, .aspectServoAngle = {{8, 70, 113}}},
+        // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
+        {.aspectRocrailPort = {14, 15, 16}, .aspectLEDPort = {-1}, .aspectLEDMapping = {{false}, {false}, {false}}, .servoIndex = {5}, .aspectServoAngle = {{8, 70, 113}}}};
 
 // LEVEL CROSSING CONFIGURATION
 
@@ -357,43 +270,37 @@ const int LC_NUM_SENSORS = 4;
 
 TLevelCrossingConfiguration levelCrossingConfiguration = {};
 
-
 // BASCULE BRIDGE CONFIGURATION
 
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
 bool BASCULE_BRIDGE_CONNECTED = false;
 
-//Must be defined, but are zero
+// Must be defined, but are zero
 #define NUM_SIGNAL_ASPECTS 0
 #define NUM_SIGNAL_LEDS 0
 #define NUM_SIGNAL_SERVOS 0
 // Number of bridge Leafs (equals number of bridge servos)
 #define NUM_BASCULE_BRIDGE_LEAFS 0
 
-
-
 TBridgeConfiguration bridgeConfiguration = {};
-
 
 // SPEEDOMETER CONFIGURATION
 
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
 bool SPEEDOMETER_CONNECTED = true;
 
-
 TSpeedometerConfiguration speedometerConfiguration = {};
-
 
 // ****************
 // NETWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
-const bool TRIGGER_EBREAK_UPON_DISCONNECT=false;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT = false;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char* MC_HOSTNAME = "MLC-SEMAPHORES";
+const char *MC_HOSTNAME = "MLC-SEMAPHORES";
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MLC-SEMAPHORES";
+const char *SYSLOG_APP_NAME = "MLC-SEMAPHORES";

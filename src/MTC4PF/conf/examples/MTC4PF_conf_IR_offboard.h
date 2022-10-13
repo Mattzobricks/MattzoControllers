@@ -16,12 +16,9 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-
-
 // **********************************************************************************
 // Example file for configuring the MTC4PF to control multiple LEGO IR Receivers 8884
 // **********************************************************************************
-
 
 // *****
 // LOCOS
@@ -37,27 +34,25 @@
 // - accelerationInterval: time interval for acceleration / braking (default: 100 ms)
 // - accelerateStep: power increment for each acceleration step
 // - brakeStep: : power decrement for each braking step
-MattzoLocoConfiguration* getMattzoLocoConfiguration() {
-  static MattzoLocoConfiguration locoConf[NUM_LOCOS];
+MattzoLocoConfiguration *getMattzoLocoConfiguration()
+{
+    static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-  locoConf[0] = (MattzoLocoConfiguration){
-    .locoName = "EME",
-    .locoAddress = 10194,
-    .accelerationInterval = 100,
-    .accelerateStep = 20,
-    .brakeStep = 20
-  };
-  locoConf[1] = (MattzoLocoConfiguration){
-    .locoName = "MAE",
-    .locoAddress = 10219,
-    .accelerationInterval = 100,
-    .accelerateStep = 20,
-    .brakeStep = 20
-  };
+    locoConf[0] = (MattzoLocoConfiguration){
+        .locoName = "EME",
+        .locoAddress = 10194,
+        .accelerationInterval = 100,
+        .accelerateStep = 20,
+        .brakeStep = 20};
+    locoConf[1] = (MattzoLocoConfiguration){
+        .locoName = "MAE",
+        .locoAddress = 10219,
+        .accelerationInterval = 100,
+        .accelerateStep = 20,
+        .brakeStep = 20};
 
-  return locoConf;
+    return locoConf;
 }
-
 
 // *************
 // MOTOR SHIELDS
@@ -74,31 +69,29 @@ MattzoLocoConfiguration* getMattzoLocoConfiguration() {
 // - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused). In case of LEGO IR Receiver 8884, this is the motor connected to the red port.
 // - configMotorB: same for motor B; if IR receiver: blue port
 // - irChannel: if a LEGO IR Receiver 8884 is used, the selected channel of the receiver. May be 0, 1, 2 or 3. If the loco uses multiple IR receivers on different channels, additional motor shields for the loco are required.
-MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
-  static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
+MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
+{
+    static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-  msConf[0] = (MattzoMotorShieldConfiguration) {
-      .locoAddress = 10194,
-      .motorShieldType = MotorShieldType::LEGO_IR_8884,
-      .minArduinoPower = MIN_ARDUINO_POWER,
-      .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = -1,
-      .configMotorB = 0,
-      .irChannel = 0
-  };
-  msConf[1] = (MattzoMotorShieldConfiguration) {
-      .locoAddress = 10219,
-      .motorShieldType = MotorShieldType::LEGO_IR_8884,
-      .minArduinoPower = MIN_ARDUINO_POWER,
-      .maxArduinoPower = MAX_ARDUINO_POWER,
-      .configMotorA = -1,
-      .configMotorB = 0,
-      .irChannel = 1
-  };
+    msConf[0] = (MattzoMotorShieldConfiguration){
+        .locoAddress = 10194,
+        .motorShieldType = MotorShieldType::LEGO_IR_8884,
+        .minArduinoPower = MIN_ARDUINO_POWER,
+        .maxArduinoPower = MAX_ARDUINO_POWER,
+        .configMotorA = -1,
+        .configMotorB = 0,
+        .irChannel = 0};
+    msConf[1] = (MattzoMotorShieldConfiguration){
+        .locoAddress = 10219,
+        .motorShieldType = MotorShieldType::LEGO_IR_8884,
+        .minArduinoPower = MIN_ARDUINO_POWER,
+        .maxArduinoPower = MAX_ARDUINO_POWER,
+        .configMotorA = -1,
+        .configMotorB = 0,
+        .irChannel = 1};
 
-  return msConf;
+    return msConf;
 }
-
 
 // *************************
 // TRAIN LIGHT CONFIGURATION
@@ -108,19 +101,17 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
 #define NUM_TRAIN_LIGHTS 1
 
 // List of train lights including their configuration
-TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] = 
-{
-  {
-    // head lights for Emerald Express
-    .trainLightType = TrainLightType::LEGO_IR_8884,
-    .pin = D0,    
-    .powerLevelOff = 0,
-    .powerLevelOn = 100,
-    .irChannel = 0,
-    .irPort = MattzoPowerFunctionsPort::BLUE,
-  }
-};
-
+TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
+    {
+        {
+            // head lights for Emerald Express
+            .trainLightType = TrainLightType::LEGO_IR_8884,
+            .pin = D0,
+            .powerLevelOff = 0,
+            .powerLevelOn = 100,
+            .irChannel = 0,
+            .irPort = MattzoPowerFunctionsPort::BLUE,
+        }};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -133,37 +124,27 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 
 // List of function mappings
 TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
-{
-  {
-    .locoAddress = 10194,
-    .fnNo = 1,
-    .fnOnOff = true,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::ON
-  },
-  {
-    .locoAddress = 10194,
-    .fnNo = 2,
-    .fnOnOff = true,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::OFF
-  },
-  {
-    .locoAddress = 10194,
-    .fnNo = 3,
-    .fnOnOff = true,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::FLASH
-  },
-  {
-    .locoAddress = 10194,
-    .fnNo = 4,
-    .fnOnOff = true,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::BLINK
-  }
-};
-
+    {
+        {.locoAddress = 10194,
+         .fnNo = 1,
+         .fnOnOff = true,
+         .trainLightIndex = 0,
+         .trainLightStatus = TrainLightStatus::ON},
+        {.locoAddress = 10194,
+         .fnNo = 2,
+         .fnOnOff = true,
+         .trainLightIndex = 0,
+         .trainLightStatus = TrainLightStatus::OFF},
+        {.locoAddress = 10194,
+         .fnNo = 3,
+         .fnOnOff = true,
+         .trainLightIndex = 0,
+         .trainLightStatus = TrainLightStatus::FLASH},
+        {.locoAddress = 10194,
+         .fnNo = 4,
+         .fnOnOff = true,
+         .trainLightIndex = 0,
+         .trainLightStatus = TrainLightStatus::BLINK}};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -176,27 +157,20 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 
 // List of train light triggers
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
-{
-  {
-    .locoAddress = 10194,
-    .lightEventType = LightEventType::STOP,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::OFF
-  },
-  {
-    .locoAddress = 10194,
-    .lightEventType = LightEventType::FORWARD,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::ON
-  },
-  {
-    .locoAddress = 10194,
-    .lightEventType = LightEventType::REVERSE,
-    .trainLightIndex = 0,
-    .trainLightStatus = TrainLightStatus::OFF
-  },
+    {
+        {.locoAddress = 10194,
+         .lightEventType = LightEventType::STOP,
+         .trainLightIndex = 0,
+         .trainLightStatus = TrainLightStatus::OFF},
+        {.locoAddress = 10194,
+         .lightEventType = LightEventType::FORWARD,
+         .trainLightIndex = 0,
+         .trainLightStatus = TrainLightStatus::ON},
+        {.locoAddress = 10194,
+         .lightEventType = LightEventType::REVERSE,
+         .trainLightIndex = 0,
+         .trainLightStatus = TrainLightStatus::OFF},
 };
-
 
 // ***************************
 // CONTROLLER WIRING SPECIFICS
@@ -208,41 +182,40 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::LEGO_IR_8884;
 
 // Constants for motor shield type L298N
-#define enA D0  // PWM signal pin for motor A. Relevant for L298N only.
-#define enB D1  // PWM signal pin for motor B. Relevant for L298N only.
+#define enA D0 // PWM signal pin for motor A. Relevant for L298N only.
+#define enB D1 // PWM signal pin for motor B. Relevant for L298N only.
 
 // Constants for motor shield type L298N and L9110
-#define in1 D3  // pin for motor A direction control (forward).
-#define in2 D4  // pin for motor A direction control (reverse).
-#define in3 D5  // pin for motor B direction control (forward).
-#define in4 D6  // pin for motor B direction control (reverse).
+#define in1 D3 // pin for motor A direction control (forward).
+#define in2 D4 // pin for motor A direction control (reverse).
+#define in3 D5 // pin for motor B direction control (forward).
+#define in4 D6 // pin for motor B direction control (reverse).
 
 // Constants for motorshield type Lego IR Receiver 8884
-#define IR_LED_PIN D5			// pin on which the IR LED is installed.
+#define IR_LED_PIN D5 // pin on which the IR LED is installed.
 
 // Digital output PIN to monitor controller operation (typically a LED)
-const bool STATUS_LED_PIN_INSTALLED = true;  // set to false if no LED is installed
+const bool STATUS_LED_PIN_INSTALLED = true; // set to false if no LED is installed
 const uint8_t STATUS_LED_PIN = D4;
 const bool STATUS_LED_REVERSE = true;
 
 // Report battery level
-const bool REPORT_BATTERYLEVEL = false;           // set to true or false to allow or omit battery level reports
-const int SEND_BATTERYLEVEL_INTERVAL = 60000;     // interval for sending battery level in milliseconds
+const bool REPORT_BATTERYLEVEL = false;       // set to true or false to allow or omit battery level reports
+const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
 const int BATTERY_PIN = A0;
-const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
-const int MAX_AI_VOLTAGE = 5100;                  // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
-
+const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1; // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
+const int MAX_AI_VOLTAGE = 5100;                 // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
 
 // ****************
 // NEWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
-const bool TRIGGER_EBREAK_UPON_DISCONNECT =true;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char* MC_HOSTNAME = "MTC4PF-IR";
+const char *MC_HOSTNAME = "MTC4PF-IR";
 
 // Syslog application name
-const char* SYSLOG_APP_NAME = "MTC4PF-IR";
+const char *SYSLOG_APP_NAME = "MTC4PF-IR";
