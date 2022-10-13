@@ -20,12 +20,16 @@ MTC4BTConfiguration *controllerConfig;
 #ifdef TICKER
 void handleTickerLoop(void *param)
 {
-    static long minuteTicker = 0;
+    long minuteTicker = 0;
+    unsigned long timeTaken = 0;
     for (;;) {
+        timeTaken = millis();
         log4MC::vlogf(LOG_INFO, "Minutes uptime: %ld", minuteTicker);
+        log4MC::vlogf(LOG_INFO, "  Messages in queue: %d",uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
+        log4MC::vlogf(LOG_INFO, "  Memory free: %u",ESP.getFreeHeap());
         minuteTicker++;
-        // vTaskDelay(6000 / portTICK_PERIOD_MS);
-        delay(60000);
+        timeTaken = abs((long)(timeTaken - millis()));
+        delay(60000-timeTaken);
     }
 }
 void setupTicker()
@@ -35,6 +39,7 @@ void setupTicker()
 }
 #endif
 #endif
+
 void handleMQTTMessageLoop(void *parm)
 {
     for (;;) {
