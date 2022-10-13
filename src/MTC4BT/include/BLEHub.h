@@ -24,8 +24,7 @@
 // The number of seconds to wait for a Hub to connect.
 #define ConnectDelayInSeconds 5
 
-enum struct MessageType
-{
+enum struct MessageType {
     HUB_PROPERTIES = 0x01,
     HUB_ACTIONS = 0x02,
     HUB_ALERTS = 0x03,
@@ -54,7 +53,7 @@ enum struct MessageType
 // Abstract Bluetooth Low Energy (BLE) hub base class.
 class BLEHub
 {
-public:
+  public:
     BLEHub(BLEHubConfiguration *config);
 
     // Returns a boolean value indicating whether this BLE hub is enabled (in use).
@@ -103,7 +102,7 @@ public:
     // Abstract callback method used to handle hub notifications.
     virtual void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) = 0;
 
-private:
+  private:
     void initChannelControllers();
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);

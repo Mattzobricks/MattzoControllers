@@ -3,9 +3,8 @@
 #include "MCLoggingSerialConfiguration.h"
 #include "MCLoggingSyslogConfiguration.h"
 
-struct MCLoggingConfiguration
-{
-public:
+struct MCLoggingConfiguration {
+  public:
     std::string MinLevel;
     MCLoggingSerialConfiguration *Serial;
     MCLoggingSyslogConfiguration *SysLog;

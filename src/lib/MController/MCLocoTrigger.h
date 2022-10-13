@@ -1,18 +1,18 @@
 #pragma once
 
-#include <Arduino.h>
 #include "enums.h"
+#include <Arduino.h>
 
 // Loco event trigger
 class MCLocoTrigger
 {
-public:
+  public:
     MCLocoTrigger(MCTriggerSource source, std::string eventType, std::string eventId, std::string value, int8_t delayInMs = 0);
 
     // Returns a boolean value indicating whether the given trigger details match this trigger.
     bool Matches(MCTriggerSource source, std::string eventType, std::string eventId, std::string value);
 
-private:
+  private:
     // Holds the source that initialized the trigger (Loco, RocRail, ...).
     MCTriggerSource _source;
 

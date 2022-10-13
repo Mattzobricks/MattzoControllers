@@ -1,16 +1,16 @@
 #pragma once
 
-#include "NimBLEDevice.h"
 #include "BLEHub.h"
+#include "NimBLEDevice.h"
 
 class BLEClientCallback : public NimBLEClientCallbacks
 {
-public:
-  BLEClientCallback(BLEHub *hub);
+  public:
+    BLEClientCallback(BLEHub *hub);
 
-private:
-  void onConnect(NimBLEClient *pclient);
-  void onDisconnect(NimBLEClient *pclient);
+  private:
+    void onConnect(NimBLEClient *pclient);
+    void onDisconnect(NimBLEClient *pclient);
 
-  BLEHub *_hub;
+    BLEHub *_hub;
 };

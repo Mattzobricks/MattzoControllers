@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
-#include <WiFiUdp.h> // UDP library required for Syslog.
 #include <Syslog.h>  // Syslog library.
+#include <WiFiUdp.h> // UDP library required for Syslog.
 
 #include "MCLoggingConfiguration.h"
 
@@ -20,7 +20,7 @@
 
 class log4MC
 {
-public:
+  public:
     // Setup the logger.
     static void Setup(const char *hostName, MCLoggingConfiguration *config);
     static void wifiIsConnected(bool connected);
@@ -33,7 +33,7 @@ public:
     static void error(const char *message);
     static void fatal(const char *message);
 
-private:
+  private:
     static void logMessage(uint8_t level, char *message);
     static void setLogMask(uint8_t priMask);
     static uint8_t getLogMask();

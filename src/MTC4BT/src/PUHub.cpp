@@ -18,14 +18,12 @@ bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
     _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
 
-    if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID))
-    {
+    if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
         log4MC::error("BLE : Unable to attach to remote control service.");
         return false;
     }
 
-    if (!_remoteControlCharacteristic->canWrite())
-    {
+    if (!_remoteControlCharacteristic->canWrite()) {
         log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
         return false;
     }
@@ -37,17 +35,14 @@ bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 
 void PUHub::DriveTaskLoop()
 {
-    for (;;)
-    {
+    for (;;) {
         bool motorFound = false;
         int16_t currentSpeedPerc = 0;
         int16_t targetSpeedPerc = 0;
 
-        for (BLEHubChannelController *channel : _channelControllers)
-        {
+        for (BLEHubChannelController *channel : _channelControllers) {
             // Determine current drive state.
-            if (!motorFound && channel->GetAttachedDevice() == DeviceType::Motor)
-            {
+            if (!motorFound && channel->GetAttachedDevice() == DeviceType::Motor) {
                 currentSpeedPerc = channel->GetCurrentPwrPerc();
                 targetSpeedPerc = channel->GetTargetPwrPerc();
                 motorFound = true;
@@ -63,18 +58,13 @@ void PUHub::DriveTaskLoop()
         }
 
         // Set integrated powered up hub light according to current drive state.
-        if (currentSpeedPerc != targetSpeedPerc)
-        {
+        if (currentSpeedPerc != targetSpeedPerc) {
             // accelerating / braking
             setLedColor(PUHubLedColor::YELLOW);
-        }
-        else if (currentSpeedPerc != 0)
-        {
+        } else if (currentSpeedPerc != 0) {
             // travelling at target speed
             setLedColor(PUHubLedColor::GREEN);
-        }
-        else
-        {
+        } else {
             // stopped
             setLedColor(PUHubLedColor::RED);
         }
@@ -89,13 +79,11 @@ void PUHub::DriveTaskLoop()
 
 int16_t PUHub::MapPwrPercToRaw(int pwrPerc)
 {
-    if (pwrPerc == 0)
-    {
+    if (pwrPerc == 0) {
         return 0; // 0 = float, 127 = stop motor
     }
 
-    if (pwrPerc > 0)
-    {
+    if (pwrPerc > 0) {
         return map(pwrPerc, 0, 100, PU_MIN_SPEED_FORWARD, PU_MAX_SPEED_FORWARD);
     }
 
@@ -104,15 +92,13 @@ int16_t PUHub::MapPwrPercToRaw(int pwrPerc)
 
 void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-    switch (pData[2])
-    {
+    switch (pData[2]) {
     // case (byte)MessageType::HUB_PROPERTIES:
     // {
     //     parseDeviceInfo(pData);
     //     break;
     // }
-    case (byte)MessageType::HUB_ATTACHED_IO:
-    {
+    case (byte)MessageType::HUB_ATTACHED_IO: {
         parsePortMessage(pData);
         break;
     }
@@ -137,11 +123,9 @@ void PUHub::parsePortMessage(uint8_t *pData)
 {
     byte port = pData[3];
     bool isConnected = (pData[4] == 1 || pData[4] == 2) ? true : false;
-    if (isConnected)
-    {
+    if (isConnected) {
         // log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
-        if (pData[5] == 0x0017)
-        {
+        if (pData[5] == 0x0017) {
             _hubLedPort = port;
             log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB LED at port %x", port);
         }
@@ -154,8 +138,7 @@ void PUHub::parsePortMessage(uint8_t *pData)
  */
 void PUHub::setLedColor(PUHubLedColor color)
 {
-    if (_hubLedPort == 0)
-    {
+    if (_hubLedPort == 0) {
         return;
     }
 
@@ -167,9 +150,9 @@ void PUHub::setLedColor(PUHubLedColor color)
 }
 
 /**
- * @brief Set the color of the HUB LED with HSV values 
- * @param [in] hue 0..360 
- * @param [in] saturation 0..1 
+ * @brief Set the color of the HUB LED with HSV values
+ * @param [in] hue 0..360
+ * @param [in] saturation 0..1
  * @param [in] value 0..1
  */
 void PUHub::setLedHSVColor(int hue, double saturation, double value)
@@ -182,41 +165,28 @@ void PUHub::setLedHSVColor(int hue, double saturation, double value)
     double q = value * (1. - saturation * fract);
     double t = value * (1. - saturation * (1. - fract));
 
-    if (huePart >= 0.0 && huePart < 1.0)
-    {
+    if (huePart >= 0.0 && huePart < 1.0) {
         setLedRGBColor((char)(value * 255), (char)(t * 255), (char)(p * 255));
-    }
-    else if (huePart >= 1.0 && huePart < 2.0)
-    {
+    } else if (huePart >= 1.0 && huePart < 2.0) {
         setLedRGBColor((char)(q * 255), (char)(value * 255), (char)(p * 255));
-    }
-    else if (huePart >= 2.0 && huePart < 3.0)
-    {
+    } else if (huePart >= 2.0 && huePart < 3.0) {
         setLedRGBColor((char)(p * 255), (char)(value * 255), (char)(t * 255));
-    }
-    else if (huePart >= 3.0 && huePart < 4.0)
-    {
+    } else if (huePart >= 3.0 && huePart < 4.0) {
         setLedRGBColor((char)(p * 255), (char)(q * 255), (char)(value * 255));
-    }
-    else if (huePart >= 4.0 && huePart < 5.0)
-    {
+    } else if (huePart >= 4.0 && huePart < 5.0) {
         setLedRGBColor((char)(t * 255), (char)(p * 255), (char)(value * 255));
-    }
-    else if (huePart >= 5.0 && huePart < 6.0)
-    {
+    } else if (huePart >= 5.0 && huePart < 6.0) {
         setLedRGBColor((char)(value * 255), (char)(p * 255), (char)(q * 255));
-    }
-    else
-    {
+    } else {
         setLedRGBColor(0, 0, 0);
     }
 }
 
 /**
- * @brief Set the color of the HUB LED with RGB values 
- * @param [in] red 0..255 
- * @param [in] green 0..255 
- * @param [in] blue 0..255 
+ * @brief Set the color of the HUB LED with RGB values
+ * @param [in] red 0..255
+ * @param [in] green 0..255
+ * @param [in] blue 0..255
  */
 void PUHub::setLedRGBColor(char red, char green, char blue)
 {
@@ -233,8 +203,7 @@ void PUHub::writeValue(byte command[], int size)
     memcpy(byteCmd + 2, command, size);
 
     // Send drive command.
-    if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false))
-    {
+    if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
         log4MC::vlogf(LOG_ERR, "BLE : Drive failed (%s). Unabled to write to PU characteristic.", GetAddress().toString().c_str());
     }
 }

@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
-#include "BLEHub.h"
-#include "BLEDeviceCallbacks.h"
 #include "BLEClientCallback.h"
+#include "BLEDeviceCallbacks.h"
+#include "BLEHub.h"
 #include "MCLightController.h"
 #include "log4MC.h"
 
@@ -61,10 +61,8 @@ void BLEHub::Drive(const int16_t minPwrPerc, const int16_t pwrPerc)
 
 int16_t BLEHub::GetCurrentDrivePwrPerc()
 {
-    for (BLEHubChannelController *controller : _channelControllers)
-    {
-        if (controller->GetAttachedDevice() == DeviceType::Motor)
-        {
+    for (BLEHubChannelController *controller : _channelControllers) {
+        if (controller->GetAttachedDevice() == DeviceType::Motor) {
             return controller->GetCurrentPwrPerc();
         }
     }
@@ -76,8 +74,7 @@ void BLEHub::Execute(MCLocoAction *action)
 {
     BLEHubChannelController *channel = findControllerByChannel(bleHubChannelMap()[action->GetChannel()->GetAddress()]);
 
-    if (channel)
-    {
+    if (channel) {
         channel->SetTargetPwrPerc(action->GetTargetPowerPerc());
     }
 }
@@ -91,8 +88,7 @@ void BLEHub::BlinkLights(int durationInMs)
 // If false, releases the emergency brake.
 void BLEHub::EmergencyBrake(const bool enabled)
 {
-    if (enabled == _ebrake)
-    {
+    if (enabled == _ebrake) {
         // Status hasn't changed. Ignore.
         return;
     }
@@ -101,8 +97,7 @@ void BLEHub::EmergencyBrake(const bool enabled)
     _ebrake = enabled;
 
     // Set e-brake on all channels.
-    for (BLEHubChannelController *channel : _channelControllers)
-    {
+    for (BLEHubChannelController *channel : _channelControllers) {
         channel->EmergencyBrake(_ebrake);
     }
 }
@@ -112,39 +107,33 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
     log4MC::vlogf(LOG_INFO, "BLE : Connecting to hub '%s'...", _config->DeviceAddress->toString().c_str());
 
     /** Check if we have a client we should reuse first **/
-    if (NimBLEDevice::getClientListSize())
-    {
+    if (NimBLEDevice::getClientListSize()) {
         /** Special case when we already know this device, we send false as the
          *  second argument in connect() to prevent refreshing the service database.
          *  This saves considerable time and power.
          */
         _hub = NimBLEDevice::getClientByPeerAddress(_advertisedDevice->getAddress());
-        if (_hub)
-        {
-            if (!_hub->connect(_advertisedDevice, false))
-            {
+        if (_hub) {
+            if (!_hub->connect(_advertisedDevice, false)) {
                 /* Serial.println("Reconnect failed"); */
                 _isDiscovered = false;
                 return false;
             }
-            
+
             _isConnected = true;
             Serial.println("Reconnected client");
         }
         /** We don't already have a client that knows this device,
          *  we will check for a client that is disconnected that we can use.
          */
-        else
-        {
+        else {
             _hub = NimBLEDevice::getDisconnectedClient();
         }
     }
 
     /** No client to reuse? Create a new one. */
-    if (!_hub)
-    {
-        if (NimBLEDevice::getClientListSize() >= NIMBLE_MAX_CONNECTIONS)
-        {
+    if (!_hub) {
+        if (NimBLEDevice::getClientListSize() >= NIMBLE_MAX_CONNECTIONS) {
             log4MC::warn("BLE : Max clients reached - no more connections available.");
             _isDiscovered = false;
             return false;
@@ -152,8 +141,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 
         _hub = NimBLEDevice::createClient();
 
-        if (_clientCallback == nullptr)
-        {
+        if (_clientCallback == nullptr) {
             _clientCallback = new BLEClientCallback(this);
         }
         _hub->setClientCallbacks(_clientCallback, false);
@@ -162,8 +150,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         _hub->setConnectTimeout(ConnectDelayInSeconds);
 
         // Connect to the remote BLE Server.
-        if (!_hub->connect(_advertisedDevice))
-        {
+        if (!_hub->connect(_advertisedDevice)) {
             /** Created a client but failed to connect, don't need to keep it as it has no data */
             NimBLEDevice::deleteClient(_hub);
             log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to hub '%s', deleted client.", _config->DeviceAddress->toString().c_str());
@@ -172,10 +159,8 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         }
     }
 
-    if (!_hub->isConnected())
-    {
-        if (!_hub->connect(_advertisedDevice))
-        {
+    if (!_hub->isConnected()) {
+        if (!_hub->connect(_advertisedDevice)) {
             log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to hub '%s'.", _config->DeviceAddress->toString().c_str());
             _isDiscovered = false;
             return false;
@@ -184,16 +169,14 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 
     // Try to obtain a reference to the remote control characteristic in the remote control service of the BLE server.
     // If we can set the watchdog timeout, we consider our connection attempt a success.
-    if (!SetWatchdogTimeout(watchdogTimeOutInTensOfSeconds))
-    {
+    if (!SetWatchdogTimeout(watchdogTimeOutInTensOfSeconds)) {
         // Failed to find the remote control service or characteristic or write/read the value.
         _hub->disconnect();
         return false;
     }
 
     // Subscribe to receive callback notifications.
-    if (_remoteControlCharacteristic->canNotify())
-    {
+    if (_remoteControlCharacteristic->canNotify()) {
         _remoteControlCharacteristic->subscribe(true, std::bind(&BLEHub::NotifyCallback, this, _1, _2, _3, _4), true);
     }
 
@@ -205,8 +188,7 @@ void BLEHub::initChannelControllers()
 {
     // TODO: This method should be made more robust to prevent config errors, like configuring the same channel twice.
 
-    for (MCChannelConfig *config : _config->Channels)
-    {
+    for (MCChannelConfig *config : _config->Channels) {
         _channelControllers.push_back(new BLEHubChannelController(config));
     }
 
@@ -215,10 +197,8 @@ void BLEHub::initChannelControllers()
 
 void BLEHub::setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc)
 {
-    for (BLEHubChannelController *channel : _channelControllers)
-    {
-        if (channel->GetAttachedDevice() == device)
-        {
+    for (BLEHubChannelController *channel : _channelControllers) {
+        if (channel->GetAttachedDevice() == device) {
             channel->SetTargetPwrPerc(pwrPerc);
             channel->SetMinPwrPerc(minPwrPerc);
         }
@@ -227,8 +207,7 @@ void BLEHub::setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrP
 
 uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controller)
 {
-    if (_blinkUntil > millis() && controller->GetAttachedDevice() == DeviceType::Light)
-    {
+    if (_blinkUntil > millis() && controller->GetAttachedDevice() == DeviceType::Light) {
         // Force blinking lights (50% when on, 0% when off) when requested.
         return MCLightController::Blink() ? 50 : 0;
     }
@@ -238,10 +217,8 @@ uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controlle
 
 BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
 {
-    for (BLEHubChannelController *controller : _channelControllers)
-    {
-        if (controller->GetChannel() == channel)
-        {
+    for (BLEHubChannelController *controller : _channelControllers) {
+        if (controller->GetChannel() == channel) {
             return controller;
         }
     }
@@ -251,22 +228,20 @@ BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
 
 bool BLEHub::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID)
 {
-    if (_remoteControlCharacteristic != nullptr)
-    {
+    if (_remoteControlCharacteristic != nullptr) {
         return true;
     }
 
     // Obtain a reference to the service remote control service in the BLE server.
     _remoteControlService = _hub->getService(serviceUUID);
-    if (_remoteControlService == nullptr)
-    {
+    if (_remoteControlService == nullptr) {
         return false;
     }
 
     // Obtain a reference to the remote control characteristic in the remote control service of the BLE server.
     _remoteControlCharacteristic = _remoteControlService->getCharacteristic(characteristicUUID);
 
-    return _remoteControlCharacteristic != nullptr; 
+    return _remoteControlCharacteristic != nullptr;
 }
 
 bool BLEHub::startDriveTask()

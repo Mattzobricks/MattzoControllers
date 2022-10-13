@@ -2,8 +2,7 @@
 
 #include <Arduino.h>
 
-struct MCLoggingSyslogConfiguration
-{
+struct MCLoggingSyslogConfiguration {
     bool Enabled;
     std::string ServerAddress;
     uint16_t ServerPort;

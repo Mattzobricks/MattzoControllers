@@ -12,8 +12,7 @@
 #define PU_MAX_SPEED_REVERSE 128
 #define PU_MIN_SPEED_REVERSE 255
 
-enum PUHubLedColor
-{
+enum PUHubLedColor {
     BLACK = 0,
     PINK = 1,
     PURPLE = 2,
@@ -29,8 +28,7 @@ enum PUHubLedColor
     NONE = 255
 };
 
-enum struct PUDeviceType
-{
+enum struct PUDeviceType {
     UNKNOWNDEVICE = 0,
     SIMPLE_MEDIUM_LINEAR_MOTOR = 1,
     TRAIN_MOTOR = 2,
@@ -44,7 +42,7 @@ enum struct PUDeviceType
 
 class PUHub : public BLEHub
 {
-public:
+  public:
     PUHub(BLEHubConfiguration *config);
     bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
     void DriveTaskLoop();
@@ -59,7 +57,7 @@ public:
      */
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
-private:
+  private:
     byte _hubLedPort;
 
     void parsePortMessage(uint8_t *pData);

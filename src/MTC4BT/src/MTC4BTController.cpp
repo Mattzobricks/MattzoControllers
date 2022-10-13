@@ -1,6 +1,6 @@
 #include "MTC4BTController.h"
-#include "MCStatusLed.h"
 #include "MCLed.h"
+#include "MCStatusLed.h"
 #include "enums.h"
 #include "log4MC.h"
 
@@ -65,8 +65,7 @@ void MTC4BTController::Loop()
     MController::Loop();
 
     // Handle e-brake on all locomotives.
-    for (BLELocomotive *loco : Locomotives)
-    {
+    for (BLELocomotive *loco : Locomotives) {
         loco->SetEmergencyBrake(GetEmergencyBrake());
     }
 }
@@ -85,8 +84,7 @@ void MTC4BTController::HandleSys(const bool ebrakeEnabled)
 void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward)
 {
     BLELocomotive *loco = getLocomotive(locoAddress);
-    if (!loco)
-    {
+    if (!loco) {
         // Not a loco under our control. Ignore command.
         log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Lc command ignored.", locoAddress);
         return;
@@ -103,8 +101,7 @@ void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int ma
 void MTC4BTController::HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
     BLELocomotive *loco = getLocomotive(locoAddress);
-    if (!loco)
-    {
+    if (!loco) {
         // Not a loco under our control. Ignore trigger.
         log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Trigger ignored.", locoAddress);
         return;
@@ -117,47 +114,35 @@ void MTC4BTController::discoveryLoop(void *parm)
 {
     MTC4BTController *controller = (MTC4BTController *)parm;
 
-    for (;;)
-    {
+    for (;;) {
         std::vector<BLEHub *> undiscoveredHubs;
 
-        for (BLELocomotive *loco : controller->Locomotives)
-        {
+        for (BLELocomotive *loco : controller->Locomotives) {
             // Loco is not in use or all hubs are already connected. Skip to the next loco.
-            if (!loco->IsEnabled() || loco->AllHubsConnected())
-            {
+            if (!loco->IsEnabled() || loco->AllHubsConnected()) {
                 continue;
             }
 
-            for (BLEHub *hub : loco->Hubs)
-            {
-                if (!hub->IsEnabled() || hub->IsConnected())
-                {
+            for (BLEHub *hub : loco->Hubs) {
+                if (!hub->IsEnabled() || hub->IsConnected()) {
                     // Hub is not in use or already connected. Skip to the next Hub.
                     continue;
                 }
 
-                if (hub->IsDiscovered())
-                {
+                if (hub->IsDiscovered()) {
                     // Hub discovered, try to connect now.
-                    if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS))
-                    {
-                        if (loco->AllHubsConnected())
-                        {
+                    if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {
+                        if (loco->AllHubsConnected()) {
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
                             // Blink lights for a while when connected.
                             loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         // Connect attempt failed. Will retry in next loop.
                         log4MC::warn("Loop: Connect failed. Will retry...");
                     }
-                }
-                else
-                {
+                } else {
                     // Hub not discovered yet, add to list of hubs to discover.
                     undiscoveredHubs.push_back(hub);
                 }
@@ -166,8 +151,7 @@ void MTC4BTController::discoveryLoop(void *parm)
             }
         }
 
-        if (undiscoveredHubs.size() > 0)
-        {
+        if (undiscoveredHubs.size() > 0) {
             // Start discovery for undiscovered hubs.
             controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
         }
@@ -179,8 +163,7 @@ void MTC4BTController::discoveryLoop(void *parm)
 
 void MTC4BTController::initLocomotives(std::vector<BLELocomotiveConfiguration *> locoConfigs)
 {
-    for (BLELocomotiveConfiguration *locoConfig : locoConfigs)
-    {
+    for (BLELocomotiveConfiguration *locoConfig : locoConfigs) {
         // Keep an instance of the configured loco and pass it a reference to this controller.
         Locomotives.push_back(new BLELocomotive(locoConfig, this));
     }
@@ -188,10 +171,8 @@ void MTC4BTController::initLocomotives(std::vector<BLELocomotiveConfiguration *>
 
 BLELocomotive *MTC4BTController::getLocomotive(uint address)
 {
-    for (BLELocomotive *loco : Locomotives)
-    {
-        if (loco->GetLocoAddress() == address)
-        {
+    for (BLELocomotive *loco : Locomotives) {
+        if (loco->GetLocoAddress() == address) {
             return loco;
         }
     }

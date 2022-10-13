@@ -1,12 +1,12 @@
 #pragma once
 
-#include "enums.h"
 #include "MCChannel.h"
+#include "enums.h"
 
 // Controller channel config
 class MCChannelConfig
 {
-public:
+  public:
     MCChannelConfig(MCChannel *channel, int pwrIncStep, int pwrDecStep, bool isInverted, DeviceType deviceType);
 
     // Returns the channel.
@@ -24,7 +24,7 @@ public:
     // Returns the type of device attached to the channel.
     DeviceType GetAttachedDeviceType();
 
-private:
+  private:
     // Type of port.
     MCChannel *_channel;
 

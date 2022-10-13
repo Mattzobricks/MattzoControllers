@@ -2,14 +2,14 @@
 
 class MCLedBase
 {
-public:
+  public:
     MCLedBase(int pwmChannel, int pin, bool inverted = false);
 
     int GetPin();
 
     void SetCurrentPwrPerc(int16_t pwrPerc);
 
-private:
+  private:
     int _pwmChannel;
     int _pin;
     bool _inverted;

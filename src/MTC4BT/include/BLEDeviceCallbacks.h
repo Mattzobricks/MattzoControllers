@@ -1,14 +1,14 @@
 #pragma once
 
-#include "NimBLEDevice.h"
 #include "BLEHub.h"
+#include "NimBLEDevice.h"
 
 class BLEDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks
 {
-public:
+  public:
     BLEDeviceCallbacks(std::vector<BLEHub *> hubs);
 
-private:
+  private:
     void onResult(NimBLEAdvertisedDevice *advertisedDevice);
 
     std::vector<BLEHub *> _hubs;

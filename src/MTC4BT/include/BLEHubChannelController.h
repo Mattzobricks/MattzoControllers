@@ -8,9 +8,9 @@
 
 class BLEHubChannelController : public MCChannelController
 {
-public:
-  BLEHubChannelController(MCChannelConfig *config);
+  public:
+    BLEHubChannelController(MCChannelConfig *config);
 
-  // Returns the controlled channel.
-  BLEHubChannel GetChannel();
+    // Returns the controlled channel.
+    BLEHubChannel GetChannel();
 };

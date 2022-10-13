@@ -1,12 +1,11 @@
 #pragma once
 
+#include "MCChannelConfig.h"
 #include <Arduino.h>
 #include <vector>
-#include "MCChannelConfig.h"
 
-struct MCConfiguration
-{
-public:
+struct MCConfiguration {
+  public:
     // Controller name.
     const char *ControllerName;
 

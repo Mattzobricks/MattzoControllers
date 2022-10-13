@@ -2,17 +2,15 @@
 
 #include <map>
 
-enum BLEHubChannel
-{
-  A,
-  B,
-  C,
-  D
+enum BLEHubChannel {
+    A,
+    B,
+    C,
+    D
 };
 
-// String switch paridgam   
-struct bleHubChannelMap : public std::map<std::string, BLEHubChannel>
-{
+// String switch paridgam
+struct bleHubChannelMap : public std::map<std::string, BLEHubChannel> {
     bleHubChannelMap()
     {
         this->operator[]("A") = BLEHubChannel::A;
@@ -24,5 +22,5 @@ struct bleHubChannelMap : public std::map<std::string, BLEHubChannel>
         this->operator[]("D") = BLEHubChannel::D;
         this->operator[]("d") = BLEHubChannel::D;
     };
-    ~bleHubChannelMap(){}
+    ~bleHubChannelMap() {}
 };

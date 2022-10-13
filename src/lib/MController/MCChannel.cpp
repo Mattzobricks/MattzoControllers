@@ -1,5 +1,5 @@
-#include "log4MC.h"
 #include "MCChannel.h"
+#include "log4MC.h"
 
 MCChannel::MCChannel(ChannelType portType, std::string address)
     : _portType{portType}, _address{address} {}
@@ -16,8 +16,7 @@ std::string MCChannel::GetAddress()
 
 int MCChannel::GetAddressAsEspPinNumber()
 {
-    if (_portType != ChannelType::EspPinChannel)
-    {
+    if (_portType != ChannelType::EspPinChannel) {
         log4MC::error("Trying to retrieve an ESP pin number from a non ESP pin channel.");
     }
 

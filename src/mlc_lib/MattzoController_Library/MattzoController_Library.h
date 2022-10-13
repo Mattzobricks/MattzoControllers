@@ -10,11 +10,11 @@
 #define MattzoController_Library_h
 
 // Must include here to make platformio happy in finding the includes
-#include <ArduinoOTA.h>  // Over the air update library
-#include <WiFiUdp.h>  // Library required for syslog
-#include <Syslog.h>  // Syslog library
-#include <PubSubClient.h>
+#include <ArduinoOTA.h> // Over the air update library
 #include <EEPROM.h>
+#include <PubSubClient.h>
+#include <Syslog.h>  // Syslog library
+#include <WiFiUdp.h> // Library required for syslog
 #include <tinyxml2.h>
 using namespace tinyxml2;
 // ********************

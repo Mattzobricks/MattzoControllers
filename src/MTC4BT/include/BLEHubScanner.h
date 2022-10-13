@@ -1,20 +1,20 @@
 #pragma once
 
-#include <Arduino.h>
-#include "NimBLEDevice.h"
 #include "BLEHub.h"
+#include "NimBLEDevice.h"
+#include <Arduino.h>
 
 class BLEHubScanner
 {
-public:
+  public:
     BLEHubScanner();
 
     // Public members
 
     // Starts device discovery (if not already discovering).
-    void StartDiscovery(std::vector<BLEHub*>& hubs, const uint32_t scanDurationInSeconds);
+    void StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t scanDurationInSeconds);
 
-private:
+  private:
     // Private members
 
     // Reference to the BLE scanner used by this controller.

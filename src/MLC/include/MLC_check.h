@@ -1,6 +1,6 @@
 /*
-* This file must be included after MLC_type.h and a configuratun file
-*/
+ * This file must be included after MLC_type.h and a configuratun file
+ */
 #ifndef LC_NUM_LEDS
 #error "LC_NUM_LEDS not defined, it must be a #define, not a const"
 #endif
@@ -39,7 +39,7 @@
 
 #if LC_NUM_BOOM_BARRIERS > MAX_LC_NUM_BOOM_BARRIERS
 #error "LC_NUM_BOOM_BARRIERS may not be larger than: MAX_LC_NUM_BOOM_BARRIERS"
-#endif 
+#endif
 
 #if LC_NUM_SIGNAL_ASPECTS > MAX_NUM_SIGNAL_ASPECTS
 #error "LC_NUM_SIGNAL_ASPECTS may not be larger than: MAX_NUM_SIGNAL_ASPECTS"

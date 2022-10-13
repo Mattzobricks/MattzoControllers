@@ -1,7 +1,7 @@
-#include <PubSubClient.h>
 #include "MattzoMQTTSubscriber.h"
 #include "MattzoWifiClient.h"
 #include "log4MC.h"
+#include <PubSubClient.h>
 
 WiFiClient wifiSubscriberClient;
 PubSubClient mqttSubscriberClient(wifiSubscriberClient);
@@ -14,8 +14,7 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
 
     _config = config;
 
-    if (_setupCompleted)
-    {
+    if (_setupCompleted) {
         log4MC::warn("MQTT: Subscriber setup already completed!");
         return;
     }
@@ -53,16 +52,13 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
 {
     // Read the message.
     char message[length + 1];
-    for (int i = 0; i < length; i++)
-    {
+    for (int i = 0; i < length; i++) {
         message[i] = (char)payload[i];
-        if (i == 4)
-        {
+        if (i == 4) {
             // Check if this is a message we should ignore.
             if ((strstr(message, "<sys ")) == nullptr &&
                 (strstr(message, "<lc ")) == nullptr &&
-                (strstr(message, "<fn ")) == nullptr)
-            {
+                (strstr(message, "<fn ")) == nullptr) {
                 // Nothing we can handle, so ignore this message.
                 return;
             }
@@ -77,12 +73,9 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
     strcpy(messagePtr, message);
 
     // Store pointer to message in queue (don't block if the queue is full).
-    if (xQueueSendToBack(IncomingQueue, (void *)&messagePtr, (TickType_t)0) == pdTRUE)
-    {
+    if (xQueueSendToBack(IncomingQueue, (void *)&messagePtr, (TickType_t)0) == pdTRUE) {
         // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(message));
-    }
-    else
-    {
+    } else {
         // Free the allocated memory block as we couldn't queue the message anyway.
         free(messagePtr);
         log4MC::warn("MQTT: Incoming MQTT message queue full");
@@ -104,8 +97,7 @@ void MattzoMQTTSubscriber::sendMessage(char *topic, const char *message)
 /// </summary>
 void MattzoMQTTSubscriber::reconnect()
 {
-    while (!mqttSubscriberClient.connected())
-    {
+    while (!mqttSubscriberClient.connected()) {
         log4MC::info("MQTT: Subscriber configuring last will...");
 
         String lastWillMessage;
@@ -122,14 +114,11 @@ void MattzoMQTTSubscriber::reconnect()
 
         log4MC::info("MQTT: Subscriber attempting to connect...");
 
-        if (mqttSubscriberClient.connect(_subscriberName, _config->Topic, 0, false, lastWillMessage_char))
-        {
+        if (mqttSubscriberClient.connect(_subscriberName, _config->Topic, 0, false, lastWillMessage_char)) {
             log4MC::info("MQTT: Subscriber connected");
             mqttSubscriberClient.subscribe(_config->Topic);
             log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", _config->Topic);
-        }
-        else
-        {
+        } else {
             log4MC::vlogf(LOG_WARNING, "MQTT: Subscriber connect failed, rc=%u. Try again in a few seconds...", mqttSubscriberClient.state());
 
             // Wait a litte while before retrying.
@@ -144,30 +133,25 @@ void MattzoMQTTSubscriber::reconnect()
 /// <param name="parm"></param>
 void MattzoMQTTSubscriber::taskLoop(void *parm)
 {
-    try
-    {
+    try {
         /* code */
-        if (!_setupCompleted)
-        {
+        if (!_setupCompleted) {
             const char *message = "MQTT: Setup not completed. Execute .Setup() first.";
             log4MC::error(message);
             throw message;
         }
 
         // Loop forever.
-        for (;;)
-        {
+        for (;;) {
             // Wait for connection to Wifi (because we need it to contact the broker).
             MattzoWifiClient::Assert();
 
             // Wait for connection to MQTT (because we need it to send messages to the broker).
-            if (!mqttSubscriberClient.connected())
-            {
+            if (!mqttSubscriberClient.connected()) {
                 reconnect();
             }
 
-            if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000)
-            {
+            if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
                 lastPing = millis();
 
                 // Send a ping message.
@@ -180,17 +164,12 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
         }
-    }
-    catch(const std::exception& e)
-    {
-        log4MC::vlogf(LOG_EMERG,"Caught exception: %s",e.what() );
-    }
-    catch(...)
-    {
+    } catch (const std::exception &e) {
+        log4MC::vlogf(LOG_EMERG, "Caught exception: %s", e.what());
+    } catch (...) {
         log4MC::fatal("Caught an unknown exception");
     }
-}    
-    
+}
 
 // Initialize static members.
 QueueHandle_t MattzoMQTTSubscriber::IncomingQueue = nullptr;

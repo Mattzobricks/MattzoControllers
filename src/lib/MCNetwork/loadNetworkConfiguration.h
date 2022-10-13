@@ -1,9 +1,9 @@
 #pragma once
 
+#include "MCNetworkConfiguration.h"
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
 #include <string.h>
-#include "MCNetworkConfiguration.h"
 
 MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
 {
@@ -11,24 +11,21 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
     MCNetworkConfiguration *config = new MCNetworkConfiguration();
 
     // Initialize file system.
-    if (!SPIFFS.begin(true))
-    {
+    if (!SPIFFS.begin(true)) {
         Serial.println("An error has occurred while mounting SPIFFS");
         return config;
     }
 
     // Check if config file exists.
     File file = SPIFFS.open(configFilePath);
-    if (!file)
-    {
+    if (!file) {
         Serial.println("Failed to open config file for reading");
         return config;
     }
 
     // Check if config file is empty.
     size_t size = file.size();
-    if (!size)
-    {
+    if (!size) {
         file.close();
         Serial.println("Config file is empty");
         return config;
@@ -46,8 +43,7 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
 
     // Deserialize the JSON document.
     DeserializationError error = deserializeJson(doc, file);
-    if (error)
-    {
+    if (error) {
         Serial.print(F("Failed to read config file: deserializeJson() failed with code "));
         Serial.println(error.c_str());
         return config;
@@ -67,12 +63,11 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
     JsonObject syslogConfig = loggingConfig["syslog"];
     logging->SysLog = new MCLoggingSyslogConfiguration();
     logging->SysLog->Enabled = syslogConfig["enabled"] | false;
-    if (logging->SysLog->Enabled)
-    {
+    if (logging->SysLog->Enabled) {
         logging->SysLog->ServerAddress = syslogConfig["server"].as<std::string>();
         logging->SysLog->ServerPort = syslogConfig["port"] | 514;
         logging->SysLog->AppName = syslogConfig["appname"].as<std::string>();
-        
+
         const char *minLevel = loggingConfig["min_level"];
         if (minLevel) {
             if (strcmp(minLevel, "debug") == 0) {
@@ -103,7 +98,7 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
     wifi->password = wifiConfig["password"].as<std::string>();
     wifi->hostname = wifiConfig["hostname"].as<std::string>();
     wifi->otaPassword = wifiConfig["otaPassword"].as<std::string>();
-    wifi->DailyBetweenConnectAttempsInMs = wifiConfig["wait"] | 500;    
+    wifi->DailyBetweenConnectAttempsInMs = wifiConfig["wait"] | 500;
 
     // Attach WiFi configuration.
     config->WiFi = wifi;

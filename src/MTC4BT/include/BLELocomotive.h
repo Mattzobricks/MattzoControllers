@@ -5,10 +5,11 @@
 #include "BLEHub.h"
 #include "BLELocomotiveConfiguration.h"
 #include "MCLedBase.h"
+#include "MController.h"
 
 class BLELocomotive
 {
-public:
+  public:
     BLELocomotive(BLELocomotiveConfiguration *config, MController *controller);
 
     // List of references to hubs inside this loco.
@@ -45,7 +46,7 @@ public:
     // Returns the hub at the given index.
     BLEHub *GetHub(uint index);
 
-private:
+  private:
     // Initialized the leds inside this loco.
     // void initLights();
 

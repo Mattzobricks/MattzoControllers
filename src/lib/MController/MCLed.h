@@ -4,6 +4,6 @@
 
 class MCLed : public MCLedBase
 {
-public:
+  public:
     MCLed(int pwmChannel, int pin, bool inverted);
 };

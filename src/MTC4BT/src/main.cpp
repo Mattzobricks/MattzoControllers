@@ -1,12 +1,12 @@
 #include <Arduino.h>
 
-#include "MattzoWifiClient.h"
+#include "MTC4BTController.h"
 #include "MTC4BTMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
-#include "log4MC.h"
-#include "loadNetworkConfiguration.h"
+#include "MattzoWifiClient.h"
 #include "loadControllerConfiguration.h"
-#include "MTC4BTController.h"
+#include "loadNetworkConfiguration.h"
+#include "log4MC.h"
 
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
@@ -21,8 +21,7 @@ MTC4BTConfiguration *controllerConfig;
 void handleTickerLoop(void *param)
 {
     static long minuteTicker = 0;
-    for (;;)
-    {
+    for (;;) {
         log4MC::vlogf(LOG_INFO, "Minutes uptime: %ld", minuteTicker);
         minuteTicker++;
         // vTaskDelay(6000 / portTICK_PERIOD_MS);
@@ -38,13 +37,11 @@ void setupTicker()
 #endif
 void handleMQTTMessageLoop(void *parm)
 {
-    for (;;)
-    {
+    for (;;) {
         char *message;
 
         // See if there's a message in the queue (do not block).
-        while (xQueueReceive(MattzoMQTTSubscriber::IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE)
-        {
+        while (xQueueReceive(MattzoMQTTSubscriber::IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
             // Output message to serial for debug.
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 

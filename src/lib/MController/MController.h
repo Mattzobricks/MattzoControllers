@@ -1,14 +1,14 @@
+#pragma once
 #include <Arduino.h>
 
+#include "MCChannelController.h"
 #include "MCConfiguration.h"
-#include "MattzoWifiClient.h"
-#include "MattzoMQTTSubscriber.h"
 #include "MCLedBase.h"
 #include "MCLocoAction.h"
-#include "MCChannelController.h"
+#include "MattzoMQTTSubscriber.h"
+#include "MattzoWifiClient.h"
 
-enum MCConnectionStatus
-{
+enum MCConnectionStatus {
     uninitialized = 0,
     initializing,
     connecting_wifi,
@@ -18,10 +18,10 @@ enum MCConnectionStatus
 
 class MController
 {
-public:
+  public:
     MController();
 
-    // Returns the current controller connection status. 
+    // Returns the current controller connection status.
     static MCConnectionStatus GetConnectionStatus();
 
     // Mattzo Controller setup initialization method.
@@ -45,7 +45,7 @@ public:
     // Abstract method required to handle the given trigger (if loco is under control of this controller).
     virtual void HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value) = 0;
 
-private:
+  private:
     // Initializes the pin channels.
     void initChannelControllers();
 

@@ -1,8 +1,8 @@
-#include "MController.h"
 #include "BLELocomotive.h"
-#include "SBrickHub.h"
-#include "PUHub.h"
 #include "MCLightController.h"
+#include "MController.h"
+#include "PUHub.h"
+#include "SBrickHub.h"
 #include "log4MC.h"
 
 BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MController *controller)
@@ -18,15 +18,12 @@ bool BLELocomotive::IsEnabled()
 
 bool BLELocomotive::AllHubsConnected()
 {
-    if (!IsEnabled())
-    {
+    if (!IsEnabled()) {
         return false;
     }
 
-    for (BLEHub *hub : Hubs)
-    {
-        if (!hub->IsConnected())
-        {
+    for (BLEHub *hub : Hubs) {
+        if (!hub->IsConnected()) {
             return false;
         }
     }
@@ -36,32 +33,27 @@ bool BLELocomotive::AllHubsConnected()
 
 void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
 {
-    if (!AllHubsConnected())
-    {
+    if (!AllHubsConnected()) {
         // Ignore drive command.
         log4MC::vlogf(LOG_INFO, "Loco: %s ignored drive command because not all its hubs are connected (yet).", _config->_name.c_str());
         return;
     }
 
-    for (BLEHub *hub : Hubs)
-    {
+    for (BLEHub *hub : Hubs) {
         int16_t currentPwrPerc = hub->GetCurrentDrivePwrPerc();
         hub->Drive(minSpeed, pwrPerc);
 
-        if (currentPwrPerc == 0 && pwrPerc > 0)
-        {
+        if (currentPwrPerc == 0 && pwrPerc > 0) {
             // If we go from stand still (0%) to moving forward (> 0%), we trigger this event because we must possibly handle it.
             TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "forward");
         }
 
-        if (currentPwrPerc == 0 && pwrPerc < 0)
-        {
+        if (currentPwrPerc == 0 && pwrPerc < 0) {
             // If we go from stand still (0%) to moving backward (< 0%), we trigger this event because we must possibly handle it.
             TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "backward");
         }
 
-        if (currentPwrPerc != 0 && pwrPerc == 0)
-        {
+        if (currentPwrPerc != 0 && pwrPerc == 0) {
             // If we go from moving (not 0%) to stand still (0%), we trigger this event because we must possibly handle it.
             TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "stopped");
         }
@@ -70,8 +62,7 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
 
 void BLELocomotive::TriggerEvent(MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
-    if (!AllHubsConnected())
-    {
+    if (!AllHubsConnected()) {
         // Ignore trigger.
         log4MC::vlogf(LOG_INFO, "Loco: %s ignored trigger because not all its hubs are connected (yet).", _config->_name.c_str());
 
@@ -79,27 +70,20 @@ void BLELocomotive::TriggerEvent(MCTriggerSource source, std::string eventType, 
         return;
     }
 
-    for (MCLocoEvent *event : _config->_events)
-    {
-        if (event->HasTrigger(source, eventType, eventId, value))
-        {
-            for (MCLocoAction *action : event->GetActions())
-            {
+    for (MCLocoEvent *event : _config->_events) {
+        if (event->HasTrigger(source, eventType, eventId, value)) {
+            for (MCLocoAction *action : event->GetActions()) {
                 ChannelType portType = action->GetChannel()->GetChannelType();
-                switch (portType)
-                {
-                case ChannelType::BleHubChannel:
-                {
+                switch (portType) {
+                case ChannelType::BleHubChannel: {
                     // Ask hub to execute action.
                     BLEHub *hub = getHubByAddress(action->GetChannel()->GetParentAddress());
-                    if (hub)
-                    {
+                    if (hub) {
                         hub->Execute(action);
                     }
                     break;
                 }
-                case ChannelType::EspPinChannel:
-                {
+                case ChannelType::EspPinChannel: {
                     // Ask controller to execute action.
                     _controller->Execute(action);
                     break;
@@ -112,31 +96,27 @@ void BLELocomotive::TriggerEvent(MCTriggerSource source, std::string eventType, 
 
 void BLELocomotive::BlinkLights(int durationInMs)
 {
-    if (!AllHubsConnected())
-    {
+    if (!AllHubsConnected()) {
         // Ignore blink request.
         // log4MC::vlogf(LOG_INFO, "Loco: %s ignored blink lights request because not all its hubs are connected (yet).", _config->_name.c_str());
         return;
     }
 
     // Handle blink on lights attached to channels of our hubs.
-    for (BLEHub *hub : Hubs)
-    {
+    for (BLEHub *hub : Hubs) {
         hub->BlinkLights(durationInMs);
     }
 }
 
 void BLELocomotive::SetEmergencyBrake(const bool enabled)
 {
-    if (!AllHubsConnected())
-    {
+    if (!AllHubsConnected()) {
         // Ignore e-brake command (we're not driving anyway).
         return;
     }
 
     // Handle e-brake on all channels of our hubs.
-    for (BLEHub *hub : Hubs)
-    {
+    for (BLEHub *hub : Hubs) {
         hub->EmergencyBrake(enabled);
     }
 }
@@ -163,10 +143,8 @@ BLEHub *BLELocomotive::GetHub(uint index)
 
 void BLELocomotive::initHubs()
 {
-    for (BLEHubConfiguration *hubConfig : _config->_hubs)
-    {
-        switch (hubConfig->HubType)
-        {
+    for (BLEHubConfiguration *hubConfig : _config->_hubs) {
+        switch (hubConfig->HubType) {
         case BLEHubType::SBrick:
             Hubs.push_back(new SBrickHub(hubConfig));
             break;
@@ -181,10 +159,8 @@ void BLELocomotive::initHubs()
 
 BLEHub *BLELocomotive::getHubByAddress(std::string address)
 {
-    for (BLEHub *hub : Hubs)
-    {
-        if (hub->GetRawAddress().compare(address) == 0)
-        {
+    for (BLEHub *hub : Hubs) {
+        if (hub->GetRawAddress().compare(address) == 0) {
             return hub;
         }
     }

@@ -4,8 +4,7 @@ void log4MC::Setup(const char *hostName, MCLoggingConfiguration *config)
 {
     _config = config;
 
-    if (_config->SysLog->Enabled)
-    {
+    if (_config->SysLog->Enabled) {
         Serial.print("Syslog: Server: ");
         Serial.print(config->SysLog->ServerAddress.c_str());
         Serial.print(":");
@@ -22,7 +21,7 @@ void log4MC::Setup(const char *hostName, MCLoggingConfiguration *config)
             .appName(config->SysLog->AppName.c_str())
             .defaultPriority(LOG_KERN)
             .logMask(config->SysLog->mask);
-            
+
         _priMask = config->SysLog->mask;
     }
 
@@ -36,13 +35,11 @@ void log4MC::wifiIsConnected(bool connected)
 
 void log4MC::logMessage(uint8_t level, char *message)
 {
-    if (_connected && _config->SysLog->Enabled)
-    {
+    if (_connected && _config->SysLog->Enabled) {
         syslog.log(level, message);
     }
 
-    if (_config->Serial->Enabled && (LOG_MASK(level) & _priMask))
-    {
+    if (_config->Serial->Enabled && (LOG_MASK(level) & _priMask)) {
         Serial.println(message);
     }
 
@@ -52,8 +49,7 @@ void log4MC::logMessage(uint8_t level, char *message)
 void log4MC::setLogMask(uint8_t priMask)
 {
     _priMask = priMask;
-    if (_config->SysLog->Enabled)
-    {
+    if (_config->SysLog->Enabled) {
         syslog.logMask(_priMask);
     }
 }
@@ -81,8 +77,7 @@ void log4MC::vlogf(uint8_t level, const char *fmt, ...)
 
     message = new char[initialLen + 11];
     len = vsnprintf(message, initialLen + 1, fmt, args);
-    if (len > initialLen)
-    {
+    if (len > initialLen) {
         delete[] message;
         message = new char[len + 11];
         vsnprintf(message, len + 1, fmt, args);

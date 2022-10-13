@@ -1,11 +1,10 @@
 #pragma once
 
-#include "MCConfiguration.h"
 #include "BLELocomotiveConfiguration.h"
+#include "MCConfiguration.h"
 
-struct MTC4BTConfiguration : MCConfiguration
-{
-public:
+struct MTC4BTConfiguration : MCConfiguration {
+  public:
     // BLE locomotive configurations.
     std::vector<BLELocomotiveConfiguration *> Locomotives;
 };

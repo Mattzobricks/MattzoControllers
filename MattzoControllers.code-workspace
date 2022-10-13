@@ -23,5 +23,8 @@
 	],
 	"settings": {
 		"C_Cpp.clang_format_style": "{ BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 0,AllowShortFunctionsOnASingleLine: true,BreakBeforeBraces: Custom, BraceWrapping: {AfterFunction:  true, AfterClass: true }}",
+		"files.associations": {
+			"new": "cpp"
+		},
 	}
 }
