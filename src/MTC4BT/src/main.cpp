@@ -26,7 +26,7 @@ void handleTickerLoop(void *param)
         timeTaken = millis();
         log4MC::vlogf(LOG_INFO, "Minutes uptime: %ld", minuteTicker);
         log4MC::vlogf(LOG_INFO, "  Messages in queue: %d",uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
-        log4MC::vlogf(LOG_INFO, "  Memory free: %u",ESP.getFreeHeap());
+        log4MC::vlogf(LOG_INFO, "  Memory Heap free: %u\t max alloc: %u\t min free: %u",ESP.getFreeHeap(),ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
         minuteTicker++;
         timeTaken = abs((long)(timeTaken - millis()));
         delay(60000-timeTaken);
@@ -34,7 +34,7 @@ void handleTickerLoop(void *param)
 }
 void setupTicker()
 {
-    xTaskCreatePinnedToCore(handleTickerLoop, "TickerHandler", 10000, NULL, 2, NULL, 1);
+    xTaskCreatePinnedToCore(handleTickerLoop, "TickerHandler", 2048, NULL, 2, NULL, 1);
     delay(500);
 }
 #endif
@@ -55,6 +55,7 @@ void handleMQTTMessageLoop(void *parm)
 
             // Erase message from memory by freeing it.
             free(message);
+
         }
 
         // Wait a while before trying again (allowing other tasks to do their work)?

@@ -50,8 +50,8 @@ int MattzoMQTTSubscriber::GetStatus()
 
 void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-    // Read the message.
-    char message[length + 1];
+    // Allocate memory to hold the message.
+    char *message = (char *)malloc(length + 1);
     for (int i = 0; i < length; i++) {
         message[i] = (char)payload[i];
         if (i == 4) {
@@ -60,24 +60,19 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
                 (strstr(message, "<lc ")) == nullptr &&
                 (strstr(message, "<fn ")) == nullptr) {
                 // Nothing we can handle, so ignore this message.
+                free(message);
                 return;
             }
         }
     }
     message[length] = '\0';
 
-    // Allocate memory to hold the message.
-    char *messagePtr = (char *)malloc(strlen(message) + 1);
-
-    // Copy the message to the allocated memory block.
-    strcpy(messagePtr, message);
-
     // Store pointer to message in queue (don't block if the queue is full).
-    if (xQueueSendToBack(IncomingQueue, (void *)&messagePtr, (TickType_t)0) == pdTRUE) {
+    if (xQueueSendToBack(IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
         // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(message));
     } else {
         // Free the allocated memory block as we couldn't queue the message anyway.
-        free(messagePtr);
+        free(message);
         log4MC::warn("MQTT: Incoming MQTT message queue full");
     }
 }

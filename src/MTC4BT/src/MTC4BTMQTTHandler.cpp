@@ -29,6 +29,7 @@ void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *control
     char *cmd = nullptr;
     if (!XmlParser::tryReadCharAttr(message, "cmd", &cmd)) {
         log4MC::warn("MQTT: Received 'sys' command, but couldn't read 'cmd' attribute.");
+        if(cmd) free(cmd);
         return;
     }
 
@@ -37,7 +38,7 @@ void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *control
 
         // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency brake flag is set. All trains will stop immediately.
         controller->HandleSys(true);
-
+    	if(cmd) free(cmd);
         return;
     }
 
@@ -46,7 +47,7 @@ void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *control
 
         // Upon receiving "go" command, the emergency brake flag is released (i.e. pressing the light bulb in Rocview).
         controller->HandleSys(false);
-
+        if(cmd) free(cmd);
         return;
     }
 }
@@ -97,10 +98,11 @@ void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controll
     }
 
     // Get speed mode (percentage or km/h).
-    char *mode;
+    char *mode =nullptr;
     if (!XmlParser::tryReadCharAttr(message, "V_mode", &mode)) {
         // Log error, ignore message.
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'V_mode' attribute.");
+        if (mode) free(mode);
         return;
     }
 
@@ -109,11 +111,13 @@ void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controll
     if (!XmlParser::tryReadBoolAttr(message, "dir", &dirForward)) {
         // Log error, ignore message.
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'dir' attribute.");
+        if (mode) free(mode);
         return;
     }
 
     // Ask controller to handle the loco command.
     controller->HandleLc(addr, speed, minSpeed, maxSpeed, mode, dirForward);
+    if (mode) free(mode);
 }
 
 void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controller)
@@ -142,7 +146,7 @@ void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controll
     }
 
     // Convert function number to string (format: fX);
-    char fnId[3];
+    static char fnId[3];
     sprintf(fnId, "f%u", fnchanged);
 
     // Ask controller to handle the function.
