@@ -43,4 +43,5 @@ class log4MC
     static uint8_t _priMask;
     static WiFiUDP _udpClient;
     static Syslog syslog;
+    static unsigned int lineNo;
 };

@@ -84,32 +84,23 @@ void log4MC::vlogf(uint8_t level, const char *fmt, ...)
     }
     va_end(args);
 
-#ifdef ESP32
-    tmpmsg = message;
-    msg = new char[len + 10];
-    sprintf(msg, "[%d] %s", xPortGetCoreID(), message);
-    msg[strlen(msg)] = '\0'; // should be paded by zeros, HAVE TO TEST
-    delete[] tmpmsg;
-    message = msg;
-#endif
-
-    logMessage(level, message);
+    log(level, message);
 }
 
 void log4MC::log(uint8_t level, const char *message)
 {
     char *msg = NULL;
     unsigned int len = strlen(message);
-    msg = new char[len + 11];
+    msg = new char[len + 20];
 
 #ifdef ESP32
-    sprintf(msg, "[%d] %s", xPortGetCoreID(), message);
+    sprintf(msg, "[%04d] [%d] %s", lineNo, xPortGetCoreID(), message);
     msg[strlen(msg)] = '\0'; // should be paded by zeros, HAVE TO TEST
 #else
-    strcpy(msg, message);
+    sprintf(msg, "[%04d] %s", lineNo, message);
     msg[len] = '\0';
 #endif
-
+    lineNo = (lineNo +1) % 10000;
     logMessage(level, msg);
 }
 
@@ -149,3 +140,4 @@ bool log4MC::_connected = false;
 uint8_t log4MC::_priMask = LOG_MASK(LOG_INFO) | LOG_MASK(LOG_DEBUG) | LOG_MASK(LOG_WARNING) | LOG_MASK(LOG_ERR) | LOG_MASK(LOG_CRIT);
 WiFiUDP log4MC::_udpClient;
 Syslog log4MC::syslog(_udpClient, SYSLOG_PROTO_IETF);
+unsigned int log4MC::lineNo = 0;
