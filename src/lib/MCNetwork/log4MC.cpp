@@ -66,10 +66,6 @@ void log4MC::vlogf(uint8_t level, const char *fmt, ...)
 
     va_start(args, fmt);
 
-#ifdef ESP32
-    char *tmpmsg, *msg;
-#endif
-
     size_t initialLen;
     size_t len;
 
@@ -85,6 +81,7 @@ void log4MC::vlogf(uint8_t level, const char *fmt, ...)
     va_end(args);
 
     log(level, message);
+    delete [] message;
 }
 
 void log4MC::log(uint8_t level, const char *message)
