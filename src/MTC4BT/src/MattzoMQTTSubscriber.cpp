@@ -38,7 +38,7 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
     strcat(_subscriberName, "Subscriber");
 
     // Start MQTT task loop to handle queued messages.
-    xTaskCreatePinnedToCore(handleMQTTMessageLoop, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
+    //xTaskCreatePinnedToCore(handleMQTTMessageLoop, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
 
     // Setup completed.
     _setupCompleted = true;
