@@ -2,9 +2,13 @@
 #include "MattzoWifiClient.h"
 #include "log4MC.h"
 #include <PubSubClient.h>
+#include "MTC4BTMQTTHandler.h"
 
 WiFiClient wifiSubscriberClient;
 PubSubClient mqttSubscriberClient(wifiSubscriberClient);
+
+
+extern MTC4BTController *controller;
 
 void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm))
 {
@@ -20,7 +24,7 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
     }
 
     // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
-    IncomingQueue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
+    //IncomingQueue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
 
     // Setup MQTT client.
     log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
@@ -54,6 +58,7 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
     char *message = (char *)malloc(length + 1);
     for (int i = 0; i < length; i++) {
         message[i] = (char)payload[i];
+        /*
         if (i == 4) {
             // Check if this is a message we should ignore.
             if ((strstr(message, "<sys ")) == nullptr &&
@@ -64,9 +69,11 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
                 return;
             }
         }
+        */
     }
     message[length] = '\0';
 
+    /*
     // Store pointer to message in queue (don't block if the queue is full).
     if (xQueueSendToBack(IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
         // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(message));
@@ -75,6 +82,8 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
         free(message);
         log4MC::warn("MQTT: Incoming MQTT message queue full");
     }
+    */
+    MTC4BTMQTTHandler::Handle(message, controller);
 }
 
 /// <summary>
