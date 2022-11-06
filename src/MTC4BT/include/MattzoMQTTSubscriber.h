@@ -11,6 +11,7 @@
 #include "MCMQTTConfiguration.h"
 #include <WiFi.h>
 
+
 // MQTT task priority.
 #define MQTT_TASK_PRIORITY 2
 
