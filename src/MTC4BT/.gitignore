@@ -5,4 +5,5 @@
 .vscode/ipch
 
 data/
-platformio.ini
+#platformio.ini
+my_platformio.ini
