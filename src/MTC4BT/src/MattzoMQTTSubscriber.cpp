@@ -87,6 +87,7 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
     }
     */
     MTC4BTMQTTHandler::Handle(message, controller);
+    free(message);
 }
 
 /// <summary>
