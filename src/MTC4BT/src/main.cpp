@@ -17,19 +17,22 @@ MTC4BTController *controller;
 MTC4BTConfiguration *controllerConfig;
 
 #ifdef ESP32
+// 1 minute, 30, 15 or 10 seconds
 #ifdef TICKER
+#if TICKER == 1 or TICKER == 2 or TICKER == 4 or TICKER == 6
+#define SETUPTICKER
 void handleTickerLoop(void *param)
 {
     long minuteTicker = 0;
     unsigned long timeTaken = 0;
     for (;;) {
         timeTaken = millis();
-        log4MC::vlogf(LOG_INFO, "Minutes uptime: %ld", minuteTicker);
-        log4MC::vlogf(LOG_INFO, "  Messages in queue: %d",uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
-        log4MC::vlogf(LOG_INFO, "  Memory Heap free: %8u max alloc: %8u min free: %8u",ESP.getFreeHeap(),ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
+        log4MC::vlogf(LOG_INFO, "Minutes uptime: %d.%02d", (minuteTicker / TICKER), (minuteTicker % TICKER) * (60 / TICKER));
+        log4MC::vlogf(LOG_INFO, "  Messages in queue: %d", uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
+        log4MC::vlogf(LOG_INFO, "  Memory Heap free: %8u max alloc: %8u min free: %8u", ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
         minuteTicker++;
         timeTaken = abs((long)(timeTaken - millis()));
-        delay(60000-timeTaken);
+        delay(60000 / TICKER - timeTaken);
     }
 }
 void setupTicker()
@@ -37,6 +40,9 @@ void setupTicker()
     xTaskCreatePinnedToCore(handleTickerLoop, "TickerHandler", 2048, NULL, 2, NULL, 1);
     delay(500);
 }
+#else
+#error "Invalid ticker value, valid values are 1,2,4 or 6"
+#endif
 #endif
 #endif
 
@@ -55,7 +61,6 @@ void handleMQTTMessageLoop(void *parm)
 
             // Erase message from memory by freeing it.
             free(message);
-
         }
 
         // Wait a while before trying again (allowing other tasks to do their work)?
@@ -101,7 +106,7 @@ void setup()
     log4MC::info("Setup: MattzoTrainController for BLE running.");
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
 #ifdef ESP32
-#ifdef TICKER
+#ifdef SETUPTICKER
     setupTicker();
     log4MC::info("Ticker started");
 #endif
