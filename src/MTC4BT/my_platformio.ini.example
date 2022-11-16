@@ -1,11 +1,18 @@
 [platformio]
 default_envs = esp32doit-devkit-v1
+
+; This controller must be configured through config files in the folder you define below.
+; Configure your network in the `network_config.json` file.
+; Configure the controller in the `controller_config.json` file.
+; See the `/data_example` folder for example configuration files. 
+; Run `platformio.exe run --target uploadfs` to upload the data-folder content to the ESP32.
+; moved to my_platformio.ini
 data_dir = $PROJECT_DIR/data
 
 [common]
 ; To show memory usage every minute, uncomment the following lines
 ;build_flags = 
-;	-DTICKER
+;	-DTICKER=1
 upload_com_port = COM3
 
 [env:az-delivery-devkit-v4]
