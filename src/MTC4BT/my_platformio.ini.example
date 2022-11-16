@@ -1,3 +1,7 @@
+[platformio]
+default_envs = esp32doit-devkit-v1
+data_dir = $PROJECT_DIR/data
+
 [common]
 ; To show memory usage every minute, uncomment the following lines
 ;build_flags = 
