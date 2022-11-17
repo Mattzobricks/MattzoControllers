@@ -84,10 +84,16 @@ void MTC4BTController::HandleSys(const bool ebrakeEnabled)
 void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward)
 {
     BLELocomotive *loco = getLocomotive(locoAddress);
+    /*
     if (!loco) {
         // Not a loco under our control. Ignore command.
         log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Lc command ignored.", locoAddress);
         return;
+    }
+    */
+    if (loco) {
+        // Not a loco under our control. Ignore command.
+        log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is under our control.", locoAddress);
     }
 
     // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).

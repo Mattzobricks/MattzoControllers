@@ -63,7 +63,7 @@ void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controll
 
     if (!controller->HasLocomotive(addr)) {
         // Not a loco under our control. Ignore message.
-        log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
+        //log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
         return;
     }
 
