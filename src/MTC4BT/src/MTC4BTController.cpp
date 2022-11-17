@@ -84,24 +84,19 @@ void MTC4BTController::HandleSys(const bool ebrakeEnabled)
 void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward)
 {
     BLELocomotive *loco = getLocomotive(locoAddress);
-    /*
-    if (!loco) {
-        // Not a loco under our control. Ignore command.
-        log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Lc command ignored.", locoAddress);
-        return;
-    }
-    */
     if (loco) {
-        // Not a loco under our control. Ignore command.
-        log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is under our control.", locoAddress);
+        // Loco is under the control of this controller. Process command!
+
+        // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
+        int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
+
+        // Calculate direction multiplier (1 or -1)
+        int8_t dirMultiplier = dirForward ? 1 : -1;
+
+        // Log message and execute drive command.
+        log4MC::vlogf(LOG_DEBUG, "Ctrl: Received lc command for loco address '%u', speed %i.", locoAddress, targetSpeedPerc * dirMultiplier);
+        loco->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
     }
-
-    // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
-    int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
-
-    // Execute drive command.
-    int8_t dirMultiplier = dirForward ? 1 : -1;
-    loco->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
 }
 
 void MTC4BTController::HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
