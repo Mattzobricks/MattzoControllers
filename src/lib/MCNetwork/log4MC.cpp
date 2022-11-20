@@ -42,8 +42,6 @@ void log4MC::logMessage(uint8_t level, char *message)
     if (_config->Serial->Enabled && (LOG_MASK(level) & _priMask)) {
         Serial.println(message);
     }
-
-    delete[] message;
 }
 
 void log4MC::setLogMask(uint8_t priMask)
@@ -99,6 +97,7 @@ void log4MC::log(uint8_t level, const char *message)
 #endif
     lineNo = (lineNo +1) % 10000;
     logMessage(level, msg);
+    delete [] msg;
 }
 
 void log4MC::debug(const char *message)
