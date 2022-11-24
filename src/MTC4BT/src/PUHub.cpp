@@ -2,6 +2,7 @@
 
 #include "PUHub.h"
 #include "log4MC.h"
+#include "memDebug.h"
 
 #define MAX_PUHUB_CHANNEL_COUNT 2
 
@@ -36,6 +37,7 @@ bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 void PUHub::DriveTaskLoop()
 {
     for (;;) {
+        MC_ON_ENTRY(__func__)
         bool motorFound = false;
         int16_t currentSpeedPerc = 0;
         int16_t targetSpeedPerc = 0;
@@ -72,6 +74,7 @@ void PUHub::DriveTaskLoop()
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
         // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
+        MC_ON_EXIT(__func__)
         // Wait 50 milliseconds.
         vTaskDelay(250 / portTICK_PERIOD_MS);
     }

@@ -2,6 +2,7 @@
 #include "MattzoWifiClient.h"
 #include "log4MC.h"
 #include <PubSubClient.h>
+#include "memDebug.h"
 
 WiFiClient wifiSubscriberClient;
 PubSubClient mqttSubscriberClient(wifiSubscriberClient);
@@ -138,6 +139,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 
         // Loop forever.
         for (;;) {
+            MC_ON_ENTRY(__func__)
             // Wait for connection to Wifi (because we need it to contact the broker).
             MattzoWifiClient::Assert();
 
@@ -155,7 +157,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 
             // Allow the MQTT client to process incoming messages and maintain its connection to the server.
             mqttSubscriberClient.loop();
-
+            MC_ON_EXIT(__func__)
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
         }

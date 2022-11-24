@@ -8,6 +8,8 @@
 #include "loadNetworkConfiguration.h"
 #include "log4MC.h"
 
+#include "memDebug.h"
+
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
 
@@ -49,6 +51,7 @@ void setupTicker()
 void handleMQTTMessageLoop(void *parm)
 {
     for (;;) {
+        MC_ON_ENTRY(__func__)
         char *message;
 
         // See if there's a message in the queue (do not block).
@@ -62,7 +65,7 @@ void handleMQTTMessageLoop(void *parm)
             // Erase message from memory by freeing it.
             free(message);
         }
-
+        MC_ON_EXIT(__func__)
         // Wait a while before trying again (allowing other tasks to do their work)?
         vTaskDelay(50 / portTICK_PERIOD_MS);
     }
