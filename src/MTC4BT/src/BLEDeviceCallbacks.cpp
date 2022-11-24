@@ -25,4 +25,5 @@ void BLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
     }
 
     log4MC::vlogf(LOG_INFO, "BLE : Discovered unknown device: %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
+    NimBLEDevice::addIgnored(advertisedDevice->getAddress());
 }
