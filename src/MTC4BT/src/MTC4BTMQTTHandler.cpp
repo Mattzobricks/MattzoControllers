@@ -125,14 +125,14 @@ void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controll
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr)) {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'fn' command' but couldn't read 'addr' attribute.");
+        // log4MC::warn("MQTT: Received 'fn' command' but couldn't read 'addr' attribute.");
         return;
     }
 
     if (!controller->HasLocomotive(addr))
     {
-        // Not a loco under our control. Ignore message.
-        log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
+        // Not a loco under our control. Stop parsing and ignore message.
+        // log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
         return;
     }
 
