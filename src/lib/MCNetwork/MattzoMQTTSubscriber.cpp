@@ -129,7 +129,6 @@ void MattzoMQTTSubscriber::reconnect()
 void MattzoMQTTSubscriber::taskLoop(void *parm)
 {    
     try {
-        long loopCounter = 0;
         /* code */
         if (!_setupCompleted) {
             const char *message = "MQTT: Setup not completed. Execute .Setup() first.";
@@ -155,7 +154,6 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
             mqttSubscriberClient.loop();
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
-            loopCounter++;
         }
     } catch (const std::exception &e) {
         log4MC::vlogf(LOG_EMERG, "Caught exception: %s", e.what());
