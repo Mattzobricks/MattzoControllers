@@ -2,7 +2,6 @@
 #include "MattzoWifiClient.h"
 #include "log4MC.h"
 #include <PubSubClient.h>
-#include "memDebug.h"
 
 WiFiClient wifiSubscriberClient;
 PubSubClient mqttSubscriberClient(wifiSubscriberClient);
@@ -128,8 +127,9 @@ void MattzoMQTTSubscriber::reconnect()
 /// </summary>
 /// <param name="parm"></param>
 void MattzoMQTTSubscriber::taskLoop(void *parm)
-{
+{    
     try {
+        long loopCounter = 0;
         /* code */
         if (!_setupCompleted) {
             const char *message = "MQTT: Setup not completed. Execute .Setup() first.";
@@ -139,27 +139,23 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 
         // Loop forever.
         for (;;) {
-            MC_ON_ENTRY(__func__)
             // Wait for connection to Wifi (because we need it to contact the broker).
             MattzoWifiClient::Assert();
-
             // Wait for connection to MQTT (because we need it to send messages to the broker).
             if (!mqttSubscriberClient.connected()) {
                 reconnect();
             }
-
             if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
                 lastPing = millis();
 
                 // Send a ping message.
                 sendMessage("roc2bricks/ping", _subscriberName);
             }
-
             // Allow the MQTT client to process incoming messages and maintain its connection to the server.
             mqttSubscriberClient.loop();
-            MC_ON_EXIT(__func__)
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
+            loopCounter++;
         }
     } catch (const std::exception &e) {
         log4MC::vlogf(LOG_EMERG, "Caught exception: %s", e.what());

@@ -1,10 +1,8 @@
 #include "MTC4BTMQTTHandler.h"
 #include "log4MC.h"
-#include "memDebug.h"
 
 void MTC4BTMQTTHandler::Handle(const char *message, MTC4BTController *controller)
 {
-    MC_ON_ENTRY(__func__)
     char *pos;
 
     // parse the rocrail mqtt messages, all of them,
@@ -24,7 +22,6 @@ void MTC4BTMQTTHandler::Handle(const char *message, MTC4BTController *controller
         // found <clock
         log4MC::debug("MQTT: Received and ignored 'clock' command'.");
     } // IGNORE THE REST
-    MC_ON_EXIT(__func__)
 }
 
 void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *controller)
