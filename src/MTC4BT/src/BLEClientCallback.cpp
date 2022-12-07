@@ -17,7 +17,7 @@ void BLEClientCallback::onConnect(NimBLEClient *client)
          */
         client->updateConnParams(64, 64, 0, 56);
 
-        _hub->_isConnected = true;
+        _hub->connected();
     }
 }
 
@@ -27,9 +27,10 @@ void BLEClientCallback::onDisconnect(NimBLEClient *client)
         log4MC::vlogf(LOG_ERR, "BLE : Disconnected from hub '%s'.", _hub->_config->DeviceAddress->toString().c_str());
 
         _hub->_isDiscovered = false;
-        _hub->_isConnected = false;
+        _hub->disconnected();
 
-        if (_hub->_driveTaskHandle != NULL) {
+        if (_hub->_driveTaskHandle != NULL)
+        {
             vTaskDelete(_hub->_driveTaskHandle);
         }
     }

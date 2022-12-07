@@ -53,6 +53,12 @@ class BLELocomotive
     // Initialized the hubs inside this loco.
     void initHubs();
 
+    void handleConnectCallback(bool connected);
+
+    // If true, immediately sets the current speed for all channels on all hubs to zero and makes all loco lights blink.
+    // If false, releases the manual brake, returning the loco to normal operations.
+    void setManualBrake(const bool enabled);
+
     // Returns a reference to a hub by its address.
     BLEHub *getHubByAddress(std::string address);
 

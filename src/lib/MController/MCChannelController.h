@@ -42,6 +42,9 @@ class MCChannelController
 
     void Blink();
 
+    // Sets the current manual brake status.
+    void ManualBrake(bool enabled);
+
     // Sets the current e-brake status.
     void EmergencyBrake(bool enabled);
 
@@ -58,6 +61,7 @@ class MCChannelController
     // Reference to the configuration of the channel controlled by this channel controller.
     MCChannelConfig *_config;
 
+    bool _mbrake;
     bool _ebrake;
     ulong _blinkUntil;
     unsigned long _lastUpdate = 0;
