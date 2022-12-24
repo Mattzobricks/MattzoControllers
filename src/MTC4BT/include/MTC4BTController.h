@@ -1,13 +1,13 @@
 #pragma once
 
+#include "BLEHubScanner.h"
+#include "BLELocomotive.h"
 #include "MController.h"
 #include "MTC4BTConfiguration.h"
-#include "BLELocomotive.h"
-#include "BLEHubScanner.h"
 
 class MTC4BTController : public MController
 {
-public:
+  public:
     // MTC4BTController constructor.
     MTC4BTController();
 
@@ -32,7 +32,7 @@ public:
     // Handles the given trigger (if loco is under control of this controller).
     void HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value);
 
-private:
+  private:
     // Discovers new BLE devices.
     static void discoveryLoop(void *parm);
 

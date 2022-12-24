@@ -5,10 +5,8 @@ MCLocoEvent::MCLocoEvent(std::vector<MCLocoTrigger *> triggers, std::vector<MCLo
 
 bool MCLocoEvent::HasTrigger(MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
-    for (MCLocoTrigger *trigger : _triggers)
-    {
-        if (trigger->Matches(source, eventType, eventId, value))
-        {
+    for (MCLocoTrigger *trigger : _triggers) {
+        if (trigger->Matches(source, eventType, eventId, value)) {
             return true;
         }
     }

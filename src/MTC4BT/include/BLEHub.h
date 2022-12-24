@@ -24,8 +24,7 @@
 // The number of seconds to wait for a Hub to connect.
 #define ConnectDelayInSeconds 5
 
-enum struct MessageType
-{
+enum struct MessageType {
     HUB_PROPERTIES = 0x01,
     HUB_ACTIONS = 0x02,
     HUB_ALERTS = 0x03,
@@ -54,7 +53,7 @@ enum struct MessageType
 // Abstract Bluetooth Low Energy (BLE) hub base class.
 class BLEHub
 {
-public:
+  public:
     BLEHub(BLEHubConfiguration *config);
 
     // Returns a boolean value indicating whether this BLE hub is enabled (in use).
@@ -65,6 +64,9 @@ public:
 
     // Returns a boolean value indicating whether we are connected to the BLE hub.
     bool IsConnected();
+
+    // Sets
+    void SetConnectCallback(std::function<void(bool)> callback);
 
     // Returns the hub's raw address.
     std::string GetRawAddress();
@@ -85,8 +87,12 @@ public:
     void BlinkLights(int durationInMs);
 
     // If true, immediately sets the current speed for all channels to zero.
+    // If false, releases the manual brake.
+    void SetManualBrake(const bool enabled);
+
+    // If true, immediately sets the current speed for all channels to zero.
     // If false, releases the emergency brake.
-    void EmergencyBrake(const bool enabled);
+    void SetEmergencyBrake(const bool enabled);
 
     // Method used to connect to the BLE hub.
     bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
@@ -103,7 +109,7 @@ public:
     // Abstract callback method used to handle hub notifications.
     virtual void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) = 0;
 
-private:
+  private:
     void initChannelControllers();
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
@@ -111,6 +117,10 @@ private:
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
     bool startDriveTask();
     static void driveTaskImpl(void *);
+    void connected();
+    void disconnected();
+
+    std::function<void(bool)> _onConnectionChangedCallback;
 
     BLEHubConfiguration *_config;
     std::vector<BLEHubChannelController *> _channelControllers;
@@ -120,6 +130,7 @@ private:
     NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
     NimBLEClient *_hub;
     NimBLEClientCallbacks *_clientCallback;
+    bool _mbrake;
     bool _ebrake;
     bool _blinkLights;
     ulong _blinkUntil;

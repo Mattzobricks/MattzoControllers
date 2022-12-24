@@ -10,6 +10,8 @@ MCChannelController::MCChannelController(MCChannelConfig *config)
 {
     _config = config;
 
+    // Initially activate manual brake;
+    _mbrake = true;
     _ebrake = false;
     _blinkUntil = 0;
     _minPwrPerc = 0;
@@ -46,7 +48,7 @@ void MCChannelController::SetTargetPwrPerc(int16_t targetPwrPerc)
 
 int16_t MCChannelController::GetCurrentPwrPerc()
 {
-    if (_ebrake)
+    if (_ebrake || _mbrake)
     {
         switch (GetAttachedDevice())
         {
@@ -55,16 +57,14 @@ int16_t MCChannelController::GetCurrentPwrPerc()
             // Force blinking lights (50% when on, 0% when off) when e-brake is enabled.
             return MCLightController::Blink() ? 50 : 0;
         }
-        case DeviceType::Motor:
-        {
+        case DeviceType::Motor: {
             // Force motor off (0%).
             return 0;
         }
         }
     }
 
-    if (_blinkUntil > millis() && GetAttachedDevice() == DeviceType::Light)
-    {
+    if (_blinkUntil > millis() && GetAttachedDevice() == DeviceType::Light) {
         // Force blinking lights (50% when on, 0% when off) when requested.
         return MCLightController::Blink() ? 50 : 0;
     }
@@ -81,7 +81,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 {
     unsigned long timeStamp = millis();
 
-    if (_ebrake)
+    if (_ebrake || _mbrake)
     {
         // Update of current pwr required (directly to zero), if we're e-braking.
         return true;
@@ -90,8 +90,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
     // Update timestamp of last update.
     _lastUpdate = timeStamp;
 
-    if (isAtTargetPwrPerc())
-    {
+    if (isAtTargetPwrPerc()) {
         // No need to update current pwr, if we've already reached target pwr.
         return false;
     }
@@ -99,8 +98,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
     int16_t dirMultiplier = _targetPwrPerc > _currentPwrPerc ? 1 : -1;
     int16_t pwrStep = (isAccelarating() ? _config->GetPwrIncStep() : _config->GetPwrDecStep()) * dirMultiplier;
 
-    if (!isAccelarating() && abs(pwrStep) > abs(_currentPwrPerc))
-    {
+    if (!isAccelarating() && abs(pwrStep) > abs(_currentPwrPerc)) {
         // We can't switch from one drive direction to the other directly. Enforce stop first.
         _currentPwrPerc = 0;
         return true;
@@ -113,14 +111,12 @@ bool MCChannelController::UpdateCurrentPwrPerc()
     if ((_targetPwrPerc < 0 && newPwrPerc < _targetPwrPerc && newPwrPerc < _currentPwrPerc) ||
         (_targetPwrPerc >= 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
         (_targetPwrPerc < 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
-        (_targetPwrPerc >= 0 && newPwrPerc < _targetPwrPerc && newPwrPerc < _currentPwrPerc))
-    {
+        (_targetPwrPerc >= 0 && newPwrPerc < _targetPwrPerc && newPwrPerc < _currentPwrPerc)) {
         _currentPwrPerc = _targetPwrPerc;
         return true;
     }
 
-    if (abs(newPwrPerc) < _minPwrPerc)
-    {
+    if (abs(newPwrPerc) < _minPwrPerc) {
         // New pwr is slower than min pwr, force to min pwr or stop immediately (dependend on wether we're accelarating or decelerating).
         dirMultiplier = newPwrPerc >= 0 ? 1 : -1;
         _currentPwrPerc = isAccelarating() ? _minPwrPerc * dirMultiplier : 0;
@@ -142,6 +138,11 @@ bool MCChannelController::IsDrivingForward()
     return _currentPwrPerc >= 0;
 }
 
+void MCChannelController::ManualBrake(bool enabled)
+{
+    _mbrake = enabled;
+}
+
 void MCChannelController::EmergencyBrake(bool enabled)
 {
     _ebrake = enabled;
@@ -150,14 +151,12 @@ void MCChannelController::EmergencyBrake(bool enabled)
 bool MCChannelController::isAccelarating()
 {
     // Current pwr equals target pwr.
-    if (isAtTargetPwrPerc())
-    {
+    if (isAtTargetPwrPerc()) {
         return false;
     }
 
     // Current pwr and target pwr in opposite directions means we must be decelerating first.
-    if (_currentPwrPerc * _targetPwrPerc < 0)
-    {
+    if (_currentPwrPerc * _targetPwrPerc < 0) {
         return false;
     }
 
@@ -174,14 +173,12 @@ bool MCChannelController::isAtTargetPwrPerc()
 int16_t MCChannelController::normalizePwrPerc(int16_t pwrPerc)
 {
     // We can never go beyond the absolute min pwr value.
-    if (pwrPerc < MIN_PWR_PERC)
-    {
+    if (pwrPerc < MIN_PWR_PERC) {
         return MIN_PWR_PERC;
     }
 
     // We can never go beyond the absolute max pwr value.
-    if (pwrPerc > MAX_PWR_PERC)
-    {
+    if (pwrPerc > MAX_PWR_PERC) {
         return MAX_PWR_PERC;
     }
 

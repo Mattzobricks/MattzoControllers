@@ -5,7 +5,7 @@
 // Controller channel
 class MCChannel
 {
-public:
+  public:
     MCChannel(ChannelType portType, std::string address);
 
     // Returns the type of channel the device is attached to.
@@ -23,7 +23,7 @@ public:
     // Sets the parent hub/receiver address.
     void SetParentAddress(const std::string address);
 
-private:
+  private:
     // Type of channel.
     ChannelType _portType;
 

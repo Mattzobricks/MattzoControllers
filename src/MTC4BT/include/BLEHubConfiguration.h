@@ -2,11 +2,11 @@
 
 #include <Arduino.h>
 
-#include "NimBLEAddress.h"
 #include "MCChannelConfig.h"
+#include "NimBLEAddress.h"
+#include <vector>
 
-enum BLEHubType
-{
+enum BLEHubType {
     // Powered Up Hub (Lego).
     PU,
 
@@ -14,20 +14,19 @@ enum BLEHubType
     SBrick
 };
 
-// String switch paridgam   
-struct bleHubTypeMap : public std::map<std::string, BLEHubType>
-{
+// String switch paridgam
+struct bleHubTypeMap : public std::map<std::string, BLEHubType> {
     bleHubTypeMap()
     {
         this->operator[]("PU") = BLEHubType::PU;
         this->operator[]("SBrick") = BLEHubType::SBrick;
     };
-    ~bleHubTypeMap(){}
+    ~bleHubTypeMap() {}
 };
 
 class BLEHubConfiguration
 {
-public:
+  public:
     BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, bool enabled = true);
 
     // Type of Hub.

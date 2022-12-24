@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include "BLEHubScanner.h"
 #include "BLEDeviceCallbacks.h"
+#include "BLEHubScanner.h"
 #include "log4MC.h"
 
 BLEHubScanner::BLEHubScanner()
@@ -22,8 +22,7 @@ BLEHubScanner::BLEHubScanner()
 
 void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t scanDurationInSeconds)
 {
-    if (_isDiscovering)
-    {
+    if (_isDiscovering) {
         return;
     }
 
@@ -39,8 +38,7 @@ void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t s
     // }
 
     // Set the callback we want to use to be informed when we have detected a new device.
-    if (_advertisedDeviceCallback == nullptr)
-    {
+    if (_advertisedDeviceCallback == nullptr) {
         _advertisedDeviceCallback = new BLEDeviceCallbacks(hubs);
         _scanner->setAdvertisedDeviceCallbacks(_advertisedDeviceCallback, false);
     }

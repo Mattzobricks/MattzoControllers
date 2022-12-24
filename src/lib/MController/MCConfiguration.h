@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Arduino.h>
-
 #include "MCChannelConfig.h"
+#include <Arduino.h>
+#include <vector>
 
 struct MCConfiguration
 {

@@ -1,12 +1,12 @@
 #include <Arduino.h>
 
-#include "MattzoWifiClient.h"
+#include "MTC4BTController.h"
 #include "MTC4BTMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
-#include "log4MC.h"
-#include "loadNetworkConfiguration.h"
+#include "MattzoWifiClient.h"
 #include "loadControllerConfiguration.h"
-#include "MTC4BTController.h"
+#include "loadNetworkConfiguration.h"
+#include "log4MC.h"
 
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
@@ -16,15 +16,43 @@ MCNetworkConfiguration *networkConfig;
 MTC4BTController *controller;
 MTC4BTConfiguration *controllerConfig;
 
+#ifdef ESP32
+// 1 minute, 30, 15 or 10 seconds
+#ifdef TICKER
+#if TICKER == 1 or TICKER == 2 or TICKER == 4 or TICKER == 6
+#define SETUPTICKER
+void handleTickerLoop(void *param)
+{
+    long minuteTicker = 0;
+    unsigned long timeTaken = 0;
+    for (;;) {
+        timeTaken = millis();
+        log4MC::vlogf(LOG_INFO, "Minutes uptime: %d.%02d", (minuteTicker / TICKER), (minuteTicker % TICKER) * (60 / TICKER));
+        log4MC::vlogf(LOG_INFO, "  Messages in queue: %d", uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
+        log4MC::vlogf(LOG_INFO, "  Memory Heap free: %8u max alloc: %8u min free: %8u", ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
+        minuteTicker++;
+        timeTaken = abs((long)(timeTaken - millis()));
+        delay(60000 / TICKER - timeTaken);
+    }
+}
+void setupTicker()
+{
+    xTaskCreatePinnedToCore(handleTickerLoop, "TickerHandler", 2048, NULL, 2, NULL, 1);
+    delay(500);
+}
+#else
+#error "Invalid ticker value, valid values are 1,2,4 or 6"
+#endif
+#endif
+#endif
+
 void handleMQTTMessageLoop(void *parm)
 {
-    for (;;)
-    {
+    for (;;) {
         char *message;
 
         // See if there's a message in the queue (do not block).
-        while (xQueueReceive(MattzoMQTTSubscriber::IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE)
-        {
+        while (xQueueReceive(MattzoMQTTSubscriber::IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
             // Output message to serial for debug.
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
@@ -77,6 +105,12 @@ void setup()
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
+#ifdef ESP32
+#ifdef SETUPTICKER
+    setupTicker();
+    log4MC::info("Ticker started");
+#endif
+#endif
 }
 
 void loop()

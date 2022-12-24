@@ -1,7 +1,6 @@
 #pragma once
 
-struct MCLoggingSerialConfiguration
-{
-public:
-    bool Enabled;    
+struct MCLoggingSerialConfiguration {
+  public:
+    bool Enabled;
 };

@@ -7,7 +7,7 @@
 
 class MCPinController : public MCChannelController
 {
-public:
+  public:
     MCPinController(MCChannelConfig *config);
 
     // Returns the channel's address interpreted as an ESP pin number.

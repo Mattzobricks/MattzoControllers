@@ -1,10 +1,9 @@
 #include "MCLoggingConfiguration.h"
-#include "MCWiFiConfiguration.h"
 #include "MCMQTTConfiguration.h"
+#include "MCWiFiConfiguration.h"
 
-struct MCNetworkConfiguration
-{
-public:
+struct MCNetworkConfiguration {
+  public:
     MCLoggingConfiguration *Logging;
     MCWiFiConfiguration *WiFi;
     MCMQTTConfiguration *MQTT;

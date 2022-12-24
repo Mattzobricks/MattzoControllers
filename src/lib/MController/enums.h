@@ -2,15 +2,13 @@
 
 #include <map>
 
-enum ChannelType
-{
+enum ChannelType {
     EspPinChannel = 0,
     BleHubChannel
 };
 
 // String switch paridgam
-struct channelTypeMap : public std::map<std::string, ChannelType>
-{
+struct channelTypeMap : public std::map<std::string, ChannelType> {
     channelTypeMap()
     {
         this->operator[]("espPin") = ChannelType::EspPinChannel;
@@ -19,8 +17,7 @@ struct channelTypeMap : public std::map<std::string, ChannelType>
     ~channelTypeMap() {}
 };
 
-enum DeviceType
-{
+enum DeviceType {
     Nothing,
     Motor,
     Light,
@@ -28,8 +25,7 @@ enum DeviceType
 };
 
 // String switch paridgam
-struct deviceTypeMap : public std::map<std::string, DeviceType>
-{
+struct deviceTypeMap : public std::map<std::string, DeviceType> {
     deviceTypeMap()
     {
         this->operator[]("") = DeviceType::Nothing;
@@ -41,8 +37,7 @@ struct deviceTypeMap : public std::map<std::string, DeviceType>
     ~deviceTypeMap() {}
 };
 
-enum MCTriggerSource
-{
+enum MCTriggerSource {
     // Locomotive.
     Loco,
 
@@ -51,20 +46,18 @@ enum MCTriggerSource
 };
 
 // String switch paridgam
-struct triggerSourceMap : public std::map<std::string, MCTriggerSource>
-{
+struct triggerSourceMap : public std::map<std::string, MCTriggerSource> {
     triggerSourceMap()
     {
         this->operator[]("") = MCTriggerSource::Loco;
         this->operator[]("loco") = MCTriggerSource::Loco;
         this->operator[]("rr") = MCTriggerSource::RocRail;
     };
-    ~triggerSourceMap(){}
+    ~triggerSourceMap() {}
 };
 
 // Function supported by the generic controller.
-enum MCFunction
-{
+enum MCFunction {
     Status,
     F0,
     F1,
@@ -102,8 +95,7 @@ enum MCFunction
 };
 
 // String switch paridgam
-struct functionMap : public std::map<std::string, MCFunction>
-{
+struct functionMap : public std::map<std::string, MCFunction> {
     functionMap()
     {
         this->operator[]("status") = MCFunction::Status;

@@ -4,8 +4,7 @@ void log4MC::Setup(const char *hostName, MCLoggingConfiguration *config)
 {
     _config = config;
 
-    if (_config->SysLog->Enabled)
-    {
+    if (_config->SysLog->Enabled) {
         Serial.print("Syslog: Server: ");
         Serial.print(config->SysLog->ServerAddress.c_str());
         Serial.print(":");
@@ -22,7 +21,7 @@ void log4MC::Setup(const char *hostName, MCLoggingConfiguration *config)
             .appName(config->SysLog->AppName.c_str())
             .defaultPriority(LOG_KERN)
             .logMask(config->SysLog->mask);
-            
+
         _priMask = config->SysLog->mask;
     }
 
@@ -36,24 +35,19 @@ void log4MC::wifiIsConnected(bool connected)
 
 void log4MC::logMessage(uint8_t level, char *message)
 {
-    if (_connected && _config->SysLog->Enabled)
-    {
+    if (_connected && _config->SysLog->Enabled) {
         syslog.log(level, message);
     }
 
-    if (_config->Serial->Enabled && (LOG_MASK(level) & _priMask))
-    {
+    if (_config->Serial->Enabled && (LOG_MASK(level) & _priMask)) {
         Serial.println(message);
     }
-
-    delete[] message;
 }
 
 void log4MC::setLogMask(uint8_t priMask)
 {
     _priMask = priMask;
-    if (_config->SysLog->Enabled)
-    {
+    if (_config->SysLog->Enabled) {
         syslog.logMask(_priMask);
     }
 }
@@ -70,10 +64,6 @@ void log4MC::vlogf(uint8_t level, const char *fmt, ...)
 
     va_start(args, fmt);
 
-#ifdef ESP32
-    char *tmpmsg, *msg;
-#endif
-
     size_t initialLen;
     size_t len;
 
@@ -81,41 +71,33 @@ void log4MC::vlogf(uint8_t level, const char *fmt, ...)
 
     message = new char[initialLen + 11];
     len = vsnprintf(message, initialLen + 1, fmt, args);
-    if (len > initialLen)
-    {
+    if (len > initialLen) {
         delete[] message;
         message = new char[len + 11];
         vsnprintf(message, len + 1, fmt, args);
     }
     va_end(args);
 
-#ifdef ESP32
-    tmpmsg = message;
-    msg = new char[len + 10];
-    sprintf(msg, "[%d] %s", xPortGetCoreID(), message);
-    msg[strlen(msg)] = '\0'; // should be paded by zeros, HAVE TO TEST
-    delete[] tmpmsg;
-    message = msg;
-#endif
-
-    logMessage(level, message);
+    log(level, message);
+    delete [] message;
 }
 
 void log4MC::log(uint8_t level, const char *message)
 {
     char *msg = NULL;
     unsigned int len = strlen(message);
-    msg = new char[len + 11];
+    msg = new char[len + 20];
 
 #ifdef ESP32
-    sprintf(msg, "[%d] %s", xPortGetCoreID(), message);
+    sprintf(msg, "[%04d] [%d] %s", lineNo, xPortGetCoreID(), message);
     msg[strlen(msg)] = '\0'; // should be paded by zeros, HAVE TO TEST
 #else
-    strcpy(msg, message);
+    sprintf(msg, "[%04d] %s", lineNo, message);
     msg[len] = '\0';
 #endif
-
+    lineNo = (lineNo +1) % 10000;
     logMessage(level, msg);
+    delete [] msg;
 }
 
 void log4MC::debug(const char *message)
@@ -154,3 +136,4 @@ bool log4MC::_connected = false;
 uint8_t log4MC::_priMask = LOG_MASK(LOG_INFO) | LOG_MASK(LOG_DEBUG) | LOG_MASK(LOG_WARNING) | LOG_MASK(LOG_ERR) | LOG_MASK(LOG_CRIT);
 WiFiUDP log4MC::_udpClient;
 Syslog log4MC::syslog(_udpClient, SYSLOG_PROTO_IETF);
+unsigned int log4MC::lineNo = 0;

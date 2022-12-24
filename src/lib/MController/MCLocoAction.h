@@ -7,14 +7,14 @@
 // Loco action
 class MCLocoAction
 {
-public:
+  public:
     MCLocoAction(MCChannel *channel, int16_t targetPerc);
 
     MCChannel *GetChannel();
 
     int16_t GetTargetPowerPerc();
 
-private:
+  private:
     // Holds the target channel.
     MCChannel *_channel;
 

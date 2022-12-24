@@ -5,7 +5,7 @@
 
 class BLELocomotiveConfiguration
 {
-public:
+  public:
     BLELocomotiveConfiguration(uint address, std::string name, std::vector<BLEHubConfiguration *> hubs, std::vector<MCLocoEvent *> events, bool enabled = true);
 
     uint _address;

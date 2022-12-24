@@ -1,12 +1,13 @@
 #pragma once
 
-#include "MCLocoTrigger.h"
 #include "MCLocoAction.h"
+#include "MCLocoTrigger.h"
+#include <vector>
 
 // Loco event
 class MCLocoEvent
 {
-public:
+  public:
     MCLocoEvent(std::vector<MCLocoTrigger *> triggers, std::vector<MCLocoAction *> actions);
 
     bool HasTrigger(MCTriggerSource source, std::string eventType, std::string eventId, std::string value);
@@ -14,7 +15,7 @@ public:
     // Returns a list of actions to execute when triggered by this event.
     std::vector<MCLocoAction *> GetActions();
 
-private:
+  private:
     std::vector<MCLocoTrigger *> _triggers;
     std::vector<MCLocoAction *> _actions;
 };

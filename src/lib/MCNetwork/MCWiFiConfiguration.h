@@ -1,8 +1,7 @@
 #pragma once
 
-struct MCWiFiConfiguration
-{
-public:
+struct MCWiFiConfiguration {
+  public:
     std::string SSID;
     std::string password;
     std::string otaPassword;

@@ -7,7 +7,7 @@
 // Channel controller
 class MCChannelController
 {
-public:
+  public:
     MCChannelController(MCChannelConfig *config);
 
     // Returns the device attached to the channel.
@@ -42,10 +42,13 @@ public:
 
     void Blink();
 
+    // Sets the current manual brake status.
+    void ManualBrake(bool enabled);
+
     // Sets the current e-brake status.
     void EmergencyBrake(bool enabled);
 
-private:
+  private:
     // Returns a boolean value indicating whether the channel is currently accelarating in either direction.
     bool isAccelarating();
 
@@ -58,6 +61,7 @@ private:
     // Reference to the configuration of the channel controlled by this channel controller.
     MCChannelConfig *_config;
 
+    bool _mbrake;
     bool _ebrake;
     ulong _blinkUntil;
     unsigned long _lastUpdate = 0;
