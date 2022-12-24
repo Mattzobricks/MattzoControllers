@@ -44,6 +44,11 @@ bool BLEHub::IsConnected()
     return _isConnected;
 }
 
+void BLEHub::SetConnectCallback(std::function<void(bool)> callback)
+{
+    _onConnectionChangedCallback = callback;
+}
+
 std::string BLEHub::GetRawAddress()
 {
     return _config->DeviceAddress->toString();
@@ -85,8 +90,28 @@ void BLEHub::BlinkLights(int durationInMs)
 }
 
 // If true, immediately sets the current speed for all channels to zero.
+// If false, releases the manual brake.
+void BLEHub::SetManualBrake(const bool enabled)
+{
+    if (enabled == _mbrake)
+    {
+        // Status hasn't changed. Ignore.
+        return;
+    }
+
+    // Set hub manual brake status.
+    _mbrake = enabled;
+
+    // Set manual brake on all channels.
+    for (BLEHubChannelController *channel : _channelControllers)
+    {
+        channel->ManualBrake(_mbrake);
+    }
+}
+
+// If true, immediately sets the current speed for all channels to zero.
 // If false, releases the emergency brake.
-void BLEHub::EmergencyBrake(const bool enabled)
+void BLEHub::SetEmergencyBrake(const bool enabled)
 {
     if (enabled == _ebrake) {
         // Status hasn't changed. Ignore.
@@ -257,4 +282,22 @@ bool BLEHub::startDriveTask()
 void BLEHub::driveTaskImpl(void *_this)
 {
     ((BLEHub *)_this)->DriveTaskLoop();
+}
+
+void BLEHub::connected()
+{
+    this->_isConnected = true;
+    if (this->_onConnectionChangedCallback)
+    {
+        this->_onConnectionChangedCallback(true);
+    }
+}
+
+void BLEHub::disconnected()
+{
+    this->_isConnected = false;
+    if (this->_onConnectionChangedCallback)
+    {
+        this->_onConnectionChangedCallback(false);
+    }
 }

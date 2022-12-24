@@ -4,8 +4,9 @@
 #include <Arduino.h>
 #include <vector>
 
-struct MCConfiguration {
-  public:
+struct MCConfiguration
+{
+public:
     // Controller name.
     const char *ControllerName;
 

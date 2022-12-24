@@ -65,6 +65,9 @@ class BLEHub
     // Returns a boolean value indicating whether we are connected to the BLE hub.
     bool IsConnected();
 
+    // Sets
+    void SetConnectCallback(std::function<void(bool)> callback);
+
     // Returns the hub's raw address.
     std::string GetRawAddress();
 
@@ -84,8 +87,12 @@ class BLEHub
     void BlinkLights(int durationInMs);
 
     // If true, immediately sets the current speed for all channels to zero.
+    // If false, releases the manual brake.
+    void SetManualBrake(const bool enabled);
+
+    // If true, immediately sets the current speed for all channels to zero.
     // If false, releases the emergency brake.
-    void EmergencyBrake(const bool enabled);
+    void SetEmergencyBrake(const bool enabled);
 
     // Method used to connect to the BLE hub.
     bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
@@ -110,6 +117,10 @@ class BLEHub
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
     bool startDriveTask();
     static void driveTaskImpl(void *);
+    void connected();
+    void disconnected();
+
+    std::function<void(bool)> _onConnectionChangedCallback;
 
     BLEHubConfiguration *_config;
     std::vector<BLEHubChannelController *> _channelControllers;
@@ -119,6 +130,7 @@ class BLEHub
     NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
     NimBLEClient *_hub;
     NimBLEClientCallbacks *_clientCallback;
+    bool _mbrake;
     bool _ebrake;
     bool _blinkLights;
     ulong _blinkUntil;

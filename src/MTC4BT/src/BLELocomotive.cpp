@@ -110,14 +110,10 @@ void BLELocomotive::BlinkLights(int durationInMs)
 
 void BLELocomotive::SetEmergencyBrake(const bool enabled)
 {
-    if (!AllHubsConnected()) {
-        // Ignore e-brake command (we're not driving anyway).
-        return;
-    }
-
     // Handle e-brake on all channels of our hubs.
-    for (BLEHub *hub : Hubs) {
-        hub->EmergencyBrake(enabled);
+    for (BLEHub *hub : Hubs)
+    {
+        hub->SetEmergencyBrake(enabled);
     }
 }
 
@@ -143,18 +139,57 @@ BLEHub *BLELocomotive::GetHub(uint index)
 
 void BLELocomotive::initHubs()
 {
-    for (BLEHubConfiguration *hubConfig : _config->_hubs) {
-        switch (hubConfig->HubType) {
+    for (BLEHubConfiguration *hubConfig : _config->_hubs)
+    {
+        BLEHub *hub;
+
+        switch (hubConfig->HubType)
+        {
         case BLEHubType::SBrick:
-            Hubs.push_back(new SBrickHub(hubConfig));
+            hub = new SBrickHub(hubConfig);
             break;
         case BLEHubType::PU:
-            Hubs.push_back(new PUHub(hubConfig));
+            hub = new PUHub(hubConfig);
             break;
+        }
+
+        if (hub)
+        {
+            hub->SetConnectCallback([this](bool connected) -> void
+                                    { handleConnectCallback(connected); });
+            Hubs.push_back(hub);
         }
     }
 
     // log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
+}
+
+void BLELocomotive::handleConnectCallback(bool connected)
+{
+    if (connected)
+    {
+        // log4MC::info("connected");
+        if (AllHubsConnected())
+        {
+            // All hubs are connected. We can lift the manual brake.
+            this->setManualBrake(false);
+        }
+    }
+    else
+    {
+        // At least one hub is disconnected, so we activate the manual brake.
+        // log4MC::info("disconnected");
+        this->setManualBrake(true);
+    }
+}
+
+void BLELocomotive::setManualBrake(const bool enabled)
+{
+    // Handle manual brake on all channels of our hubs.
+    for (BLEHub *hub : Hubs)
+    {
+        hub->SetManualBrake(enabled);
+    }
 }
 
 BLEHub *BLELocomotive::getHubByAddress(std::string address)

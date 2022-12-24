@@ -10,6 +10,8 @@ MCChannelController::MCChannelController(MCChannelConfig *config)
 {
     _config = config;
 
+    // Initially activate manual brake;
+    _mbrake = true;
     _ebrake = false;
     _blinkUntil = 0;
     _minPwrPerc = 0;
@@ -46,9 +48,12 @@ void MCChannelController::SetTargetPwrPerc(int16_t targetPwrPerc)
 
 int16_t MCChannelController::GetCurrentPwrPerc()
 {
-    if (_ebrake) {
-        switch (GetAttachedDevice()) {
-        case DeviceType::Light: {
+    if (_ebrake || _mbrake)
+    {
+        switch (GetAttachedDevice())
+        {
+        case DeviceType::Light:
+        {
             // Force blinking lights (50% when on, 0% when off) when e-brake is enabled.
             return MCLightController::Blink() ? 50 : 0;
         }
@@ -76,7 +81,8 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 {
     unsigned long timeStamp = millis();
 
-    if (_ebrake) {
+    if (_ebrake || _mbrake)
+    {
         // Update of current pwr required (directly to zero), if we're e-braking.
         return true;
     }
@@ -130,6 +136,11 @@ uint8_t MCChannelController::GetAbsCurrentPwrPerc()
 bool MCChannelController::IsDrivingForward()
 {
     return _currentPwrPerc >= 0;
+}
+
+void MCChannelController::ManualBrake(bool enabled)
+{
+    _mbrake = enabled;
 }
 
 void MCChannelController::EmergencyBrake(bool enabled)
