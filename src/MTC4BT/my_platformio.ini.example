@@ -9,10 +9,11 @@ default_envs = esp32doit-devkit-v1
 ; moved to my_platformio.ini
 data_dir = $PROJECT_DIR/data
 
-[common]
+[my_common]
 ; To show memory usage every minute, uncomment the following lines
 ;build_flags = 
 ;	-DTICKER=1
+[common]
 upload_com_port = COM3
 
 [env:az-delivery-devkit-v4]

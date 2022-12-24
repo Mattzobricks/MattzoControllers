@@ -31,6 +31,7 @@ void BLEClientCallback::onDisconnect(NimBLEClient *client)
 
         if (_hub->_driveTaskHandle != NULL) {
             vTaskDelete(_hub->_driveTaskHandle);
+            _hub->_driveTaskHandle = NULL;
         }
     }
 }
