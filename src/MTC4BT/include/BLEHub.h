@@ -102,7 +102,7 @@ class BLEHub
     // Abstract callback method used to handle hub notifications.
     virtual void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) = 0;
 
-  private:
+  protected:
     void initChannelControllers();
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
@@ -131,8 +131,6 @@ class BLEHub
     // NimBLERemoteCharacteristic *_deviceInformationCharacteristic;
 
     // The following classes can access private members of BLEHub.
-    friend class PUHub;
-    friend class SBrickHub;
     friend class BLEClientCallback;
     friend class BLEDeviceCallbacks;
 };

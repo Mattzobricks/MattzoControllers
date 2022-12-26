@@ -11,13 +11,20 @@ enum BLEHubType {
     PU,
 
     // SBrick (Vengit).
-    SBrick
+    SBrick,
+
+    // ADDNEWDEVICE * comment for places where to add code for a new device
+    // Dummy to test memory leak
+    DUMMY,
 };
 
 // String switch paridgam
 struct bleHubTypeMap : public std::map<std::string, BLEHubType> {
     bleHubTypeMap()
-    {
+    {   
+        // ADDNEWDEVICE * comment for places where to add code for a new device
+        this->operator[]("DUMMY") = BLEHubType::DUMMY;
+        
         this->operator[]("PU") = BLEHubType::PU;
         this->operator[]("SBrick") = BLEHubType::SBrick;
     };

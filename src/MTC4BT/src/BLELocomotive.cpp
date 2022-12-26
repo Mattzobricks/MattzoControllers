@@ -3,6 +3,8 @@
 #include "MController.h"
 #include "PUHub.h"
 #include "SBrickHub.h"
+// ADDNEWDEVICE * comment for places where to add code for a new device
+#include "DUMMYHub.h"
 #include "log4MC.h"
 
 BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MController *controller)
@@ -150,6 +152,10 @@ void BLELocomotive::initHubs()
             break;
         case BLEHubType::PU:
             Hubs.push_back(new PUHub(hubConfig));
+            break;
+        // ADDNEWDEVICE * comment for places where to add code for a new device
+        case BLEHubType::DUMMY:
+            hub = new DUMMYHub(hubConfig);
             break;
         }
     }

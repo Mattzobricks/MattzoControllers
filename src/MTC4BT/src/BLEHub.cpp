@@ -174,12 +174,12 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
         _hub->disconnect();
         return false;
     }
-
+    log4MC::vlogf(LOG_DEBUG, "BLEConnect : before canNotify");
     // Subscribe to receive callback notifications.
     if (_remoteControlCharacteristic->canNotify()) {
         _remoteControlCharacteristic->subscribe(true, std::bind(&BLEHub::NotifyCallback, this, _1, _2, _3, _4), true);
     }
-
+    log4MC::vlogf(LOG_DEBUG, "BLEConnect : before startingtask");
     // Start drive task loop.
     return startDriveTask();
 }
@@ -251,6 +251,7 @@ bool BLEHub::startDriveTask()
     // strcat(taskName, _deviceName.c_str());
 
     // Attempt to run drive task, return result.
+    log4MC::vlogf(LOG_DEBUG, "BLEConnect : startingtask");
     return xTaskCreatePinnedToCore(this->driveTaskImpl, "DriveTask", BLE_StackDepth, this, BLE_TaskPriority, &_driveTaskHandle, BLE_CoreID) == pdPASS;
 }
 
