@@ -155,7 +155,7 @@ void BLELocomotive::initHubs()
             break;
         // ADDNEWDEVICE * comment for places where to add code for a new device
         case BLEHubType::DUMMY:
-            hub = new DUMMYHub(hubConfig);
+            Hubs.push_back(new DUMMYHub(hubConfig));
             break;
         }
     }

@@ -61,7 +61,9 @@ void DUMMYHub::DriveTaskLoop()
     log4MC::vlogf(LOG_DEBUG, "DUM : Entering DriveTaskLoop"); 
 
     for (;;) {
-        bool motorFound = false;
+        motorFound = false;
+        currentSpeedPerc = 0;
+        targetSpeedPerc = 0;
         for (BLEHubChannelController *channel : _channelControllers) {
             // Determine current drive state.
             if (!motorFound && channel->GetAttachedDevice() == DeviceType::Motor) {\
@@ -91,22 +93,6 @@ void DUMMYHub::DriveTaskLoop()
                 break;
             }
         }
-
-        // Construct drive command.
-        uint8_t byteCmd[13] = {
-            CMD_DRIVE,
-            BLEHubChannel::A,
-            channelAForward,
-            channelAPwr,
-            BLEHubChannel::B,
-            channelBForward,
-            channelBPwr,
-            BLEHubChannel::C,
-            channelCForward,
-            channelCPwr,
-            BLEHubChannel::D,
-            channelDForward,
-            channelDPwr};
 
         // Send drive command.
         if (currentSpeedPerc != targetSpeedPerc) {
