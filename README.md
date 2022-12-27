@@ -9,10 +9,7 @@ Enjoy!
 Cheers,
 Mattze and the Mattzobricks core development team!
 
-
-***********
-* LICENSE *
-***********
+*********
 
 Copyright 2019 by Mattzobricks
 
