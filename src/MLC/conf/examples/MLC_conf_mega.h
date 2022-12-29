@@ -58,6 +58,8 @@ uint8_t PCA9685_OE_PIN = D7;
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 1
 
+
+
 // Infos for I/O port expander MCP23017
 // Usage:
 // - If a MCP23017 I/O port expander is connected to your ESP8266, set USE_MCP23017 to true.
@@ -86,6 +88,8 @@ uint8_t PCA9685_OE_PIN = D7;
 
 // Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 2
+
+
 
 // SERVO WIRING CONFIGURATION
 
@@ -157,6 +161,8 @@ struct ServoConfiguration {
         {.pin = 15,
          .pinType = 0x40,
          .detachAfterUsage = true}};
+
+
 
 // LED WIRING CONFIGURATION
 
@@ -301,12 +307,16 @@ struct SensorConfiguration {
          .pinType = MCP23017_SENSOR_PIN_TYPE,
          .remoteMattzoControllerId = -1}};
 
+
+
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
 const bool STATUS_LED_PIN_INSTALLED = true; // set to false if no LED is installed
 const uint8_t STATUS_LED_PIN = D4;
 const bool STATUS_LED_REVERSE = true;
+
+
 
 // SWITCH CONFIGURATION
 
@@ -412,17 +422,19 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
          .triggerSensors = false,
          .sensorIndex = {-1, -1}}};
 
+
+
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 8;
+#define NUM_SIGNALS 8
 // Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 2;
+#define NUM_SIGNAL_ASPECTS 2
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 2;
+#define NUM_SIGNAL_LEDS 2
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
-const int NUM_SIGNAL_SERVOS = 0;
+#define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     {
@@ -440,6 +452,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         {.aspectRocrailPort = {11, 12}, .aspectLEDPort = {10, 11}, .aspectLEDMapping = {{true, false}, {false, true}}, .servoIndex = {}, .aspectServoAngle = {}},
         {.aspectRocrailPort = {13, 14}, .aspectLEDPort = {12, 13}, .aspectLEDMapping = {{true, false}, {false, true}}, .servoIndex = {}, .aspectServoAngle = {}},
         {.aspectRocrailPort = {15, 16}, .aspectLEDPort = {14, 15}, .aspectLEDMapping = {{true, false}, {false, true}}, .servoIndex = {}, .aspectServoAngle = {}}};
+
+
 
 // LEVEL CROSSING CONFIGURATION
 
@@ -460,18 +474,19 @@ const int LC_NUM_SENSORS = 4;
 
 TLevelCrossingConfiguration levelCrossingConfiguration = {};
 
+
+
 // BASCULE BRIDGE CONFIGURATION
 
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
 bool BASCULE_BRIDGE_CONNECTED = false;
-// Must be defined, but are zero
-#define NUM_SIGNAL_ASPECTS 0
-#define NUM_SIGNAL_LEDS 0
-#define NUM_SIGNAL_SERVOS 0
+
 // Number of bridge Leafs (equals number of bridge servos)
 #define NUM_BASCULE_BRIDGE_LEAFS 0
 
 TBridgeConfiguration bridgeConfiguration = {};
+
+
 
 // SPEEDOMETER CONFIGURATION
 
@@ -479,6 +494,8 @@ TBridgeConfiguration bridgeConfiguration = {};
 bool SPEEDOMETER_CONNECTED = false;
 
 TSpeedometerConfiguration speedometerConfiguration = {};
+
+
 
 // ****************
 // NETWORK SETTINGS

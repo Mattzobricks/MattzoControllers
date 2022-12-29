@@ -58,6 +58,8 @@ uint8_t PCA9685_OE_PIN = D0;
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 1
 
+
+
 // Infos for I/O port expander MCP23017
 // Usage:
 // - If a MCP23017 I/O port expander is connected to your ESP8266, set USE_MCP23017 to true.
@@ -86,6 +88,8 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
+
+
 
 // SERVO WIRING CONFIGURATION
 
@@ -129,6 +133,8 @@ struct ServoConfiguration {
          .detachAfterUsage = true},
 };
 
+
+
 // LED WIRING CONFIGURATION
 
 // Number of LEDs
@@ -155,6 +161,8 @@ struct LEDConfiguration {
          .pinType = 0},
         {.pin = D5,
          .pinType = 0}};
+
+
 
 // SENSOR WIRING CONFIGURATION
 
@@ -193,12 +201,16 @@ struct SensorConfiguration {
     int remoteMattzoControllerId;
 } sensorConfiguration[NUM_SENSORS] = {};
 
+
+
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
 const bool STATUS_LED_PIN_INSTALLED = true; // set to false if no LED is installed
 const uint8_t STATUS_LED_PIN = D8;
 const bool STATUS_LED_REVERSE = false;
+
+
 
 // SWITCH CONFIGURATION
 
@@ -207,17 +219,19 @@ const int NUM_SWITCHES = 0;
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] = {};
 
+
+
 // SIGNAL CONFIGURATION
 
 // Number of signals
-const int NUM_SIGNALS = 6;
+#define NUM_SIGNALS = 6;
 // Maximum number of signal aspects (e.g. red, green, yellow)
-const int NUM_SIGNAL_ASPECTS = 3;
+#define NUM_SIGNAL_ASPECTS = 3;
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-const int NUM_SIGNAL_LEDS = 1;
+#define NUM_SIGNAL_LEDS = 1;
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
-const int NUM_SIGNAL_SERVOS = 1;
+#define NUM_SIGNAL_SERVOS = 1;
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     {
@@ -251,6 +265,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
         {.aspectRocrailPort = {14, 15, 16}, .aspectLEDPort = {-1}, .aspectLEDMapping = {{false}, {false}, {false}}, .servoIndex = {5}, .aspectServoAngle = {{8, 70, 113}}}};
 
+
+
 // LEVEL CROSSING CONFIGURATION
 
 // General switch for level crossing (false = no level crossing connected; true = level crossing connected)
@@ -270,26 +286,28 @@ const int LC_NUM_SENSORS = 4;
 
 TLevelCrossingConfiguration levelCrossingConfiguration = {};
 
+
+
 // BASCULE BRIDGE CONFIGURATION
 
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
 bool BASCULE_BRIDGE_CONNECTED = false;
 
-// Must be defined, but are zero
-#define NUM_SIGNAL_ASPECTS 0
-#define NUM_SIGNAL_LEDS 0
-#define NUM_SIGNAL_SERVOS 0
 // Number of bridge Leafs (equals number of bridge servos)
 #define NUM_BASCULE_BRIDGE_LEAFS 0
 
 TBridgeConfiguration bridgeConfiguration = {};
 
+
+
 // SPEEDOMETER CONFIGURATION
 
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
-bool SPEEDOMETER_CONNECTED = true;
+bool SPEEDOMETER_CONNECTED = false;
 
 TSpeedometerConfiguration speedometerConfiguration = {};
+
+
 
 // ****************
 // NETWORK SETTINGS

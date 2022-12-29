@@ -79,6 +79,8 @@ uint8_t PCA9685_OE_PIN = D0;
 // - Connecting sensors to the MCP23017 is simple.
 // - Just connect one of of the cable pair to GND, the other one to one of the ports of the MCP23017.
 
+
+
 // MCP23017 WIRING CONFIGURATION
 
 // MCP23017 port expander used?
@@ -86,6 +88,8 @@ uint8_t PCA9685_OE_PIN = D0;
 
 // Number of chained MCP23017 port extenders
 #define NUM_MCP23017s 1
+
+
 
 // SERVO WIRING CONFIGURATION
 
@@ -101,6 +105,8 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
          .pinType = 0,
          .detachAfterUsage = false}};
 
+
+
 // LED WIRING CONFIGURATION
 
 // Number of LEDs
@@ -114,6 +120,8 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
          .pinType = 0},
         {.pin = D3,
          .pinType = 0}};
+
+
 
 // SENSOR WIRING CONFIGURATION
 
@@ -160,6 +168,8 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
          .remoteMattzoControllerId = -1},
 };
 
+
+
 // STATUS LED WIRING CONFIGURATION
 
 // Digital output pin to monitor controller operation (typically a LED)
@@ -174,6 +184,8 @@ const int NUM_SWITCHES = 0;
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] = {};
 
+
+
 // SIGNAL CONFIGURATION
 
 // Number of signals
@@ -187,6 +199,8 @@ const int NUM_SIGNALS = 0;
 #define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
+
+
 
 // LEVEL CROSSING CONFIGURATION
 
@@ -206,6 +220,8 @@ const int LC_NUM_SENSORS = 4;
 #define LC_NUM_TRACKS 2
 
 TLevelCrossingConfiguration levelCrossingConfiguration = {};
+
+
 
 // BASCULE BRIDGE CONFIGURATION
 
@@ -265,12 +281,16 @@ TBridgeConfiguration bridgeConfiguration =
                 .extraTimeAfterClosed_ms = 250,
             }}};
 
+
+
 // SPEEDOMETER CONFIGURATION
 
 // General switch for speedometer (false = no speedometer connected; true = speedometer connected)
-bool SPEEDOMETER_CONNECTED = true;
+bool SPEEDOMETER_CONNECTED = false;
 
 TSpeedometerConfiguration speedometerConfiguration = {};
+
+
 
 // ****************
 // NETWORK SETTINGS
