@@ -251,7 +251,6 @@ bool BLEHub::startDriveTask()
     // strcat(taskName, _deviceName.c_str());
 
     // Attempt to run drive task, return result.
-    log4MC::vlogf(LOG_DEBUG, "BLEConnect : startingtask");
     return xTaskCreatePinnedToCore(this->driveTaskImpl, "DriveTask", BLE_StackDepth, this, BLE_TaskPriority, &_driveTaskHandle, BLE_CoreID) == pdPASS;
 }
 
