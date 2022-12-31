@@ -127,7 +127,7 @@ void MattzoMQTTSubscriber::reconnect()
 /// </summary>
 /// <param name="parm"></param>
 void MattzoMQTTSubscriber::taskLoop(void *parm)
-{    
+{
     try {
         /* code */
         if (!_setupCompleted) {

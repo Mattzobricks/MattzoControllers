@@ -34,7 +34,7 @@ bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 }
 
 void PUHub::DriveTaskLoop()
-{   
+{
     for (;;) {
         bool motorFound = false;
         int16_t currentSpeedPerc = 0;
