@@ -140,18 +140,22 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
         for (;;) {
             // Wait for connection to Wifi (because we need it to contact the broker).
             MattzoWifiClient::Assert();
+
             // Wait for connection to MQTT (because we need it to send messages to the broker).
             if (!mqttSubscriberClient.connected()) {
                 reconnect();
             }
+
             if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
                 lastPing = millis();
 
                 // Send a ping message.
                 sendMessage("roc2bricks/ping", _subscriberName);
             }
+
             // Allow the MQTT client to process incoming messages and maintain its connection to the server.
             mqttSubscriberClient.loop();
+            
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
         }
