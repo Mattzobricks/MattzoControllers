@@ -155,7 +155,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 
             // Allow the MQTT client to process incoming messages and maintain its connection to the server.
             mqttSubscriberClient.loop();
-            
+
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
         }

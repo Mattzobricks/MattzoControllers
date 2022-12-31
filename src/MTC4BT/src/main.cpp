@@ -62,7 +62,7 @@ void handleMQTTMessageLoop(void *parm)
             // Erase message from memory by freeing it.
             free(message);
         }
-        
+
         // Wait a while before trying again (allowing other tasks to do their work)?
         vTaskDelay(50 / portTICK_PERIOD_MS);
     }
