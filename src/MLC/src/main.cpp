@@ -508,7 +508,7 @@ void monitorSensors()
     for (int i = 0; i < NUM_SENSORS; i++) {
         // monitor local sensors
         if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE || sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
-            int sensorValue;
+            int sensorValue = 0;  // initialized to supress compiler warnings
             if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE) {
                 // sensor directly connected to ESP-8266
                 sensorValue = digitalRead(sensorConfiguration[i].pin);
@@ -817,7 +817,16 @@ void boomBarrierLoop()
     }
 
     // Move primary booms?
-    if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms) && levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
+    if
+    (
+        (
+            levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN 
+            || levelCrossing.closeBoomsImmediately 
+            || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms
+        ) 
+        && levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms
+    )
+    {
         if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {
             newServoAnglePrimaryBooms = min(levelCrossing.servoAnglePrimaryBooms + servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
         } else {
@@ -829,11 +838,20 @@ void boomBarrierLoop()
     }
 
     // Move secondary booms?
-    if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelaySecondary_ms) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
+    if
+    (
+        (
+            levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN 
+            || levelCrossing.closeBoomsImmediately 
+            || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelaySecondary_ms
+        )
+        && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms
+    )
+    {
         // Yepp, move secondary booms!
         if (levelCrossing.servoAngleSecondaryBooms < levelCrossing.servoTargetAngleSecondaryBooms) {
             newServoAngleSecondaryBooms = min(levelCrossing.servoAngleSecondaryBooms + servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
-        } else if (levelCrossing.servoAngleSecondaryBooms > levelCrossing.servoTargetAngleSecondaryBooms) {
+        } else {
             newServoAngleSecondaryBooms = max(levelCrossing.servoAngleSecondaryBooms - servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
         }
         mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_DEBUG);
