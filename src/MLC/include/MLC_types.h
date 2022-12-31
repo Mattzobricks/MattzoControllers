@@ -33,6 +33,18 @@ typedef struct {
     uint8_t pinType;
 } TLEDConfiguration;
 
+// Constants for type of digital input pins for sensors
+// 0   : local sensor on the ESP-8266 (D0 .. D8)
+// 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
+// 0x11: virtual sensor, triggered when a switch has been thrown, or a level crossing or bascule bridge has reached its fully open or closed position.
+// 0x20: local sensor, connected to a port on the 1st MCP23017
+// 0x21: local sensor, connected to a port on the 2nd MCP23017
+// 0x22: local sensor, connected to a port on the 3rd MCP23017 etc.
+#define LOCAL_SENSOR_PIN_TYPE 0
+#define REMOTE_SENSOR_PIN_TYPE 0x10
+#define VIRTUAL_SENSOR_PIN_TYPE 0x11
+#define MCP23017_SENSOR_PIN_TYPE 0x20
+
 typedef struct {
     // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
     // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
