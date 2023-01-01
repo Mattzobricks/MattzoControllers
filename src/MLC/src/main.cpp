@@ -1040,16 +1040,15 @@ void basculeBridgeCommand(int bridgeCommand)
 // set bridge motor power
 void setBridgeMotorPower(int leafIndex, int motorPower)
 {
-    mcLog2("[" + String(leafIndex) + "] Setting bridge motor power to " + String(motorPower), LOG_DEBUG);
-
-    // limit motorPower input parameter to -100 .. 100
-    if (motorPower > 100) {
-        motorPower = 100;
+    // limit motorPower input parameter to -100 .. 99
+    if (motorPower > 99) {
+        motorPower = 99;
     } else if (motorPower < -100) {
         motorPower = -100;
     }
+    mcLog2("[" + String(leafIndex) + "] Setting bridge motor power to " + String(motorPower), LOG_INFO);
 
-    // PWM values for orange continuous servos: 0=full backward, 100=stop, 200=full forward
+    // PWM values for orange continuous servos: 0=full backward, 100=stop, 199=full forward
     setServoAngle(bridgeConfiguration.leafConfiguration[leafIndex].servoIndex, motorPower + 100);
 }
 
@@ -1472,15 +1471,15 @@ void processBridgeLeaf(int leafIndex)
             break;
         case BridgeLeafStatus::CLOSING1:
             mcLog2("[" + String(leafIndex) + "] Closing bridge leaf (initial stage)...", LOG_DEBUG);
-            setBridgeMotorPower(leafIndex, -bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
+            setBridgeMotorPower(leafIndex, bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
             break;
         case BridgeLeafStatus::CLOSING2:
             mcLog2("[" + String(leafIndex) + "] Closing bridge leaf (intermediate stage)...", LOG_DEBUG);
-            setBridgeMotorPower(leafIndex, -bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
+            setBridgeMotorPower(leafIndex, bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
             break;
         case BridgeLeafStatus::CLOSING3:
             mcLog2("[" + String(leafIndex) + "] Closing bridge leaf (final stage)...", LOG_DEBUG);
-            setBridgeMotorPower(leafIndex, -bridgeConfiguration.leafConfiguration[leafIndex].powerDown2);
+            setBridgeMotorPower(leafIndex, bridgeConfiguration.leafConfiguration[leafIndex].powerDown2);
             break;
 
         case BridgeLeafStatus::UNDEFINED:

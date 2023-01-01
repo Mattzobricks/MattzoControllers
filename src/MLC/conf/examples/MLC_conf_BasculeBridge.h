@@ -283,37 +283,37 @@ TBridgeConfiguration bridgeConfiguration =
             .servoIndex = 0,
 
             .powerUp = 100,
-            .powerUp2 = 50,
-            .powerDown = 100,
-            .powerDown2 = 50,
+            .powerUp2 = 60,
+            .powerDown = -100,
+            .powerDown2 = -50,
 
             .sensorDown = 0,
             .sensorUp = 1,
 
             .delayOpen_ms = 0,
-            .delayClose_ms = 1000,
-            .maxOpeningTime_ms = 10000,
-            .maxClosingTime_ms = 10000,
-            .extraTimeAfterOpened_ms = 2500,
-            .extraTimeAfterClosed_ms = 1500,
+            .delayClose_ms = 0,
+            .maxOpeningTime_ms = 30000,
+            .maxClosingTime_ms = 30000,
+            .extraTimeAfterOpened_ms = 4500,
+            .extraTimeAfterClosed_ms = 3200,
         },
         {
             .servoIndex = 1,
 
-            .powerUp = -30,
-            .powerUp2 = -25,
-            .powerDown = -30,
-            .powerDown2 = -25,
+            .powerUp = -50,
+            .powerUp2 = -40,
+            .powerDown = 50,
+            .powerDown2 = 40,
 
             .sensorDown = 2,
             .sensorUp = 3,
 
-            .delayOpen_ms = 1000,
-            .delayClose_ms = 000,
+            .delayOpen_ms = 2000,
+            .delayClose_ms = 2000,
             .maxOpeningTime_ms = 5000,
             .maxClosingTime_ms = 5000,
-            .extraTimeAfterOpened_ms = 1000,
-            .extraTimeAfterClosed_ms = 250,
+            .extraTimeAfterOpened_ms = 800,
+            .extraTimeAfterClosed_ms = 300,
         }
     }
 };
