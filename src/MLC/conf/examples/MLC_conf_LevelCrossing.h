@@ -168,17 +168,18 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Special forms are remote and virtual sensors (see below)
 
 // Number of sensors connected or connectable to the controller
-#define NUM_SENSORS 2
+#define NUM_SENSORS 6
 
 // A special forms of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
 // Remote sensors can be used for level crossings in Autonomous Mode.
 // Set REMOTE_SENSORS_ENABLED to true to generally enable remote sensors.
 // If you do not control a level crossing in Autonomous Mode with this controller, set to false!
-#define REMOTE_SENSORS_ENABLED false
+#define REMOTE_SENSORS_ENABLED true
 
 TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 {
+    // 2 virtual sensors that indicate "level crossing open / closed
     {
         .pin = -1,
         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
@@ -188,6 +189,28 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
         .pin = -1,
         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
+    },
+
+    // 4 remote sensors that make the level crossing close/open (autonomous mode only)
+    {
+        .pin = 1,
+        .pinType = REMOTE_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = 24754
+    },
+    {
+        .pin = 2,
+        .pinType = REMOTE_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = 24754
+    },
+    {
+        .pin = 3,
+        .pinType = REMOTE_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = 24754
+    },
+    {
+        .pin = 4,
+        .pinType = REMOTE_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = 24754
     },
 };
 
@@ -268,27 +291,31 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
     .ledsFading = true,
     .sensorIndexBoomsClosed = 0,
     .sensorIndexBoomsOpened = 1,
+
     .autonomousModeEnabled = false,
     .trackReleaseTimeout_ms = 30000,
     .sensorConfiguration = 
     {
         {
-            .sensorIndex = 0,
+            .sensorIndex = 2,
             .track = 0,
             .purpose = 2,
             .orientation = 0
         },
-        {.sensorIndex = 1,
+        {
+            .sensorIndex = 3,
             .track = 0,
             .purpose = 2,
             .orientation = 1
         },
-        {.sensorIndex = 2,
+        {
+            .sensorIndex = 4,
             .track = 1,
             .purpose = 2,
             .orientation = 0
         },
-        {.sensorIndex = 3,
+        {
+            .sensorIndex = 5,
             .track = 1,
             .purpose = 2,
             .orientation = 1
