@@ -1,6 +1,7 @@
 #pragma once
 #include "Arduino.h"
 
+
 typedef struct {
     // Digital output pins for switch servos (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
     uint8_t pin;
@@ -18,6 +19,7 @@ typedef struct {
     bool detachAfterUsage;
 } TServoConfiguration;
 
+
 typedef struct {
     // Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
     uint8_t pin;
@@ -33,6 +35,19 @@ typedef struct {
     uint8_t pinType;
 } TLEDConfiguration;
 
+
+// Constants for type of digital input pins for sensors
+// 0   : local sensor on the ESP-8266 (D0 .. D8)
+// 0x10: remote sensor, triggered via Rocrail message (REMOTE_SENSOR_PIN_TYPE)
+// 0x11: virtual sensor, triggered when a switch has been thrown, or a level crossing or bascule bridge has reached its fully open or closed position.
+// 0x20: local sensor, connected to a port on the 1st MCP23017
+// 0x21: local sensor, connected to a port on the 2nd MCP23017
+// 0x22: local sensor, connected to a port on the 3rd MCP23017 etc.
+#define LOCAL_SENSOR_PIN_TYPE 0
+#define REMOTE_SENSOR_PIN_TYPE 0x10
+#define VIRTUAL_SENSOR_PIN_TYPE 0x11
+#define MCP23017_SENSOR_PIN_TYPE 0x20
+
 typedef struct {
     // Digital input PINs for hall, reed or other digital sensors (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the MCP23017)
     // If sensor is a remote sensor, enter the "Address" of the sensor in Rocrail.
@@ -46,6 +61,7 @@ typedef struct {
     // If sensor is local or virtual, the value has no meaning (set to -1 by convention)
     int remoteMattzoControllerId;
 } TSensorConfiguration;
+
 
 typedef struct SwitchConfiguration {
     int rocRailPort;
@@ -63,6 +79,7 @@ typedef struct SwitchConfiguration {
     bool triggerSensors;
     int sensorIndex[2];
 } TSwitchConfiguration;
+
 
 // Maximum number of signal aspects (e.g. red, green, yellow)
 #define MAX_NUM_SIGNAL_ASPECTS 8
@@ -89,6 +106,19 @@ typedef struct {
     int aspectServoAngle[MAX_NUM_SIGNAL_SERVOS][MAX_NUM_SIGNAL_ASPECTS];
 } TSignalConfiguration;
 
+
+// Max number of boom barrier servos configured for the level crossing
+#define MAX_LC_NUM_BOOM_BARRIERS 4
+
+// Max number of signals configured for the level crossing
+#define MAX_LC_NUM_LEDS 8
+
+// Max number of level crossing sensors
+#define MAX_LC_NUM_SENSORS 8
+
+// Max number of tracks (required for autonomous mode only)
+#define MAX_LC_NUM_TRACKS 4
+
 // Sensors (required for autonomous mode only)
 typedef struct {
     // Sensor index (index within the sensorConfiguration array)
@@ -100,17 +130,6 @@ typedef struct {
     // Orientation of the sensor (0: plus side / 1: minus side)
     int orientation;
 } TLevelCrossingSensorConfiguration;
-
-// Number of boom barrier servos configured for the level crossing
-#define MAX_LC_NUM_BOOM_BARRIERS 4
-
-// Number of signals configured for the level crossing
-#define MAX_LC_NUM_LEDS 8
-
-// Number of level crossing sensors
-#define MAX_LC_NUM_SENSORS 8
-
-#define MAX_LC_NUM_TRACKS 4
 
 typedef struct {
     // Port configured in Rocrail for the level crossing
@@ -170,6 +189,7 @@ typedef struct {
     TLevelCrossingSensorConfiguration sensorConfiguration[MAX_LC_NUM_SENSORS];
 } TLevelCrossingConfiguration;
 
+
 typedef struct {
     // Servo pin for bridge motor control
     int servoIndex;
@@ -222,6 +242,7 @@ typedef struct {
     // Bridge leafs
     TBridgeLeafConfiguration leafConfiguration[MAX_NUM_BASCULE_BRIDGE_LEAFS];
 } TBridgeConfiguration;
+
 
 enum struct SpeedometerSpeedUnit {
     STUDS_PER_SECOND,

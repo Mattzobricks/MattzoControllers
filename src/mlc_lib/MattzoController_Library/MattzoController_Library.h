@@ -29,6 +29,8 @@ void checkWifi();
 void setupMattzoController(bool addMattzoControllerIdToHostname);
 void loopMattzoController();
 
+void mqttConnected();  // should be main.c
+
 extern bool statusLEDState;
 extern int mattzoControllerId;
 extern WiFiClient wifiClient;

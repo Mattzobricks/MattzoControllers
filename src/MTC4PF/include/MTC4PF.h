@@ -217,6 +217,7 @@ typedef struct {
 // Waiting time between two consecutive infrared commands
 #define WAIT_BETWEEN_IR_TRANSMISSIONS_MS 1000
 
+void mqttConnected();
 void setTrainLightState(int trainLightIndex, TrainLightStatus trainLightStatus);
 void lightEvent(LightEventType le, int locoIndex);
 int transmitIRCommandsImmediate(int nextMotorShieldIndex);

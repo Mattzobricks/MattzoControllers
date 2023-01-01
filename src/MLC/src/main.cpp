@@ -160,6 +160,23 @@ void setupU8g2()
 }
 #endif
 
+
+void mqttConnected()
+{
+    bool sensorStatesSent = false;
+    for (int s = 0; s < NUM_SENSORS; s++) {
+        if (isPhysicalSensor(s)) {
+            sendSensorEvent2MQTT(s, sensorState[s]);
+            sensorStatesSent = true;
+        }
+    }
+    if (sensorStatesSent) {
+        mcLog2("States of all physical sensors sent to MQTT.", LOG_INFO);
+    }
+}
+
+#define DEBUG_MQTT_MESSAGES false
+
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
     char msg[length + 1];
@@ -168,14 +185,15 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     }
     msg[length] = '\0';
 
-    mcLog2("Received MQTT message [" + String(topic) + "]: " + String(msg), LOG_DEBUG);
+    if (DEBUG_MQTT_MESSAGES) {
+        mcLog2("Received MQTT message [" + String(topic) + "]: " + String(msg), LOG_DEBUG);
+    }
 
     XMLDocument xmlDocument;
     if (xmlDocument.Parse(msg) != XML_SUCCESS) {
-        mcLog2("Error parsing XML: " + String(msg), LOG_ERR);
+        mcLog2("Error parsing XML of MQTT message: " + String(msg), LOG_ERR);
         return;
     }
-    mcLog2("Parsing XML successful.", LOG_DEBUG);
 
     // *********************
     // HANDLE SWITCH MESSAGE (used for switches, level crossings and bascule bridges)
@@ -183,28 +201,36 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     XMLElement *element;
     element = xmlDocument.FirstChildElement("sw");
     if (element != NULL) {
-        mcLog2("<sw> node found.", LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("<sw> node found.", LOG_DEBUG);
+        }
 
         // query addr1 attribute. This is the MattzoController id.
         // If this does not equal the mattzoControllerId of this controller, the message is disregarded.
         int rr_addr1 = 0;
         if (element->QueryIntAttribute("addr1", &rr_addr1) != XML_SUCCESS) {
-            mcLog2("addr1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
+            mcLog2("Error in <sw> message: addr1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
             return;
         }
-        mcLog2("addr1: " + String(rr_addr1), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("addr1: " + String(rr_addr1), LOG_DEBUG);
+        }
         if (rr_addr1 != mattzoControllerId) {
-            mcLog2("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")", LOG_DEBUG);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")", LOG_DEBUG);
+            }
             return;
         }
 
         // query port1 attribute. This is port id of the port to which the switch is connected.
         int rr_port1 = 0;
         if (element->QueryIntAttribute("port1", &rr_port1) != XML_SUCCESS) {
-            mcLog2("port1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
+            mcLog2("Error in <sw> message: port1 attribute not found or wrong type. Message disregarded.", LOG_ERR);
             return;
         }
-        mcLog2("port1: " + String(rr_port1), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("port1: " + String(rr_port1), LOG_DEBUG);
+        }
 
         // query cmd attribute.
         // This is value can be either "straight" or "turnout". The meaning depends of the type of component being controlled:
@@ -213,10 +239,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         // bascule bridge: bridge up or down
         const char *rr_cmd = "-unknown-";
         if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-            mcLog2("cmd attribute not found or wrong type.", LOG_ERR);
+            mcLog2("Error in <sw> message: cmd attribute not found or wrong type.", LOG_ERR);
             return;
         }
-        mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
+        }
 
         // parse command string
         int switchCommand;
@@ -225,20 +253,24 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         } else if (strcmp(rr_cmd, "turnout") == 0) {
             switchCommand = 0;
         } else {
-            mcLog2("Switch command unknown - message disregarded.", LOG_ERR);
+            mcLog2("Error in <sw> message: switch command unknown - message disregarded.", LOG_ERR);
             return;
         }
 
         // Check if port is used to control a level crossing
         if (LEVEL_CROSSING_CONNECTED && (rr_port1 == levelCrossingConfiguration.rocRailPort)) {
-            mcLog2("This is a level crossing command.", LOG_DEBUG);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("This is a level crossing command.", LOG_DEBUG);
+            }
             levelCrossingCommand(switchCommand);
             return;
         }
 
         // Check if port is used to control a bascule bridge
         if (BASCULE_BRIDGE_CONNECTED && (rr_port1 == bridgeConfiguration.rocRailPort)) {
-            mcLog2("This is a bascule bridge command.", LOG_DEBUG);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("This is a bascule bridge command.", LOG_DEBUG);
+            }
             basculeBridgeCommand(switchCommand);
             return;
         }
@@ -262,31 +294,35 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         // defaults to SWITCHSERVO_MIN
         int rr_param1 = SWITCHSERVO_MIN;
         if (element->QueryIntAttribute("param1", &rr_param1) != XML_SUCCESS) {
-            mcLog2("param1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
+            mcLog2("Error in <sw> message: param1 attribute not found or wrong type. Using default value.", LOG_ERR);
         }
         if (rr_param1 < SWITCHSERVO_MIN_ALLOWED || rr_param1 > SWITCHSERVO_MAX_ALLOWED) {
             // Reset angle back to standard if angle is out of bounds
             // User has obviously forgotten to configure servo angle in Rocrail properly
             // To protect the servo, the default value is used
-            mcLog2("param1 attribute out of bounds. Using default value.", LOG_DEBUG);
+            mcLog2("Error in <sw> message: param1 attribute out of bounds. Using default value.", LOG_ERR);
             rr_param1 = SWITCHSERVO_MIN;
         }
-        mcLog2("param1: " + String(rr_param1), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("param1: " + String(rr_param1), LOG_DEBUG);
+        }
 
         // query value1 attribute. This is the "turnout" position of the switch servo motor.
         // defaults to SWITCHSERVO_MAX
         int rr_value1 = SWITCHSERVO_MAX;
         if (element->QueryIntAttribute("value1", &rr_value1) != XML_SUCCESS) {
-            mcLog2("value1 attribute not found or wrong type. Using default value.", LOG_DEBUG);
+            mcLog2("Error in <sw> message: value1 attribute not found or wrong type. Using default value.", LOG_ERR);
         }
         if (rr_value1 < SWITCHSERVO_MIN_ALLOWED || rr_value1 > SWITCHSERVO_MAX_ALLOWED) {
             // Reset angle back to standard if angle is out of bounds
             // User has obviously forgotten to configure servo angle in Rocrail properly
             // To protect the servo, the default value is used
-            mcLog2("value1 attribute out of bounds. Using default value.", LOG_DEBUG);
+            mcLog2("Error in <sw> message: value1 attribute out of bounds. Using default value.", LOG_ERR);
             rr_value1 = SWITCHSERVO_MAX;
         }
-        mcLog2("value1: " + String(rr_value1), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("value1: " + String(rr_value1), LOG_DEBUG);
+        }
 
         // at this stage, all parameters are parsed and checks are completed. Time to flip a switch!
 
@@ -316,7 +352,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     // *********************
     element = xmlDocument.FirstChildElement("co");
     if (element != NULL) {
-        mcLog2("<co> node found.", LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("<co> node found.", LOG_DEBUG);
+        }
 
         // query addr attribute. This is the MattzoController id.
         // If this does not equal the ControllerNo of this controller, the message is disregarded.
@@ -325,9 +363,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
             return;
         }
-        mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
+        }
         if (rr_addr != mattzoControllerId) {
-            mcLog2("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")", LOG_ERR);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("Message disgarded, as it is not for me (" + String(mattzoControllerId) + ")", LOG_ERR);
+            }
             return;
         }
 
@@ -338,7 +380,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mcLog2("port attribute not found or wrong type. Message disregarded.", LOG_ERR);
             return;
         }
-        mcLog2("port: " + String(rr_port), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("port: " + String(rr_port), LOG_DEBUG);
+        }
         if (rr_port < 1) {
             mcLog2("Message disgarded, as the signal port is below 1.", LOG_ERR);
             return;
@@ -350,7 +394,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             mcLog2("cmd attribute not found or wrong type.", LOG_ERR);
             return;
         }
-        mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
+        if (DEBUG_MQTT_MESSAGES) {
+            mcLog2("cmd: " + String(rr_cmd), LOG_DEBUG);
+        }
 
         // parse signal command
         if (strcmp(rr_cmd, "on") == 0) {
@@ -358,10 +404,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
             handleSignalMessage(rr_port);
         } else if (strcmp(rr_cmd, "off") == 0) {
             // disregard signal messages with command 'off'
-            mcLog2("Signal command 'off' received - message disregarded.", LOG_DEBUG);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("Signal command 'off' received - message disregarded.", LOG_DEBUG);
+            }
             return;
         } else {
-            mcLog2("Signal command " + String(rr_cmd) + " unknown - message disregarded.", LOG_DEBUG);
+            mcLog2("Signal command " + String(rr_cmd) + " unknown - message disregarded.", LOG_ERR);
             return;
         }
 
@@ -375,7 +423,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
     if (REMOTE_SENSORS_ENABLED) {
         element = xmlDocument.FirstChildElement("fb");
         if (element != NULL) {
-            mcLog2("<fb> node found.", LOG_DEBUG);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("<fb> node found.", LOG_DEBUG);
+            }
 
             // query bus attribute. This MattzoControllerId to which the sensor is connected
             // If the bus attribute is not found, the message is discarded.
@@ -384,10 +434,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
                 mcLog2("bus attribute not found or wrong type. Message disregarded.", LOG_ERR);
                 return;
             }
-            mcLog2("bus: " + String(rr_bus), LOG_DEBUG);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("bus: " + String(rr_bus), LOG_DEBUG);
+            }
             // If the received MattzoControllerId equals the Id of this controller, the message is discarded as it was originated by this controller in the first place.
             if (rr_bus == mattzoControllerId) {
-                mcLog2("Message disregarded as it was originated by this controller.", LOG_DEBUG);
+                if (DEBUG_MQTT_MESSAGES) {
+                    mcLog2("Message disregarded as it was originated by this controller.", LOG_DEBUG);
+                }
                 return;
             }
 
@@ -398,6 +452,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
                 mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_ERR);
                 return;
             }
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
+            }
 
             // query state attribute. This is the sensor state and can either be "true" (triggered) or "false" (not triggered).
             const char *rr_state = "xXxXx";
@@ -405,7 +462,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
                 mcLog2("state attribute not found or wrong type.", LOG_ERR);
                 return;
             }
-            mcLog2("state: " + String(rr_state), LOG_DEBUG);
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("state: " + String(rr_state), LOG_DEBUG);
+            }
             bool sensorState = strcmp(rr_state, "true") == 0;
 
             // handle remote sensor event
@@ -416,7 +475,9 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         return;
     }
 
-    mcLog2("Unhandled message type. Message disregarded.", LOG_DEBUG);
+    if (DEBUG_MQTT_MESSAGES) {
+        mcLog2("Unhandled message type. Message disregarded.", LOG_DEBUG);
+    }
 }
 
 // handles a signal mesage that was received from Rocrail
@@ -503,12 +564,16 @@ void setLEDBySensorStates()
     statusLEDState = false;
 }
 
+bool isPhysicalSensor(int sensorIndex) {
+    return sensorConfiguration[sensorIndex].pinType == LOCAL_SENSOR_PIN_TYPE || sensorConfiguration[sensorIndex].pinType >= MCP23017_SENSOR_PIN_TYPE;
+}
+
 void monitorSensors()
 {
     for (int i = 0; i < NUM_SENSORS; i++) {
         // monitor local sensors
-        if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE || sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
-            int sensorValue;
+        if (isPhysicalSensor(i)) {
+            int sensorValue = 0;  // initialized to supress compiler warnings
             if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE) {
                 // sensor directly connected to ESP-8266
                 sensorValue = digitalRead(sensorConfiguration[i].pin);
@@ -525,8 +590,8 @@ void monitorSensors()
                 // Contact -> report contact immediately
                 if (!sensorState[i]) {
                     mcLog2("Sensor " + String(i) + " triggered.", LOG_INFO);
-                    sendSensorEvent2MQTT(i, true);
                     sensorState[i] = true;
+                    sendSensorEvent2MQTT(i, true);
                     handleSpeedometerSensorEvent(i);
                     handleLevelCrossingSensorEvent(i);
                 }
@@ -535,8 +600,8 @@ void monitorSensors()
                 // No contact for SENSOR_RELEASE_TICKS_MS milliseconds -> report sensor has lost contact
                 if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS_MS)) {
                     mcLog2("Sensor " + String(i) + " released.", LOG_INFO);
-                    sendSensorEvent2MQTT(i, false);
                     sensorState[i] = false;
+                    sendSensorEvent2MQTT(i, false);
                 }
             }
         }
@@ -549,14 +614,16 @@ void monitorSensors()
 // remote sensor events are used for level crossings in Autonomous Mode
 void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState)
 {
+    mcLog2("Checking for remote sensor " + String(mcId) + "-" + String(sensorAddress), LOG_DEBUG);
+
     // find sensor in sensor array
     // if found, handle level crossing sensor event
     for (int s = 0; s < NUM_SENSORS; s++) {
         if (sensorConfiguration[s].pinType == REMOTE_SENSOR_PIN_TYPE) {
             if (sensorConfiguration[s].remoteMattzoControllerId == mcId) {
                 if (sensorConfiguration[s].pin == sensorAddress) {
-                    mcLog2("Remote sensor " + String(mcId) + ":" + String(sensorAddress) + " found.", LOG_DEBUG);
                     if (sensorState) {
+                        mcLog2("Remote sensor " + String(mcId) + "-" + String(sensorAddress) + " triggered.", LOG_INFO);
                         handleLevelCrossingSensorEvent(s);
                     }
                     return;
@@ -564,7 +631,6 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState)
             }
         }
     }
-    mcLog2("Remote sensor " + String(mcId) + ":" + String(sensorAddress) + " not found.", LOG_DEBUG);
 }
 
 // sets the servo arm to a desired angle
@@ -817,7 +883,16 @@ void boomBarrierLoop()
     }
 
     // Move primary booms?
-    if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms) && levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
+    if
+    (
+        (
+            levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN 
+            || levelCrossing.closeBoomsImmediately 
+            || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms
+        ) 
+        && levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms
+    )
+    {
         if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {
             newServoAnglePrimaryBooms = min(levelCrossing.servoAnglePrimaryBooms + servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
         } else {
@@ -829,11 +904,20 @@ void boomBarrierLoop()
     }
 
     // Move secondary booms?
-    if ((levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelaySecondary_ms) && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
+    if
+    (
+        (
+            levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN 
+            || levelCrossing.closeBoomsImmediately 
+            || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelaySecondary_ms
+        )
+        && levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms
+    )
+    {
         // Yepp, move secondary booms!
         if (levelCrossing.servoAngleSecondaryBooms < levelCrossing.servoTargetAngleSecondaryBooms) {
             newServoAngleSecondaryBooms = min(levelCrossing.servoAngleSecondaryBooms + servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
-        } else if (levelCrossing.servoAngleSecondaryBooms > levelCrossing.servoTargetAngleSecondaryBooms) {
+        } else {
             newServoAngleSecondaryBooms = max(levelCrossing.servoAngleSecondaryBooms - servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
         }
         mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_DEBUG);
@@ -935,8 +1019,11 @@ void handleLevelCrossingSensorEvent(int triggeredSensor)
 
             levelCrossing.trackOccupiedTimeout_ms[track] = millis() + levelCrossingConfiguration.trackReleaseTimeout_ms;
             writeLevelCrossingStatusInfo();
+            return;
         }
     }
+
+    mcLog2("Sensor " + String(triggeredSensor) + " is not a level crossing sensor.", LOG_DEBUG);
 }
 
 // Returns if level crossing is occupied. Only relevant for autonomous mode
@@ -956,6 +1043,8 @@ void checkLevelCrossingTrackTimeouts()
     for (int track = 0; track < LC_NUM_TRACKS; track++) {
         if (levelCrossing.trackOccupiedTimeout_ms[track] > 0) {
             if (millis() > levelCrossing.trackOccupiedTimeout_ms[track]) {
+                mcLog2("Counters for track " + String(track) + " timed out.", LOG_INFO);
+
                 // disable timeout for this track
                 levelCrossing.trackOccupiedTimeout_ms[track] = 0;
                 // reset counters for this track
@@ -977,11 +1066,11 @@ void checkLevelCrossingTrackTimeouts()
 // write level crossing status to serial
 void writeLevelCrossingStatusInfo()
 {
-    if (LOGLEVEL_SERIAL >= LOG_DEBUG) {
+    if (LOGLEVEL_SERIAL >= LOG_INFO) {
         Serial.println("Trk|IB+|OB+|OB-|IB-");
         Serial.println("---+---+---+---+---");
         for (int track = 0; track < LC_NUM_TRACKS; track++) {
-            Serial.print(" " + String(track + 1));
+            Serial.print(" " + String(track));
             Serial.print(" | " + String(levelCrossing.sensorEventCounter[track][0][0]));
             Serial.print(" | " + String(levelCrossing.sensorEventCounter[track][1][0]));
             Serial.print(" | " + String(levelCrossing.sensorEventCounter[track][1][1]));
@@ -1022,16 +1111,15 @@ void basculeBridgeCommand(int bridgeCommand)
 // set bridge motor power
 void setBridgeMotorPower(int leafIndex, int motorPower)
 {
-    mcLog2("[" + String(leafIndex) + "] Setting bridge motor power to " + String(motorPower), LOG_DEBUG);
-
-    // limit motorPower input parameter to -100 .. 100
-    if (motorPower > 100) {
-        motorPower = 100;
+    // limit motorPower input parameter to -100 .. 99
+    if (motorPower > 99) {
+        motorPower = 99;
     } else if (motorPower < -100) {
         motorPower = -100;
     }
+    mcLog2("[" + String(leafIndex) + "] Setting bridge motor power to " + String(motorPower), LOG_INFO);
 
-    // PWM values for orange continuous servos: 0=full backward, 100=stop, 200=full forward
+    // PWM values for orange continuous servos: 0=full backward, 100=stop, 199=full forward
     setServoAngle(bridgeConfiguration.leafConfiguration[leafIndex].servoIndex, motorPower + 100);
 }
 
@@ -1454,15 +1542,15 @@ void processBridgeLeaf(int leafIndex)
             break;
         case BridgeLeafStatus::CLOSING1:
             mcLog2("[" + String(leafIndex) + "] Closing bridge leaf (initial stage)...", LOG_DEBUG);
-            setBridgeMotorPower(leafIndex, -bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
+            setBridgeMotorPower(leafIndex, bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
             break;
         case BridgeLeafStatus::CLOSING2:
             mcLog2("[" + String(leafIndex) + "] Closing bridge leaf (intermediate stage)...", LOG_DEBUG);
-            setBridgeMotorPower(leafIndex, -bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
+            setBridgeMotorPower(leafIndex, bridgeConfiguration.leafConfiguration[leafIndex].powerDown);
             break;
         case BridgeLeafStatus::CLOSING3:
             mcLog2("[" + String(leafIndex) + "] Closing bridge leaf (final stage)...", LOG_DEBUG);
-            setBridgeMotorPower(leafIndex, -bridgeConfiguration.leafConfiguration[leafIndex].powerDown2);
+            setBridgeMotorPower(leafIndex, bridgeConfiguration.leafConfiguration[leafIndex].powerDown2);
             break;
 
         case BridgeLeafStatus::UNDEFINED:

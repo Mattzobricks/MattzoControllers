@@ -100,6 +100,8 @@ int getMattzoLocoIndexByLocoAddress(int locoAddress)
     return -1;
 }
 
+void mqttConnected() {}
+
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
     char msg[length + 1];
