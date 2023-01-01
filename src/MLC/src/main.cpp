@@ -160,6 +160,21 @@ void setupU8g2()
 }
 #endif
 
+
+void mqttConnected()
+{
+    bool sensorStatesSent = false;
+    for (int s = 0; s < NUM_SENSORS; s++) {
+        if (isPhysicalSensor(s)) {
+            sendSensorEvent2MQTT(s, sensorState[s]);
+            sensorStatesSent = true;
+        }
+    }
+    if (sensorStatesSent) {
+        mcLog2("States of all physical sensors sent to MQTT.", LOG_INFO);
+    }
+}
+
 #define DEBUG_MQTT_MESSAGES false
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
@@ -549,11 +564,15 @@ void setLEDBySensorStates()
     statusLEDState = false;
 }
 
+bool isPhysicalSensor(int sensorIndex) {
+    return sensorConfiguration[sensorIndex].pinType == LOCAL_SENSOR_PIN_TYPE || sensorConfiguration[sensorIndex].pinType >= MCP23017_SENSOR_PIN_TYPE;
+}
+
 void monitorSensors()
 {
     for (int i = 0; i < NUM_SENSORS; i++) {
         // monitor local sensors
-        if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE || sensorConfiguration[i].pinType >= MCP23017_SENSOR_PIN_TYPE) {
+        if (isPhysicalSensor(i)) {
             int sensorValue = 0;  // initialized to supress compiler warnings
             if (sensorConfiguration[i].pinType == LOCAL_SENSOR_PIN_TYPE) {
                 // sensor directly connected to ESP-8266
@@ -571,8 +590,8 @@ void monitorSensors()
                 // Contact -> report contact immediately
                 if (!sensorState[i]) {
                     mcLog2("Sensor " + String(i) + " triggered.", LOG_INFO);
-                    sendSensorEvent2MQTT(i, true);
                     sensorState[i] = true;
+                    sendSensorEvent2MQTT(i, true);
                     handleSpeedometerSensorEvent(i);
                     handleLevelCrossingSensorEvent(i);
                 }
@@ -581,8 +600,8 @@ void monitorSensors()
                 // No contact for SENSOR_RELEASE_TICKS_MS milliseconds -> report sensor has lost contact
                 if (sensorState[i] && (millis() > lastSensorContact_ms[i] + SENSOR_RELEASE_TICKS_MS)) {
                     mcLog2("Sensor " + String(i) + " released.", LOG_INFO);
-                    sendSensorEvent2MQTT(i, false);
                     sensorState[i] = false;
+                    sendSensorEvent2MQTT(i, false);
                 }
             }
         }

@@ -248,6 +248,7 @@ void reconnectMQTT()
             setStatusLED(false);
             mqttClient.subscribe("rocrail/service/command");
             mcLog("MQTT connected, listening on topic [rocrail/service/command].");
+            mqttConnected();
         } else {
             mcLog("Failed to connect to mqtt, state=" + String(mqttClient.state()));
         }

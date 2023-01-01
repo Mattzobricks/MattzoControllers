@@ -128,6 +128,8 @@ struct Speedometer {
     float actualTrainLength = 0;
 };
 
+void mqttConnected();
+void sendSensorEvent2MQTT(int sensorIndex, bool sensorState);
 void levelCrossingCommand(int levelCrossingCommand);
 void basculeBridgeCommand(int bridgeCommand);
 void writeLevelCrossingStatusInfo();
@@ -137,6 +139,7 @@ void setServoAngle(int servoIndex, int servoAngle);
 void setSignalLED(int signalIndex, bool ledState);
 void setLEDBySensorStates();
 void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState);
+bool isPhysicalSensor(int sensorIndex);
 
 #if USE_PCA9685
 void setupPCA9685();
