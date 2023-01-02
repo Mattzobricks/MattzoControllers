@@ -104,6 +104,9 @@ typedef struct {
     int servoIndex[MAX_NUM_SIGNAL_SERVOS];
     // the desired servo angle for the aspect (for form signals)
     int aspectServoAngle[MAX_NUM_SIGNAL_SERVOS][MAX_NUM_SIGNAL_ASPECTS];
+    // overshoot sensor index
+    // -1: no overshoot sensor used
+    int overshootSensorIndex;
 } TSignalConfiguration;
 
 

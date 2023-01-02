@@ -31,6 +31,14 @@ struct MattzoServo {
 #define SWITCHSERVO_MAX 85          // a good first guess for the maximum angle of TrixBrix servos is 90
 #define SWITCHSERVO_MAX_ALLOWED 120 // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
 
+// SIGNAL CONSTANTS AND STRUCTS
+# define SIGNAL_OVERSHOOT_SENSOR_SLEEP_MS 10000 // defines the sleep time in ms after a signal is set to red after which the overshoot sensor becomes active
+
+struct MattzoSignal {
+    int currentAspect; // present aspect of the signal
+    unsigned long redAspectSince_ms = 0; // time in ms since the red aspect (hard-wired to aspect 0) is active
+};
+
 // SENSOR CONSTANTS
 // Time in milliseconds until release event is reported after sensor has lost contact
 #define SENSOR_RELEASE_TICKS_MS 100
@@ -129,6 +137,7 @@ struct Speedometer {
 };
 
 void mqttConnected();
+void handleSignalOvershootSensorEvent();
 void sendSensorEvent2MQTT(int sensorIndex, bool sensorState);
 void levelCrossingCommand(int levelCrossingCommand);
 void basculeBridgeCommand(int bridgeCommand);
@@ -172,3 +181,5 @@ void setLED(int ledIndex, bool ledState);
 void sendSwitchSensorEvent(int switchIndex, int switchCommand, bool sensorState);
 
 void setPCA9685SleepMode(bool onOff);
+
+void sendEmergencyBrake2MQTT(String emergencyBrakeReason);

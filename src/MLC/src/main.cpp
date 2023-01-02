@@ -1,6 +1,6 @@
 // MattzoSwitchController Firmware
 // Author: Dr. Matthias Runte
-// Copyright 2020, 2021 by Dr. Matthias Runte
+// Copyright 2020-2023 by Dr. Matthias Runte
 // License:
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -49,6 +49,9 @@ unsigned long pca9685SleepModeFrom_ms = 0;
 
 // SERVO ARRAY
 struct MattzoServo mattzoServo[NUM_SERVOS];
+
+// SIGNAL ARRAY
+struct MattzoSignal mattzoSignal[NUM_SIGNALS];
 
 // SENSOR VARIABLES
 bool sensorState[NUM_SENSORS];
@@ -495,7 +498,12 @@ void handleSignalMessage(int rr_port)
                 // found the aspect that corresponds with rr_port
                 // -> set aspect a for signal s
 
-                mcLog2("Setting signal index " + String(s) + " to aspect that maps with rr port " + String(rr_port), LOG_INFO);
+                mcLog2("Setting signal index " + String(s) + " to aspect " + String(a) + " (maps with rr port " + String(rr_port) + ")", LOG_INFO);
+
+                if (a == 0 && mattzoSignal[s].currentAspect != a) {
+                    mattzoSignal[s].redAspectSince_ms = millis();
+                }
+                mattzoSignal[s].currentAspect = a;
 
                 // iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
                 for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
@@ -513,6 +521,30 @@ void handleSignalMessage(int rr_port)
                         setServoAngle(signalConfiguration[s].servoIndex[servoIndex], servoAngle);
                     }
                 }
+            }
+        }
+    }
+}
+
+void handleSignalOvershootSensorEvent(int overshootSensorIndex) {
+    for (int s = 0; s < NUM_SIGNALS; s++)
+    {
+        if (signalConfiguration[s].overshootSensorIndex == overshootSensorIndex) {
+            mcLog2("Sensor " + String(overshootSensorIndex) + " is an overshoot sensor for signal " + String(s) + "!", LOG_DEBUG);
+
+            // Check if the signal is red
+            if (mattzoSignal[s].currentAspect == 0) {
+                // Check if overshoot sensor is still sleeping
+                if (millis() > mattzoSignal[s].redAspectSince_ms + SIGNAL_OVERSHOOT_SENSOR_SLEEP_MS) {
+                    // Pull emergency break
+                    mcLog2(": Overshoot sensor engaged!", LOG_CRIT);
+                    sendEmergencyBrake2MQTT("Overshoot sensor of signal " + String(s) + " triggered");
+                    return;
+                } else {
+                    mcLog2(": Overshoot sensor not engaged (signal is red, but within allowed time period).", LOG_DEBUG);
+                }
+            } else {
+                mcLog2(": Overshoot sensor not engaged (signal is not red).", LOG_DEBUG);
             }
         }
     }
@@ -593,6 +625,7 @@ void monitorSensors()
                     sensorState[i] = true;
                     sendSensorEvent2MQTT(i, true);
                     handleSpeedometerSensorEvent(i);
+                    handleSignalOvershootSensorEvent(i);
                     handleLevelCrossingSensorEvent(i);
                 }
                 lastSensorContact_ms[i] = millis();
@@ -624,6 +657,7 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState)
                 if (sensorConfiguration[s].pin == sensorAddress) {
                     if (sensorState) {
                         mcLog2("Remote sensor " + String(mcId) + "-" + String(sensorAddress) + " triggered.", LOG_INFO);
+                        handleSignalOvershootSensorEvent(s);
                         handleLevelCrossingSensorEvent(s);
                     }
                     return;
