@@ -236,7 +236,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {false},
         },
         .servoIndex = {0},
-        .aspectServoAngle = {{180, 90, -1}}
+        .aspectServoAngle = {{180, 90, -1}},
+        .overshootSensorIndex = -1
     },
     // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
     {
@@ -246,7 +247,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {false},
         },
         .servoIndex = {1},
-        .aspectServoAngle = {{170, 115, -1}}
+        .aspectServoAngle = {{170, 115, -1}},
+        .overshootSensorIndex = -1
     },
     // signal 2 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
     // The signal LED port (index 0, D4) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
@@ -259,7 +261,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true}
         }, 
         .servoIndex = {2}, 
-        .aspectServoAngle = {{90, 15, 160}}
+        .aspectServoAngle = {{90, 15, 160}},
+        .overshootSensorIndex = -1
     },
     // signal 3 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
     // The signal LED port (index 1, D5) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
@@ -272,7 +275,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true}
         }, 
         .servoIndex = {3}, 
-        .aspectServoAngle = {{90, 15, 160}}
+        .aspectServoAngle = {{90, 15, 160}},
+        .overshootSensorIndex = -1
     },
     // signal 4 (Vs3): distant form signal with 3 aspects, controlled via Rocrail ports 11, 12 and 13, using servo index 4 (D6)
     {
@@ -284,7 +288,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {false}
         }, 
         .servoIndex = {4}, 
-        .aspectServoAngle = {{8, 70, 113}}
+        .aspectServoAngle = {{8, 70, 113}},
+        .overshootSensorIndex = -1
     },
     // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
     {
@@ -296,7 +301,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {false}
         }, 
         .servoIndex = {5}, 
-        .aspectServoAngle = {{8, 70, 113}}
+        .aspectServoAngle = {{8, 70, 113}},
+        .overshootSensorIndex = -1
     }
 };
 

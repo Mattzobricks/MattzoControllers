@@ -258,16 +258,17 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 #define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
+{
+    // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
     {
-        // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
-        {
-            .aspectRocrailPort = {1, 2},
-            .aspectLEDPort = {0, 1},
-            .aspectLEDMapping = {
-                {true, false},
-                {false, true}},
-            .servoIndex = {},
-            .aspectServoAngle = {}
+        .aspectRocrailPort = {1, 2},
+        .aspectLEDPort = {0, 1},
+        .aspectLEDMapping = {
+            {true, false},
+            {false, true}},
+        .servoIndex = {},
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
 };
 

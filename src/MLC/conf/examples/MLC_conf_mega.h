@@ -546,7 +546,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {},
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {3, 4},
@@ -555,7 +556,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {5, 6}, 
@@ -564,7 +566,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {7, 8}, 
@@ -573,7 +576,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {9, 10}, 
@@ -582,7 +586,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {11, 12}, 
@@ -591,7 +596,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {13, 14}, 
@@ -600,7 +606,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {15, 16}, 
@@ -609,7 +616,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     }
 };
 
