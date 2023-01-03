@@ -33,12 +33,6 @@ bool BLELocomotive::AllHubsConnected()
 
 void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
 {
-    if (!AllHubsConnected()) {
-        // Ignore drive command.
-        log4MC::vlogf(LOG_INFO, "Loco: %s ignored drive command because not all its hubs are connected (yet).", _config->_name.c_str());
-        return;
-    }
-
     for (BLEHub *hub : Hubs) {
         int16_t currentPwrPerc = hub->GetCurrentDrivePwrPerc();
         hub->Drive(minSpeed, pwrPerc);
@@ -111,8 +105,7 @@ void BLELocomotive::BlinkLights(int durationInMs)
 void BLELocomotive::SetEmergencyBrake(const bool enabled)
 {
     // Handle e-brake on all channels of our hubs.
-    for (BLEHub *hub : Hubs)
-    {
+    for (BLEHub *hub : Hubs) {
         hub->SetEmergencyBrake(enabled);
     }
 }
@@ -139,12 +132,10 @@ BLEHub *BLELocomotive::GetHub(uint index)
 
 void BLELocomotive::initHubs()
 {
-    for (BLEHubConfiguration *hubConfig : _config->_hubs)
-    {
+    for (BLEHubConfiguration *hubConfig : _config->_hubs) {
         BLEHub *hub;
 
-        switch (hubConfig->HubType)
-        {
+        switch (hubConfig->HubType) {
         case BLEHubType::SBrick:
             hub = new SBrickHub(hubConfig);
             break;
@@ -153,10 +144,8 @@ void BLELocomotive::initHubs()
             break;
         }
 
-        if (hub)
-        {
-            hub->SetConnectCallback([this](bool connected) -> void
-                                    { handleConnectCallback(connected); });
+        if (hub) {
+            hub->SetConnectCallback([this](bool connected) -> void { handleConnectCallback(connected); });
             Hubs.push_back(hub);
         }
     }
@@ -166,17 +155,13 @@ void BLELocomotive::initHubs()
 
 void BLELocomotive::handleConnectCallback(bool connected)
 {
-    if (connected)
-    {
+    if (connected) {
         // log4MC::info("connected");
-        if (AllHubsConnected())
-        {
+        if (AllHubsConnected()) {
             // All hubs are connected. We can lift the manual brake.
             this->setManualBrake(false);
         }
-    }
-    else
-    {
+    } else {
         // At least one hub is disconnected, so we activate the manual brake.
         // log4MC::info("disconnected");
         this->setManualBrake(true);
@@ -186,8 +171,7 @@ void BLELocomotive::handleConnectCallback(bool connected)
 void BLELocomotive::setManualBrake(const bool enabled)
 {
     // Handle manual brake on all channels of our hubs.
-    for (BLEHub *hub : Hubs)
-    {
+    for (BLEHub *hub : Hubs) {
         hub->SetManualBrake(enabled);
     }
 }
