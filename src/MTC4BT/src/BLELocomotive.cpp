@@ -56,14 +56,6 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
 
 void BLELocomotive::TriggerEvent(MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
-    if (!AllHubsConnected()) {
-        // Ignore trigger.
-        log4MC::vlogf(LOG_INFO, "Loco: %s ignored trigger because not all its hubs are connected (yet).", _config->_name.c_str());
-
-        // Return success anyway, because we don't want the controller to handle the trigger.
-        return;
-    }
-
     for (MCLocoEvent *event : _config->_events) {
         if (event->HasTrigger(source, eventType, eventId, value)) {
             for (MCLocoAction *action : event->GetActions()) {
