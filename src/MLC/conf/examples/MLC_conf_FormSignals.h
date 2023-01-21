@@ -18,7 +18,8 @@
 
 // MattzoLayoutController (MLC) example configuration file
 // Usage: copy it onto the conf/my/controller_config.h file and adapted it to your needs
-// Documentation: https://www.mattzobricks.com
+// General documentation: https://www.mattzobricks.com
+// Parameter documentation: MLC/include/MLC_types.h
 
 // This configuration is an example configuration for controlling form signals.
 // It serves 6 form signals:

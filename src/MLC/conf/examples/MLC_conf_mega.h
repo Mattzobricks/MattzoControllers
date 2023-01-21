@@ -18,7 +18,8 @@
 
 // MattzoLayoutController (MLC) example configuration file
 // Usage: copy it onto the conf/my/controller_config.h file and adapted it to your needs
-// Documentation: https://www.mattzobricks.com
+// General documentation: https://www.mattzobricks.com
+// Parameter documentation: MLC/include/MLC_types.h
 
 // This configuration contains the configuration for the MLC mega.
 // It serves 16 switches, 8 standard light signals, and 16 sensors.
@@ -620,6 +621,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     }
 };
+
+
 
 // LEVEL CROSSING CONFIGURATION
 
