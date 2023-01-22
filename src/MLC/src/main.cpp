@@ -899,6 +899,7 @@ void levelCrossingCommand(int levelCrossingCommand)
 
 void boomBarrierLoop()
 {
+    const bool DEBUG_SERVO_ANGLES = false;
     const unsigned long BOOM_BARRIER_TICK_MS = 20;
     unsigned long now_ms = millis();
 
@@ -932,7 +933,9 @@ void boomBarrierLoop()
         } else {
             newServoAnglePrimaryBooms = max(levelCrossing.servoAnglePrimaryBooms - servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
         }
-        mcLog2("Primary booms angle: " + String(newServoAnglePrimaryBooms), LOG_DEBUG);
+        if (DEBUG_SERVO_ANGLES) {
+            mcLog2("Primary booms angle: " + String(newServoAnglePrimaryBooms), LOG_DEBUG);
+        }
 
         levelCrossing.servoAnglePrimaryBooms = newServoAnglePrimaryBooms;
     }
@@ -954,7 +957,9 @@ void boomBarrierLoop()
         } else {
             newServoAngleSecondaryBooms = max(levelCrossing.servoAngleSecondaryBooms - servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
         }
-        mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_DEBUG);
+        if (DEBUG_SERVO_ANGLES) {
+            mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_DEBUG);
+        }
 
         levelCrossing.servoAngleSecondaryBooms = newServoAngleSecondaryBooms;
     }
