@@ -1,0 +1,1013 @@
+[1015] [1]   Messages in queue: 0
+[1016] [1]   Memory Heap free:    92692 max alloc:    67572 min free:    78444
+[1017] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1018] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1019] [0] DUM : Written value c=0, t=35
+[1020] [0] DUM : Written value c=0, t=-35
+[1021] [0] DUM : Written value c=25, t=35
+[1022] [0] DUM : Written value c=-25, t=-35
+[1023] [1] Minutes uptime: 27.20
+[1024] [1]   Messages in queue: 0
+[1025] [1]   Memory Heap free:    92280 max alloc:    67572 min free:    78444
+[1026] [1] Minutes uptime: 27.30
+[1027] [1]   Messages in queue: 0
+[1028] [1]   Memory Heap free:    91752 max alloc:    67572 min free:    78444
+[1029] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1030] [0] DUM : Written value c=35, t=30
+[1031] [0] DUM : Written value c=-35, t=-30
+[1032] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1033] [0] DUM : Written value c=30, t=0
+[1034] [0] DUM : Written value c=-30, t=0
+[1035] [1] Minutes uptime: 27.40
+[1036] [1]   Messages in queue: 0
+[1037] [1]   Memory Heap free:    91464 max alloc:    67572 min free:    78444
+[1038] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1039] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1040] [0] DUM : Written value c=0, t=35
+[1041] [0] DUM : Written value c=0, t=-35
+[1042] [1] Minutes uptime: 27.50
+[1043] [1]   Messages in queue: 0
+[1044] [1]   Memory Heap free:    91224 max alloc:    67572 min free:    78444
+[1045] [0] DUM : Written value c=25, t=35
+[1046] [0] DUM : Written value c=-25, t=-35
+[1047] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1048] [0] DUM : Written value c=-35, t=-30
+[1049] [0] DUM : Written value c=35, t=30
+[1050] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1051] [0] DUM : Written value c=-30, t=0
+[1052] [1] Minutes uptime: 28.00
+[1053] [1]   Messages in queue: 0
+[1054] [1]   Memory Heap free:    90872 max alloc:    65524 min free:    78444
+[1055] [0] DUM : Written value c=30, t=0
+[1056] [1] Minutes uptime: 28.10
+[1057] [1]   Messages in queue: 0
+[1058] [1]   Memory Heap free:    90548 max alloc:    65524 min free:    78444
+[1059] [1] Minutes uptime: 28.20
+[1060] [1]   Messages in queue: 2
+[1061] [1]   Memory Heap free:    86952 max alloc:    56308 min free:    78444
+[1062] [1] Minutes uptime: 28.30
+[1063] [1]   Messages in queue: 0
+[1064] [1]   Memory Heap free:    89792 max alloc:    65524 min free:    78444
+[1065] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1066] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1067] [0] DUM : Written value c=0, t=-35
+[1068] [0] DUM : Written value c=0, t=35
+[1069] [0] DUM : Written value c=-25, t=-35
+[1070] [0] DUM : Written value c=25, t=35
+[1071] [1] Minutes uptime: 28.40
+[1072] [1]   Messages in queue: 0
+[1073] [1]   Memory Heap free:    89320 max alloc:    65524 min free:    78416
+[1074] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1075] [0] DUM : Written value c=-35, t=-30
+[1076] [0] DUM : Written value c=35, t=30
+[1077] [1] Minutes uptime: 28.50
+[1078] [1]   Messages in queue: 1
+[1079] [1]   Memory Heap free:    81080 max alloc:    58356 min free:    78212
+[1080] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1081] [0] DUM : Written value c=-30, t=0
+[1082] [0] DUM : Written value c=30, t=0
+[1083] [1] Minutes uptime: 29.00
+[1084] [1]   Messages in queue: 2
+[1085] [1]   Memory Heap free:    88372 max alloc:    65524 min free:    78212
+[1086] [1] MQTT: Received and ignored 'sw' command'.
+[1087] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1088] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1089] [0] DUM : Written value c=0, t=-35
+[1090] [0] DUM : Written value c=0, t=35
+[1091] [1] Minutes uptime: 29.10
+[1092] [1]   Messages in queue: 0
+[1093] [1]   Memory Heap free:    88364 max alloc:    63476 min free:    78212
+[1094] [0] DUM : Written value c=-25, t=-35
+[1095] [0] DUM : Written value c=25, t=35
+[1096] [1] Minutes uptime: 29.20
+[1097] [1]   Messages in queue: 0
+[1098] [1]   Memory Heap free:    88024 max alloc:    63476 min free:    78212
+[1099] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1100] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1101] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1102] [0] DUM : Written value c=-35, t=-30
+[1103] [0] DUM : Written value c=35, t=30
+[1104] [1] Minutes uptime: 29.30
+[1105] [1]   Messages in queue: 0
+[1106] [1]   Memory Heap free:    87592 max alloc:    63476 min free:    78212
+[1107] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1108] [0] DUM : Written value c=-30, t=0
+[1109] [0] DUM : Written value c=30, t=0
+[1110] [1] Minutes uptime: 29.40
+[1111] [1]   Messages in queue: 0
+[1112] [1]   Memory Heap free:    87436 max alloc:    63476 min free:    78212
+[1113] [1] Minutes uptime: 29.50
+[1114] [1]   Messages in queue: 0
+[1115] [1]   Memory Heap free:    87268 max alloc:    63476 min free:    78212
+[1116] [1] Minutes uptime: 30.00
+[1117] [1]   Messages in queue: 0
+[1118] [1]   Memory Heap free:    86848 max alloc:    63476 min free:    75140
+[1119] [1] Minutes uptime: 30.10
+[1120] [1]   Messages in queue: 0
+[1121] [1]   Memory Heap free:    86684 max alloc:    63476 min free:    74988
+[1122] [1] Minutes uptime: 30.20
+[1123] [1]   Messages in queue: 0
+[1124] [1]   Memory Heap free:    86332 max alloc:    61428 min free:    74988
+[1125] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1126] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1127] [0] DUM : Written value c=0, t=-35
+[1128] [0] DUM : Written value c=0, t=35
+[1129] [1] Minutes uptime: 30.30
+[1130] [1]   Messages in queue: 0
+[1131] [1]   Memory Heap free:    86072 max alloc:    61428 min free:    72304
+[1132] [0] DUM : Written value c=-25, t=-35
+[1133] [0] DUM : Written value c=25, t=35
+[1134] [1] Minutes uptime: 30.40
+[1135] [1]   Messages in queue: 0
+[1136] [1]   Memory Heap free:    83416 max alloc:    54260 min free:    72304
+[1137] [1] Minutes uptime: 30.50
+[1138] [1]   Messages in queue: 0
+[1139] [1]   Memory Heap free:    83200 max alloc:    58356 min free:    72304
+[1140] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1141] [0] DUM : Written value c=35, t=30
+[1142] [1] Minutes uptime: 31.00
+[1143] [1]   Messages in queue: 0
+[1144] [1]   Memory Heap free:    84852 max alloc:    61428 min free:    72304
+[1145] [0] DUM : Written value c=-35, t=-30
+[1146] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1147] [0] DUM : Written value c=-30, t=0
+[1148] [0] DUM : Written value c=30, t=0
+[1149] [1] Minutes uptime: 31.10
+[1150] [1]   Messages in queue: 0
+[1151] [1]   Memory Heap free:    84804 max alloc:    61428 min free:    72304
+[1152] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1153] [1] Minutes uptime: 31.20
+[1154] [1]   Messages in queue: 0
+[1155] [1]   Memory Heap free:    84540 max alloc:    61428 min free:    72304
+[1156] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1157] [0] DUM : Written value c=0, t=35
+[1158] [0] DUM : Written value c=0, t=-35
+[1159] [0] DUM : Written value c=25, t=35
+[1160] [0] DUM : Written value c=-25, t=-35
+[1161] [1] Minutes uptime: 31.30
+[1162] [1]   Messages in queue: 0
+[1163] [1]   Memory Heap free:    84268 max alloc:    60404 min free:    72304
+[1164] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1165] [0] DUM : Written value c=35, t=30
+[1166] [0] DUM : Written value c=-35, t=-30
+[1167] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1168] [0] DUM : Written value c=30, t=35
+[1169] [0] DUM : Written value c=-30, t=-35
+[1170] [1] MQTT: Received and ignored 'sw' command'.
+[1171] [1] Minutes uptime: 31.40
+[1172] [1]   Messages in queue: 0
+[1173] [1]   Memory Heap free:    83600 max alloc:    58356 min free:    72304
+[1174] [1] Minutes uptime: 31.50
+[1175] [1]   Messages in queue: 0
+[1176] [1]   Memory Heap free:    83408 max alloc:    58356 min free:    72304
+[1177] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1178] [1] Minutes uptime: 32.00
+[1179] [1]   Messages in queue: 0
+[1180] [1]   Memory Heap free:    82904 max alloc:    58356 min free:    72304
+[1181] [0] DUM : Written value c=35, t=30
+[1182] [0] DUM : Written value c=-35, t=-30
+[1183] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1184] [0] DUM : Written value c=30, t=0
+[1185] [0] DUM : Written value c=-30, t=0
+[1186] [1] Minutes uptime: 32.10
+[1187] [1]   Messages in queue: 0
+[1188] [1]   Memory Heap free:    80308 max alloc:    55284 min free:    72304
+[1189] [1] Minutes uptime: 32.20
+[1190] [1]   Messages in queue: 0
+[1191] [1]   Memory Heap free:    82184 max alloc:    58356 min free:    72304
+[1192] [1] Minutes uptime: 32.30
+[1193] [1]   Messages in queue: 0
+[1194] [1]   Memory Heap free:    82076 max alloc:    58356 min free:    64980
+[1195] [1] Minutes uptime: 32.40
+[1196] [1]   Messages in queue: 0
+[1197] [1]   Memory Heap free:    81700 max alloc:    58356 min free:    64980
+[1198] [1] Minutes uptime: 32.50
+[1199] [1]   Messages in queue: 0
+[1200] [1]   Memory Heap free:    81436 max alloc:    57332 min free:    64980
+[1201] [1] Minutes uptime: 33.00
+[1202] [1]   Messages in queue: 0
+[1203] [1]   Memory Heap free:    81132 max alloc:    57332 min free:    64980
+[1204] [1] Minutes uptime: 33.10
+[1205] [1]   Messages in queue: 0
+[1206] [1]   Memory Heap free:    80656 max alloc:    55284 min free:    64980
+[1207] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1208] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1209] [0] DUM : Written value c=0, t=35
+[1210] [0] DUM : Written value c=0, t=-35
+[1211] [0] DUM : Written value c=25, t=35
+[1212] [0] DUM : Written value c=-25, t=-35
+[1213] [1] Minutes uptime: 33.20
+[1214] [1]   Messages in queue: 0
+[1215] [1]   Memory Heap free:    80648 max alloc:    55284 min free:    64980
+[1216] [1] Minutes uptime: 33.30
+[1217] [1]   Messages in queue: 0
+[1218] [1]   Memory Heap free:    80416 max alloc:    55284 min free:    64980
+[1219] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1220] [0] DUM : Written value c=35, t=30
+[1221] [0] DUM : Written value c=-35, t=-30
+[1222] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1223] [0] DUM : Written value c=30, t=35
+[1224] [0] DUM : Written value c=-30, t=-35
+[1225] [1] Minutes uptime: 33.40
+[1226] [1]   Messages in queue: 0
+[1227] [1]   Memory Heap free:    80096 max alloc:    55284 min free:    64980
+[1228] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1229] [0] DUM : Written value c=35, t=30
+[1230] [0] DUM : Written value c=-35, t=-30
+[1231] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1232] [0] DUM : Written value c=30, t=0
+[1233] [0] DUM : Written value c=-30, t=0
+[1234] [1] Minutes uptime: 33.50
+[1235] [1]   Messages in queue: 0
+[1236] [1]   Memory Heap free:    79580 max alloc:    55284 min free:    64980
+[1237] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1238] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1239] [0] DUM : Written value c=0, t=-35
+[1240] [0] DUM : Written value c=0, t=35
+[1241] [0] DUM : Written value c=-25, t=-35
+[1242] [0] DUM : Written value c=25, t=35
+[1243] [1] Minutes uptime: 34.00
+[1244] [1]   Messages in queue: 0
+[1245] [1]   Memory Heap free:    79148 max alloc:    55284 min free:    64980
+[1246] [1] Minutes uptime: 34.10
+[1247] [1]   Messages in queue: 0
+[1248] [1]   Memory Heap free:    78812 max alloc:    54260 min free:    64980
+[1249] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1250] [0] DUM : Written value c=-35, t=-30
+[1251] [0] DUM : Written value c=35, t=30
+[1252] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1253] [0] DUM : Written value c=-30, t=-35
+[1254] [0] DUM : Written value c=30, t=35
+[1255] [1] Minutes uptime: 34.20
+[1256] [1]   Messages in queue: 0
+[1257] [1]   Memory Heap free:    78468 max alloc:    51188 min free:    64980
+[1258] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1259] [0] DUM : Written value c=-35, t=-30
+[1260] [0] DUM : Written value c=35, t=30
+[1261] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1262] [0] DUM : Written value c=30, t=0
+[1263] [0] DUM : Written value c=-30, t=0
+[1264] [1] Minutes uptime: 34.30
+[1265] [1]   Messages in queue: 0
+[1266] [1]   Memory Heap free:    78196 max alloc:    51188 min free:    64980
+[1267] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1268] [1] Minutes uptime: 34.40
+[1269] [1]   Messages in queue: 0
+[1270] [1]   Memory Heap free:    77444 max alloc:    51188 min free:    64980
+[1271] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1272] [0] DUM : Written value c=0, t=35
+[1273] [0] DUM : Written value c=0, t=-35
+[1274] [0] DUM : Written value c=25, t=35
+[1275] [0] DUM : Written value c=-25, t=-35
+[1276] [1] Minutes uptime: 34.50
+[1277] [1]   Messages in queue: 0
+[1278] [1]   Memory Heap free:    77456 max alloc:    51188 min free:    63316
+[1279] [1] Minutes uptime: 35.00
+[1280] [1]   Messages in queue: 0
+[1281] [1]   Memory Heap free:    77152 max alloc:    51188 min free:    63316
+[1282] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1283] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1284] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1285] [0] DUM : Written value c=35, t=30
+[1286] [0] DUM : Written value c=-35, t=-30
+[1287] [1] Minutes uptime: 35.10
+[1288] [1]   Messages in queue: 0
+[1289] [1]   Memory Heap free:    76924 max alloc:    51188 min free:    63316
+[1290] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1291] [0] DUM : Written value c=-30, t=0
+[1292] [0] DUM : Written value c=30, t=0
+[1293] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1294] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1295] [0] DUM : Written value c=0, t=-35
+[1296] [0] DUM : Written value c=0, t=35
+[1297] [1] Minutes uptime: 35.20
+[1298] [1]   Messages in queue: 0
+[1299] [1]   Memory Heap free:    69448 max alloc:    41972 min free:    63316
+[1300] [0] DUM : Written value c=-25, t=-35
+[1301] [0] DUM : Written value c=25, t=35
+[1302] [1] Minutes uptime: 35.30
+[1303] [1]   Messages in queue: 0
+[1304] [1]   Memory Heap free:    76156 max alloc:    51188 min free:    60368
+[1305] [1] Minutes uptime: 35.40
+[1306] [1]   Messages in queue: 0
+[1307] [1]   Memory Heap free:    73424 max alloc:    49140 min free:    56256
+[1308] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1309] [0] DUM : Written value c=-35, t=-30
+[1310] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1311] [1] Minutes uptime: 35.50
+[1312] [1]   Messages in queue: 0
+[1313] [1]   Memory Heap free:    75544 max alloc:    51188 min free:    56256
+[1314] [0] DUM : Written value c=-30, t=-35
+[1315] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1316] [0] DUM : Written value c=-35, t=-30
+[1317] [0] DUM : Written value c=35, t=30
+[1318] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1319] [0] DUM : Written value c=-30, t=0
+[1320] [0] DUM : Written value c=30, t=0
+[1321] [1] Minutes uptime: 36.00
+[1322] [1]   Messages in queue: 0
+[1323] [1]   Memory Heap free:    75112 max alloc:    47092 min free:    56256
+[1324] [1] Minutes uptime: 36.10
+[1325] [1]   Messages in queue: 0
+[1326] [1]   Memory Heap free:    74792 max alloc:    47092 min free:    56256
+[1327] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1328] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1329] [0] DUM : Written value c=0, t=35
+[1330] [0] DUM : Written value c=0, t=-35
+[1331] [0] DUM : Written value c=25, t=35
+[1332] [0] DUM : Written value c=-25, t=-35
+[1333] [1] Minutes uptime: 36.20
+[1334] [1]   Messages in queue: 0
+[1335] [1]   Memory Heap free:    74456 max alloc:    47092 min free:    56256
+[1336] [1] Minutes uptime: 36.30
+[1337] [1]   Messages in queue: 0
+[1338] [1]   Memory Heap free:    74052 max alloc:    47092 min free:    56256
+[1339] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1340] [0] DUM : Written value c=-35, t=-30
+[1341] [0] DUM : Written value c=35, t=30
+[1342] [1] Minutes uptime: 36.40
+[1343] [1]   Messages in queue: 0
+[1344] [1]   Memory Heap free:    66488 max alloc:    39924 min free:    56256
+[1345] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1346] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1347] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1348] [0] DUM : Written value c=-30, t=-35
+[1349] [0] DUM : Written value c=30, t=35
+[1350] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1351] [0] DUM : Written value c=-35, t=-30
+[1352] [0] DUM : Written value c=35, t=30
+[1353] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1354] [0] DUM : Written value c=-30, t=0
+[1355] [0] DUM : Written value c=30, t=0
+[1356] [1] Minutes uptime: 36.50
+[1357] [1]   Messages in queue: 0
+[1358] [1]   Memory Heap free:    73080 max alloc:    47092 min free:    56256
+[1359] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1360] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1361] [0] DUM : Written value c=0, t=35
+[1362] [0] DUM : Written value c=0, t=-35
+[1363] [0] DUM : Written value c=25, t=35
+[1364] [0] DUM : Written value c=-25, t=-35
+[1365] [1] Minutes uptime: 37.00
+[1366] [1]   Messages in queue: 0
+[1367] [1]   Memory Heap free:    72636 max alloc:    47092 min free:    56256
+[1368] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1369] [0] DUM : Written value c=35, t=30
+[1370] [0] DUM : Written value c=-35, t=-30
+[1371] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1372] [1] Minutes uptime: 37.10
+[1373] [1]   Messages in queue: 0
+[1374] [1]   Memory Heap free:    72452 max alloc:    47092 min free:    56256
+[1375] [0] DUM : Written value c=30, t=35
+[1376] [0] DUM : Written value c=-30, t=-35
+[1377] [1] Minutes uptime: 37.20
+[1378] [1]   Messages in queue: 0
+[1379] [1]   Memory Heap free:    72076 max alloc:    47092 min free:    56256
+[1380] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1381] [0] DUM : Written value c=35, t=30
+[1382] [0] DUM : Written value c=-35, t=-30
+[1383] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1384] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1385] [0] DUM : Written value c=30, t=35
+[1386] [0] DUM : Written value c=-30, t=-35
+[1387] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1388] [1] Minutes uptime: 37.30
+[1389] [1]   Messages in queue: 1
+[1390] [1]   Memory Heap free:    66380 max alloc:    40948 min free:    56256
+[1391] [0] DUM : Written value c=35, t=30
+[1392] [0] DUM : Written value c=-35, t=-30
+[1393] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1394] [0] DUM : Written value c=30, t=0
+[1395] [0] DUM : Written value c=-30, t=0
+[1396] [1] Minutes uptime: 37.40
+[1397] [1]   Messages in queue: 0
+[1398] [1]   Memory Heap free:    71604 max alloc:    47092 min free:    56256
+[1399] [1] Minutes uptime: 37.50
+[1400] [1]   Messages in queue: 0
+[1401] [1]   Memory Heap free:    71204 max alloc:    44020 min free:    56256
+[1402] [1] Minutes uptime: 38.00
+[1403] [1]   Messages in queue: 0
+[1404] [1]   Memory Heap free:    70536 max alloc:    40948 min free:    56256
+[1405] [1] Minutes uptime: 38.10
+[1406] [1]   Messages in queue: 0
+[1407] [1]   Memory Heap free:    70432 max alloc:    40948 min free:    56256
+[1408] [1] Minutes uptime: 38.20
+[1409] [1]   Messages in queue: 0
+[1410] [1]   Memory Heap free:    70096 max alloc:    40948 min free:    36648
+[1411] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1412] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1413] [0] DUM : Written value c=0, t=35
+[1414] [0] DUM : Written value c=0, t=-35
+[1415] [0] DUM : Written value c=25, t=35
+[1416] [0] DUM : Written value c=-25, t=-35
+[1417] [1] Minutes uptime: 38.30
+[1418] [1]   Messages in queue: 0
+[1419] [1]   Memory Heap free:    69696 max alloc:    40948 min free:    36648
+[1420] [1] Minutes uptime: 38.40
+[1421] [1]   Messages in queue: 0
+[1422] [1]   Memory Heap free:    69268 max alloc:    40948 min free:    36648
+[1423] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1424] [0] DUM : Written value c=-35, t=-30
+[1425] [0] DUM : Written value c=35, t=30
+[1426] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1427] [0] DUM : Written value c=-30, t=0
+[1428] [0] DUM : Written value c=30, t=0
+[1429] [1] Minutes uptime: 38.50
+[1430] [1]   Messages in queue: 0
+[1431] [1]   Memory Heap free:    66304 max alloc:    37876 min free:    36648
+[1432] [1] Minutes uptime: 39.00
+[1433] [1]   Messages in queue: 0
+[1434] [1]   Memory Heap free:    65960 max alloc:    35828 min free:    36648
+[1435] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1436] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1437] [0] DUM : Written value c=0, t=35
+[1438] [0] DUM : Written value c=0, t=-35
+[1439] [0] DUM : Written value c=25, t=35
+[1440] [0] DUM : Written value c=-25, t=-35
+[1441] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1442] [0] DUM : Written value c=-35, t=-30
+[1443] [0] DUM : Written value c=35, t=30
+[1444] [1] Minutes uptime: 39.10
+[1445] [1]   Messages in queue: 0
+[1446] [1]   Memory Heap free:    68196 max alloc:    40948 min free:    36648
+[1447] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1448] [0] DUM : Written value c=30, t=0
+[1449] [0] DUM : Written value c=-30, t=0
+[1450] [1] Minutes uptime: 39.20
+[1451] [1]   Messages in queue: 0
+[1452] [1]   Memory Heap free:    67892 max alloc:    40948 min free:    36648
+[1453] [1] Minutes uptime: 39.30
+[1454] [1]   Messages in queue: 0
+[1455] [1]   Memory Heap free:    67588 max alloc:    40948 min free:    36648
+[1456] [1] Minutes uptime: 39.40
+[1457] [1]   Messages in queue: 0
+[1458] [1]   Memory Heap free:    67272 max alloc:    40948 min free:    36648
+[1459] [1] Minutes uptime: 39.50
+[1460] [1]   Messages in queue: 0
+[1461] [1]   Memory Heap free:    66948 max alloc:    40948 min free:    36648
+[1462] [1] Minutes uptime: 40.00
+[1463] [1]   Messages in queue: 0
+[1464] [1]   Memory Heap free:    66644 max alloc:    40948 min free:    36648
+[1465] [1] Minutes uptime: 40.10
+[1466] [1]   Messages in queue: 0
+[1467] [1]   Memory Heap free:    66396 max alloc:    37876 min free:    36648
+[1468] [1] Minutes uptime: 40.20
+[1469] [1]   Messages in queue: 0
+[1470] [1]   Memory Heap free:    65872 max alloc:    37876 min free:    36648
+[1471] [1] Minutes uptime: 40.30
+[1472] [1]   Messages in queue: 0
+[1473] [1]   Memory Heap free:    65740 max alloc:    37876 min free:    36648
+[1474] [1] Minutes uptime: 40.40
+[1475] [1]   Messages in queue: 0
+[1476] [1]   Memory Heap free:    65572 max alloc:    37876 min free:    36648
+[1477] [1] Minutes uptime: 40.50
+[1478] [1]   Messages in queue: 0
+[1479] [1]   Memory Heap free:    65008 max alloc:    37876 min free:    36648
+[1480] [1] Minutes uptime: 41.00
+[1481] [1]   Messages in queue: 0
+[1482] [1]   Memory Heap free:    64848 max alloc:    37876 min free:    36648
+[1483] [1] Minutes uptime: 41.10
+[1484] [1]   Messages in queue: 0
+[1485] [1]   Memory Heap free:    64608 max alloc:    37876 min free:    36648
+[1486] [1] Minutes uptime: 41.20
+[1487] [1]   Messages in queue: 0
+[1488] [1]   Memory Heap free:    64352 max alloc:    37876 min free:    36648
+[1489] [1] Minutes uptime: 41.30
+[1490] [1]   Messages in queue: 0
+[1491] [1]   Memory Heap free:    64040 max alloc:    37876 min free:    36648
+[1492] [1] Minutes uptime: 41.40
+[1493] [1]   Messages in queue: 0
+[1494] [1]   Memory Heap free:    63648 max alloc:    37876 min free:    36648
+[1495] [1] Minutes uptime: 41.50
+[1496] [1]   Messages in queue: 0
+[1497] [1]   Memory Heap free:    63360 max alloc:    35828 min free:    36648
+[1498] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1499] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1500] [0] DUM : Written value c=0, t=35
+[1501] [0] DUM : Written value c=0, t=-35
+[1502] [0] DUM : Written value c=25, t=35
+[1503] [0] DUM : Written value c=-25, t=-35
+[1504] [1] Minutes uptime: 42.00
+[1505] [1]   Messages in queue: 0
+[1506] [1]   Memory Heap free:    62964 max alloc:    35828 min free:    36648
+[1507] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1508] [0] DUM : Written value c=35, t=30
+[1509] [0] DUM : Written value c=-35, t=-30
+[1510] [1] Minutes uptime: 42.10
+[1511] [1]   Messages in queue: 0
+[1512] [1]   Memory Heap free:    62572 max alloc:    34804 min free:    36648
+[1513] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1514] [0] DUM : Written value c=30, t=0
+[1515] [0] DUM : Written value c=-30, t=0
+[1516] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1517] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1518] [0] DUM : Written value c=0, t=-35
+[1519] [0] DUM : Written value c=0, t=35
+[1520] [1] Minutes uptime: 42.20
+[1521] [1]   Messages in queue: 0
+[1522] [1]   Memory Heap free:    62348 max alloc:    34804 min free:    36648
+[1523] [0] DUM : Written value c=-25, t=-35
+[1524] [0] DUM : Written value c=25, t=35
+[1525] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1526] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1527] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1528] [0] DUM : Written value c=35, t=30
+[1529] [1] Minutes uptime: 42.30
+[1530] [1]   Messages in queue: 0
+[1531] [1]   Memory Heap free:    61916 max alloc:    34804 min free:    36648
+[1532] [0] DUM : Written value c=-35, t=-30
+[1533] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1534] [0] DUM : Written value c=30, t=0
+[1535] [0] DUM : Written value c=-30, t=0
+[1536] [1] Minutes uptime: 42.40
+[1537] [1]   Messages in queue: 0
+[1538] [1]   Memory Heap free:    61684 max alloc:    34804 min free:    36648
+[1539] [1] Minutes uptime: 42.50
+[1540] [1]   Messages in queue: 0
+[1541] [1]   Memory Heap free:    61064 max alloc:    34804 min free:    36648
+[1542] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1543] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1544] [1] MQTT: Received and ignored 'sw' command'.
+[1545] [0] DUM : Written value c=0, t=-35
+[1546] [0] DUM : Written value c=0, t=35
+[1547] [0] DUM : Written value c=-25, t=-35
+[1548] [0] DUM : Written value c=25, t=35
+[1549] [1] Minutes uptime: 43.00
+[1550] [1]   Messages in queue: 0
+[1551] [1]   Memory Heap free:    60988 max alloc:    34804 min free:    36648
+[1552] [1] Minutes uptime: 43.10
+[1553] [1]   Messages in queue: 0
+[1554] [1]   Memory Heap free:    60492 max alloc:    33780 min free:    36648
+[1555] [1] Minutes uptime: 43.20
+[1556] [1]   Messages in queue: 0
+[1557] [1]   Memory Heap free:    57880 max alloc:    29684 min free:    36648
+[1558] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1559] [0] DUM : Written value c=-35, t=-30
+[1560] [0] DUM : Written value c=35, t=30
+[1561] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1562] [0] DUM : Written value c=-30, t=0
+[1563] [1] Minutes uptime: 43.30
+[1564] [1]   Messages in queue: 0
+[1565] [1]   Memory Heap free:    59908 max alloc:    32244 min free:    36648
+[1566] [0] DUM : Written value c=30, t=0
+[1567] [1] Minutes uptime: 43.40
+[1568] [1]   Messages in queue: 0
+[1569] [1]   Memory Heap free:    56824 max alloc:    29684 min free:    36648
+[1570] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1571] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1572] [0] DUM : Written value c=0, t=35
+[1573] [0] DUM : Written value c=0, t=-35
+[1574] [0] DUM : Written value c=25, t=35
+[1575] [0] DUM : Written value c=-25, t=-35
+[1576] [1] Minutes uptime: 43.50
+[1577] [1]   Messages in queue: 0
+[1578] [1]   Memory Heap free:    59260 max alloc:    32244 min free:    36648
+[1579] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1580] [0] DUM : Written value c=35, t=30
+[1581] [0] DUM : Written value c=-35, t=-30
+[1582] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1583] [0] DUM : Written value c=30, t=35
+[1584] [0] DUM : Written value c=-30, t=-35
+[1585] [1] Minutes uptime: 44.00
+[1586] [1]   Messages in queue: 0
+[1587] [1]   Memory Heap free:    59012 max alloc:    32244 min free:    36648
+[1588] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1589] [0] DUM : Written value c=35, t=30
+[1590] [0] DUM : Written value c=-35, t=-30
+[1591] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1592] [0] DUM : Written value c=30, t=0
+[1593] [0] DUM : Written value c=-30, t=0
+[1594] [1] Minutes uptime: 44.10
+[1595] [1]   Messages in queue: 0
+[1596] [1]   Memory Heap free:    58732 max alloc:    32244 min free:    36648
+[1597] [1] Minutes uptime: 44.20
+[1598] [1]   Messages in queue: 0
+[1599] [1]   Memory Heap free:    58508 max alloc:    32244 min free:    36648
+[1600] [1] Minutes uptime: 44.30
+[1601] [1]   Messages in queue: 0
+[1602] [1]   Memory Heap free:    58244 max alloc:    31220 min free:    36648
+[1603] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1604] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1605] [0] DUM : Written value c=0, t=35
+[1606] [0] DUM : Written value c=0, t=-35
+[1607] [0] DUM : Written value c=25, t=35
+[1608] [1] Minutes uptime: 44.40
+[1609] [1]   Messages in queue: 0
+[1610] [1]   Memory Heap free:    58012 max alloc:    31220 min free:    36648
+[1611] [0] DUM : Written value c=-25, t=-35
+[1612] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1613] [0] DUM : Written value c=35, t=30
+[1614] [0] DUM : Written value c=-35, t=-30
+[1615] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1616] [0] DUM : Written value c=30, t=35
+[1617] [0] DUM : Written value c=-30, t=-35
+[1618] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1619] [0] DUM : Written value c=35, t=30
+[1620] [1] Minutes uptime: 44.50
+[1621] [1]   Messages in queue: 0
+[1622] [1]   Memory Heap free:    55416 max alloc:    28660 min free:    36648
+[1623] [0] DUM : Written value c=-35, t=-30
+[1624] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1625] [0] DUM : Written value c=-30, t=0
+[1626] [0] DUM : Written value c=30, t=0
+[1627] [1] Minutes uptime: 45.00
+[1628] [1]   Messages in queue: 0
+[1629] [1]   Memory Heap free:    57488 max alloc:    31220 min free:    36648
+[1630] [1] Minutes uptime: 45.10
+[1631] [1]   Messages in queue: 0
+[1632] [1]   Memory Heap free:    57236 max alloc:    28660 min free:    36648
+[1633] [1] Minutes uptime: 45.20
+[1634] [1]   Messages in queue: 0
+[1635] [1]   Memory Heap free:    57020 max alloc:    28660 min free:    36648
+[1636] [1] Minutes uptime: 45.30
+[1637] [1]   Messages in queue: 0
+[1638] [1]   Memory Heap free:    56604 max alloc:    28660 min free:    36648
+[1639] [1] Minutes uptime: 45.40
+[1640] [1]   Messages in queue: 0
+[1641] [1]   Memory Heap free:    56316 max alloc:    28660 min free:    36648
+[1642] [1] Minutes uptime: 45.50
+[1643] [1]   Messages in queue: 0
+[1644] [1]   Memory Heap free:    56052 max alloc:    28660 min free:    36648
+[1645] [1] Minutes uptime: 46.00
+[1646] [1]   Messages in queue: 0
+[1647] [1]   Memory Heap free:    55552 max alloc:    28660 min free:    36648
+[1648] [1] Minutes uptime: 46.10
+[1649] [1]   Messages in queue: 0
+[1650] [1]   Memory Heap free:    55508 max alloc:    28660 min free:    36648
+[1651] [1] Minutes uptime: 46.20
+[1652] [1]   Messages in queue: 0
+[1653] [1]   Memory Heap free:    55252 max alloc:    26100 min free:    36648
+[1654] [1] Minutes uptime: 46.30
+[1655] [1]   Messages in queue: 0
+[1656] [1]   Memory Heap free:    54828 max alloc:    26100 min free:    36648
+[1657] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1658] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1659] [0] DUM : Written value c=0, t=-35
+[1660] [0] DUM : Written value c=0, t=35
+[1661] [1] Minutes uptime: 46.40
+[1662] [1]   Messages in queue: 0
+[1663] [1]   Memory Heap free:    54104 max alloc:    26100 min free:    36648
+[1664] [0] DUM : Written value c=-25, t=-35
+[1665] [0] DUM : Written value c=25, t=35
+[1666] [1] Minutes uptime: 46.50
+[1667] [1]   Messages in queue: 0
+[1668] [1]   Memory Heap free:    54132 max alloc:    26100 min free:    36648
+[1669] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1670] [1] Minutes uptime: 47.00
+[1671] [1]   Messages in queue: 0
+[1672] [1]   Memory Heap free:    53740 max alloc:    24564 min free:    36648
+[1673] [0] DUM : Written value c=-35, t=-30
+[1674] [0] DUM : Written value c=35, t=30
+[1675] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1676] [0] DUM : Written value c=-30, t=0
+[1677] [0] DUM : Written value c=30, t=0
+[1678] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1679] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1680] [0] DUM : Written value c=0, t=35
+[1681] [1] Minutes uptime: 47.10
+[1682] [1]   Messages in queue: 0
+[1683] [1]   Memory Heap free:    53356 max alloc:    24564 min free:    36648
+[1684] [0] DUM : Written value c=0, t=-35
+[1685] [0] DUM : Written value c=25, t=35
+[1686] [0] DUM : Written value c=-25, t=-35
+[1687] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1688] [0] DUM : Written value c=35, t=30
+[1689] [0] DUM : Written value c=-35, t=-30
+[1690] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1691] [0] DUM : Written value c=30, t=0
+[1692] [1] Minutes uptime: 47.20
+[1693] [1]   Messages in queue: 0
+[1694] [1]   Memory Heap free:    53084 max alloc:    24564 min free:    36648
+[1695] [0] DUM : Written value c=-30, t=0
+[1696] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1697] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1698] [1] Minutes uptime: 47.30
+[1699] [1]   Messages in queue: 1
+[1700] [1]   Memory Heap free:    52692 max alloc:    24564 min free:    36648
+[1701] [0] DUM : Written value c=0, t=35
+[1702] [0] DUM : Written value c=0, t=-35
+[1703] [0] DUM : Written value c=25, t=35
+[1704] [0] DUM : Written value c=-25, t=-35
+[1705] [1] Minutes uptime: 47.40
+[1706] [1]   Messages in queue: 0
+[1707] [1]   Memory Heap free:    52424 max alloc:    24564 min free:    36648
+[1708] [1] Minutes uptime: 47.50
+[1709] [1]   Messages in queue: 0
+[1710] [1]   Memory Heap free:    52224 max alloc:    24564 min free:    36648
+[1711] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1712] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1713] [1] Minutes uptime: 48.00
+[1714] [1]   Messages in queue: 0
+[1715] [1]   Memory Heap free:    51968 max alloc:    24564 min free:    36648
+[1716] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1717] [0] DUM : Written value c=35, t=30
+[1718] [0] DUM : Written value c=-35, t=-30
+[1719] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1720] [1] Minutes uptime: 48.10
+[1721] [1]   Messages in queue: 0
+[1722] [1]   Memory Heap free:    44196 max alloc:    19956 min free:    36648
+[1723] [0] DUM : Written value c=30, t=0
+[1724] [0] DUM : Written value c=-30, t=0
+[1725] [1] Minutes uptime: 48.20
+[1726] [1]   Messages in queue: 0
+[1727] [1]   Memory Heap free:    50908 max alloc:    22004 min free:    34048
+[1728] [1] Minutes uptime: 48.30
+[1729] [1]   Messages in queue: 0
+[1730] [1]   Memory Heap free:    50620 max alloc:    22004 min free:    34048
+[1731] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1732] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1733] [1] Minutes uptime: 48.40
+[1734] [1]   Messages in queue: 0
+[1735] [1]   Memory Heap free:    50308 max alloc:    22004 min free:    34048
+[1736] [0] DUM : Written value c=0, t=35
+[1737] [0] DUM : Written value c=0, t=-35
+[1738] [0] DUM : Written value c=25, t=35
+[1739] [0] DUM : Written value c=-25, t=-35
+[1740] [1] Minutes uptime: 48.50
+[1741] [1]   Messages in queue: 0
+[1742] [1]   Memory Heap free:    49972 max alloc:    22004 min free:    34048
+[1743] [1] Minutes uptime: 49.00
+[1744] [1]   Messages in queue: 0
+[1745] [1]   Memory Heap free:    49772 max alloc:    22004 min free:    34048
+[1746] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1747] [1] Minutes uptime: 49.10
+[1748] [1]   Messages in queue: 0
+[1749] [1]   Memory Heap free:    49416 max alloc:    22004 min free:    34048
+[1750] [0] DUM : Written value c=35, t=30
+[1751] [0] DUM : Written value c=-35, t=-30
+[1752] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1753] [0] DUM : Written value c=30, t=0
+[1754] [0] DUM : Written value c=-30, t=0
+[1755] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1756] [1] Minutes uptime: 49.20
+[1757] [1]   Messages in queue: 0
+[1758] [1]   Memory Heap free:    44016 max alloc:    19956 min free:    34048
+[1759] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1760] [0] DUM : Written value c=0, t=35
+[1761] [0] DUM : Written value c=0, t=-35
+[1762] [0] DUM : Written value c=25, t=35
+[1763] [0] DUM : Written value c=-25, t=-35
+[1764] [1] Minutes uptime: 49.30
+[1765] [1]   Messages in queue: 0
+[1766] [1]   Memory Heap free:    48720 max alloc:    19956 min free:    34048
+[1767] [1] Minutes uptime: 49.40
+[1768] [1]   Messages in queue: 0
+[1769] [1]   Memory Heap free:    46028 max alloc:    19956 min free:    34048
+[1770] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1771] [0] DUM : Written value c=35, t=30
+[1772] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1773] [0] DUM : Written value c=-35, t=0
+[1774] [0] DUM : Written value c=30, t=0
+[1775] [0] DUM : Written value c=-25, t=0
+[1776] [1] Minutes uptime: 49.50
+[1777] [1]   Messages in queue: 0
+[1778] [1]   Memory Heap free:    47976 max alloc:    19956 min free:    34048
+[1779] [1] Minutes uptime: 50.00
+[1780] [1]   Messages in queue: 1
+[1781] [1]   Memory Heap free:    42352 max alloc:    19956 min free:    34048
+[1782] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1783] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1784] [0] DUM : Written value c=0, t=-35
+[1785] [0] DUM : Written value c=0, t=35
+[1786] [0] DUM : Written value c=-25, t=-35
+[1787] [0] DUM : Written value c=25, t=35
+[1788] [1] Minutes uptime: 50.10
+[1789] [1]   Messages in queue: 0
+[1790] [1]   Memory Heap free:    47492 max alloc:    19956 min free:    34048
+[1791] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1792] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1793] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1794] [1] Minutes uptime: 50.20
+[1795] [1]   Messages in queue: 1
+[1796] [1]   Memory Heap free:    46340 max alloc:    19956 min free:    34048
+[1797] [0] DUM : Written value c=-35, t=-30
+[1798] [0] DUM : Written value c=35, t=30
+[1799] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1800] [0] DUM : Written value c=-30, t=0
+[1801] [0] DUM : Written value c=30, t=0
+[1802] [1] Minutes uptime: 50.30
+[1803] [1]   Messages in queue: 0
+[1804] [1]   Memory Heap free:    46808 max alloc:    19956 min free:    34048
+[1805] [1] Minutes uptime: 50.40
+[1806] [1]   Messages in queue: 0
+[1807] [1]   Memory Heap free:    46488 max alloc:    19956 min free:    33804
+[1808] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1809] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1810] [0] DUM : Written value c=0, t=-35
+[1811] [0] DUM : Written value c=0, t=35
+[1812] [0] DUM : Written value c=-25, t=-35
+[1813] [0] DUM : Written value c=25, t=35
+[1814] [1] Minutes uptime: 50.50
+[1815] [1]   Messages in queue: 0
+[1816] [1]   Memory Heap free:    46160 max alloc:    19956 min free:    33804
+[1817] [1] Minutes uptime: 51.00
+[1818] [1]   Messages in queue: 0
+[1819] [1]   Memory Heap free:    41016 max alloc:    19956 min free:    33804
+[1820] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1821] [0] DUM : Written value c=-35, t=-30
+[1822] [0] DUM : Written value c=35, t=30
+[1823] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1824] [0] DUM : Written value c=-30, t=0
+[1825] [0] DUM : Written value c=30, t=0
+[1826] [1] Minutes uptime: 51.10
+[1827] [1]   Messages in queue: 0
+[1828] [1]   Memory Heap free:    45496 max alloc:    19956 min free:    32308
+[1829] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1830] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1831] [1] Minutes uptime: 51.20
+[1832] [1]   Messages in queue: 0
+[1833] [1]   Memory Heap free:    45140 max alloc:    19956 min free:    32308
+[1834] [0] DUM : Written value c=0, t=-35
+[1835] [0] DUM : Written value c=0, t=35
+[1836] [0] DUM : Written value c=-25, t=-35
+[1837] [0] DUM : Written value c=25, t=35
+[1838] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1839] [0] DUM : Written value c=-35, t=-30
+[1840] [0] DUM : Written value c=35, t=30
+[1841] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1842] [1] Minutes uptime: 51.30
+[1843] [1]   Messages in queue: 0
+[1844] [1]   Memory Heap free:    44740 max alloc:    19956 min free:    32156
+[1845] [0] DUM : Written value c=-30, t=0
+[1846] [0] DUM : Written value c=30, t=0
+[1847] [1] Minutes uptime: 51.40
+[1848] [1]   Messages in queue: 0
+[1849] [1]   Memory Heap free:    44336 max alloc:    19956 min free:    32156
+[1850] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1851] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1852] [0] DUM : Written value c=0, t=35
+[1853] [0] DUM : Written value c=0, t=-35
+[1854] [1] Minutes uptime: 51.50
+[1855] [1]   Messages in queue: 0
+[1856] [1]   Memory Heap free:    41588 max alloc:    19956 min free:    32156
+[1857] [0] DUM : Written value c=25, t=35
+[1858] [0] DUM : Written value c=-25, t=-35
+[1859] [1] Minutes uptime: 52.00
+[1860] [1]   Messages in queue: 0
+[1861] [1]   Memory Heap free:    43260 max alloc:    19956 min free:    32032
+[1862] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1863] [0] DUM : Written value c=35, t=30
+[1864] [0] DUM : Written value c=-35, t=-30
+[1865] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1866] [0] DUM : Written value c=30, t=0
+[1867] [0] DUM : Written value c=-30, t=0
+[1868] [1] Minutes uptime: 52.10
+[1869] [1]   Messages in queue: 0
+[1870] [1]   Memory Heap free:    43184 max alloc:    19956 min free:    32032
+[1871] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1872] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1873] [0] DUM : Written value c=0, t=35
+[1874] [0] DUM : Written value c=0, t=-35
+[1875] [0] DUM : Written value c=25, t=35
+[1876] [0] DUM : Written value c=-25, t=-35
+[1877] [1] Minutes uptime: 52.20
+[1878] [1]   Messages in queue: 0
+[1879] [1]   Memory Heap free:    42704 max alloc:    19956 min free:    32032
+[1880] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1881] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1882] [1] Minutes uptime: 52.30
+[1883] [1]   Messages in queue: 0
+[1884] [1]   Memory Heap free:    40012 max alloc:    19956 min free:    30292
+[1885] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1886] [0] DUM : Written value c=35, t=30
+[1887] [0] DUM : Written value c=-35, t=-30
+[1888] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1889] [0] DUM : Written value c=-30, t=0
+[1890] [0] DUM : Written value c=30, t=0
+[1891] [1] Minutes uptime: 52.40
+[1892] [1]   Messages in queue: 0
+[1893] [1]   Memory Heap free:    42060 max alloc:    19956 min free:    30292
+[1894] [1] Minutes uptime: 52.50
+[1895] [1]   Messages in queue: 0
+[1896] [1]   Memory Heap free:    41608 max alloc:    19956 min free:    30292
+[1897] [1] Minutes uptime: 53.00
+[1898] [1]   Messages in queue: 0
+[1899] [1]   Memory Heap free:    41428 max alloc:    19956 min free:    30292
+[1900] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1901] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1902] [0] DUM : Written value c=0, t=35
+[1903] [0] DUM : Written value c=0, t=-35
+[1904] [0] DUM : Written value c=25, t=35
+[1905] [0] DUM : Written value c=-25, t=-35
+[1906] [1] Minutes uptime: 53.10
+[1907] [1]   Messages in queue: 0
+[1908] [1]   Memory Heap free:    38812 max alloc:    19956 min free:    30292
+[1909] [1] Minutes uptime: 53.20
+[1910] [1]   Messages in queue: 0
+[1911] [1]   Memory Heap free:    40920 max alloc:    19956 min free:    30292
+[1912] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1913] [0] DUM : Written value c=35, t=30
+[1914] [0] DUM : Written value c=-35, t=-30
+[1915] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1916] [0] DUM : Written value c=-30, t=0
+[1916] [0] DUM : Written value c=30, t=0
+[1918] [1] Minutes uptime: 53.30
+[1919] [1]   Messages in queue: 0
+[1920] [1]   Memory Heap free:    40404 max alloc:    19956 min free:    30292
+[1921] [1] Minutes uptime: 53.40
+[1922] [1]   Messages in queue: 0
+[1923] [1]   Memory Heap free:    40244 max alloc:    19956 min free:    30292
+[1924] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1925] [1] Ctrl: Received lc command for loco address '6337', speed 35.
+[1926] [0] DUM : Written value c=0, t=35
+[1927] [0] DUM : Written value c=0, t=-35
+[1928] [1] Minutes uptime: 53.50
+[1929] [1]   Messages in queue: 1
+[1930] [1]   Memory Heap free:    32492 max alloc:    19956 min free:    30292
+[1931] [0] DUM : Written value c=25, t=35
+[1932] [0] DUM : Written value c=-25, t=-35
+[1933] [1] Ctrl: Received lc command for loco address '6337', speed 30.
+[1934] [0] DUM : Written value c=35, t=30
+[1935] [0] DUM : Written value c=-35, t=-30
+[1936] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1937] [0] DUM : Written value c=30, t=0
+[1938] [0] DUM : Written value c=-30, t=0
+[1939] [1] Minutes uptime: 54.00
+[1940] [1]   Messages in queue: 0
+[1941] [1]   Memory Heap free:    39480 max alloc:    19956 min free:    30292
+[1942] [1] Minutes uptime: 54.10
+[1943] [1]   Messages in queue: 0
+[1944] [1]   Memory Heap free:    39144 max alloc:    19956 min free:    28556
+[1945] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1946] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1947] [0] DUM : Written value c=0, t=-35
+[1948] [0] DUM : Written value c=0, t=35
+[1949] [1] Minutes uptime: 54.20
+[1950] [1]   Messages in queue: 0
+[1951] [1]   Memory Heap free:    38852 max alloc:    19956 min free:    28556
+[1952] [0] DUM : Written value c=-25, t=-35
+[1953] [0] DUM : Written value c=25, t=35
+[1954] [1] Minutes uptime: 54.30
+[1955] [1]   Messages in queue: 0
+[1956] [1]   Memory Heap free:    38732 max alloc:    19956 min free:    28556
+[1957] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1958] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1959] [0] DUM : Written value c=-35, t=0
+[1960] [0] DUM : Written value c=35, t=0
+[1961] [1] Ctrl: Received lc command for loco address '6337', speed -35.
+[1962] [1] Ctrl: Received lc command for loco address '6337', speed -30.
+[1963] [0] DUM : Written value c=-25, t=-30
+[1964] [0] DUM : Written value c=25, t=30
+[1965] [1] Ctrl: Received lc command for loco address '6337', speed 0.
+[1966] [1] Minutes uptime: 54.40
+[1967] [1]   Messages in queue: 0
+[1968] [1]   Memory Heap free:    33280 max alloc:    19956 min free:    28556
+[1969] [0] DUM : Written value c=30, t=0
+[1970] [0] DUM : Written value c=-30, t=0
+
+abort() was called at PC 0x40168817 on core 0
+
+
+Backtrace:0x40083a45:0x3ffe51300x400931c1:0x3ffe5150 0x40098d8d:0x3ffe5170 0x40168817:0x3ffe51f0 0x4016885e:0x3ffe5210 0x40168ba3:0x3ffe5230 0x40168b02:0x3ffe5250 0x40168c35:0x3ffe5270 0x4016e69d:0x3ffe5290 0x40170bce:0x3ffe52e0 0x400eae57:0x3ffe5300 0x400ea987:0x3ffe5340 
+
+
+
+
+ELF file SHA256: 0000000000000000
+
+Rebooting...
+ets Jun  8 2016 00:22:57
+
+rst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:1184
+load:0x40078000,len:13132
+load:0x40080400,len:3036
+entry 0x400805e4
+
+[1] Setup: Starting MattzoTrainController for BLE...
+[1] Setup: Loading network configuration...
+[0000] [1] Logging: Configured.
+[0001] [1] Setup: Loading controller configuration...
+[0002] [1] Config: Read controller name: MTC4BT-FUX-DUMMY
+[0003] [1] Config: Read ESP pin configuration (0).
+[0004] [1] Config: Read loco configuration (1).
+[0005] [1] CTRL: Local channels initialized.
+[0006] [1] Setup: Initializing BLE...
+[0007] [1] Setup: Controller configuration completed.
+E (3424) wifi_init_default: netstack cb reg failed with 12289
+[1] Wifi: Connecting to bbaerr.[0008] [1] MQTT: Connecting to 192.168.178.10:1883...
+[0009] [1] Setup: MattzoTrainController for BLE running.
+[0010] [1] Setup: Number of locos to discover hubs for: 1
+[0011] [1] Minutes uptime: 0.00
+[0012] [1]   Messages in queue: 0
+[0013] [1]   Memory Heap free:   127964 max alloc:   106484 min free:   127300
+[0014] [0] BLE : Scanning for 2 hub(s)...
+[0015] [0] BLE : Discovered unknown device:  (38:01:95:cd:b6:68).
+[0016] [0] BLE : Discovered hub:  (90:84:2b:23:af:0e).
+[0017] [0] BLE : Discovered unknown device: HwZ_fb0e3dbbb9002b1710 (00:a0:50:72:e5:d0).
+[0018] [0] BLE : Discovered hub:  (90:84:2b:c0:52:74).
+[0019] [0] BLE : Discovered unknown device:  (f8:77:b8:60:86:f3).
+[0020] [1] Ticker started
+[0021] [0] BLE : Discovered unknown device:  (79:1b:bd:a3:eb:75).
+[0022] [0] BLE : Discovered unknown device:  (e9:ef:6d:1c:df:82).
+[0023] [0] BLE : Discovered unknown device:  (13:21:8f:d4:89:36).
+[0024] [0] Wifi: Connected (IPv4: 192.168.178.206).
+[0025] [0] OTA: Initialized.
+[0026] [0] MQTT: Subscriber configuring last will...
+[0027] [0] MQTT: Subscriber attempting to connect...
+[0028] [0] MQTT: Subscriber connected
+[0029] [0] MQTT: Subscriber subscribed to topic 'rocrail/service/command'
+[0030] [0] BLE : Scanning for 2 hub(s) aborted.
