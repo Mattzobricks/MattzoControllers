@@ -86,6 +86,8 @@ class MattzoMQTTSubscriber
     /// </summary>
     static void Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm));
 
+    // just the loop, which should be called from the main loop()
+    static void loop();
     // Returns the current MQTT connection status.
     static int GetStatus();
 

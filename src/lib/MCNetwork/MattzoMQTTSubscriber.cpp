@@ -40,7 +40,8 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
     _setupCompleted = true;
 
     // Start task loop.
-    xTaskCreatePinnedToCore(taskLoop, "MQTTSubscriber", StackDepth, NULL, TaskPriority, NULL, CoreID);
+    // uncomment if you DO NOT CALL loop in the main arduino loop!!!!!!
+    // xTaskCreatePinnedToCore(taskLoop, "MQTTSubscriber", StackDepth, NULL, TaskPriority, NULL, CoreID);
 }
 
 int MattzoMQTTSubscriber::GetStatus()
@@ -122,6 +123,26 @@ void MattzoMQTTSubscriber::reconnect()
     }
 }
 
+void MattzoMQTTSubscriber::loop()
+{
+    // Wait for connection to Wifi (because we need it to contact the broker).
+    MattzoWifiClient::Assert();
+
+    // Wait for connection to MQTT (because we need it to send messages to the broker).
+    if (!mqttSubscriberClient.connected()) {
+        reconnect();
+    }
+
+    if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
+        lastPing = millis();
+
+        // Send a ping message.
+        sendMessage("roc2bricks/ping", _subscriberName);
+    }
+
+    // Allow the MQTT client to process incoming messages and maintain its connection to the server.
+    mqttSubscriberClient.loop();
+}
 /// <summary>
 /// The main (endless) task loop.
 /// </summary>
@@ -138,24 +159,8 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 
         // Loop forever.
         for (;;) {
-            // Wait for connection to Wifi (because we need it to contact the broker).
-            MattzoWifiClient::Assert();
 
-            // Wait for connection to MQTT (because we need it to send messages to the broker).
-            if (!mqttSubscriberClient.connected()) {
-                reconnect();
-            }
-
-            if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
-                lastPing = millis();
-
-                // Send a ping message.
-                sendMessage("roc2bricks/ping", _subscriberName);
-            }
-
-            // Allow the MQTT client to process incoming messages and maintain its connection to the server.
-            mqttSubscriberClient.loop();
-
+            loop();
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
         }

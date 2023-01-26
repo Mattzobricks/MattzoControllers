@@ -115,5 +115,6 @@ void setup()
 
 void loop()
 {
+    MattzoMQTTSubscriber::loop();
     controller->Loop();
 }
