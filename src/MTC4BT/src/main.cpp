@@ -46,26 +46,16 @@ void setupTicker()
 #endif
 #endif
 
-void handleMQTTMessageLoop(void *parm)
+void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-    for (;;) {
-        char *message;
-
-        // See if there's a message in the queue (do not block).
-        while (xQueueReceive(MattzoMQTTSubscriber::IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
-            // Output message to serial for debug.
-            // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
-
-            // Parse message and translate to an action for devices attached to this controller.
-            MTC4BTMQTTHandler::Handle(message, controller);
-
-            // Erase message from memory by freeing it.
-            free(message);
-        }
-
-        // Wait a while before trying again (allowing other tasks to do their work)?
-        vTaskDelay(50 / portTICK_PERIOD_MS);
+    // Allocate memory to hold the message.
+    char *message = (char *)malloc(length + 1);
+    for (int i = 0; i < length; i++) {
+        message[i] = (char)payload[i];
     }
+    message[length] = '\0';
+    MTC4BTMQTTHandler::Handle(message, controller);
+    free(message);
 }
 
 void setup()
@@ -101,7 +91,7 @@ void setup()
 
     // Setup MQTT subscriber (use controller name as part of the subscriber name).
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
-    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, handleMQTTMessageLoop);
+    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, mqttCallback);
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());

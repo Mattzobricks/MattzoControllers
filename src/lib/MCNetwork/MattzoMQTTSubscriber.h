@@ -50,11 +50,6 @@ class MattzoMQTTSubscriber
     static int ReconnectDelayInMilliseconds;
 
     /// <summary>
-    /// Send message delay in milliseconds. This configures the delay between send message attempts.
-    /// </summary>
-    static int HandleMessageDelayInMilliseconds;
-
-    /// <summary>
     /// The priority at which the task should run.
     /// Systems that include MPU support can optionally create tasks in a privileged (system) mode by setting bit portPRIVILEGE_BIT of the priority parameter.
     /// For example, to create a privileged task at priority 2 the uxPriority parameter should be set to ( 2 | portPRIVILEGE_BIT ).
@@ -84,7 +79,8 @@ class MattzoMQTTSubscriber
     /// <summary>
     /// Setup the MQTT Subscriber.
     /// </summary>
-    static void Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm));
+    //char *topic, byte *payload, unsigned int length
+    static void Setup(MCMQTTConfiguration *config, void (*mqttCallback)(char *topic, byte *payload, unsigned int length));
 
     // just the loop, which should be called from the main loop()
     static void loop();
@@ -99,9 +95,6 @@ class MattzoMQTTSubscriber
     // Time of the last sent ping.
     static unsigned long lastPing;
 
-    // Callback used to put received message on a queue.
-    static void mqttCallback(char *topic, byte *payload, unsigned int length);
-
     /// <summary>
     /// Sends the given message to the MQTT broker.
     /// </summary>
@@ -112,10 +105,4 @@ class MattzoMQTTSubscriber
     /// Reconnects the MQTT client to the broker (blocking).
     /// </summary>
     static void reconnect();
-
-    /// <summary>
-    /// The main (endless) task loop.
-    /// </summary>
-    /// <param name="parm"></param>
-    static void taskLoop(void *parm);
 };
