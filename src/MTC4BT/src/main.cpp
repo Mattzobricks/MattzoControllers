@@ -28,7 +28,6 @@ void handleTickerLoop(void *param)
     for (;;) {
         timeTaken = millis();
         log4MC::vlogf(LOG_INFO, "Minutes uptime: %d.%02d", (minuteTicker / TICKER), (minuteTicker % TICKER) * (60 / TICKER));
-        log4MC::vlogf(LOG_INFO, "  Messages in queue: %d", uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
         log4MC::vlogf(LOG_INFO, "  Memory Heap free: %8u max alloc: %8u min free: %8u", ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
         minuteTicker++;
         timeTaken = abs((long)(timeTaken - millis()));

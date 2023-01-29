@@ -109,7 +109,6 @@ void MattzoMQTTSubscriber::loop()
 }
 
 // Initialize static members.
-QueueHandle_t MattzoMQTTSubscriber::IncomingQueue = nullptr;
 int MattzoMQTTSubscriber::ReconnectDelayInMilliseconds = 1000;
 uint8_t MattzoMQTTSubscriber::TaskPriority = 2;
 int8_t MattzoMQTTSubscriber::CoreID = 0;

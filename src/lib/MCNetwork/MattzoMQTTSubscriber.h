@@ -40,10 +40,7 @@ class MattzoMQTTSubscriber
 {
   public:
     // Public static members
-
-    // Incoming MQTT message queue.
-    static QueueHandle_t IncomingQueue;
-
+  
     /// <summary>
     /// Reconnect delay in milliseconds. This configures the delay between reconnect attempts.
     /// </summary>
