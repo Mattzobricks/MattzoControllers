@@ -19,9 +19,6 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*mqttcallbac
         return;
     }
 
-    // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
-    // IncomingQueue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
-
     // Setup MQTT client.
     log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
     mqttSubscriberClient.setServer(_config->ServerAddress.c_str(), _config->ServerPort);
