@@ -106,4 +106,5 @@ void loop()
 {
     MattzoMQTTSubscriber::loop();
     controller->Loop();
+    delay(10);  // just to give the other tasks some time ;-)
 }
