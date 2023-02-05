@@ -279,7 +279,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Number of sensors connected or connectable to the controller
 #define NUM_SENSORS 16
 
-// A special forms of a sensor is the "remote sensor"
+// A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
 // Remote sensors can be used for level crossings in Autonomous Mode.
 // Set REMOTE_SENSORS_ENABLED to true to generally enable remote sensors.
