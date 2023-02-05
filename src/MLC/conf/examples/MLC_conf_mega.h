@@ -623,7 +623,6 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 };
 
 
-
 // LEVEL CROSSING CONFIGURATION
 
 // General switch for level crossing (false = no level crossing connected; true = level crossing connected)
