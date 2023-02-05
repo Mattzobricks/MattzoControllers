@@ -15,12 +15,6 @@ void MTC4BTMQTTHandler::Handle(const char *message, MTC4BTController *controller
     } else if ((pos = strstr(message, "<fn ")) != nullptr) {
         // found <fn
         handleFn(pos, controller);
-    } else if ((pos = strstr(message, "<sw ")) != nullptr) {
-        // found <sw
-        log4MC::debug("MQTT: Received and ignored 'sw' command'.");
-    } else if ((pos = strstr(message, "<clock ")) != nullptr) {
-        // found <clock
-        log4MC::debug("MQTT: Received and ignored 'clock' command'.");
     } // IGNORE THE REST
 }
 
@@ -50,6 +44,9 @@ void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *control
         if(cmd) free(cmd);
         return;
     }
+    // free if not any of the above commands!
+    if (cmd)
+        free(cmd);
 }
 
 void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controller)
