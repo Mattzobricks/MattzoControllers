@@ -105,7 +105,7 @@ const uint8_t PCA9685_OE_PIN = D0;
 // Servos are used for motorizing switches and form signals
 
 // Number of servos
-#define NUM_SERVOS 4
+#define NUM_SERVOS 2
 
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
 {
@@ -116,16 +116,6 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
     },
     {
         .pin = D1,
-        .pinType = 0,
-        .detachAfterUsage = true
-    },
-    {
-        .pin = D2,
-        .pinType = 0,
-        .detachAfterUsage = true
-    },
-    {
-        .pin = D3,
         .pinType = 0,
         .detachAfterUsage = true
     }
@@ -139,10 +129,18 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
 // As an example, 2 LEDs are required for a light signal with 2 aspects
 
 // Number of LEDs
-#define NUM_LEDS 2
+#define NUM_LEDS 4
 
 TLEDConfiguration ledConfiguration[NUM_LEDS] =
 {
+    {
+        .pin = D2,
+        .pinType = 0
+    },
+    {
+        .pin = D3,
+        .pinType = 0
+    },
     {
         .pin = D4,
         .pinType = 0
@@ -163,7 +161,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Number of sensors connected or connectable to the controller
 #define NUM_SENSORS 2
 
-// A special forms of a sensor is the "remote sensor"
+// A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
 // Remote sensors can be used for level crossings in Autonomous Mode.
 // Set REMOTE_SENSORS_ENABLED to true to generally enable remote sensors.
@@ -205,7 +203,7 @@ const bool STATUS_LED_REVERSE = false;
 // SWITCH CONFIGURATION
 
 // Number of switches
-#define NUM_SWITCHES 4
+#define NUM_SWITCHES 2
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 {
@@ -224,22 +222,6 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
         .servo2Reverse = false,
         .triggerSensors = false,
         .sensorIndex = { -1, -1 }
-    },
-    {
-        .rocRailPort = 3,
-        .servoIndex = 2,
-        .servo2Index = -1,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = { -1, -1 }
-    },
-    {
-        .rocRailPort = 4,
-        .servoIndex = 3,
-        .servo2Index = -1,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = { -1, -1 }
     }
 };
 
@@ -248,7 +230,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // SIGNAL CONFIGURATION
 
 // Number of signals
-#define NUM_SIGNALS 1
+#define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
 #define NUM_SIGNAL_ASPECTS 2
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
@@ -258,17 +240,29 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 #define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
+{
+    // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
     {
-        // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
-        {
-            .aspectRocrailPort = {1, 2},
-            .aspectLEDPort = {0, 1},
-            .aspectLEDMapping = {
-                {true, false},
-                {false, true}},
-            .servoIndex = {},
-            .aspectServoAngle = {}
+        .aspectRocrailPort = {1, 2},
+        .aspectLEDPort = {0, 1},
+        .aspectLEDMapping = {
+            {true, false},
+            {false, true}},
+        .servoIndex = {},
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
+    // signal 1: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
+    {
+        .aspectRocrailPort = {3, 4},
+        .aspectLEDPort = {2, 3},
+        .aspectLEDMapping = {
+            {true, false},
+            {false, true}},
+        .servoIndex = {},
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
+    }
 };
 
 

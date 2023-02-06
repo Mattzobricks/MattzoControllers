@@ -18,7 +18,8 @@
 
 // MattzoLayoutController (MLC) example configuration file
 // Usage: copy it onto the conf/my/controller_config.h file and adapted it to your needs
-// Documentation: https://www.mattzobricks.com
+// General documentation: https://www.mattzobricks.com
+// Parameter documentation: MLC/include/MLC_types.h
 
 // This configuration contains the configuration for the MLC mega.
 // It serves 16 switches, 8 standard light signals, and 16 sensors.
@@ -278,7 +279,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Number of sensors connected or connectable to the controller
 #define NUM_SENSORS 16
 
-// A special forms of a sensor is the "remote sensor"
+// A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
 // Remote sensors can be used for level crossings in Autonomous Mode.
 // Set REMOTE_SENSORS_ENABLED to true to generally enable remote sensors.
@@ -546,7 +547,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {},
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {3, 4},
@@ -555,7 +557,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {5, 6}, 
@@ -564,7 +567,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {7, 8}, 
@@ -573,7 +577,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {9, 10}, 
@@ -582,7 +587,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {11, 12}, 
@@ -591,7 +597,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {13, 14}, 
@@ -600,7 +607,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     },
     {
         .aspectRocrailPort = {15, 16}, 
@@ -609,9 +617,11 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {true, false},
             {false, true}},
         .servoIndex = {}, 
-        .aspectServoAngle = {}
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
     }
 };
+
 
 // LEVEL CROSSING CONFIGURATION
 

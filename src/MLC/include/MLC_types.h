@@ -104,6 +104,9 @@ typedef struct {
     int servoIndex[MAX_NUM_SIGNAL_SERVOS];
     // the desired servo angle for the aspect (for form signals)
     int aspectServoAngle[MAX_NUM_SIGNAL_SERVOS][MAX_NUM_SIGNAL_ASPECTS];
+    // overshoot sensor index
+    // -1: no overshoot sensor used
+    int overshootSensorIndex;
 } TSignalConfiguration;
 
 
@@ -152,7 +155,7 @@ typedef struct {
     // Opening timespan for all boom barriers
     unsigned int bbOpeningPeriod_ms;
     // Servo angles for "up" and "down" positions
-    // Approximate closed (opened) angles for TrixBrix boom barrier servos to start with:
+    // Approximate up (down) angles for TrixBrix boom barrier servos to start with:
     // - If servo is connected directly to the ESP8266:
     // -- Primary booms: Right hand traffic: 0 (90), left hand traffic: 180 (90)
     // -- Secondary booms: Right hand traffic: 180 (90), left hand traffic: 0 (90)

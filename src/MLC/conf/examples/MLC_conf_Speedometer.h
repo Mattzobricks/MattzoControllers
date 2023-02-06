@@ -18,7 +18,8 @@
 
 // MattzoLayoutController (MLC) example configuration file
 // Usage: copy it onto the conf/my/controller_config.h file and adapted it to your needs
-// Documentation: https://www.mattzobricks.com
+// General documentation: https://www.mattzobricks.com
+// Parameter documentation: MLC/include/MLC_types.h
 
 // This configuration can be used to configure the MLC as a speedometer.
 // It serves 2 sensors for measuring and an LC display type (U8G2) to show the speed.
@@ -138,7 +139,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] = {};
 // Number of sensors connected or connectable to the controller
 #define NUM_SENSORS 2
 
-// A special forms of a sensor is the "remote sensor"
+// A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
 // Remote sensors can be used for level crossings in Autonomous Mode.
 // Set REMOTE_SENSORS_ENABLED to true to generally enable remote sensors.
