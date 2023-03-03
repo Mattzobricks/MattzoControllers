@@ -1,6 +1,7 @@
 #pragma once
 
 #include "enums.h"
+#include "BLEHubChannel.h"
 
 // Controller channel
 class MCChannel
@@ -10,6 +11,9 @@ class MCChannel
 
     // Returns the type of channel the device is attached to.
     ChannelType GetChannelType();
+
+    // Returns the channel.
+    BLEHubChannel GetHubChannel();
 
     // Returns the raw channel address.
     std::string GetAddress();

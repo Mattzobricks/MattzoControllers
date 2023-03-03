@@ -112,6 +112,7 @@ class BLEHub
   private:
     void initChannelControllers();
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
+    HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
     BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);

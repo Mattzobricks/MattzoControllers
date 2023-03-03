@@ -3,7 +3,7 @@
 BLEHubChannelController::BLEHubChannelController(MCChannelConfig *config)
     : MCChannelController(config) {}
 
-BLEHubChannel BLEHubChannelController::GetChannel()
+BLEHubChannel BLEHubChannelController::GetHubChannel()
 {
-    return bleHubChannelMap()[_config->GetChannel()->GetAddress()];
+    return _config->GetChannel()->GetHubChannel();
 }

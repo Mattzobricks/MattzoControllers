@@ -37,6 +37,43 @@ struct deviceTypeMap : public std::map<std::string, DeviceType> {
     ~deviceTypeMap() {}
 };
 
+enum HubLedColor {
+    BLACK = 0,
+    PINK = 1,
+    PURPLE = 2,
+    BLUE = 3,
+    LIGHTBLUE = 4,
+    CYAN = 5,
+    GREEN = 6,
+    YELLOW = 7,
+    ORANGE = 8,
+    RED = 9,
+    WHITE = 10,
+    NUM_COLORS,
+    NONE = 255
+};
+
+// String switch paridgam
+struct hubLedColorMap : public std::map<std::string, HubLedColor> {
+    hubLedColorMap()
+    {
+        this->operator[]("") = HubLedColor::NONE;
+        this->operator[]("off") = HubLedColor::BLACK;
+        this->operator[]("black") = HubLedColor::BLACK;
+        this->operator[]("pink") = HubLedColor::PINK;
+        this->operator[]("purple") = HubLedColor::PURPLE;
+        this->operator[]("blue") = HubLedColor::BLUE;
+        this->operator[]("lightblue") = HubLedColor::LIGHTBLUE;
+        this->operator[]("cyan") = HubLedColor::CYAN;
+        this->operator[]("green") = HubLedColor::GREEN;
+        this->operator[]("yellow") = HubLedColor::YELLOW;
+        this->operator[]("orange") = HubLedColor::ORANGE;
+        this->operator[]("red") = HubLedColor::RED;
+        this->operator[]("white") = HubLedColor::WHITE;
+    };
+    ~hubLedColorMap() {}
+};
+
 enum MCTriggerSource {
     // Locomotive.
     Loco,

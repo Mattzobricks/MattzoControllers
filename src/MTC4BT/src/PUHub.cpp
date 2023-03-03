@@ -40,40 +40,33 @@ void PUHub::DriveTaskLoop()
         int16_t currentSpeedPerc = 0;
         int16_t targetSpeedPerc = 0;
 
-        for (BLEHubChannelController *channel : _channelControllers) {
+        for (BLEHubChannelController *controller : _channelControllers) {
             // Determine current drive state.
-            if (!motorFound && channel->GetAttachedDevice() == DeviceType::Motor) {
-                currentSpeedPerc = channel->GetCurrentPwrPerc();
-                targetSpeedPerc = channel->GetTargetPwrPerc();
+            if (!motorFound && controller->GetAttachedDevice() == DeviceType::Motor) {
+                currentSpeedPerc = controller->GetCurrentPwrPerc();
+                targetSpeedPerc = controller->GetTargetPwrPerc();
                 motorFound = true;
             }
 
-            // Update current channel pwr.
-            channel->UpdateCurrentPwrPerc();
+            if (controller->GetHubChannel() == BLEHubChannel::OnboardLED) {
+                // Update onboard LED channel state.
+                setLedColor(getRawLedColorForController(controller));
+            } else {
+                // Update current channel pwr.
+                controller->UpdateCurrentPwrPerc();
 
-            // Construct drive command.
-            byte channelPwr = getRawChannelPwrForController(channel);
-            byte setMotorCommand[6] = {0x81, (byte)channel->GetChannel(), 0x11, 0x51, 0x00, channelPwr};
-            writeValue(setMotorCommand, 6);
-        }
-
-        // Set integrated powered up hub light according to current drive state.
-        if (currentSpeedPerc != targetSpeedPerc) {
-            // accelerating / braking
-            setLedColor(PUHubLedColor::YELLOW);
-        } else if (currentSpeedPerc != 0) {
-            // travelling at target speed
-            setLedColor(PUHubLedColor::GREEN);
-        } else {
-            // stopped
-            setLedColor(PUHubLedColor::RED);
+                // Construct drive command.
+                byte channelPwr = getRawChannelPwrForController(controller);
+                byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
+                writeValue(setMotorCommand, 6);
+            }
         }
 
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
         // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
         // Wait 50 milliseconds.
-        vTaskDelay(250 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 
@@ -136,7 +129,7 @@ void PUHub::parsePortMessage(uint8_t *pData)
  * @brief Set the color of the HUB LED with predefined colors
  * @param [in] color one of the available hub colors
  */
-void PUHub::setLedColor(PUHubLedColor color)
+void PUHub::setLedColor(HubLedColor color)
 {
     if (_hubLedPort == 0) {
         return;

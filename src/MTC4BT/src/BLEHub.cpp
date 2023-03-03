@@ -77,10 +77,14 @@ int16_t BLEHub::GetCurrentDrivePwrPerc()
 
 void BLEHub::Execute(MCLocoAction *action)
 {
-    BLEHubChannelController *channel = findControllerByChannel(bleHubChannelMap()[action->GetChannel()->GetAddress()]);
+    BLEHubChannelController *controller = findControllerByChannel(action->GetChannel()->GetHubChannel());
 
-    if (channel) {
-        channel->SetTargetPwrPerc(action->GetTargetPowerPerc());
+    if (controller) {
+        if (controller->GetHubChannel() == BLEHubChannel::OnboardLED) {
+            controller->SetHubLedColor(action->GetColor());
+        } else {
+            controller->SetTargetPwrPerc(action->GetTargetPowerPerc());
+        }
     }
 }
 
@@ -93,8 +97,7 @@ void BLEHub::BlinkLights(int durationInMs)
 // If false, releases the manual brake.
 void BLEHub::SetManualBrake(const bool enabled)
 {
-    if (enabled == _mbrake)
-    {
+    if (enabled == _mbrake) {
         // Status hasn't changed. Ignore.
         return;
     }
@@ -103,8 +106,7 @@ void BLEHub::SetManualBrake(const bool enabled)
     _mbrake = enabled;
 
     // Set manual brake on all channels.
-    for (BLEHubChannelController *channel : _channelControllers)
-    {
+    for (BLEHubChannelController *channel : _channelControllers) {
         channel->ManualBrake(_mbrake);
     }
 }
@@ -230,9 +232,19 @@ void BLEHub::setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrP
     }
 }
 
+HubLedColor BLEHub::getRawLedColorForController(BLEHubChannelController *controller)
+{
+    if ((_ebrake || _blinkUntil > millis()) && controller->GetAttachedDevice() == DeviceType::Light) {
+        // Force blinking LED (white when on, black when off) when requested.
+        return MCLightController::Blink() ? HubLedColor::WHITE : HubLedColor::BLACK;
+    }
+
+    return controller->GetHubLedColor();
+}
+
 uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controller)
 {
-    if (_blinkUntil > millis() && controller->GetAttachedDevice() == DeviceType::Light) {
+    if ((_ebrake || _blinkUntil > millis()) && controller->GetAttachedDevice() == DeviceType::Light) {
         // Force blinking lights (50% when on, 0% when off) when requested.
         return MCLightController::Blink() ? 50 : 0;
     }
@@ -243,7 +255,7 @@ uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controlle
 BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
 {
     for (BLEHubChannelController *controller : _channelControllers) {
-        if (controller->GetChannel() == channel) {
+        if (controller->GetHubChannel() == channel) {
             return controller;
         }
     }
@@ -287,8 +299,7 @@ void BLEHub::driveTaskImpl(void *_this)
 void BLEHub::connected()
 {
     this->_isConnected = true;
-    if (this->_onConnectionChangedCallback)
-    {
+    if (this->_onConnectionChangedCallback) {
         this->_onConnectionChangedCallback(true);
     }
 }
@@ -296,8 +307,7 @@ void BLEHub::connected()
 void BLEHub::disconnected()
 {
     this->_isConnected = false;
-    if (this->_onConnectionChangedCallback)
-    {
+    if (this->_onConnectionChangedCallback) {
         this->_onConnectionChangedCallback(false);
     }
 }

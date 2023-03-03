@@ -109,14 +109,27 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             for (JsonObject channelConfig : channelConfigs) {
                 // Read hub channel properties.
                 const std::string channel = channelConfig["channel"];
-                const std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
+                std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
                 int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
                 int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
                 const char *dir = channelConfig["direction"] | "forward";
                 bool isInverted = strcmp(dir, "reverse") == 0;
+                bool isPU = strcmp(hubType.c_str(), "PU") == 0;
 
                 MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
                 hubChannel->SetParentAddress(address);
+
+                if (hubChannel->GetHubChannel() == BLEHubChannel::OnboardLED) {
+                    if (!isPU) {
+                        // We currently only support the onboad LED of the PU Hub, so we skip this LED channel for now.
+                        log4MC::vlogf(LOG_WARNING, "Config: Support for hub channel %s is currently only available for PU Hubs.", channel);
+                        continue;
+                    }
+
+                    // Enforce have a 'light' device "attached" for channel of type 'LED', no matter what the config said.
+                    attachedDevice = "light";
+                }
+
                 channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, deviceTypeMap()[attachedDevice]));
             }
 
@@ -149,6 +162,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
                 const std::string address = actionConfig["address"] | actionConfig["pin"];
                 const std::string channel = actionConfig["channel"];
                 int16_t pwrPerc = actionConfig["pwrPerc"] | 0;
+                const std::string color = actionConfig["color"] | "";
 
                 foundChannel = nullptr;
 
@@ -212,7 +226,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
                 }
                 }
 
-                actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc));
+                actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc, hubLedColorMap()[color]));
             }
 
             events.push_back(new MCLocoEvent(triggers, actions));

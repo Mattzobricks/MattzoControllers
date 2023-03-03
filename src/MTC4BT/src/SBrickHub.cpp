@@ -64,31 +64,31 @@ void SBrickHub::DriveTaskLoop()
     uint8_t channelDPwr = 0;
 
     for (;;) {
-        for (BLEHubChannelController *channel : _channelControllers) {
+        for (BLEHubChannelController *controller : _channelControllers) {
             // Update current channel pwr, if needed.
-            channel->UpdateCurrentPwrPerc();
+            controller->UpdateCurrentPwrPerc();
 
-            switch (channel->GetChannel()) {
+            switch (controller->GetHubChannel()) {
             case BLEHubChannel::A:
-                channelAForward = channel->IsDrivingForward();
-                channelAPwr = getRawChannelPwrForController(channel);
+                channelAForward = controller->IsDrivingForward();
+                channelAPwr = getRawChannelPwrForController(controller);
                 break;
             case BLEHubChannel::B:
-                channelBForward = channel->IsDrivingForward();
-                channelBPwr = getRawChannelPwrForController(channel);
+                channelBForward = controller->IsDrivingForward();
+                channelBPwr = getRawChannelPwrForController(controller);
                 break;
             case BLEHubChannel::C:
-                channelCForward = channel->IsDrivingForward();
-                channelCPwr = getRawChannelPwrForController(channel);
+                channelCForward = controller->IsDrivingForward();
+                channelCPwr = getRawChannelPwrForController(controller);
                 break;
             case BLEHubChannel::D:
-                channelDForward = channel->IsDrivingForward();
-                channelDPwr = getRawChannelPwrForController(channel);
+                channelDForward = controller->IsDrivingForward();
+                channelDPwr = getRawChannelPwrForController(controller);
                 break;
             }
         }
 
-        // Construct drive command.
+        // Construct one drive command for all channels.
         uint8_t byteCmd[13] = {
             CMD_DRIVE,
             BLEHubChannel::A,
@@ -113,7 +113,7 @@ void SBrickHub::DriveTaskLoop()
         // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
         // Wait 50 milliseconds.
-        vTaskDelay(250 / portTICK_PERIOD_MS);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 
