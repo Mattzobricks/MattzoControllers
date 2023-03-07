@@ -114,7 +114,8 @@ class BLEHub
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
     HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
-    BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
+    BLEHubChannelController *findControllerByChannel(MCChannel *channel);
+
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
     bool startDriveTask();
     static void driveTaskImpl(void *);

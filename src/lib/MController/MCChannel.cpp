@@ -9,11 +9,6 @@ ChannelType MCChannel::GetChannelType()
     return _portType;
 }
 
-BLEHubChannel MCChannel::GetHubChannel()
-{
-    return bleHubChannelMap()[_address];
-}
-
 std::string MCChannel::GetAddress()
 {
     return _address;

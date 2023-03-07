@@ -77,7 +77,7 @@ int16_t BLEHub::GetCurrentDrivePwrPerc()
 
 void BLEHub::Execute(MCLocoAction *action)
 {
-    BLEHubChannelController *controller = findControllerByChannel(action->GetChannel()->GetHubChannel());
+    BLEHubChannelController *controller = findControllerByChannel(action->GetChannel());
 
     if (controller) {
         if (controller->GetHubChannel() == BLEHubChannel::OnboardLED) {
@@ -252,10 +252,10 @@ uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controlle
     return MapPwrPercToRaw(controller->GetCurrentPwrPerc());
 }
 
-BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
+BLEHubChannelController *BLEHub::findControllerByChannel(MCChannel *channel)
 {
     for (BLEHubChannelController *controller : _channelControllers) {
-        if (controller->GetHubChannel() == channel) {
+        if (controller->GetHubChannel() == bleHubChannelMap()[channel->GetAddress()]) {
             return controller;
         }
     }

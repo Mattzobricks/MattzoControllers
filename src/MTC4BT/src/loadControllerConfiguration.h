@@ -119,7 +119,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
                 MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
                 hubChannel->SetParentAddress(address);
 
-                if (hubChannel->GetHubChannel() == BLEHubChannel::OnboardLED) {
+                if (bleHubChannelMap()[hubChannel->GetAddress()] == BLEHubChannel::OnboardLED) {
                     if (!isPU) {
                         // We currently only support the onboad LED of the PU Hub, so we skip this LED channel for now.
                         log4MC::vlogf(LOG_WARNING, "Config: Support for hub channel %s is currently only available for PU Hubs.", channel);
