@@ -37,13 +37,13 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
         int16_t currentPwrPerc = hub->GetCurrentDrivePwrPerc();
         hub->Drive(minSpeed, pwrPerc);
 
-        if (currentPwrPerc == 0 && pwrPerc > 0) {
-            // If we go from stand still (0%) to moving forward (> 0%), we trigger this event because we must possibly handle it.
+        if (currentPwrPerc <= 0 && pwrPerc > 0) {
+            // If we go from moving backward (< 0%) or stand still (0%) to moving forward (> 0%), we trigger this event because we must possibly handle it.
             TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "forward");
         }
 
-        if (currentPwrPerc == 0 && pwrPerc < 0) {
-            // If we go from stand still (0%) to moving backward (< 0%), we trigger this event because we must possibly handle it.
+        if (currentPwrPerc >= 0 && pwrPerc < 0) {
+            // If we go from moving foreward (> 0) or stand still (0%) to moving backward (< 0%), we trigger this event because we must possibly handle it.
             TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "backward");
         }
 
