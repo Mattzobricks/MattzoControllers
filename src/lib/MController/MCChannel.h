@@ -1,7 +1,6 @@
 #pragma once
 
 #include "enums.h"
-#include "BLEHubChannel.h"
 
 // Controller channel
 class MCChannel
