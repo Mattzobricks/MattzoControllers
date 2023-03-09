@@ -93,6 +93,9 @@ void MattzoMQTTSubscriber::sendMessage(char *topic, const char *message)
 void MattzoMQTTSubscriber::reconnect()
 {
     while (!mqttSubscriberClient.connected()) {
+        // Wait for connection to Wifi (because we need it to connect to the broker).
+        MattzoWifiClient::Assert();
+
         log4MC::info("MQTT: Subscriber configuring last will...");
 
         String lastWillMessage;
@@ -138,9 +141,6 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 
         // Loop forever.
         for (;;) {
-            // Wait for connection to Wifi (because we need it to contact the broker).
-            MattzoWifiClient::Assert();
-
             // Wait for connection to MQTT (because we need it to send messages to the broker).
             if (!mqttSubscriberClient.connected()) {
                 reconnect();

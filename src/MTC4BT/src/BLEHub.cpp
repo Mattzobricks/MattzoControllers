@@ -77,7 +77,7 @@ int16_t BLEHub::GetCurrentDrivePwrPerc()
 
 void BLEHub::Execute(MCLocoAction *action)
 {
-    BLEHubChannelController *controller = findControllerByChannel(action->GetChannel());
+    BLEHubChannelController *controller = findControllerByChannel(bleHubChannelMap()[action->GetChannel()->GetAddress()]);
 
     if (controller) {
         if (controller->GetHubChannel() == BLEHubChannel::OnboardLED) {
@@ -91,6 +91,15 @@ void BLEHub::Execute(MCLocoAction *action)
 void BLEHub::BlinkLights(int durationInMs)
 {
     _blinkUntil = millis() + durationInMs;
+}
+
+void BLEHub::SetHubLedColor(HubLedColor color)
+{
+    BLEHubChannelController *controller = findControllerByChannel(BLEHubChannel::OnboardLED);
+
+    if (controller) {
+        controller->SetHubLedColor(color);
+    }
 }
 
 // If true, immediately sets the current speed for all channels to zero.
@@ -148,7 +157,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
             }
 
             _isConnected = true;
-            Serial.println("Reconnected client");
+            log4MC::vlogf(LOG_INFO, "BLE : Reconnected to hub '%s'...", _config->DeviceAddress->toString().c_str());
         }
         /** We don't already have a client that knows this device,
          *  we will check for a client that is disconnected that we can use.
@@ -252,10 +261,10 @@ uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controlle
     return MapPwrPercToRaw(controller->GetCurrentPwrPerc());
 }
 
-BLEHubChannelController *BLEHub::findControllerByChannel(MCChannel *channel)
+BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
 {
     for (BLEHubChannelController *controller : _channelControllers) {
-        if (controller->GetHubChannel() == bleHubChannelMap()[channel->GetAddress()]) {
+        if (controller->GetHubChannel() == channel) {
             return controller;
         }
     }

@@ -86,6 +86,9 @@ class BLEHub
     // Makes all channels with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
 
+    // Set the initial color of the Hub's onboard LED.
+    void SetHubLedColor(HubLedColor color);
+
     // If true, immediately sets the current speed for all channels to zero.
     // If false, releases the manual brake.
     void SetManualBrake(const bool enabled);
@@ -114,7 +117,7 @@ class BLEHub
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
     HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
-    BLEHubChannelController *findControllerByChannel(MCChannel *channel);
+    BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
 
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
     bool startDriveTask();

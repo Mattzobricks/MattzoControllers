@@ -101,6 +101,20 @@ void BLELocomotive::BlinkLights(int durationInMs)
     }
 }
 
+void BLELocomotive::SetHubLedColor(HubLedColor color)
+{
+    if (!AllHubsConnected()) {
+        // Ignore led color request.
+        // log4MC::vlogf(LOG_INFO, "Loco: %s ignored led color request because not all its hubs are connected (yet).", _config->_name.c_str());
+        return;
+    }
+
+    // Set hub's onboard led color.
+    for (BLEHub *hub : Hubs) {
+        hub->SetHubLedColor(color);
+    }
+}
+
 void BLELocomotive::SetEmergencyBrake(const bool enabled)
 {
     // Handle e-brake on all channels of our hubs.
