@@ -1,30 +1,21 @@
 {
 	"name": "YourControllerNameHere",
+    "pwrIncStep": 10,
+    "pwrDecStep": 10,
 	"espPins": [
 		{
 			"pin": 5,
-			"inverted": false,
 			"attachedDevice": "light"
 		},
 		{
 			"pin": 23,
-			"inverted": false,
-			"attachedDevice": "light"
-		}
-	],
-	"fn": [
-		{
-			"name": "status",
-			"device": "espPin",
-			"pin": 23
+			"attachedDevice": "status"
 		}
 	],
 	"locos": [
 		{
 			"address": 1,
 			"name": "YC7939",
-			"speedStep": 10,
-			"brakeStep": 20,
 			"bleHubs": [
 				{
 					"type": "SBrick",
@@ -32,36 +23,19 @@
 					"channels": [
 						{
 							"channel": "B",
-							"attachedDevice": "light",
-							"direction": "forward"
+							"attachedDevice": "light"
 						},
 						{
 							"channel": "D",
-							"attachedDevice": "motor",
-							"direction": "forward"
+							"attachedDevice": "motor"
 						}
 					]
-				}
-			],
-			"fn": [
-				{
-					"name": "f2",
-					"device": "bleHub",
-					"address": "00:07:80:d0:47:43",
-					"channel": "B"
-				},
-				{
-					"name": "f4",
-					"device": "espPin",
-					"pin": 5
 				}
 			]
 		},
 		{
 			"address": 2,
 			"name": "BC60052",
-			"speedStep": 10,
-			"brakeStep": 20,
 			"bleHubs": [
 				{
 					"type": "SBrick",
@@ -69,13 +43,11 @@
 					"channels": [
 						{
 							"channel": "B",
-							"attachedDevice": "motor",
-							"direction": "forward"
+							"attachedDevice": "motor"
 						},
 						{
 							"channel": "D",
-							"attachedDevice": "light",
-							"direction": "forward"
+							"attachedDevice": "light"
 						}
 					]
 				}
@@ -84,17 +56,17 @@
 		{
 			"address": 3,
 			"name": "PT60197",
-			"speedStep": 8,
-			"brakeStep": 50,
 			"bleHubs": [
 				{
 					"type": "PU",
 					"address": "90:84:2b:07:13:7f",
 					"channels": [
+                        {
+                            "channel": "LED"
+                        },
 						{
 							"channel": "A",
-							"attachedDevice": "motor",
-							"direction": "forward"
+							"attachedDevice": "motor"
 						},
 						{
 							"channel": "B",
@@ -103,7 +75,51 @@
 						}
 					]
 				}
-			]
+			],
+            "events": [
+                {
+                    "triggers": [
+                        {
+                            "source": "rr",
+                            "eventType": "fnchanged",
+                            "identifier": "f1",
+                            "value": "on"
+                        },
+                        {
+                            "source": "loco",
+                            "eventType": "dirchanged",
+                            "value": "forward"
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "channel": "LED",
+                            "color": "yellow"
+                        }
+                    ]
+                },
+                {
+                    "triggers": [
+                        {
+                            "source": "rr",
+                            "eventType": "fnchanged",
+                            "identifier": "f1",
+                            "value": "off"
+                        },
+                        {
+                            "source": "loco",
+                            "eventType": "dirchanged",
+                            "value": "stopped"
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "channel": "LED",
+                            "color": "off"
+                        }
+                    ]
+                }
+            ]
 		}
 	]
 }
