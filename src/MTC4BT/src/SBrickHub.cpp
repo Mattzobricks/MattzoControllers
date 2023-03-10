@@ -113,7 +113,7 @@ void SBrickHub::DriveTaskLoop()
         // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
         // Wait 50 milliseconds.
-        vTaskDelay(50 / portTICK_PERIOD_MS);
+        vTaskDelay(250 / portTICK_PERIOD_MS);
     }
 }
 
