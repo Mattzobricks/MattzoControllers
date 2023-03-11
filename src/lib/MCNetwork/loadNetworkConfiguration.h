@@ -98,7 +98,7 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
     wifi->password = wifiConfig["password"].as<std::string>();
     wifi->hostname = wifiConfig["hostname"].as<std::string>();
     wifi->otaPassword = wifiConfig["otaPassword"].as<std::string>();
-    wifi->DailyBetweenConnectAttempsInMs = wifiConfig["wait"] | 500;
+    wifi->DailyBetweenConnectAttempsInMs = wifiConfig["wait"] | 1000;
 
     // Attach WiFi configuration.
     config->WiFi = wifi;

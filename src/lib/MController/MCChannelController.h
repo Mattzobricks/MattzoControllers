@@ -10,6 +10,12 @@ class MCChannelController
   public:
     MCChannelController(MCChannelConfig *config);
 
+    // Returns the current hub led color.
+    HubLedColor GetHubLedColor();
+
+    // Sets a new hub led color.
+    void SetHubLedColor(HubLedColor color);
+
     // Returns the device attached to the channel.
     DeviceType GetAttachedDevice();
 
@@ -68,6 +74,7 @@ class MCChannelController
     int16_t _minPwrPerc;
     int16_t _targetPwrPerc;
     int16_t _currentPwrPerc;
+    HubLedColor _hubLedColor = HubLedColor::BLACK; // off
 
     // The following (derived) class can access private members of MCChannelController.
     friend class BLEHubChannelController;

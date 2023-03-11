@@ -30,6 +30,9 @@ class BLELocomotive
     // Makes all channels on all hubs with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
 
+    // Sets a new color for hubs that have an onboard LED.
+    void SetHubLedColor(HubLedColor color);
+
     // If true, immediately sets the current speed for all channels on all hubs to zero and makes all loco lights blink.
     // If false, releases the emergency brake, returning the loco to normal operations.
     void SetEmergencyBrake(const bool enabled);

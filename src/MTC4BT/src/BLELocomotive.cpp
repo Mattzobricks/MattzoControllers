@@ -37,19 +37,26 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
         int16_t currentPwrPerc = hub->GetCurrentDrivePwrPerc();
         hub->Drive(minSpeed, pwrPerc);
 
-        if (currentPwrPerc == 0 && pwrPerc > 0) {
-            // If we go from stand still (0%) to moving forward (> 0%), we trigger this event because we must possibly handle it.
+        if ((currentPwrPerc < 0 && pwrPerc > 0) ||
+            currentPwrPerc > 0 && pwrPerc < 0 ||
+            currentPwrPerc != 0 && pwrPerc == 0) {
+            // If we go from moving backward (< 0%) to moving forward (> 0%) or
+            // if we go from moving forward (> 0) to moving backward (< 0%) or
+            // if we go from moving (not 0%) to stand still (0%)
+            // THEN we trigger the "stopped" event.
+            TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "stopped");
+        }
+
+        if (currentPwrPerc <= 0 && pwrPerc > 0) {
+            // If we go from moving backward (< 0%) or stand still (0%) to moving forward (> 0%)
+            // THEN we trigger the "forward" event.
             TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "forward");
         }
 
-        if (currentPwrPerc == 0 && pwrPerc < 0) {
-            // If we go from stand still (0%) to moving backward (< 0%), we trigger this event because we must possibly handle it.
+        if (currentPwrPerc >= 0 && pwrPerc < 0) {
+            // If we go from moving forward (> 0) or stand still (0%) to moving backward (< 0%)
+            // THEN we trigger the "backward" event.
             TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "backward");
-        }
-
-        if (currentPwrPerc != 0 && pwrPerc == 0) {
-            // If we go from moving (not 0%) to stand still (0%), we trigger this event because we must possibly handle it.
-            TriggerEvent(MCTriggerSource::Loco, "dirchanged", "", "stopped");
         }
     }
 }
@@ -91,6 +98,20 @@ void BLELocomotive::BlinkLights(int durationInMs)
     // Handle blink on lights attached to channels of our hubs.
     for (BLEHub *hub : Hubs) {
         hub->BlinkLights(durationInMs);
+    }
+}
+
+void BLELocomotive::SetHubLedColor(HubLedColor color)
+{
+    if (!AllHubsConnected()) {
+        // Ignore led color request.
+        // log4MC::vlogf(LOG_INFO, "Loco: %s ignored led color request because not all its hubs are connected (yet).", _config->_name.c_str());
+        return;
+    }
+
+    // Set hub's onboard led color.
+    for (BLEHub *hub : Hubs) {
+        hub->SetHubLedColor(color);
     }
 }
 

@@ -19,6 +19,16 @@ MCChannelController::MCChannelController(MCChannelConfig *config)
     _currentPwrPerc = 0;
 }
 
+HubLedColor MCChannelController::GetHubLedColor()
+{
+    return _hubLedColor;
+}
+
+void MCChannelController::SetHubLedColor(HubLedColor color)
+{
+    _hubLedColor = color;
+}
+
 DeviceType MCChannelController::GetAttachedDevice()
 {
     return _config->GetAttachedDeviceType();

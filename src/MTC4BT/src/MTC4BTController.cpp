@@ -136,6 +136,9 @@ void MTC4BTController::discoveryLoop(void *parm)
                         if (loco->AllHubsConnected()) {
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
+                            // For hubs of this loco that have an onboard LED, force it to be on (white) by default.
+                            loco->SetHubLedColor(HubLedColor::WHITE);
+
                             // Blink lights for a while when connected.
                             loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
                         }
