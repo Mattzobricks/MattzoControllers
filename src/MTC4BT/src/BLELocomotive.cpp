@@ -11,17 +11,8 @@ BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MController *co
     initHubs();
 }
 
-bool BLELocomotive::IsEnabled()
-{
-    return _config->_enabled;
-}
-
 bool BLELocomotive::AllHubsConnected()
 {
-    if (!IsEnabled()) {
-        return false;
-    }
-
     for (BLEHub *hub : Hubs) {
         if (!hub->IsConnected()) {
             return false;

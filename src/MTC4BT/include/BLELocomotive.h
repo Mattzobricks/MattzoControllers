@@ -15,9 +15,6 @@ class BLELocomotive
     // List of references to hubs inside this loco.
     std::vector<BLEHub *> Hubs;
 
-    // Returns a boolean value indicating whether this loco is enabled (in use).
-    bool IsEnabled();
-
     // Returns a boolean value indicating whether we are connected to all BLE hubs.
     bool AllHubsConnected();
 
