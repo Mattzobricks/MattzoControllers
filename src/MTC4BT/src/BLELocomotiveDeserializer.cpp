@@ -1,4 +1,6 @@
 #include "BLELocomotiveDeserializer.h"
+#include "BLEHubChannel.h"
+#include "MCLocoAction.h"
 
 BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject locoConfig, std::vector<MCChannelConfig *> espPins, int16_t defaultPwrIncStep, int16_t defaultPwrDecStep)
 {
@@ -25,14 +27,27 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
         for (JsonObject channelConfig : channelConfigs) {
             // Read hub channel properties.
             const std::string channel = channelConfig["channel"];
-            const std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
-            int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
-            int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
+            std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
+            const int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
+            const int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
             const char *dir = channelConfig["direction"] | "forward";
             bool isInverted = strcmp(dir, "reverse") == 0;
+            bool isPU = strcmp(hubType.c_str(), "PU") == 0;
 
             MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
             hubChannel->SetParentAddress(address);
+
+            if (bleHubChannelMap()[hubChannel->GetAddress()] == BLEHubChannel::OnboardLED) {
+                if (!isPU) {
+                    // We currently only support the onboad LED of the PU Hub, so we skip this LED channel for now.
+                    log4MC::vlogf(LOG_WARNING, "Config: Support for hub channel %s is currently only available for PU Hubs.", channel);
+                    continue;
+                }
+
+                // Enforce have a 'light' device "attached" for channel of type 'LED', no matter what the config said.
+                attachedDevice = "light";
+            }
+
             channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, deviceTypeMap()[attachedDevice]));
         }
 
@@ -65,6 +80,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
             const std::string address = actionConfig["address"] | actionConfig["pin"];
             const std::string channel = actionConfig["channel"];
             int16_t pwrPerc = actionConfig["pwrPerc"] | 0;
+            const std::string color = actionConfig["color"] | "";
 
             foundChannel = nullptr;
 
@@ -128,7 +144,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
             }
             }
 
-            actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc));
+            actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc, hubLedColorMap()[color]));
         }
 
         events.push_back(new MCLocoEvent(triggers, actions));
