@@ -43,10 +43,23 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
     }
     log4MC::vlogf(LOG_INFO, "Config: Read ESP pin configuration (%u).", config->EspPins.size());
 
-    // Read loco configs.
-    JsonArray locoConfigs = doc["locoConfigs"].as<JsonArray>();
-    for (int i = 0; i < locoConfigs.size(); i++) {
-        const std::string locoConfigFile = locoConfigs[i];
+    // Iterate over loco configs and copy values from the JsonDocument to BLELocomotiveConfiguration objects.
+    JsonArray locoConfigs = doc["locos"].as<JsonArray>();
+    for (JsonObject locoConfig : locoConfigs) {
+        // Read if loco is enabled.
+        const bool enabled = locoConfig["enabled"] | true;
+        if (!enabled) {
+            // Skip if loco is not enabled.
+            continue;
+        }
+
+        config->Locomotives.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
+    }
+
+    // Read loco config files.
+    JsonArray locoConfigFiles = doc["locoConfigs"].as<JsonArray>();
+    for (int i = 0; i < locoConfigFiles.size(); i++) {
+        const std::string locoConfigFile = locoConfigFiles[i];
 
         // Read JSON controller config file.
         DynamicJsonDocument locoConfigDoc = MCJsonConfig::ReadJsonFile(locoConfigFile.c_str());
