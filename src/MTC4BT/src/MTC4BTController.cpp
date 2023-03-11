@@ -119,14 +119,14 @@ void MTC4BTController::discoveryLoop(void *parm)
         std::vector<BLEHub *> undiscoveredHubs;
 
         for (BLELocomotive *loco : controller->Locomotives) {
-            // Loco is not in use or all hubs are already connected. Skip to the next loco.
-            if (!loco->IsEnabled() || loco->AllHubsConnected()) {
+            // All loco hubs are already connected. Skip to the next loco.
+            if (loco->AllHubsConnected()) {
                 continue;
             }
 
             for (BLEHub *hub : loco->Hubs) {
-                if (!hub->IsEnabled() || hub->IsConnected()) {
-                    // Hub is not in use or already connected. Skip to the next Hub.
+                if (hub->IsConnected()) {
+                    // Hub is already connected. Skip to the next Hub.
                     continue;
                 }
 

@@ -29,11 +29,6 @@ BLEHub::BLEHub(BLEHubConfiguration *config)
     // _deviceInformationCharacteristic = nullptr;
 }
 
-bool BLEHub::IsEnabled()
-{
-    return _config->Enabled;
-}
-
 bool BLEHub::IsDiscovered()
 {
     return _isDiscovered;

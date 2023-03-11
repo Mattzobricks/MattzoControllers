@@ -56,9 +56,6 @@ class BLEHub
   public:
     BLEHub(BLEHubConfiguration *config);
 
-    // Returns a boolean value indicating whether this BLE hub is enabled (in use).
-    bool IsEnabled();
-
     // Returns a boolean value indicating whether we have discovered the BLE hub.
     bool IsDiscovered();
 
