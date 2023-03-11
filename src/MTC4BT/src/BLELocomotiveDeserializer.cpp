@@ -31,7 +31,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
             const int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
             const int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
             const char *dir = channelConfig["direction"] | "forward";
-            bool isInverted = strcmp(dir, "reverse") == 0;
+            bool isInverted = strcmp(dir, "backward") == 0 || strcmp(dir, "reverse") == 0;
             bool isPU = strcmp(hubType.c_str(), "PU") == 0;
 
             MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
