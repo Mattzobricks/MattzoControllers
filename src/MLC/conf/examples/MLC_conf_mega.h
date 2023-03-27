@@ -380,6 +380,9 @@ const bool STATUS_LED_PIN_INSTALLED = true;
 const uint8_t STATUS_LED_PIN = D4;
 // If installed, set to true to flip high/low state of the status led pin
 const bool STATUS_LED_REVERSE = true;
+// Power level of the status LED (0..1023)
+// Recommended max. power levels: white: 800, blue: 600, green: 500, yellow: 350, red: 300
+const int STATUS_LED_POWER = 300;
 
 
 

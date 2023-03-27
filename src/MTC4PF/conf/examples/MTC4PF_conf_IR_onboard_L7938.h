@@ -401,10 +401,16 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 // Constants for motorshield type Lego IR Receiver 8884
 #define IR_LED_PIN D5 // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
-// Digital output PIN to monitor controller operation (typically a LED)
-const bool STATUS_LED_PIN_INSTALLED = false; // set to false if no LED is installed
+// Digital output pin to monitor controller operation (typically a LED)
+// Set to false if no status LED is installed
+const bool STATUS_LED_PIN_INSTALLED = false;
+// If installed, the pin controlling the status LED
 const uint8_t STATUS_LED_PIN = D4;
+// If installed, set to true to flip high/low state of the status led pin
 const bool STATUS_LED_REVERSE = true;
+// Power level of the status LED (0..1023)
+// Recommended max. power levels: white: 800, blue: 600, green: 500, yellow: 350, red: 300
+const int STATUS_LED_POWER = 300;
 
 // Report battery level
 const bool REPORT_BATTERYLEVEL = false;       // set to true or false to allow or omit battery level reports
