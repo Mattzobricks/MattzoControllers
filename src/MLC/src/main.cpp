@@ -403,6 +403,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 
         // parse signal command
         if (strcmp(rr_cmd, "on") == 0) {
+            // signal with Rocrail control option "Default" identified (-> signal configuration, Interface tab, Control section)
             // only signal message with command 'on' will be processed
             handleSignalMessage(rr_port);
         } else if (strcmp(rr_cmd, "off") == 0) {
@@ -411,6 +412,21 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
                 mcLog2("Signal command 'off' received - message disregarded.", LOG_DEBUG);
             }
             return;
+        } else if (strcmp(rr_cmd, "aspect") == 0) {
+            // signal with Rocrail control option "Aspect numbers" identified (-> signal configuration, Interface tab, Control section)
+            // this control option is required for signals with more than 4 aspects (usually complex light signals)
+
+            // query aspect attribute. This is requested aspect for the signal.
+            int rr_aspect = 0;
+            if (element->QueryIntAttribute("aspect", &rr_aspect) != XML_SUCCESS) {
+                mcLog2("Aspect attribute expected, but not found or wrong type. Message disregarded.", LOG_ERR);
+                return;
+            }
+            if (DEBUG_MQTT_MESSAGES) {
+                mcLog2("aspect: " + String(rr_aspect), LOG_DEBUG);
+            }
+            handleSignalMessage(rr_aspect);
+
         } else {
             mcLog2("Signal command " + String(rr_cmd) + " unknown - message disregarded.", LOG_ERR);
             return;
