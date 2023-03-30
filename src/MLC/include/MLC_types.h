@@ -90,8 +90,13 @@ typedef struct SwitchConfiguration {
 #define MAX_NUM_SIGNAL_SERVOS 2
 
 typedef struct {
-    // the port configured in Rocrail for an aspect
-    // 0: aspect not supported by this signal
+    // the port configured in Rocrail for the signal
+    // relevant only for signals with control type "aspect numbers"
+    // -1: signal is operated with control type "default"
+    int signalRocrailPort;
+    // the ports configured in Rocrail for the aspects of the signal
+    // relevant only for signals with control type "default"
+    // 0: aspect not supported by this signal OR signal is operated with control "aspect numbers"
     int aspectRocrailPort[MAX_NUM_SIGNAL_ASPECTS];
     // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
     // -1: no LED configured for this aspect

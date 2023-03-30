@@ -246,6 +246,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
     // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {1, 2},
         .aspectLEDPort = {0, 1},
         .aspectLEDMapping = {
@@ -257,6 +258,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 1: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {3, 4},
         .aspectLEDPort = {2, 3},
         .aspectLEDMapping = {

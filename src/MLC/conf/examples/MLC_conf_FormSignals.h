@@ -232,6 +232,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
     // signal 0 (N5): a simple form signal with 2 aspects, controlled via Rocrail ports 1 and 2, using servo index 0 (pin D0)
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {1, 2, -1},
         .aspectLEDPort = {-1},
         .aspectLEDMapping = {
@@ -245,6 +246,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {3, 4, -1}, .aspectLEDPort = {-1}, .aspectLEDMapping = {
             {false},
             {false},
@@ -257,6 +259,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 2 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
     // The signal LED port (index 0, D4) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {5, 6, 7}, 
         .aspectLEDPort = {0}, 
         .aspectLEDMapping = {
@@ -271,6 +274,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 3 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
     // The signal LED port (index 1, D5) is used to switch off the yellow light for the lower wing on green and red aspect to save battery power
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {8, 9, 10}, 
         .aspectLEDPort = {1}, 
         .aspectLEDMapping = {
@@ -284,6 +288,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 4 (Vs3): distant form signal with 3 aspects, controlled via Rocrail ports 11, 12 and 13, using servo index 4 (D6)
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {11, 12, 13}, 
         .aspectLEDPort = {-1}, 
         .aspectLEDMapping = {
@@ -297,6 +302,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {14, 15, 16}, 
         .aspectLEDPort = {-1}, 
         .aspectLEDMapping = {

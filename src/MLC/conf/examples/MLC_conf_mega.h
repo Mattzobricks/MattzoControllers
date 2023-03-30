@@ -544,6 +544,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {1, 2},
         .aspectLEDPort = {0, 1},
         .aspectLEDMapping = {
@@ -554,6 +555,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     },
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {3, 4},
         .aspectLEDPort = {2, 3}, 
         .aspectLEDMapping = {
@@ -564,6 +566,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     },
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {5, 6}, 
         .aspectLEDPort = {4, 5}, 
         .aspectLEDMapping = {
@@ -574,6 +577,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     },
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {7, 8}, 
         .aspectLEDPort = {6, 7}, 
         .aspectLEDMapping = {
@@ -584,6 +588,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     },
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {9, 10}, 
         .aspectLEDPort = {8, 9}, 
         .aspectLEDMapping = {
@@ -594,6 +599,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     },
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {11, 12}, 
         .aspectLEDPort = {10, 11}, 
         .aspectLEDMapping = {
@@ -604,6 +610,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     },
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {13, 14}, 
         .aspectLEDPort = {12, 13}, 
         .aspectLEDMapping = {
@@ -614,6 +621,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .overshootSensorIndex = -1
     },
     {
+        .signalRocrailPort = 0,
         .aspectRocrailPort = {15, 16}, 
         .aspectLEDPort = {14, 15}, 
         .aspectLEDMapping = {

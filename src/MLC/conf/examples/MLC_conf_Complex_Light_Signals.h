@@ -534,7 +534,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // Number of signals
 #define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 5
+#define NUM_SIGNAL_ASPECTS 6
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
 #define NUM_SIGNAL_LEDS 6
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
@@ -546,14 +546,16 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 0: complex H/V light main signal with 5 aspects
     // In aspect control mode, aspectRocrailPort contains NUM_SIGNAL_ASPECTS times the port1 number
     {
-        .aspectRocrailPort = {1, 1, 1, 1, 1},
-        .aspectLEDPort = {0, 1, 2, 3, 4, 5},  // green, red left, red right, white diagonal, yellow, white triangle
+        .signalRocrailPort = 1,
+        .aspectRocrailPort = {0, 0, 0, 0, 0, 0},
+        .aspectLEDPort = {1, 0, 3, 2, 5, 4},  // green, red left, red right, white diagonal (Sh1), yellow, white triangle (Zs1)
         .aspectLEDMapping = {
-            {false, true, true, false, false, false},
-            {true, false, false, false, false, false},
-            {true, false, false, false, true, false},
-            {false, true, false, true, false, false},
-            {false, true, true, false, false, true}
+            {false, true, true, false, false, false}, // Hp0
+            {true, false, false, false, false, false}, // Hp1
+            {true, false, false, false, true, false}, // Hp2
+            {false, true, false, false, false, false}, // Hp0+Sh1
+            {false, true, false, true, false, false}, // Hp0+Sh1
+            {false, true, true, false, false, true} // Hp0+Zs1
         },
         .servoIndex = {},
         .aspectServoAngle = {},
@@ -561,12 +563,14 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 1: H/V light distant signal with 3 aspects, controlled via Rocrail ports 2, 3 and 4
     {
-        .aspectRocrailPort = {2, 3, 4, -1, -1},
-        .aspectLEDPort = {8, 9, 10, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
+        .signalRocrailPort = 0,
+        .aspectRocrailPort = {2, 3, 4, 5, -1, -1},
+        .aspectLEDPort = {8, 10, 9, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
             {true, true, false, false, true, false},
             {false, false, true, true, true, false},
             {false, true, true, false, true, false},
+            {false, false, false, false, false, false},
             {false, false, false, false, false, false},
             {false, false, false, false, false, false}
         },
@@ -628,7 +632,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
-const char *MC_HOSTNAME = "MLC-MEGA";
+const char *MC_HOSTNAME = "MLC-MEGA Complex Light Signal";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MLC-MEGA";
+const char *SYSLOG_APP_NAME = "MLC-MEGA Complex Light Signal";
