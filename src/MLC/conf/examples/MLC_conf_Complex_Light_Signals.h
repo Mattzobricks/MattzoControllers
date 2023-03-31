@@ -543,36 +543,35 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
-    // signal 0: complex H/V light main signal with 5 aspects
-    // In aspect control mode, aspectRocrailPort contains NUM_SIGNAL_ASPECTS times the port1 number
+    // signal 0: complex H/V light main signal
     {
         .signalRocrailPort = 1,
-        .aspectRocrailPort = {0, 0, 0, 0, 0, 0},
+        .aspectRocrailPort = {1, 2, 3, 4, 0, 0},
         .aspectLEDPort = {1, 0, 3, 2, 5, 4},  // green, red left, red right, white diagonal (Sh1), yellow, white triangle (Zs1)
         .aspectLEDMapping = {
-            {false, true, true, false, false, false}, // Hp0
+            {false, true, true, false, false, false}, // Hp00
             {true, false, false, false, false, false}, // Hp1
             {true, false, false, false, true, false}, // Hp2
-            {false, true, false, false, false, false}, // Hp0+Sh1
             {false, true, false, true, false, false}, // Hp0+Sh1
+            {false, true, false, false, false, false}, // Hp0+Sh0
             {false, true, true, false, false, true} // Hp0+Zs1
         },
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
-    // signal 1: H/V light distant signal with 3 aspects, controlled via Rocrail ports 2, 3 and 4
+    // signal 1: H/V light distant signal
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {2, 3, 4, 5, -1, -1},
+        .aspectRocrailPort = {9, 10, 11, 12, -1, -1},
         .aspectLEDPort = {8, 10, 9, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
-            {true, true, false, false, true, false},
-            {false, false, true, true, true, false},
-            {false, true, true, false, true, false},
-            {false, false, false, false, false, false},
-            {false, false, false, false, false, false},
-            {false, false, false, false, false, false}
+            {true, true, false, false, true, false}, // Vr0
+            {false, false, true, true, true, false}, // Vr1
+            {false, true, true, false, true, false}, // Vr2
+            {true, true, false, false, true, false}, // Vr0
+            {true, true, false, false, true, false}, // Vr0
+            {true, true, false, false, true, false}, // Vr0
         },
         .servoIndex = {},
         .aspectServoAngle = {},
