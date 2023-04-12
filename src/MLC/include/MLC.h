@@ -174,7 +174,10 @@ bool checkAllBridgeLeafsClosed();
 
 void handleSpeedometerSensorEvent(int triggeredSensor);
 
-void handleSignalMessage(int rr_port);
+void handleSignalMessageControlTypeDefault(int rr_port);
+void handleSignalMessageControlTypeAspectNumbers(int rr_port1, int a);
+void setSignalAspect(int s, int a);
+void handleSignalOvershootSensorEvent(int overshootSensorIndex);
 
 void setLED(int ledIndex, bool ledState);
 

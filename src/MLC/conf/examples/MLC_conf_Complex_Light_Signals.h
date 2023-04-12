@@ -18,10 +18,11 @@
 
 // MattzoLayoutController (MLC) example configuration file
 // Usage: copy it onto the conf/my/controller_config.h file and adapted it to your needs
-// Documentation: https://www.mattzobricks.com
+// General documentation: https://www.mattzobricks.com
+// Parameter documentation: MLC/include/MLC_types.h
 
-// This configuration is the default configuration for the MLC mini.
-// It serves 2 switches (D1 and D2), 2 standard light signals (D0/D5, D6/D7), and 2 sensors (D3 and D4). The status light is on D8.
+// This configuration contains the configuration for the MLC mega.
+// It serves 16 switches, 8 standard light signals, and 16 sensors.
 
 
 
@@ -58,11 +59,11 @@
 // Additional reference: https://learn.adafruit.com/16-channel-pwm-servo-driver?view=all
 
 // PCA9685 port expander used?
-#define USE_PCA9685 false
+#define USE_PCA9685 true
 
 // PCA9685 OE pin supported?
-#define PCA9685_OE_PIN_INSTALLED false
-const uint8_t PCA9685_OE_PIN = D0;
+#define PCA9685_OE_PIN_INSTALLED true
+uint8_t PCA9685_OE_PIN = D7;
 
 // Number of chained PCA9685 port extenders
 #define NUM_PCA9685s 1
@@ -93,10 +94,10 @@ const uint8_t PCA9685_OE_PIN = D0;
 // - Just connect one of of the cable pair to GND, the other one to one of the ports of the MCP23017.
 
 // MCP23017 port expander used?
-#define USE_MCP23017 false
+#define USE_MCP23017 true
 
 // Number of chained MCP23017 port extenders
-#define NUM_MCP23017s 1
+#define NUM_MCP23017s 2
 
 
 
@@ -105,20 +106,89 @@ const uint8_t PCA9685_OE_PIN = D0;
 // Servos are used for motorizing switches and form signals
 
 // Number of servos
-#define NUM_SERVOS 2
+#define NUM_SERVOS 16
 
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
 {
     {
-        .pin = D1,
-        .pinType = 0,
+        .pin = 0,
+        .pinType = 0x40,
         .detachAfterUsage = true
     },
     {
-        .pin = D2,
-        .pinType = 0,
+        .pin = 1,
+        .pinType = 0x40,
         .detachAfterUsage = true
-    }
+    },
+    {
+        .pin = 2,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 3,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 4,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 5,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 6,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 7,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 8,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 9,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {   
+        .pin = 10,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 11,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {   
+        .pin = 12,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 13,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 14,
+        .pinType = 0x40,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = 15,
+        .pinType = 0x40,
+        .detachAfterUsage = true}
 };
 
 
@@ -129,25 +199,73 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
 // As an example, 2 LEDs are required for a light signal with 2 aspects
 
 // Number of LEDs
-#define NUM_LEDS 4
+#define NUM_LEDS 16
 
 TLEDConfiguration ledConfiguration[NUM_LEDS] =
 {
     {
-        .pin = D0,
-        .pinType = 0
+        .pin = 0,
+        .pinType = 0x21
     },
     {
-        .pin = D5,
-        .pinType = 0
+        .pin = 8,
+        .pinType = 0x21
     },
     {
-        .pin = D6,
-        .pinType = 0
+        .pin = 1,
+        .pinType = 0x21
     },
     {
-        .pin = D7,
-        .pinType = 0
+        .pin = 9,
+        .pinType = 0x21
+    },
+    {
+        .pin = 2,
+        .pinType = 0x21
+    },
+    {
+        .pin = 10,
+        .pinType = 0x21
+    },
+    {
+        .pin = 3,
+        .pinType = 0x21
+    },
+    {
+        .pin = 11,
+        .pinType = 0x21
+    },
+    {
+        .pin = 4,
+        .pinType = 0x21
+    },
+    {
+        .pin = 12,
+        .pinType = 0x21
+    },
+    {
+        .pin = 5,
+        .pinType = 0x21
+    },
+    {
+        .pin = 13,
+        .pinType = 0x21
+    },
+    {
+        .pin = 6,
+        .pinType = 0x21
+    },
+    {
+        .pin = 14,
+        .pinType = 0x21
+    },
+    {
+        .pin = 7,
+        .pinType = 0x21
+    },
+    {
+        .pin = 15,
+        .pinType = 0x21
     }
 };
 
@@ -159,7 +277,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Special forms are remote and virtual sensors (see below)
 
 // Number of sensors connected or connectable to the controller
-#define NUM_SENSORS 2
+#define NUM_SENSORS 16
 
 // A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
@@ -171,13 +289,82 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 {
     {
-        .pin = D3,
-        .pinType = LOCAL_SENSOR_PIN_TYPE,
+        .pin = 0,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1},
+    {
+        .pin = 1,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
     },
     {
-        .pin = D4,
-        .pinType = LOCAL_SENSOR_PIN_TYPE,
+        .pin = 2,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 3,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 4,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 5,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 6,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 7,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 8,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 9,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 10,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 11,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 12,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 13,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 14,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = 15,
+        .pinType = MCP23017_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
     }
 };
@@ -190,9 +377,9 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 // Set to false if no status LED is installed
 const bool STATUS_LED_PIN_INSTALLED = true;
 // If installed, the pin controlling the status LED
-const uint8_t STATUS_LED_PIN = D8;
+const uint8_t STATUS_LED_PIN = D4;
 // If installed, set to true to flip high/low state of the status led pin
-const bool STATUS_LED_REVERSE = false;
+const bool STATUS_LED_REVERSE = true;
 // Power level of the status LED (0..1023)
 // Recommended max. power levels: white: 800, blue: 600, green: 500, yellow: 350, red: 300
 const int STATUS_LED_POWER = 300;
@@ -206,7 +393,7 @@ const int STATUS_LED_POWER = 300;
 // SWITCH CONFIGURATION
 
 // Number of switches
-#define NUM_SWITCHES 2
+#define NUM_SWITCHES 16
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 {
@@ -216,7 +403,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
         .servo2Index = -1,
         .servo2Reverse = false,
         .triggerSensors = false,
-        .sensorIndex = { -1, -1 }
+        .sensorIndex = {-1, -1}
     },
     {
         .rocRailPort = 2,
@@ -224,7 +411,119 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
         .servo2Index = -1,
         .servo2Reverse = false,
         .triggerSensors = false,
-        .sensorIndex = { -1, -1 }
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 3,
+        .servoIndex = 2,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 4,
+        .servoIndex = 3,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 5,
+        .servoIndex = 4,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 6,
+        .servoIndex = 5,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 7,
+        .servoIndex = 6,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 8,
+        .servoIndex = 7,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 9,
+        .servoIndex = 8,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 10,
+        .servoIndex = 9,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 11,
+        .servoIndex = 10,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 12,
+        .servoIndex = 11,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 13,
+        .servoIndex = 12,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 14,
+        .servoIndex = 13,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 15,
+        .servoIndex = 14,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 16,
+        .servoIndex = 15,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
     }
 };
 
@@ -235,41 +534,50 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // Number of signals
 #define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 2
+#define NUM_SIGNAL_ASPECTS 6
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-#define NUM_SIGNAL_LEDS 2
+#define NUM_SIGNAL_LEDS 6
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 #define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
-    // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
+    // signal 0: complex H/V light main signal
     {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {1, 2},
-        .aspectLEDPort = {0, 1},
+        .signalRocrailPort = 1,
+        .aspectRocrailPort = {1, 2, 3, 4, 0, 0},
+        .aspectLEDPort = {1, 0, 3, 2, 5, 4},  // green, red left, red right, white diagonal (Sh1), yellow, white triangle (Zs1)
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {false, true, true, false, false, false}, // Hp00
+            {true, false, false, false, false, false}, // Hp1
+            {true, false, false, false, true, false}, // Hp2
+            {false, true, false, true, false, false}, // Hp0+Sh1
+            {false, true, false, false, false, false}, // Hp0+Sh0
+            {false, true, true, false, false, true} // Hp0+Zs1
+        },
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
-    // signal 1: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
+    // signal 1: H/V light distant signal
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {3, 4},
-        .aspectLEDPort = {2, 3},
+        .aspectRocrailPort = {9, 10, 11, 12, -1, -1},
+        .aspectLEDPort = {8, 10, 9, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {true, true, false, false, true, false}, // Vr0
+            {false, false, true, true, true, false}, // Vr1
+            {false, true, true, false, true, false}, // Vr2
+            {true, true, false, false, true, false}, // Vr0
+            {true, true, false, false, true, false}, // Vr0
+            {true, true, false, false, true, false}, // Vr0
+        },
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     }
 };
-
 
 
 // LEVEL CROSSING CONFIGURATION
@@ -323,7 +631,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
-const char *MC_HOSTNAME = "MLC mini";
+const char *MC_HOSTNAME = "MLC-MEGA Complex Light Signal";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MLC mini";
+const char *SYSLOG_APP_NAME = "MLC-MEGA Complex Light Signal";
