@@ -22,7 +22,8 @@ enum struct MotorShieldType {
     NONE,
     L298N,
     L9110,
-    LEGO_IR_8884
+    LEGO_IR_8884,
+    RED_L9110
 };
 
 // Min and max useful power for Arduino based motor shields
