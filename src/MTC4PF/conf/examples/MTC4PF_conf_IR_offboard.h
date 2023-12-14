@@ -177,7 +177,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 // ***************************
 
 // Type of motor shield directly wired to the controller.
-// (The different motor shield types are defined in MTC4PF.ino)
+// (The different motor shield types are defined in MTC4PF.h)
 // Set to MotorShieldType::NONE if only virtual motor shields are used!
 const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::LEGO_IR_8884;
 

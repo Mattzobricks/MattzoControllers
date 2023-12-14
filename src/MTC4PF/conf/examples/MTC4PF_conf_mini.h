@@ -59,7 +59,7 @@ const int NUM_MOTORSHIELDS = 1;
 // - locoAddress: loco that this motor shields is attached to
 // - motorShieldType: motor shield type
 // - L298N_enA, L298N_enB: PWM signal pin for motor A / B, if L298N is used.
-// - in1..in4: pin for motor direction control for motor shields L298N and L9110 (in1: forward motor A, in2: reverse motor A, in3: forward motor B, in4: reverse motor B).
+// - in1..in4: pin for motor direction control for motor shields L298N, L9110 and RED_L9110 (in1: forward motor A, in2: reverse motor A, in3: forward motor B, in4: reverse motor B).
 // - minArduinoPower: minimum power setting for Arduino based motor shields
 // - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023)
 // - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused). In case of LEGO IR Receiver 8884, this is the motor connected to the red port.
@@ -70,7 +70,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
     // Type of motor shield directly wired to the controller.
-    // (The different motor shield types are defined in MTC4PF.ino)
+    // (The different motor shield types are defined in MTC4PF.h)
     // Set to MotorShieldType::NONE if only virtual motor shields are used!
     const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
