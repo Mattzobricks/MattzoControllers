@@ -26,7 +26,7 @@ enum struct MotorShieldType {
 };
 
 // Min and max useful power for Arduino based motor shields
-const int MIN_ARDUINO_POWER = 400;  // default minimum useful arduino power. May be overwritten in motor shield configuration
+const int MIN_ARDUINO_POWER = 0;  // default minimum useful arduino power. May be overwritten in motor shield configuration
 const int MAX_ARDUINO_POWER = 1023; // default maximum arduino power. May be overwritten in motor shield configuration
 
 // Train light types
