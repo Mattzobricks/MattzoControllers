@@ -79,8 +79,8 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .in2 = D4,
         .in3 = D5,
         .in4 = D6,
-        .minArduinoPower = MIN_ARDUINO_POWER,
-        .maxArduinoPower = MAX_ARDUINO_POWER,
+        .minArduinoPower = 100,
+        .maxArduinoPower = 255,
         .configMotorA = -1,
         .configMotorB = 0,
         .irChannel = -1};
@@ -193,7 +193,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
         .fnOnOff = true,
         .trainLightIndex = 1,
         .trainLightStatus = TrainLightStatus::OFF
-    },
+    }
 };
 
 // *********************************
@@ -221,7 +221,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
         .locoAddress = 10001,
         .lightEventType = LightEventType::FORWARD,
         .trainLightIndex = 1,
-        .trainLightStatus = TrainLightStatus::ON
+        .trainLightStatus = TrainLightStatus::OFF
     },
 
     // backward mode. head lights red
@@ -237,9 +237,10 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
         .locoAddress = 10001,
         .lightEventType = LightEventType::REVERSE,
         .trainLightIndex = 1,
-        .trainLightStatus = TrainLightStatus::OFF
+        .trainLightStatus = TrainLightStatus::ON
     },
 
+/*
     // this section may be commented out to prevent the head and rear lights from being switched off upon stop
     // stop: head lights off
     {
@@ -255,7 +256,8 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
         .lightEventType = LightEventType::STOP,
         .trainLightIndex = 1,
         .trainLightStatus = TrainLightStatus::OFF
-    },
+    }
+*/
 };
 
 // ************************
