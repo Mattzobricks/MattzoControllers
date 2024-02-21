@@ -101,7 +101,7 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
             // 0: head light / white
             .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
             .pin = D0,
-            .motorShieldIndex = 0,
+            .motorShieldIndex = -1,
             .motorPortIndex = -1,
             .powerLevelOff = 0,
             .powerLevelOn = MAX_ARDUINO_POWER,
@@ -110,7 +110,7 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
             // 1: head light / red
             .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
             .pin = D2,
-            .motorShieldIndex = 0,
+            .motorShieldIndex = -1,
             .motorPortIndex = -1,
             .powerLevelOff = 0,
             .powerLevelOn = 850,

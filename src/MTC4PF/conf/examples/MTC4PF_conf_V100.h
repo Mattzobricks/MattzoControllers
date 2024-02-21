@@ -100,14 +100,17 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 #define NUM_TRAIN_LIGHTS 1
 
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
+{
     {
-        {// head lights (3 LEDs in series, connected to motor shield)
-         .trainLightType = TrainLightType::POWER_FUNCTIONS,
-         .pin = D0,
-         .motorShieldIndex = 0,
-         .motorPortIndex = 1,
-         .powerLevelOff = 0,
-         .powerLevelOn = MAX_ARDUINO_POWER}};
+        // head lights (3 LEDs in series, connected to motor shield)
+        .trainLightType = TrainLightType::POWER_FUNCTIONS,
+        .pin = D0,
+        .motorShieldIndex = 0,
+        .motorPortIndex = 1,
+        .powerLevelOff = 0,
+        .powerLevelOn = MAX_ARDUINO_POWER
+    }
+};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -119,17 +122,22 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 #define NUM_FUNCTION_MAPPINGS 2
 
 TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
+{
     {
-        {.locoAddress = 100,
-         .fnNo = 1,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::ON},
-        {.locoAddress = 100,
-         .fnNo = 1,
-         .fnOnOff = false,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF}};
+        .locoAddress = 100,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        .locoAddress = 100,
+        .fnNo = 1,
+        .fnOnOff = false,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    }
+};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -141,15 +149,19 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 #define NUM_TRAIN_LIGHT_TRIGGERS 2
 
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
+{
     {
-        {.locoAddress = 100,
-         .lightEventType = LightEventType::FORWARD,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::ON},
-        {.locoAddress = 100,
-         .lightEventType = LightEventType::REVERSE,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF},
+        .locoAddress = 100,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        .locoAddress = 100,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
 };
 
 // ************************
