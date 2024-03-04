@@ -68,8 +68,10 @@ void setup()
             pinMode(myMattzoMotorShields[i]._L298N_enA, OUTPUT);
             pinMode(myMattzoMotorShields[i]._L298N_enB, OUTPUT);
             // fall through!
+        case MotorShieldType::RED_L9110:
+            // fall through!
         case MotorShieldType::L9110:
-            // initialize motor pins for L298N (continued) and L9110
+            // initialize motor pins for L298N (continued) and L9110 including RED_L9110
             pinMode(myMattzoMotorShields[i]._in1, OUTPUT);
             pinMode(myMattzoMotorShields[i]._in2, OUTPUT);
             pinMode(myMattzoMotorShields[i]._in3, OUTPUT);
@@ -349,6 +351,38 @@ void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPo
     mcLog("setMotorShieldPower() called with msi=" + String(motorShieldIndex) + ", mpi=" + String(motorPortIndex) + ", desiredPower=" + String(desiredPower));
 
     switch (myMattzoMotorShields[motorShieldIndex]._motorShieldType) {
+    case MotorShieldType::RED_L9110:
+        // motor shield type RED_L9110 with L9110
+        if (motorPortIndex == 0) {
+            if (desiredPowerLevel == 0) {
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in1, LOW);
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in2, LOW);
+            } else {
+                if (directionIsForward) {
+                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in1, HIGH);
+                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in2, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
+                } else {
+                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in2, HIGH);
+                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in1, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
+                }
+            }
+        }
+        if (motorPortIndex == 1) {
+            if (desiredPowerLevel == 0) {
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in3, LOW);
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in4, LOW);
+            } else {
+                if (directionIsForward) {
+                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in3, HIGH);
+                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in4, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
+                } else {
+                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in4, HIGH);
+                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in3, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
+                }
+            }
+        }
+        break;
+
     case MotorShieldType::L298N:
         // motor shield type L298N
         // The preferred option to flip direction is to go via HIGH/HIGH on the input pins (set HIGH first, then LOW)

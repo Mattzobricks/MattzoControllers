@@ -16,13 +16,14 @@
 // ***********************
 
 // MotorShieldType represents the type of the motor shield that is attached to the controller
-// L298N and L9110 are motorshields that are physically connected to the controller
+// L298N, L9110 and RED_L9110 are motorshields that are physically connected to the controller
 // LEGO_IR_8884 is connected via an infrared LED that must be wired to the controller
 enum struct MotorShieldType {
     NONE,
     L298N,
     L9110,
-    LEGO_IR_8884
+    LEGO_IR_8884,
+    RED_L9110
 };
 
 // Min and max useful power for Arduino based motor shields
