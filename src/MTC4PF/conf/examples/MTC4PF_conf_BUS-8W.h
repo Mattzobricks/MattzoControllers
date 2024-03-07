@@ -100,10 +100,48 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 // *************************
 
 // Number of train lights controlled by this controller
-#define NUM_TRAIN_LIGHTS 0
+#define NUM_TRAIN_LIGHTS 4
 
 // List of train lights including their configuration
-TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] = {};
+TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
+    {
+        {
+            // 0: head lights / cathode
+            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+            .pin = D0,
+            .motorShieldIndex = 0,
+            .motorPortIndex = -1,
+            .powerLevelOff = 0,
+            .powerLevelOn = MAX_ARDUINO_POWER,
+        },
+        {
+            // 1: head lights / anode
+            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+            .pin = D2,
+            .motorShieldIndex = 0,
+            .motorPortIndex = -1,
+            .powerLevelOff = 0,
+            .powerLevelOn = MAX_ARDUINO_POWER,
+        },
+        {
+            // 2: rear lights / cathode
+            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+            .pin = D1,
+            .motorShieldIndex = 0,
+            .motorPortIndex = -1,
+            .powerLevelOff = 0,
+            .powerLevelOn = MAX_ARDUINO_POWER,
+        },
+        {
+            // 3: rear lights / anode
+            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+            .pin = D7,
+            .motorShieldIndex = 0,
+            .motorPortIndex = -1,
+            .powerLevelOff = 0,
+            .powerLevelOn = MAX_ARDUINO_POWER,
+        },
+};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -112,10 +150,113 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] = {};
 // Rocrail functions are used to MANUALLY switch train lights on and off
 
 // Number of function mappings
-#define NUM_FUNCTION_MAPPINGS 0
+#define NUM_FUNCTION_MAPPINGS 6
 
 // List of function mappings
-TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] = {};
+TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
+{
+    // fn1: forward mode. head lights white, rear lights red
+    {
+        // head lights cathode -> +3.3V
+        .locoAddress = 988,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // head lights anode -> GND
+        .locoAddress = 988,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights cathode -> GND
+        .locoAddress = 988,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights anode -> +3.3V
+        .locoAddress = 988,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 3,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+
+    // fn2: backwards mode. head lights red
+    {
+        // head lights cathode -> GND
+        .locoAddress = 988,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // head lights anode -> +3.3V
+        .locoAddress = 988,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // rear lights cathode -> +3.3V
+        .locoAddress = 988,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // rear lights anode -> GND
+        .locoAddress = 988,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 3,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+
+    // fn3: head lights off
+    {
+        // head lights cathode -> GND
+        .locoAddress = 988,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // head lights cathode -> GND
+        .locoAddress = 988,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights cathode -> GND
+        .locoAddress = 988,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights cathode -> GND
+        .locoAddress = 988,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 3,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -124,10 +265,102 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 // Triggers are used to AUTOMATICALLY switch train lights on and off
 
 // Number of train light triggers as defined just below
-#define NUM_TRAIN_LIGHT_TRIGGERS 0
+#define NUM_TRAIN_LIGHT_TRIGGERS 6
 
 // List of train light triggers
-TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] = {};
+TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
+{
+    // forward mode. head lights white, rear lights red
+    {
+        // head lights cathode -> +3.3V
+        .locoAddress = 988,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // head lights anode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights cathode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights anode -> +3.3V
+        .locoAddress = 988,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 3,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+
+    // backward mode. head lights red, rear lights white
+    {
+        // head lights cathode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // head lights anode -> +3.3V
+        .locoAddress = 988,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // rear lights cathode -> +3.3V
+        .locoAddress = 988,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // rear lights anode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 3,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+
+    // this section may be commented out to prevent the head and rear lights from being switched off upon stop
+    // stop: head lights off, read lights off
+    {
+        // head lights cathode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // head lights anode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights cathode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // rear lights anode -> GND
+        .locoAddress = 988,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 3,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+};
 
 // ************************
 // CONTROLLER CONFIGURATION
