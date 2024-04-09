@@ -108,7 +108,7 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
         {
             // 0: head lights / cathode
             .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D0,
+            .pin = D2,
             .motorShieldIndex = 0,
             .motorPortIndex = -1,
             .powerLevelOff = 0,
@@ -117,7 +117,7 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
         {
             // 1: head lights / anode
             .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D2,
+            .pin = D0,
             .motorShieldIndex = 0,
             .motorPortIndex = -1,
             .powerLevelOff = 0,
@@ -126,7 +126,7 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
         {
             // 2: rear lights / cathode
             .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D1,
+            .pin = D7,
             .motorShieldIndex = 0,
             .motorPortIndex = -1,
             .powerLevelOff = 0,
@@ -135,7 +135,7 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
         {
             // 3: rear lights / anode
             .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D7,
+            .pin = D1,
             .motorShieldIndex = 0,
             .motorPortIndex = -1,
             .powerLevelOff = 0,
@@ -150,7 +150,7 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 // Rocrail functions are used to MANUALLY switch train lights on and off
 
 // Number of function mappings
-#define NUM_FUNCTION_MAPPINGS 6
+#define NUM_FUNCTION_MAPPINGS 12
 
 // List of function mappings
 TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
@@ -265,7 +265,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 // Triggers are used to AUTOMATICALLY switch train lights on and off
 
 // Number of train light triggers as defined just below
-#define NUM_TRAIN_LIGHT_TRIGGERS 6
+#define NUM_TRAIN_LIGHT_TRIGGERS 12
 
 // List of train light triggers
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
