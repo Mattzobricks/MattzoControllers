@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include "MTC4BTController.h"
-#include "MTC4BTMQTTHandler.h"
+
 #include "MattzoMQTTSubscriber.h"
 #include "MattzoWifiClient.h"
 #include "MCJsonConfig.h"
@@ -28,8 +28,9 @@ void handleTickerLoop(void *param)
     unsigned long timeTaken = 0;
     for (;;) {
         timeTaken = millis();
+
         log4MC::vlogf(LOG_INFO, "Minutes uptime: %d.%02d", (minuteTicker / TICKER), (minuteTicker % TICKER) * (60 / TICKER));
-        log4MC::vlogf(LOG_INFO, "  Messages in queue: %d", uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
+        //log4MC::vlogf(LOG_INFO, "  Messages in queue: %d", uxQueueMessagesWaiting(MattzoMQTTSubscriber::IncomingQueue));
         log4MC::vlogf(LOG_INFO, "  Memory Heap free: %8u max alloc: %8u min free: %8u", ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
         minuteTicker++;
         timeTaken = abs((long)(timeTaken - millis()));
@@ -46,7 +47,7 @@ void setupTicker()
 #endif
 #endif
 #endif
-
+/*
 void handleMQTTMessageLoop(void *parm)
 {
     for (;;) {
@@ -68,7 +69,7 @@ void handleMQTTMessageLoop(void *parm)
         vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
-
+*/
 void setup()
 {
     // Configure Serial.
@@ -102,7 +103,8 @@ void setup()
 
     // Setup MQTT subscriber (use controller name as part of the subscriber name).
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
-    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, handleMQTTMessageLoop);
+    //MattzoMQTTSubscriber::Setup(networkConfig->MQTT, handleMQTTMessageLoop);
+    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, NULL);
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
