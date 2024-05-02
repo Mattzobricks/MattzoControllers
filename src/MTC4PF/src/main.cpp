@@ -37,6 +37,9 @@ boolean ebreak = false;
 
 void setup()
 {
+    // explicitly set write range to ensure compatibility with [MIN|MAX]_ARDUINO_POWER
+    analogWriteRange(ANALOG_WRITE_RANGE);
+
     // load config from EEPROM, initialize Wifi, MQTT etc.
     setupMattzoController(false);
 
@@ -347,6 +350,7 @@ void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPo
 
     // Motorshield specific constants and variables
     int irPowerLevel = 0; // Power level for the LEGO IR Receiver 8884
+    int invertedDesiredPowerLevel = ANALOG_WRITE_RANGE - desiredPowerLevel; // Power level for RED_L9110
 
     mcLog("setMotorShieldPower() called with msi=" + String(motorShieldIndex) + ", mpi=" + String(motorPortIndex) + ", desiredPower=" + String(desiredPower));
 
@@ -354,31 +358,21 @@ void setMotorShieldPower(int motorShieldIndex, int motorPortIndex, int desiredPo
     case MotorShieldType::RED_L9110:
         // motor shield type RED_L9110 with L9110
         if (motorPortIndex == 0) {
-            if (desiredPowerLevel == 0) {
-                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in1, LOW);
-                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in2, LOW);
+            if (directionIsForward) {
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in1, HIGH);
+                analogWrite(myMattzoMotorShields[motorShieldIndex]._in2, (invertedDesiredPowerLevel == 0) ? 1 : invertedDesiredPowerLevel);
             } else {
-                if (directionIsForward) {
-                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in1, HIGH);
-                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in2, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
-                } else {
-                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in2, HIGH);
-                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in1, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
-                }
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in2, HIGH);
+                analogWrite(myMattzoMotorShields[motorShieldIndex]._in1, (invertedDesiredPowerLevel == 0) ? 1 : invertedDesiredPowerLevel);
             }
         }
         if (motorPortIndex == 1) {
-            if (desiredPowerLevel == 0) {
-                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in3, LOW);
-                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in4, LOW);
+            if (directionIsForward) {
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in3, HIGH);
+                analogWrite(myMattzoMotorShields[motorShieldIndex]._in4, (invertedDesiredPowerLevel == 0) ? 1 : invertedDesiredPowerLevel);
             } else {
-                if (directionIsForward) {
-                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in3, HIGH);
-                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in4, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
-                } else {
-                    digitalWrite(myMattzoMotorShields[motorShieldIndex]._in4, HIGH);
-                    analogWrite(myMattzoMotorShields[motorShieldIndex]._in3, myMattzoMotorShields[motorShieldIndex]._maxArduinoPower - desiredPowerLevel);
-                }
+                digitalWrite(myMattzoMotorShields[motorShieldIndex]._in4, HIGH);
+                analogWrite(myMattzoMotorShields[motorShieldIndex]._in3, (invertedDesiredPowerLevel == 0) ? 1 : invertedDesiredPowerLevel);
             }
         }
         break;
