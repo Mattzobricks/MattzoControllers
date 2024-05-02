@@ -75,7 +75,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
     msConf[0] = (MattzoMotorShieldConfiguration){
         .locoAddress = 10194,
-        .motorShieldType = MotorShieldType::LEGO_IR_8884,
+        .motorShieldType = MOTORSHIELD_TYPE,
         .minArduinoPower = MIN_ARDUINO_POWER,
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = -1,
@@ -83,7 +83,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .irChannel = 0};
     msConf[1] = (MattzoMotorShieldConfiguration){
         .locoAddress = 10219,
-        .motorShieldType = MotorShieldType::LEGO_IR_8884,
+        .motorShieldType = MOTORSHIELD_TYPE,
         .minArduinoPower = MIN_ARDUINO_POWER,
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = -1,
