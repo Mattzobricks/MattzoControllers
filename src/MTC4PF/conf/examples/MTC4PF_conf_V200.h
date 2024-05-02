@@ -76,7 +76,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
     msConf[0] = (MattzoMotorShieldConfiguration){
         .locoAddress = 200,
-        MOTORSHIELD_TYPE
+        .motorShieldType = MOTORSHIELD_TYPE,
         .L298N_enA = D0,
         .L298N_enB = D1,
         .in1 = D3,
