@@ -110,12 +110,12 @@ const uint8_t PCA9685_OE_PIN = D0;
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
 {
     {
-        .pin = D1,
+        .pin = D3,
         .pinType = 0,
         .detachAfterUsage = true
     },
     {
-        .pin = D2,
+        .pin = D4,
         .pinType = 0,
         .detachAfterUsage = true
     }
@@ -171,12 +171,12 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 {
     {
-        .pin = D3,
+        .pin = D1,
         .pinType = LOCAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
     },
     {
-        .pin = D4,
+        .pin = D2,
         .pinType = LOCAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
     }
@@ -256,7 +256,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
-    // signal 1: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
+    // signal 1: light signal with 2 aspects, controlled via Rocrail ports 3 and 4
     {
         .signalRocrailPort = 0,
         .aspectRocrailPort = {3, 4},
