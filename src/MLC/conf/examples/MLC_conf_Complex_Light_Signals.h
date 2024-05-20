@@ -22,7 +22,11 @@
 // Parameter documentation: MLC/include/MLC_types.h
 
 // This configuration contains the configuration for the MLC mega.
-// It serves 16 switches, 8 standard light signals, and 16 sensors.
+// It serves:
+// - 16 switches
+// - 1 complex H/V light main signal with 6 aspects (port 1-6)
+// - 1 H/V light distant signal with 3 aspects (port 9-11)
+// - 16 sensors.
 
 
 
@@ -546,7 +550,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 0: complex H/V light main signal
     {
         .signalRocrailPort = 1,
-        .aspectRocrailPort = {1, 2, 3, 4, 0, 0},
+        .aspectRocrailPort = {1, 2, 3, 4, 0, 0}, // irrelevant, because this signal has control type "aspect numbers"
         .aspectLEDPort = {1, 0, 3, 2, 5, 4},  // green, red left, red right, white diagonal (Sh1), yellow, white triangle (Zs1)
         .aspectLEDMapping = {
             {false, true, true, false, false, false}, // Hp00
@@ -563,7 +567,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 1: H/V light distant signal
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {9, 10, 11, 12, -1, -1},
+        .aspectRocrailPort = {9, 10, 11, 12, -1, -1}, // irrelevant, because this signal has control type "aspect numbers"
         .aspectLEDPort = {8, 10, 9, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
             {true, true, false, false, true, false}, // Vr0
