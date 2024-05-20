@@ -57,9 +57,6 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
         if (i == 4) {
             // Check if this is a message we should ignore.
             if ((strstr(message, "<sys ")) == nullptr &&
-#ifdef ENABLE_SWITCHES            
-                (strstr(message, "<sw ")) == nullptr &&
-#endif
                 (strstr(message, "<lc ")) == nullptr &&
                 (strstr(message, "<fn ")) == nullptr) {
                 // Nothing we can handle, so ignore this message.
