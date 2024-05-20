@@ -22,7 +22,11 @@
 // Parameter documentation: MLC/include/MLC_types.h
 
 // This configuration contains the configuration for the MLC mega.
-// It serves 16 switches, 8 standard light signals, and 16 sensors.
+// It serves:
+// - 16 switches
+// - 1 complex H/V light main signal
+// - 1 H/V light distant signal
+// - 16 sensors.
 
 
 
@@ -534,7 +538,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // Number of signals
 #define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 6
+#define NUM_SIGNAL_ASPECTS 5
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
 #define NUM_SIGNAL_LEDS 6
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
@@ -546,14 +550,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 0: complex H/V light main signal
     {
         .signalRocrailPort = 1,
-        .aspectRocrailPort = {1, 2, 3, 4, 0, 0},
-        .aspectLEDPort = {1, 0, 3, 2, 5, 4},  // green, red left, red right, white diagonal (Sh1), yellow, white triangle (Zs1)
+        .aspectRocrailPort = {1, 2, 3, 4, 0}, // irrelevant, because this signal has control type "aspect numbers"
+        .aspectLEDPort = {0, 1, 3, 2, 5, 4},  // green, red left, red right, yellow, white diagonal (Sh1), white triangle (Zs1)
         .aspectLEDMapping = {
             {false, true, true, false, false, false}, // Hp00
             {true, false, false, false, false, false}, // Hp1
-            {true, false, false, false, true, false}, // Hp2
-            {false, true, false, true, false, false}, // Hp0+Sh1
-            {false, true, false, false, false, false}, // Hp0+Sh0
+            {true, false, false, true, false, false}, // Hp2
+            {false, true, false, false, true, false}, // Hp0+Sh1
             {false, true, true, false, false, true} // Hp0+Zs1
         },
         .servoIndex = {},
@@ -562,14 +565,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 1: H/V light distant signal
     {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {9, 10, 11, 12, -1, -1},
+        .signalRocrailPort = -1,
+        .aspectRocrailPort = {9, 10, 11, -1, -1}, // irrelevant, because this signal has control type "aspect numbers"
         .aspectLEDPort = {8, 10, 9, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
             {true, true, false, false, true, false}, // Vr0
             {false, false, true, true, true, false}, // Vr1
             {false, true, true, false, true, false}, // Vr2
-            {true, true, false, false, true, false}, // Vr0
             {true, true, false, false, true, false}, // Vr0
             {true, true, false, false, true, false}, // Vr0
         },
