@@ -489,6 +489,7 @@ String redBlueStringByIRPort(MattzoPowerFunctionsPort port)
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed()
 {
+    #define STOP_IMMEDIATELY false
     boolean accelerateFlag;
     int step;
     int nextSpeed;
@@ -502,7 +503,7 @@ void accelerateTrainSpeed()
                 setTrainSpeed(0, locoIndex);
             }
         } else if (loco._currentTrainSpeed != loco._targetTrainSpeed) {
-            if (loco._targetTrainSpeed == 0) {
+            if (STOP_IMMEDIATELY && loco._targetTrainSpeed == 0) {
                 // stop -> execute immediately
                 setTrainSpeed(0, locoIndex);
             } else if (millis() - loco._lastAccelerate >= loco._accelerationInterval) {
