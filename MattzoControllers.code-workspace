@@ -80,7 +80,10 @@
 			"compare": "cpp",
 			"concepts": "cpp",
 			"netfwd": "cpp",
-			"ranges": "cpp"
+			"ranges": "cpp",
+			"xlocale": "cpp",
+			"xlocinfo": "cpp",
+			"xstring": "cpp"
 		},
 	}
 }
