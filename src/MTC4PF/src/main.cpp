@@ -224,19 +224,37 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
         mcLog2("fnchanged: f" + String(rr_functionNo), LOG_DEBUG);
 
-        // query fnchangedstate attribute. This is value if the function shall be set on or off
+        // query fn (f1, f2, f3...) attribute. This is value if the function shall be set on or off
         const char *rr_state_String = "xxxxxx"; // expected values are "true" or "false"
         bool rr_state;
-        if (rr_functionNo > 0) {
-            if (element->QueryStringAttribute("fnchangedstate", &rr_state_String) != XML_SUCCESS) {
-                mcLog2("fnchangedstate attribute not found or wrong type.", LOG_DEBUG);
-                return;
-            }
-        } else {
+        if (rr_functionNo == 0) {
             if (element->QueryStringAttribute("f0", &rr_state_String) != XML_SUCCESS) {
                 mcLog2("f0 attribute not found or wrong type.", LOG_DEBUG);
                 return;
             }
+        } else if (rr_functionNo == 1) {
+            if (element->QueryStringAttribute("f1", &rr_state_String) != XML_SUCCESS) {
+                mcLog2("f1 attribute not found or wrong type.", LOG_DEBUG);
+                return;
+            }
+        } else if (rr_functionNo == 2) {
+            if (element->QueryStringAttribute("f2", &rr_state_String) != XML_SUCCESS) {
+                mcLog2("f2 attribute not found or wrong type.", LOG_DEBUG);
+                return;
+            }
+        } else if (rr_functionNo == 3) {
+            if (element->QueryStringAttribute("f3", &rr_state_String) != XML_SUCCESS) {
+                mcLog2("f3 attribute not found or wrong type.", LOG_DEBUG);
+                return;
+            }
+        } else if (rr_functionNo == 4) {
+            if (element->QueryStringAttribute("f4", &rr_state_String) != XML_SUCCESS) {
+                mcLog2("f4 attribute not found or wrong type.", LOG_DEBUG);
+                return;
+            }
+        } else {
+            mcLog2("Can't handle this fn", LOG_DEBUG);
+            return;
         }
         if (strcmp(rr_state_String, "true") == 0) {
             mcLog2("fnchangedstate: true", LOG_DEBUG);
