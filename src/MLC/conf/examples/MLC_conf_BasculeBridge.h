@@ -342,7 +342,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
-const char *MC_HOSTNAME = "BRIDGE1";
+const char *MC_HOSTNAME = "MLC-BRIDGE";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "BRIDGE1";
+const char *SYSLOG_APP_NAME = "MLC-BRIDGE";
