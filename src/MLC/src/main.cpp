@@ -128,6 +128,9 @@ void setup()
 
     // load config from EEPROM, initialize Wifi, MQTT etc.
     setupMattzoController(true);
+
+    // reset all signals
+    initializeAllSignals();
 }
 
 #if USE_PCA9685
@@ -166,6 +169,10 @@ void setupU8g2()
 
 void mqttConnected()
 {
+    sendAllSensorStates();
+}
+
+void sendAllSensorStates() {
     bool sensorStatesSent = false;
     for (int s = 0; s < NUM_SENSORS; s++) {
         if (isPhysicalSensor(s)) {
@@ -177,6 +184,7 @@ void mqttConnected()
         mcLog2("States of all physical sensors sent to MQTT.", LOG_INFO);
     }
 }
+
 
 #define DEBUG_MQTT_MESSAGES false
 
@@ -600,6 +608,13 @@ void handleSignalMessageControlTypeAspectNumbers(int rr_port1, int a) {
         }
     }
 
+}
+
+// initialize all signals
+void initializeAllSignals() {
+    for (int s = 0; s < NUM_SIGNALS; s++) {
+        setSignalAspect(s, 0);
+    }
 }
 
 // set signal index s to aspect index a

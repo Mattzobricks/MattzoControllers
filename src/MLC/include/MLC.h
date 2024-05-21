@@ -137,6 +137,7 @@ struct Speedometer {
 };
 
 void mqttConnected();
+void sendAllSensorStates();
 void handleSignalOvershootSensorEvent();
 void sendSensorEvent2MQTT(int sensorIndex, bool sensorState);
 void levelCrossingCommand(int levelCrossingCommand);
@@ -176,6 +177,7 @@ void handleSpeedometerSensorEvent(int triggeredSensor);
 
 void handleSignalMessageControlTypeDefault(int rr_port);
 void handleSignalMessageControlTypeAspectNumbers(int rr_port1, int a);
+void initializeAllSignals();
 void setSignalAspect(int s, int a);
 void handleSignalOvershootSensorEvent(int overshootSensorIndex);
 
