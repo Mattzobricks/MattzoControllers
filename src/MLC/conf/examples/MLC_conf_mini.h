@@ -252,7 +252,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
-            {LED_OFF, LED_BLINK},
+            {LED_OFF, LED_FLASH},
         },
         .servoIndex = {},
         .aspectServoAngle = {},
@@ -266,7 +266,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
-            {LED_OFF, LED_BLINK},
+            {LED_OFF, LED_FLASH},
         },
         .servoIndex = {},
         .aspectServoAngle = {},
