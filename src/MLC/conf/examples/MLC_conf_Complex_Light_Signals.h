@@ -553,11 +553,11 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {1, 2, 3, 4, 0}, // irrelevant, because this signal has control type "aspect numbers"
         .aspectLEDPort = {0, 1, 3, 2, 5, 4},  // green, red left, red right, yellow, white diagonal (Sh1), white triangle (Zs1)
         .aspectLEDMapping = {
-            {false, true, true, false, false, false}, // Hp00
-            {true, false, false, false, false, false}, // Hp1
-            {true, false, false, true, false, false}, // Hp2
-            {false, true, false, false, true, false}, // Hp0+Sh1
-            {false, true, true, false, false, true} // Hp0+Zs1
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp00
+            {LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp1
+            {LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  , LED_OFF  }, // Hp2
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_ON   , LED_OFF  }, // Hp0+Sh1
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   }, // Hp0+Zs1
         },
         .servoIndex = {},
         .aspectServoAngle = {},
@@ -569,11 +569,11 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {9, 10, 11, -1, -1}, // irrelevant, because this signal has control type "aspect numbers"
         .aspectLEDPort = {8, 10, 9, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
-            {true, true, false, false, true, false}, // Vr0
-            {false, false, true, true, true, false}, // Vr1
-            {false, true, true, false, true, false}, // Vr2
-            {true, true, false, false, true, false}, // Vr0
-            {true, true, false, false, true, false}, // Vr0
+            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Vr0
+            {LED_OFF  , LED_OFF  , LED_ON   , LED_ON   , LED_ON   , LED_OFF  }, // Vr1
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_ON   , LED_OFF  }, // Vr2
+            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Vr0
+            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Vr0
         },
         .servoIndex = {},
         .aspectServoAngle = {},

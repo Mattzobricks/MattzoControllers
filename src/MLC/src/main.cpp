@@ -626,11 +626,12 @@ void setSignalAspect(int s, int a) {
     }
     mattzoSignal[s].currentAspect = a;
 
-    // iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
+    // output debug messages for all LEDs of the signal
     for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
-        bool onOff = signalConfiguration[s].aspectLEDMapping[a][l];
-        mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to " + (onOff ? "on" : "off"), LOG_DEBUG);
-        setLED(signalConfiguration[s].aspectLEDPort[l], onOff);
+        if (signalConfiguration[s].aspectLEDPort[a] >= 0) {
+            int8_t ledLightAction = signalConfiguration[s].aspectLEDMapping[a][l];
+            mcLog2("Setting signal LED index " + String(l) + " of signal " + String(s) + " to light action " + String(ledLightAction), LOG_DEBUG);
+        }
     }
 
     // set the desired servo angle of the form signal
@@ -640,6 +641,48 @@ void setSignalAspect(int s, int a) {
             int servoAngle = signalConfiguration[s].aspectServoAngle[servoIndex][a];
             mcLog2("Turning servo index " + String(servoIndex) + " of signal " + String(s) + " to " + String(servoAngle), LOG_DEBUG);
             setServoAngle(signalConfiguration[s].servoIndex[servoIndex], servoAngle);
+        }
+    }
+}
+
+// loops through all signals and sets the LEDs to the required state
+// remark: fading is not supported by port extender MCP23017, so a fading feature has not been implemented.
+#define PERIOD_BLINK_MS 1000  // period in ms for light action "blink"
+#define PERIOD_FLASH_MS 500   // period in ms for light action "flash"
+void signalLoop() {
+    for (int s = 0; s < NUM_SIGNALS; s++) {
+        bool blinkActive = (millis() - mattzoSignal[s].aspectActiveSince_ms) % PERIOD_BLINK_MS < PERIOD_BLINK_MS / 2;
+        bool flashActive = (millis() - mattzoSignal[s].aspectActiveSince_ms) % PERIOD_FLASH_MS < PERIOD_FLASH_MS / 2;
+        int a = mattzoSignal[s].currentAspect;
+        // iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
+        for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
+            int ledPort = signalConfiguration[s].aspectLEDPort[l];
+            if (ledPort >= 0) {
+                int8_t ledLightAction = signalConfiguration[s].aspectLEDMapping[a][l];
+                bool ledState = false;
+                switch (ledLightAction) {
+                    case LED_OFF:
+                        ledState = false;
+                        break;
+                    case LED_ON:
+                        ledState = true;
+                        break;
+                    case LED_BLINK:
+                        ledState = blinkActive;
+                        break;
+                    case LED_BLINK_ALT:
+                        ledState = !blinkActive;
+                        break;
+                    case LED_FLASH:
+                        ledState = flashActive;
+                        break;
+                    case LED_FLASH_ALT:
+                        ledState = !flashActive;
+                        break;
+                }
+                // mcLog2("> Setting signal " + String(s) + ", led index " + String(l) + " to state " + String(ledState), LOG_DEBUG);
+                setLED(ledPort, ledState);
+            }
         }
     }
 }
@@ -1987,6 +2030,7 @@ void loop()
 {
     loopMattzoController();
     checkEnableServoSleepMode();
+    signalLoop();
     monitorSensors();
     levelCrossingLoop();
     basculeBridgeLoop();

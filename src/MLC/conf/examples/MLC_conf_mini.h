@@ -235,7 +235,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // Number of signals
 #define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 2
+#define NUM_SIGNAL_ASPECTS 3
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
 #define NUM_SIGNAL_LEDS 2
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
@@ -247,11 +247,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 0: light signal with 2 aspects, controlled via Rocrail ports 1 and 2
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {1, 2},
+        .aspectRocrailPort = {1, 2, 3},
         .aspectLEDPort = {0, 1},
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -259,11 +261,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 1: light signal with 2 aspects, controlled via Rocrail ports 3 and 4
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {3, 4},
+        .aspectRocrailPort = {11, 12, 13},
         .aspectLEDPort = {2, 3},
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

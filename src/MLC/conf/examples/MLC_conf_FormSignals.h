@@ -236,9 +236,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {1, 2, -1},
         .aspectLEDPort = {-1},
         .aspectLEDMapping = {
-            {false},
-            {false},
-            {false},
+            {LED_OFF},
+            {LED_OFF},
+            {LED_OFF},
         },
         .servoIndex = {0},
         .aspectServoAngle = {{180, 90, -1}},
@@ -248,9 +248,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     {
         .signalRocrailPort = 0,
         .aspectRocrailPort = {3, 4, -1}, .aspectLEDPort = {-1}, .aspectLEDMapping = {
-            {false},
-            {false},
-            {false},
+            {LED_OFF},
+            {LED_OFF},
+            {LED_OFF},
         },
         .servoIndex = {1},
         .aspectServoAngle = {{170, 115, -1}},
@@ -263,9 +263,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {5, 6, 7}, 
         .aspectLEDPort = {0}, 
         .aspectLEDMapping = {
-            {false}, 
-            {false}, 
-            {true}
+            {LED_OFF}, 
+            {LED_OFF}, 
+            {LED_ON}
         }, 
         .servoIndex = {2}, 
         .aspectServoAngle = {{90, 15, 160}},
@@ -278,9 +278,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {8, 9, 10}, 
         .aspectLEDPort = {1}, 
         .aspectLEDMapping = {
-            {false}, 
-            {false}, 
-            {true}
+            {LED_OFF}, 
+            {LED_OFF}, 
+            {LED_ON}
         }, 
         .servoIndex = {3}, 
         .aspectServoAngle = {{90, 15, 160}},
@@ -292,9 +292,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {11, 12, 13}, 
         .aspectLEDPort = {-1}, 
         .aspectLEDMapping = {
-            {false}, 
-            {false}, 
-            {false}
+            {LED_OFF}, 
+            {LED_OFF}, 
+            {LED_OFF}
         }, 
         .servoIndex = {4}, 
         .aspectServoAngle = {{8, 70, 113}},
@@ -306,9 +306,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {14, 15, 16}, 
         .aspectLEDPort = {-1}, 
         .aspectLEDMapping = {
-            {false}, 
-            {false}, 
-            {false}
+            {LED_OFF}, 
+            {LED_OFF}, 
+            {LED_OFF}
         }, 
         .servoIndex = {5}, 
         .aspectServoAngle = {{8, 70, 113}},

@@ -179,9 +179,11 @@ void handleSignalMessageControlTypeDefault(int rr_port);
 void handleSignalMessageControlTypeAspectNumbers(int rr_port1, int a);
 void initializeAllSignals();
 void setSignalAspect(int s, int a);
+void signalLoop();
 void handleSignalOvershootSensorEvent(int overshootSensorIndex);
 
 void setLED(int ledIndex, bool ledState);
+void fadeLED(int ledIndex, int brightness);
 
 void sendSwitchSensorEvent(int switchIndex, int switchCommand, bool sensorState);
 

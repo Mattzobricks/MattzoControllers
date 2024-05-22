@@ -81,6 +81,14 @@ typedef struct SwitchConfiguration {
 } TSwitchConfiguration;
 
 
+// Constants for LED light action
+#define LED_OFF 0        // off
+#define LED_ON 1         // on
+#define LED_BLINK 2      // blinking
+#define LED_BLINK_ALT 3  // blinking (alternative phase)
+#define LED_FLASH 4      // flashing
+#define LED_FLASH_ALT 5  // flashing (alternative phase)
+
 // Maximum number of signal aspects (e.g. red, green, yellow)
 #define MAX_NUM_SIGNAL_ASPECTS 8
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
@@ -103,7 +111,7 @@ typedef struct {
     int aspectLEDPort[MAX_NUM_SIGNAL_LEDS];
     // mappings between aspects and LEDs (often a diagonal matrix)
     // true: LED is mapped for this aspect
-    bool aspectLEDMapping[MAX_NUM_SIGNAL_ASPECTS][MAX_NUM_SIGNAL_LEDS];
+    int8_t aspectLEDMapping[MAX_NUM_SIGNAL_ASPECTS][MAX_NUM_SIGNAL_LEDS];
     // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
     // -1: no servo configured for this signal
     int servoIndex[MAX_NUM_SIGNAL_SERVOS];

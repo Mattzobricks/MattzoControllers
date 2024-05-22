@@ -534,7 +534,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // Number of signals
 #define NUM_SIGNALS 8
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 2
+#define NUM_SIGNAL_ASPECTS 3
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
 #define NUM_SIGNAL_LEDS 2
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
@@ -545,88 +545,104 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {1, 2},
+        .aspectRocrailPort = {1, 2, 3},
         .aspectLEDPort = {0, 1},
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {3, 4},
+        .aspectRocrailPort = {11, 12, 13},
         .aspectLEDPort = {2, 3}, 
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {5, 6}, 
+        .aspectRocrailPort = {21, 22, 23}, 
         .aspectLEDPort = {4, 5}, 
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {7, 8}, 
+        .aspectRocrailPort = {31, 32, 33}, 
         .aspectLEDPort = {6, 7}, 
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {9, 10}, 
+        .aspectRocrailPort = {41, 42, 43}, 
         .aspectLEDPort = {8, 9}, 
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {11, 12}, 
+        .aspectRocrailPort = {51, 52, 53}, 
         .aspectLEDPort = {10, 11}, 
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {13, 14}, 
+        .aspectRocrailPort = {61, 62, 63}, 
         .aspectLEDPort = {12, 13}, 
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {15, 16}, 
+        .aspectRocrailPort = {71, 72, 73}, 
         .aspectLEDPort = {14, 15}, 
         .aspectLEDMapping = {
-            {true, false},
-            {false, true}},
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_BLINK},
+        },
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
