@@ -621,8 +621,8 @@ void initializeAllSignals() {
 void setSignalAspect(int s, int a) {
     mcLog2("Setting signal index " + String(s) + " to aspect " + String(a), LOG_INFO);
 
-    if (a == 0 && mattzoSignal[s].currentAspect != a) {
-        mattzoSignal[s].redAspectSince_ms = millis();
+    if (mattzoSignal[s].currentAspect != a) {
+        mattzoSignal[s].aspectActiveSince_ms = millis();
     }
     mattzoSignal[s].currentAspect = a;
 
@@ -653,7 +653,7 @@ void handleSignalOvershootSensorEvent(int overshootSensorIndex) {
             // Check if the signal is red
             if (mattzoSignal[s].currentAspect == 0) {
                 // Check if overshoot sensor is still sleeping
-                if (millis() > mattzoSignal[s].redAspectSince_ms + SIGNAL_OVERSHOOT_SENSOR_SLEEP_MS) {
+                if (millis() > mattzoSignal[s].aspectActiveSince_ms + SIGNAL_OVERSHOOT_SENSOR_SLEEP_MS) {
                     // Pull emergency break
                     mcLog2(": Overshoot sensor engaged!", LOG_CRIT);
                     sendEmergencyBrake2MQTT("Overshoot sensor of signal " + String(s) + " triggered");

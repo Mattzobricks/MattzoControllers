@@ -36,7 +36,7 @@ struct MattzoServo {
 
 struct MattzoSignal {
     int currentAspect; // present aspect of the signal
-    unsigned long redAspectSince_ms = 0; // time in ms since the red aspect (hard-wired to aspect 0) is active
+    unsigned long aspectActiveSince_ms = 0; // time in ms since the current aspect is active
 };
 
 // SENSOR CONSTANTS
