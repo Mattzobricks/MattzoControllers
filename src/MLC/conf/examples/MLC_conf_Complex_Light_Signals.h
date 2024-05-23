@@ -567,13 +567,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     {
         .signalRocrailPort = -1,
         .aspectRocrailPort = {9, 10, 11, -1, -1}, // irrelevant, because this signal has control type "aspect numbers"
-        .aspectLEDPort = {8, 10, 9, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
+        .aspectLEDPort = {8, 9, 10, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
-            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Vr0
-            {LED_OFF  , LED_OFF  , LED_ON   , LED_ON   , LED_ON   , LED_OFF  }, // Vr1
-            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_ON   , LED_OFF  }, // Vr2
-            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Vr0
-            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Vr0
+            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_NOP  }, // Vr0
+            {LED_OFF  , LED_OFF  , LED_ON   , LED_ON   , LED_ON   , LED_NOP  }, // Vr1
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_ON   , LED_NOP  }, // Vr2
+            {LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  }, // unused
+            {LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  }, // unused
         },
         .servoIndex = {},
         .aspectServoAngle = {},

@@ -236,9 +236,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {1, 2, -1},
         .aspectLEDPort = {-1},
         .aspectLEDMapping = {
-            {LED_OFF},
-            {LED_OFF},
-            {LED_OFF},
+            {LED_NOP},
+            {LED_NOP},
+            {LED_NOP},
         },
         .servoIndex = {0},
         .aspectServoAngle = {{180, 90, -1}},
@@ -247,10 +247,12 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {3, 4, -1}, .aspectLEDPort = {-1}, .aspectLEDMapping = {
-            {LED_OFF},
-            {LED_OFF},
-            {LED_OFF},
+        .aspectRocrailPort = {3, 4, -1},
+        .aspectLEDPort = {-1},
+        .aspectLEDMapping = {
+            {LED_NOP},
+            {LED_NOP},
+            {LED_NOP},
         },
         .servoIndex = {1},
         .aspectServoAngle = {{170, 115, -1}},
@@ -292,9 +294,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {11, 12, 13}, 
         .aspectLEDPort = {-1}, 
         .aspectLEDMapping = {
-            {LED_OFF}, 
-            {LED_OFF}, 
-            {LED_OFF}
+            {LED_NOP}, 
+            {LED_NOP}, 
+            {LED_NOP}
         }, 
         .servoIndex = {4}, 
         .aspectServoAngle = {{8, 70, 113}},
@@ -306,9 +308,9 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectRocrailPort = {14, 15, 16}, 
         .aspectLEDPort = {-1}, 
         .aspectLEDMapping = {
-            {LED_OFF}, 
-            {LED_OFF}, 
-            {LED_OFF}
+            {LED_NOP}, 
+            {LED_NOP}, 
+            {LED_NOP}
         }, 
         .servoIndex = {5}, 
         .aspectServoAngle = {{8, 70, 113}},

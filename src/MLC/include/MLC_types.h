@@ -82,6 +82,7 @@ typedef struct SwitchConfiguration {
 
 
 // Constants for LED light action
+#define LED_NOP -1       // do nothing. Useful is a signal does not use all LEDs in the LED array
 #define LED_OFF 0        // off
 #define LED_ON 1         // on
 #define LED_BLINK 2      // blinking
