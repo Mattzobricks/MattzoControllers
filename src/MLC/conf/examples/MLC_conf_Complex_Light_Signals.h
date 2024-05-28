@@ -556,8 +556,8 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp00
             {LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp1
             {LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  , LED_OFF  }, // Hp2
-            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_ON   , LED_OFF  }, // Hp0+Sh1
-            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   }, // Hp0+Zs1
+            {LED_OFF  , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Hp0+Sh1
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   }, // Hp00+Zs1
         },
         .servoIndex = {},
         .aspectServoAngle = {},
