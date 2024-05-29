@@ -393,10 +393,11 @@ const int STATUS_LED_POWER = 300;
 // SWITCH CONFIGURATION
 
 // Number of switches
-#define NUM_SWITCHES 16
+#define NUM_SWITCHES 24
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 {
+    // Standard switches / Triple switches
     {
         .rocRailPort = 1,
         .servoIndex = 0,
@@ -524,7 +525,73 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
         .servo2Reverse = false,
         .triggerSensors = false,
         .sensorIndex = {-1, -1}
-    }
+    },
+
+    // Double slip switches
+    {
+        .rocRailPort = 1001,
+        .servoIndex = 0,
+        .servo2Index = 1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 1002,
+        .servoIndex = 2,
+        .servo2Index = 3,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 1003,
+        .servoIndex = 4,
+        .servo2Index = 5,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 1004,
+        .servoIndex = 6,
+        .servo2Index = 7,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 1005,
+        .servoIndex = 8,
+        .servo2Index = 9,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 1006,
+        .servoIndex = 10,
+        .servo2Index = 11,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 1007,
+        .servoIndex = 12,
+        .servo2Index = 13,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
+    {
+        .rocRailPort = 1008,
+        .servoIndex = 14,
+        .servo2Index = 15,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = {-1, -1}
+    },
 };
 
 
