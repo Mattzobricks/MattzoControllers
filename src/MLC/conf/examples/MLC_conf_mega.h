@@ -601,7 +601,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // Number of signals
 #define NUM_SIGNALS 8
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 3
+#define NUM_SIGNAL_ASPECTS 4
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
 #define NUM_SIGNAL_LEDS 2
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
@@ -612,12 +612,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {1, 2, 3},
+        .aspectRocrailPort = {1, 2, 3, 4},
         .aspectLEDPort = {0, 1},
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {},
         .aspectServoAngle = {},
@@ -625,12 +626,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {11, 12, 13},
+        .aspectRocrailPort = {11, 12, 13, 14},
         .aspectLEDPort = {2, 3}, 
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {}, 
         .aspectServoAngle = {},
@@ -638,12 +640,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {21, 22, 23}, 
+        .aspectRocrailPort = {21, 22, 23, 24}, 
         .aspectLEDPort = {4, 5}, 
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {}, 
         .aspectServoAngle = {},
@@ -651,12 +654,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {31, 32, 33}, 
+        .aspectRocrailPort = {31, 32, 33, 34}, 
         .aspectLEDPort = {6, 7}, 
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {}, 
         .aspectServoAngle = {},
@@ -664,12 +668,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {41, 42, 43}, 
+        .aspectRocrailPort = {41, 42, 43, 44}, 
         .aspectLEDPort = {8, 9}, 
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {}, 
         .aspectServoAngle = {},
@@ -677,12 +682,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {51, 52, 53}, 
+        .aspectRocrailPort = {51, 52, 53, 54}, 
         .aspectLEDPort = {10, 11}, 
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {}, 
         .aspectServoAngle = {},
@@ -690,12 +696,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {61, 62, 63}, 
+        .aspectRocrailPort = {61, 62, 63, 64}, 
         .aspectLEDPort = {12, 13}, 
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {}, 
         .aspectServoAngle = {},
@@ -703,12 +710,13 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     {
         .signalRocrailPort = 0,
-        .aspectRocrailPort = {71, 72, 73}, 
+        .aspectRocrailPort = {71, 72, 73, 74}, 
         .aspectLEDPort = {14, 15}, 
         .aspectLEDMapping = {
             {LED_ON , LED_OFF  },
             {LED_OFF, LED_ON   },
             {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
         },
         .servoIndex = {}, 
         .aspectServoAngle = {},
