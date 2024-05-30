@@ -42,8 +42,8 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
         .locoName = "BUS8W",
         .locoAddress = 988,
         .accelerationInterval = 100,
-        .accelerateStep = 5,
-        .brakeStep = 5
+        .accelerateStep = 3,
+        .brakeStep = 3
     };
 
     return locoConf;
@@ -265,7 +265,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 // Triggers are used to AUTOMATICALLY switch train lights on and off
 
 // Number of train light triggers as defined just below
-#define NUM_TRAIN_LIGHT_TRIGGERS 12
+#define NUM_TRAIN_LIGHT_TRIGGERS 8
 
 // List of train light triggers
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
@@ -332,7 +332,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 
     // this section may be commented out to prevent the head and rear lights from being switched off upon stop
     // stop: head lights off, read lights off
-    {
+/*     {
         // head lights cathode -> GND
         .locoAddress = 988,
         .lightEventType = LightEventType::STOP,
@@ -360,7 +360,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
         .trainLightIndex = 3,
         .trainLightStatus = TrainLightStatus::OFF
     },
-};
+ */};
 
 // ************************
 // CONTROLLER CONFIGURATION
