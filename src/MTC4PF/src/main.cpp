@@ -489,7 +489,7 @@ String redBlueStringByIRPort(MattzoPowerFunctionsPort port)
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed()
 {
-    #define STOP_IMMEDIATELY false
+    #define STOP_IMMEDIATELY true
     boolean accelerateFlag;
     int step;
     int nextSpeed;
