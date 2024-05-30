@@ -56,9 +56,6 @@ class BLEHub
   public:
     BLEHub(BLEHubConfiguration *config);
 
-    // Returns a boolean value indicating whether this BLE hub is enabled (in use).
-    bool IsEnabled();
-
     // Returns a boolean value indicating whether we have discovered the BLE hub.
     bool IsDiscovered();
 
@@ -86,6 +83,9 @@ class BLEHub
     // Makes all channels with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
 
+    // Set the initial color of the Hub's onboard LED.
+    void SetHubLedColor(HubLedColor color);
+
     // If true, immediately sets the current speed for all channels to zero.
     // If false, releases the manual brake.
     void SetManualBrake(const bool enabled);
@@ -112,8 +112,10 @@ class BLEHub
   private:
     void initChannelControllers();
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
+    HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
     BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
+
     bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
     bool startDriveTask();
     static void driveTaskImpl(void *);

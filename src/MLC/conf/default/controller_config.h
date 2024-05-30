@@ -21,7 +21,7 @@
 // Documentation: https://www.mattzobricks.com
 
 // This configuration is the default configuration for the MLC.
-// It serves 4 switches, 1 standard light signal, and 2 sensors.
+// It serves 2 switches, 2 standard light signals, and 2 sensors.
 
 
 
@@ -193,6 +193,9 @@ const bool STATUS_LED_PIN_INSTALLED = true;
 const uint8_t STATUS_LED_PIN = D8;
 // If installed, set to true to flip high/low state of the status led pin
 const bool STATUS_LED_REVERSE = false;
+// Power level of the status LED (0..1023)
+// Recommended max. power levels: white: 800, blue: 600, green: 500, yellow: 350, red: 300
+const int STATUS_LED_POWER = 300;
 
 
 

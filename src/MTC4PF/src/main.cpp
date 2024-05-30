@@ -224,20 +224,22 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
         }
         mcLog2("fnchanged: f" + String(rr_functionNo), LOG_DEBUG);
 
-        // query fnchangedstate attribute. This is value if the function shall be set on or off
+        // query fn (f1, f2, f3...) attribute. This is value if the function shall be set on or off
+        char fn[4]; // string that will hold f0.. f31 for the QueryStringAttribute call
         const char *rr_state_String = "xxxxxx"; // expected values are "true" or "false"
         bool rr_state;
-        if (rr_functionNo > 0) {
-            if (element->QueryStringAttribute("fnchangedstate", &rr_state_String) != XML_SUCCESS) {
-                mcLog2("fnchangedstate attribute not found or wrong type.", LOG_DEBUG);
+        if (rr_functionNo >= 0 && rr_functionNo <= 32) {
+            fn[2] = 0; fn[3] = 0;
+            snprintf(fn, 4, "f%d", rr_functionNo);
+            if (element->QueryStringAttribute(fn, &rr_state_String) != XML_SUCCESS) {
+                mcLog2("f" + String(rr_functionNo) + " attribute not found or wrong type.", LOG_DEBUG);
                 return;
             }
         } else {
-            if (element->QueryStringAttribute("f0", &rr_state_String) != XML_SUCCESS) {
-                mcLog2("f0 attribute not found or wrong type.", LOG_DEBUG);
-                return;
-            }
+            mcLog2("Can't handle this fn", LOG_DEBUG);
+            return;
         }
+
         if (strcmp(rr_state_String, "true") == 0) {
             mcLog2("fnchangedstate: true", LOG_DEBUG);
             rr_state = true;
@@ -487,6 +489,7 @@ String redBlueStringByIRPort(MattzoPowerFunctionsPort port)
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed()
 {
+    #define STOP_IMMEDIATELY true
     boolean accelerateFlag;
     int step;
     int nextSpeed;
@@ -500,7 +503,7 @@ void accelerateTrainSpeed()
                 setTrainSpeed(0, locoIndex);
             }
         } else if (loco._currentTrainSpeed != loco._targetTrainSpeed) {
-            if (loco._targetTrainSpeed == 0) {
+            if (STOP_IMMEDIATELY && loco._targetTrainSpeed == 0) {
                 // stop -> execute immediately
                 setTrainSpeed(0, locoIndex);
             } else if (millis() - loco._lastAccelerate >= loco._accelerationInterval) {

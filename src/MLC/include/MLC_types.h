@@ -81,6 +81,15 @@ typedef struct SwitchConfiguration {
 } TSwitchConfiguration;
 
 
+// Constants for LED light action
+#define LED_NOP -1       // do nothing. Useful is a signal does not use all LEDs in the LED array
+#define LED_OFF 0        // off
+#define LED_ON 1         // on
+#define LED_BLINK 2      // blinking
+#define LED_BLINK_ALT 3  // blinking (alternative phase)
+#define LED_FLASH 4      // flashing
+#define LED_FLASH_ALT 5  // flashing (alternative phase)
+
 // Maximum number of signal aspects (e.g. red, green, yellow)
 #define MAX_NUM_SIGNAL_ASPECTS 8
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
@@ -90,15 +99,20 @@ typedef struct SwitchConfiguration {
 #define MAX_NUM_SIGNAL_SERVOS 2
 
 typedef struct {
-    // the port configured in Rocrail for an aspect
-    // 0: aspect not supported by this signal
+    // the port configured in Rocrail for the signal
+    // relevant only for signals with control type "aspect numbers"
+    // -1: signal is operated with control type "default"
+    int signalRocrailPort;
+    // the ports configured in Rocrail for the aspects of the signal
+    // relevant only for signals with control type "default"
+    // 0: aspect not supported by this signal OR signal is operated with control "aspect numbers"
     int aspectRocrailPort[MAX_NUM_SIGNAL_ASPECTS];
     // if a LED is configured for this aspect (this is the usual case for light signals), this value represents the index of the LED in the SIGNALPORT_PIN array.
     // -1: no LED configured for this aspect
     int aspectLEDPort[MAX_NUM_SIGNAL_LEDS];
     // mappings between aspects and LEDs (often a diagonal matrix)
     // true: LED is mapped for this aspect
-    bool aspectLEDMapping[MAX_NUM_SIGNAL_ASPECTS][MAX_NUM_SIGNAL_LEDS];
+    int8_t aspectLEDMapping[MAX_NUM_SIGNAL_ASPECTS][MAX_NUM_SIGNAL_LEDS];
     // if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
     // -1: no servo configured for this signal
     int servoIndex[MAX_NUM_SIGNAL_SERVOS];

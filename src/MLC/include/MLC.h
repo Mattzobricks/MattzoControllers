@@ -26,17 +26,17 @@ struct MattzoServo {
 
 // SWITCH CONSTANTS
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
-#define SWITCHSERVO_MIN_ALLOWED 40  // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
+#define SWITCHSERVO_MIN_ALLOWED 10  // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
 #define SWITCHSERVO_MIN 75          // a good first guess for the minimum angle of TrixBrix servos is 70
 #define SWITCHSERVO_MAX 85          // a good first guess for the maximum angle of TrixBrix servos is 90
-#define SWITCHSERVO_MAX_ALLOWED 120 // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
+#define SWITCHSERVO_MAX_ALLOWED 150 // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
 
 // SIGNAL CONSTANTS AND STRUCTS
 # define SIGNAL_OVERSHOOT_SENSOR_SLEEP_MS 10000 // defines the sleep time in ms after a signal is set to red after which the overshoot sensor becomes active
 
 struct MattzoSignal {
     int currentAspect; // present aspect of the signal
-    unsigned long redAspectSince_ms = 0; // time in ms since the red aspect (hard-wired to aspect 0) is active
+    unsigned long aspectActiveSince_ms = 0; // time in ms since the current aspect is active
 };
 
 // SENSOR CONSTANTS
@@ -137,6 +137,7 @@ struct Speedometer {
 };
 
 void mqttConnected();
+void sendAllSensorStates();
 void handleSignalOvershootSensorEvent();
 void sendSensorEvent2MQTT(int sensorIndex, bool sensorState);
 void levelCrossingCommand(int levelCrossingCommand);
@@ -174,9 +175,15 @@ bool checkAllBridgeLeafsClosed();
 
 void handleSpeedometerSensorEvent(int triggeredSensor);
 
-void handleSignalMessage(int rr_port);
+void handleSignalMessageControlTypeDefault(int rr_port);
+void handleSignalMessageControlTypeAspectNumbers(int rr_port1, int a);
+void initializeAllSignals();
+void setSignalAspect(int s, int a);
+void signalLoop();
+void handleSignalOvershootSensorEvent(int overshootSensorIndex);
 
 void setLED(int ledIndex, bool ledState);
+void fadeLED(int ledIndex, int brightness);
 
 void sendSwitchSensorEvent(int switchIndex, int switchCommand, bool sensorState);
 

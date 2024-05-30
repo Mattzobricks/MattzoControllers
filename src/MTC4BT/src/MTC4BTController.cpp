@@ -119,14 +119,14 @@ void MTC4BTController::discoveryLoop(void *parm)
         std::vector<BLEHub *> undiscoveredHubs;
 
         for (BLELocomotive *loco : controller->Locomotives) {
-            // Loco is not in use or all hubs are already connected. Skip to the next loco.
-            if (!loco->IsEnabled() || loco->AllHubsConnected()) {
+            // All loco hubs are already connected. Skip to the next loco.
+            if (loco->AllHubsConnected()) {
                 continue;
             }
 
             for (BLEHub *hub : loco->Hubs) {
-                if (!hub->IsEnabled() || hub->IsConnected()) {
-                    // Hub is not in use or already connected. Skip to the next Hub.
+                if (hub->IsConnected()) {
+                    // Hub is already connected. Skip to the next Hub.
                     continue;
                 }
 
@@ -135,6 +135,9 @@ void MTC4BTController::discoveryLoop(void *parm)
                     if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {
                         if (loco->AllHubsConnected()) {
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
+
+                            // For hubs of this loco that have an onboard LED, force it to be on (white) by default.
+                            loco->SetHubLedColor(HubLedColor::WHITE);
 
                             // Blink lights for a while when connected.
                             loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);

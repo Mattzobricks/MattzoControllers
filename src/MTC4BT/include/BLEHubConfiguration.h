@@ -27,7 +27,7 @@ struct bleHubTypeMap : public std::map<std::string, BLEHubType> {
 class BLEHubConfiguration
 {
   public:
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, bool enabled = true);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels);
 
     // Type of Hub.
     BLEHubType HubType;
@@ -37,7 +37,4 @@ class BLEHubConfiguration
 
     // Hub channels.
     std::vector<MCChannelConfig *> Channels;
-
-    // Boolean value indicating whether this Hub is in use.
-    bool Enabled;
 };

@@ -16,9 +16,9 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-// *****************************************
-// Example file for a train with MTC4PF mini
-// *****************************************
+// *********************************************************************************************
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield and lights
+// *********************************************************************************************
 
 // *****
 // LOCOS
@@ -39,11 +39,11 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
     locoConf[0] = (MattzoLocoConfiguration){
-        .locoName = "V200",
-        .locoAddress = 200,
+        .locoName = "METRO2",
+        .locoAddress = 10001,
         .accelerationInterval = 100,
-        .accelerateStep = 5,
-        .brakeStep = 10};
+        .accelerateStep = 2,
+        .brakeStep = 5};
 
     return locoConf;
 }
@@ -69,24 +69,20 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    // Type of motor shield directly wired to the controller.
-    // (The different motor shield types are defined in MTC4PF.ino)
-    // Set to MotorShieldType::NONE if only virtual motor shields are used!
-    const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
-
-    msConf[0] = (MattzoMotorShieldConfiguration){
-        .locoAddress = 200,
+    msConf[0] = (MattzoMotorShieldConfiguration)
+    {
+        .locoAddress = 10001,
         .motorShieldType = MotorShieldType::L9110,
-        .L298N_enA = D0,
-        .L298N_enB = D1,
+        .L298N_enA = 0,
+        .L298N_enB = 0,
         .in1 = D3,
         .in2 = D4,
         .in3 = D5,
         .in4 = D6,
-        .minArduinoPower = MIN_ARDUINO_POWER,
-        .maxArduinoPower = MAX_ARDUINO_POWER,
+        .minArduinoPower = 100,
+        .maxArduinoPower = 255,
         .configMotorA = 1,
-        .configMotorB = -1,
+        .configMotorB = 0,
         .irChannel = -1};
 
     return msConf;
@@ -96,11 +92,45 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 // TRAIN LIGHT CONFIGURATION
 // *************************
 
+// The metroliner uses one bipolar red/white LED with a common anode
+// The MTC4PF has two controllable pins and a GND port
+// That means that the two components of the LED can not be separately controlled
+// Fortunately, the LED shows "red", even if both the white and red component are activated.
+// The LED is wired to the MTC4PF mini as follows:
+//   Pin 1: Red cathode to D2 (red wire). The red cathode is a bit LONGER than the white one
+//   Pin 2: White cathode to GND (white wire). The white cathode is a bit SHORTER than the white one
+//   Pin 3*: Common anode to D0 (blue wire). This is the middle pin of the LED (the longest one)
+//   *Pin 3 points towards the middle of the controller
+// The LED is controlled as follows:
+//   WHITE: DO and D2 high
+//   RED: DO high, D2 low
+//   OFF: DO and D2 low
+
 // Number of train lights controlled by this controller
-#define NUM_TRAIN_LIGHTS 0
+#define NUM_TRAIN_LIGHTS 2
 
 // List of train lights including their configuration
-TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] = {};
+TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
+    {
+        {
+            // 0: attached to common anode
+            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+            .pin = D0,
+            .motorShieldIndex = 0,
+            .motorPortIndex = -1,
+            .powerLevelOff = 0,
+            .powerLevelOn = 800,
+        },
+        {
+            // 1: attached to red cathode
+            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+            .pin = D2,
+            .motorShieldIndex = 0,
+            .motorPortIndex = -1,
+            .powerLevelOff = 0,
+            .powerLevelOn = 800,
+        },
+};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -109,10 +139,62 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] = {};
 // Rocrail functions are used to MANUALLY switch train lights on and off
 
 // Number of function mappings
-#define NUM_FUNCTION_MAPPINGS 0
+#define NUM_FUNCTION_MAPPINGS 6
 
 // List of function mappings
-TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] = {};
+TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
+{
+    // fn1: forward mode. 
+    {
+        // head lights white on. head lights red. DO high, D2 low
+        .locoAddress = 10001,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {   // head lights red off
+        .locoAddress = 10001,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+
+    // fn2: backwards mode. head lights white. DO and D2 high
+    {
+        // head lights white off
+        .locoAddress = 10001,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {   // head lights red on
+        .locoAddress = 10001,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+
+    // fn3: head lights off. D0 and D2 low
+    {
+        // head lights white off
+        .locoAddress = 10001,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {   // head lights red off
+        .locoAddress = 10001,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    }
+};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -121,17 +203,69 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 // Triggers are used to AUTOMATICALLY switch train lights on and off
 
 // Number of train light triggers as defined just below
-#define NUM_TRAIN_LIGHT_TRIGGERS 0
+#define NUM_TRAIN_LIGHT_TRIGGERS 6
 
 // List of train light triggers
-TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] = {};
+TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
+{
+    // forward mode. head lights white
+    {
+        // head lights white on
+        .locoAddress = 10001,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // head lights red off
+        .locoAddress = 10001,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+
+    // backward mode. head lights red
+    {
+        // head lights white off
+        .locoAddress = 10001,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON
+    },
+    {
+        // head lights red on
+        .locoAddress = 10001,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+
+/*
+    // this section may be commented out to prevent the head and rear lights from being switched off upon stop
+    // stop: head lights off
+    {
+        // head lights white off
+        .locoAddress = 10001,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF
+    },
+    {
+        // head lights red off
+        .locoAddress = 10001,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF
+    }
+*/
+};
 
 // ************************
 // CONTROLLER CONFIGURATION
 // ************************
 
-// Configuration for motorshield type Lego IR Receiver 8884
-const u_int8_t IR_LED_PIN = D5; // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
+// Constants for motorshield type Lego IR Receiver 8884
+const u_int8_t IR_LED_PIN = D7; // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
 // Digital output pin to monitor controller operation (typically a LED)
 // Set to false if no status LED is installed
@@ -145,11 +279,11 @@ const bool STATUS_LED_REVERSE = false;
 const int STATUS_LED_POWER = 300;
 
 // Report battery level
-#define REPORT_BATTERYLEVEL false        // set to true or false to allow or omit battery level reports
-#define SEND_BATTERYLEVEL_INTERVAL 60000 // interval for sending battery level in milliseconds
-#define BATTERY_PIN A0
+const bool REPORT_BATTERYLEVEL = false;       // set to true or false to allow or omit battery level reports
+const int SEND_BATTERYLEVEL_INTERVAL = 60000; // interval for sending battery level in milliseconds
+const int BATTERY_PIN = A0;
 const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1; // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
-#define MAX_AI_VOLTAGE 5100                      // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
+const int MAX_AI_VOLTAGE = 5100;                 // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
 
 // ****************
 // NETWORK SETTINGS
@@ -160,7 +294,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char *MC_HOSTNAME = "MTC4PF-V200";
+const char *MC_HOSTNAME = "MTC4PF-METRO2";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MTC4PF-V200";
+const char *SYSLOG_APP_NAME = "MTC4PF-METRO2";

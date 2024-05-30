@@ -15,9 +15,6 @@ class BLELocomotive
     // List of references to hubs inside this loco.
     std::vector<BLEHub *> Hubs;
 
-    // Returns a boolean value indicating whether this loco is enabled (in use).
-    bool IsEnabled();
-
     // Returns a boolean value indicating whether we are connected to all BLE hubs.
     bool AllHubsConnected();
 
@@ -29,6 +26,9 @@ class BLELocomotive
 
     // Makes all channels on all hubs with lights attached blink for the given duration.
     void BlinkLights(int durationInMs);
+
+    // Sets a new color for hubs that have an onboard LED.
+    void SetHubLedColor(HubLedColor color);
 
     // If true, immediately sets the current speed for all channels on all hubs to zero and makes all loco lights blink.
     // If false, releases the emergency brake, returning the loco to normal operations.

@@ -226,6 +226,9 @@ const bool STATUS_LED_PIN_INSTALLED = true;
 const uint8_t STATUS_LED_PIN = D8;
 // If installed, set to true to flip high/low state of the status led pin
 const bool STATUS_LED_REVERSE = false;
+// Power level of the status LED (0..1023)
+// Recommended max. power levels: white: 800, blue: 600, green: 500, yellow: 350, red: 300
+const int STATUS_LED_POWER = 300;
 
 
 
@@ -356,7 +359,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = false;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
-const char *MC_HOSTNAME = "LEVELCROSSING1";
+const char *MC_HOSTNAME = "MLC-LEVELCROSSING";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "LEVELCROSSING1";
+const char *SYSLOG_APP_NAME = "MLC-LEVELCROSSING";

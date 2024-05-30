@@ -46,13 +46,12 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
     WiFi.begin(_config->SSID.c_str(), config->password.c_str());
 
     // Loop until we actually connect.
-    // while (WiFi.status() != WL_CONNECTED)
-    // {
-    //   delay(_config->DailyBetweenConnectAttempsInMs);
-    //   Serial.print(".");
-    // }
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(_config->DailyBetweenConnectAttempsInMs);
+        Serial.print(".");
+    }
 
-    // Serial.println();
+    Serial.println();
 
     // Setup completed.
     _setupCompleted = true;
@@ -79,6 +78,7 @@ void MattzoWifiClient::Assert()
 
     if (WiFi.status() == WL_CONNECTED) {
         log4MC::wifiIsConnected(true);
+        _wasConnected = true;
 
         // Handle any OTA updates.
         ArduinoOTA.handle();
@@ -86,15 +86,16 @@ void MattzoWifiClient::Assert()
     }
 
     log4MC::wifiIsConnected(false);
-
+    
     // Loop until we reconnect.
     while (WiFi.status() != WL_CONNECTED) {
         if (_wasConnected) {
             _wasConnected = false;
             log4MC::vlogf(LOG_WARNING, "Wifi: Connection to %s lost. Reconnecting...", _config->SSID.c_str());
+            WiFi.reconnect();
         }
 
-        // Re-test connection ater a small delay.
+        // Re-test connection after a small delay.
         delay(_config->DailyBetweenConnectAttempsInMs);
     }
 

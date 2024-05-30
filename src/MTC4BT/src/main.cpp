@@ -4,9 +4,10 @@
 #include "MTC4BTMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
 #include "MattzoWifiClient.h"
+#include "MCJsonConfig.h"
+#include "log4MC.h"
 #include "loadControllerConfiguration.h"
 #include "loadNetworkConfiguration.h"
-#include "log4MC.h"
 
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"

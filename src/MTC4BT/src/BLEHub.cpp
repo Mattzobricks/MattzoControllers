@@ -29,11 +29,6 @@ BLEHub::BLEHub(BLEHubConfiguration *config)
     // _deviceInformationCharacteristic = nullptr;
 }
 
-bool BLEHub::IsEnabled()
-{
-    return _config->Enabled;
-}
-
 bool BLEHub::IsDiscovered()
 {
     return _isDiscovered;
@@ -77,10 +72,14 @@ int16_t BLEHub::GetCurrentDrivePwrPerc()
 
 void BLEHub::Execute(MCLocoAction *action)
 {
-    BLEHubChannelController *channel = findControllerByChannel(bleHubChannelMap()[action->GetChannel()->GetAddress()]);
+    BLEHubChannelController *controller = findControllerByChannel(bleHubChannelMap()[action->GetChannel()->GetAddress()]);
 
-    if (channel) {
-        channel->SetTargetPwrPerc(action->GetTargetPowerPerc());
+    if (controller) {
+        if (controller->GetHubChannel() == BLEHubChannel::OnboardLED) {
+            controller->SetHubLedColor(action->GetColor());
+        } else {
+            controller->SetTargetPwrPerc(action->GetTargetPowerPerc());
+        }
     }
 }
 
@@ -89,12 +88,20 @@ void BLEHub::BlinkLights(int durationInMs)
     _blinkUntil = millis() + durationInMs;
 }
 
+void BLEHub::SetHubLedColor(HubLedColor color)
+{
+    BLEHubChannelController *controller = findControllerByChannel(BLEHubChannel::OnboardLED);
+
+    if (controller) {
+        controller->SetHubLedColor(color);
+    }
+}
+
 // If true, immediately sets the current speed for all channels to zero.
 // If false, releases the manual brake.
 void BLEHub::SetManualBrake(const bool enabled)
 {
-    if (enabled == _mbrake)
-    {
+    if (enabled == _mbrake) {
         // Status hasn't changed. Ignore.
         return;
     }
@@ -103,8 +110,7 @@ void BLEHub::SetManualBrake(const bool enabled)
     _mbrake = enabled;
 
     // Set manual brake on all channels.
-    for (BLEHubChannelController *channel : _channelControllers)
-    {
+    for (BLEHubChannelController *channel : _channelControllers) {
         channel->ManualBrake(_mbrake);
     }
 }
@@ -146,7 +152,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
             }
 
             _isConnected = true;
-            Serial.println("Reconnected client");
+            log4MC::vlogf(LOG_INFO, "BLE : Reconnected to hub '%s'...", _config->DeviceAddress->toString().c_str());
         }
         /** We don't already have a client that knows this device,
          *  we will check for a client that is disconnected that we can use.
@@ -230,9 +236,19 @@ void BLEHub::setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrP
     }
 }
 
+HubLedColor BLEHub::getRawLedColorForController(BLEHubChannelController *controller)
+{
+    if ((_ebrake || _blinkUntil > millis()) && controller->GetAttachedDevice() == DeviceType::Light) {
+        // Force blinking LED (white when on, black when off) when requested.
+        return MCLightController::Blink() ? HubLedColor::WHITE : HubLedColor::BLACK;
+    }
+
+    return controller->GetHubLedColor();
+}
+
 uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controller)
 {
-    if (_blinkUntil > millis() && controller->GetAttachedDevice() == DeviceType::Light) {
+    if ((_ebrake || _blinkUntil > millis()) && controller->GetAttachedDevice() == DeviceType::Light) {
         // Force blinking lights (50% when on, 0% when off) when requested.
         return MCLightController::Blink() ? 50 : 0;
     }
@@ -243,7 +259,7 @@ uint8_t BLEHub::getRawChannelPwrForController(BLEHubChannelController *controlle
 BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
 {
     for (BLEHubChannelController *controller : _channelControllers) {
-        if (controller->GetChannel() == channel) {
+        if (controller->GetHubChannel() == channel) {
             return controller;
         }
     }
@@ -287,8 +303,7 @@ void BLEHub::driveTaskImpl(void *_this)
 void BLEHub::connected()
 {
     this->_isConnected = true;
-    if (this->_onConnectionChangedCallback)
-    {
+    if (this->_onConnectionChangedCallback) {
         this->_onConnectionChangedCallback(true);
     }
 }
@@ -296,8 +311,7 @@ void BLEHub::connected()
 void BLEHub::disconnected()
 {
     this->_isConnected = false;
-    if (this->_onConnectionChangedCallback)
-    {
+    if (this->_onConnectionChangedCallback) {
         this->_onConnectionChangedCallback(false);
     }
 }

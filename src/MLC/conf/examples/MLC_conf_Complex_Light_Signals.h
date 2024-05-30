@@ -22,7 +22,11 @@
 // Parameter documentation: MLC/include/MLC_types.h
 
 // This configuration contains the configuration for the MLC mega.
-// It serves 16 switches, 8 standard light signals, and 16 sensors.
+// It serves:
+// - 16 switches
+// - 1 complex H/V light main signal
+// - 1 H/V light distant signal
+// - 16 sensors.
 
 
 
@@ -393,11 +397,10 @@ const int STATUS_LED_POWER = 300;
 // SWITCH CONFIGURATION
 
 // Number of switches
-#define NUM_SWITCHES 24
+#define NUM_SWITCHES 16
 
 TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 {
-    // Standard switches / Triple switches
     {
         .rocRailPort = 1,
         .servoIndex = 0,
@@ -525,73 +528,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
         .servo2Reverse = false,
         .triggerSensors = false,
         .sensorIndex = {-1, -1}
-    },
-
-    // Double slip switches
-    {
-        .rocRailPort = 1001,
-        .servoIndex = 0,
-        .servo2Index = 1,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
-    {
-        .rocRailPort = 1002,
-        .servoIndex = 2,
-        .servo2Index = 3,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
-    {
-        .rocRailPort = 1003,
-        .servoIndex = 4,
-        .servo2Index = 5,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
-    {
-        .rocRailPort = 1004,
-        .servoIndex = 6,
-        .servo2Index = 7,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
-    {
-        .rocRailPort = 1005,
-        .servoIndex = 8,
-        .servo2Index = 9,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
-    {
-        .rocRailPort = 1006,
-        .servoIndex = 10,
-        .servo2Index = 11,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
-    {
-        .rocRailPort = 1007,
-        .servoIndex = 12,
-        .servo2Index = 13,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
-    {
-        .rocRailPort = 1008,
-        .servoIndex = 14,
-        .servo2Index = 15,
-        .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
-    },
+    }
 };
 
 
@@ -599,126 +536,46 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // SIGNAL CONFIGURATION
 
 // Number of signals
-#define NUM_SIGNALS 8
+#define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 4
+#define NUM_SIGNAL_ASPECTS 5
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
-#define NUM_SIGNAL_LEDS 2
+#define NUM_SIGNAL_LEDS 6
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 #define NUM_SIGNAL_SERVOS 0
 
 TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
+    // signal 0: complex H/V light main signal
     {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {1, 2, 3, 4},
-        .aspectLEDPort = {0, 1},
+        .signalRocrailPort = 1,
+        .aspectRocrailPort = {1, 2, 3, 4, 0}, // irrelevant, because this signal has control type "aspect numbers"
+        .aspectLEDPort = {0, 1, 3, 2, 5, 4},  // green, red left, red right, yellow, white diagonal (Sh1), white triangle (Zs1)
         .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp00
+            {LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp1
+            {LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  , LED_OFF  }, // Hp2
+            {LED_OFF  , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Hp0+Sh1
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   }, // Hp00+Zs1
         },
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
+    // signal 1: H/V light distant signal
     {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {11, 12, 13, 14},
-        .aspectLEDPort = {2, 3}, 
+        .signalRocrailPort = -1,
+        .aspectRocrailPort = {9, 10, 11, -1, -1}, // irrelevant, because this signal has control type "aspect numbers"
+        .aspectLEDPort = {8, 9, 10, 11, 12, -1},  // upper yellow, lower yellow, upper green, lower green, limited distance white
         .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
+            {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_ON   , LED_NOP  }, // Vr0
+            {LED_OFF  , LED_OFF  , LED_ON   , LED_ON   , LED_ON   , LED_NOP  }, // Vr1
+            {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_ON   , LED_NOP  }, // Vr2
+            {LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  }, // unused
+            {LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  }, // unused
         },
-        .servoIndex = {}, 
-        .aspectServoAngle = {},
-        .overshootSensorIndex = -1
-    },
-    {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {21, 22, 23, 24}, 
-        .aspectLEDPort = {4, 5}, 
-        .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
-        },
-        .servoIndex = {}, 
-        .aspectServoAngle = {},
-        .overshootSensorIndex = -1
-    },
-    {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {31, 32, 33, 34}, 
-        .aspectLEDPort = {6, 7}, 
-        .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
-        },
-        .servoIndex = {}, 
-        .aspectServoAngle = {},
-        .overshootSensorIndex = -1
-    },
-    {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {41, 42, 43, 44}, 
-        .aspectLEDPort = {8, 9}, 
-        .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
-        },
-        .servoIndex = {}, 
-        .aspectServoAngle = {},
-        .overshootSensorIndex = -1
-    },
-    {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {51, 52, 53, 54}, 
-        .aspectLEDPort = {10, 11}, 
-        .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
-        },
-        .servoIndex = {}, 
-        .aspectServoAngle = {},
-        .overshootSensorIndex = -1
-    },
-    {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {61, 62, 63, 64}, 
-        .aspectLEDPort = {12, 13}, 
-        .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
-        },
-        .servoIndex = {}, 
-        .aspectServoAngle = {},
-        .overshootSensorIndex = -1
-    },
-    {
-        .signalRocrailPort = 0,
-        .aspectRocrailPort = {71, 72, 73, 74}, 
-        .aspectLEDPort = {14, 15}, 
-        .aspectLEDMapping = {
-            {LED_ON , LED_OFF  },
-            {LED_OFF, LED_ON   },
-            {LED_OFF, LED_FLASH},
-            {LED_FLASH, LED_OFF},
-        },
-        .servoIndex = {}, 
+        .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     }
@@ -776,7 +633,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
-const char *MC_HOSTNAME = "MLC-MEGA";
+const char *MC_HOSTNAME = "MLC-MEGA-COMPLEX-LIGHT-SIGNAL";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MLC-MEGA";
+const char *SYSLOG_APP_NAME = "MLC-MEGA-COMPLEX-LIGHT-SIGNAL";

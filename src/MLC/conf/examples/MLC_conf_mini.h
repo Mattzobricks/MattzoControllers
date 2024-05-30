@@ -18,10 +18,10 @@
 
 // MattzoLayoutController (MLC) example configuration file
 // Usage: copy it onto the conf/my/controller_config.h file and adapted it to your needs
-// General documentation: https://www.mattzobricks.com
-// Parameter documentation: MLC/include/MLC_types.h
+// Documentation: https://www.mattzobricks.com
 
-// This configuration serves a bascule bridge
+// This configuration is the default configuration for the MLC mini.
+// It serves 2 switches (D1 and D2), 2 standard light signals (D0/D5, D6/D7), and 2 sensors (D3 and D4). The status light is on D8.
 
 
 
@@ -110,14 +110,14 @@ const uint8_t PCA9685_OE_PIN = D0;
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
 {
     {
-        .pin = D0,
+        .pin = D3,
         .pinType = 0,
-        .detachAfterUsage = false
+        .detachAfterUsage = true
     },
     {
-        .pin = D1,
+        .pin = D4,
         .pinType = 0,
-        .detachAfterUsage = false
+        .detachAfterUsage = true
     }
 };
 
@@ -129,16 +129,24 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
 // As an example, 2 LEDs are required for a light signal with 2 aspects
 
 // Number of LEDs
-#define NUM_LEDS 2
+#define NUM_LEDS 4
 
-TLEDConfiguration ledConfiguration[NUM_LEDS] = 
+TLEDConfiguration ledConfiguration[NUM_LEDS] =
 {
     {
-        .pin = D4,
+        .pin = D0,
         .pinType = 0
     },
     {
-        .pin = D3,
+        .pin = D5,
+        .pinType = 0
+    },
+    {
+        .pin = D6,
+        .pinType = 0
+    },
+    {
+        .pin = D7,
         .pinType = 0
     }
 };
@@ -151,7 +159,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Special forms are remote and virtual sensors (see below)
 
 // Number of sensors connected or connectable to the controller
-#define NUM_SENSORS 6
+#define NUM_SENSORS 2
 
 // A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
@@ -163,35 +171,15 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 {
     {
+        .pin = D1,
+        .pinType = LOCAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
         .pin = D2,
         .pinType = LOCAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
-    },
-    {
-        .pin = D5,
-        .pinType = LOCAL_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = -1
-    },
-    {
-        .pin = D6,
-        .pinType = LOCAL_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = -1
-    },
-    {
-        .pin = D7,
-        .pinType = LOCAL_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = -1
-    },
-    {
-        .pin = -1,
-        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = -1
-    },
-    {
-        .pin = -1,
-        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = -1
-    },
+    }
 };
 
 
@@ -218,25 +206,73 @@ const int STATUS_LED_POWER = 300;
 // SWITCH CONFIGURATION
 
 // Number of switches
-#define NUM_SWITCHES 0
+#define NUM_SWITCHES 2
 
-TSwitchConfiguration switchConfiguration[NUM_SWITCHES] = {};
+TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
+{
+    {
+        .rocRailPort = 1,
+        .servoIndex = 0,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = { -1, -1 }
+    },
+    {
+        .rocRailPort = 2,
+        .servoIndex = 1,
+        .servo2Index = -1,
+        .servo2Reverse = false,
+        .triggerSensors = false,
+        .sensorIndex = { -1, -1 }
+    }
+};
 
 
 
 // SIGNAL CONFIGURATION
 
 // Number of signals
-#define NUM_SIGNALS 0
+#define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
-#define NUM_SIGNAL_ASPECTS 2
+#define NUM_SIGNAL_ASPECTS 4
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
 #define NUM_SIGNAL_LEDS 2
 // Maximum number of servos for form signals (e.g. one for the primary and another one for the secondary semaphore)
 // If no form signals are used, just set to 0
 #define NUM_SIGNAL_SERVOS 0
 
-TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
+TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
+{
+    {
+        .signalRocrailPort = 0,
+        .aspectRocrailPort = {1, 2, 3, 4},
+        .aspectLEDPort = {0, 1},
+        .aspectLEDMapping = {
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
+        },
+        .servoIndex = {},
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
+    },
+    {
+        .signalRocrailPort = 0,
+        .aspectRocrailPort = {11, 12, 13, 14},
+        .aspectLEDPort = {2, 3},
+        .aspectLEDMapping = {
+            {LED_ON , LED_OFF  },
+            {LED_OFF, LED_ON   },
+            {LED_OFF, LED_FLASH},
+            {LED_FLASH, LED_OFF},
+        },
+        .servoIndex = {},
+        .aspectServoAngle = {},
+        .overshootSensorIndex = -1
+    }
+};
 
 
 
@@ -264,63 +300,12 @@ TLevelCrossingConfiguration levelCrossingConfiguration = {};
 // BASCULE BRIDGE CONFIGURATION
 
 // General switch for bascule bridge (false = no bridge connected; true = bridge connected)
-#define BASCULE_BRIDGE_CONNECTED true
+#define BASCULE_BRIDGE_CONNECTED false
 
 // Number of bridge Leafs (equals number of bridge servos)
-#define NUM_BASCULE_BRIDGE_LEAFS 2
+#define NUM_BASCULE_BRIDGE_LEAFS 0
 
-TBridgeConfiguration bridgeConfiguration =
-{
-    .rocRailPort = 1,
-
-    .signalRiverStop = 0,
-    .signalRiverPrep = -1,
-    .signalRiverGo = 1,
-    .signalBlinkLight = -1,
-
-    .sensorFullyDown = 4,
-    .sensorFullyUp = 5,
-
-    .leafConfiguration = 
-    {
-        {
-            .servoIndex = 0,
-
-            .powerUp = 100,
-            .powerUp2 = 60,
-            .powerDown = -100,
-            .powerDown2 = -50,
-
-            .sensorDown = 0,
-            .sensorUp = 1,
-
-            .delayOpen_ms = 0,
-            .delayClose_ms = 0,
-            .maxOpeningTime_ms = 30000,
-            .maxClosingTime_ms = 30000,
-            .extraTimeAfterOpened_ms = 4500,
-            .extraTimeAfterClosed_ms = 3200,
-        },
-        {
-            .servoIndex = 1,
-
-            .powerUp = -50,
-            .powerUp2 = -40,
-            .powerDown = 50,
-            .powerDown2 = 40,
-
-            .sensorDown = 2,
-            .sensorUp = 3,
-
-            .delayOpen_ms = 2000,
-            .delayClose_ms = 2000,
-            .maxOpeningTime_ms = 5000,
-            .maxClosingTime_ms = 5000,
-            .extraTimeAfterOpened_ms = 800,
-            .extraTimeAfterClosed_ms = 300,
-        }
-    }
-};
+TBridgeConfiguration bridgeConfiguration = {};
 
 
 
@@ -342,7 +327,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
-const char *MC_HOSTNAME = "MLC-BRIDGE";
+const char *MC_HOSTNAME = "MLC-MINI";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MLC-BRIDGE";
+const char *SYSLOG_APP_NAME = "MLC-MINI";

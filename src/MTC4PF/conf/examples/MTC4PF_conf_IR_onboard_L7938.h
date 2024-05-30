@@ -60,8 +60,8 @@ const int NUM_MOTORSHIELDS = 1;
 // - motorShieldType: motor shield type
 // - L298N_enA, L298N_enB: PWM signal pin for motor A / B, if L298N is used.
 // - in1..in4: pin for motor direction control for motor shields L298N and L9110 (in1: forward motor A, in2: reverse motor A, in3: forward motor B, in4: reverse motor B).
-// - minArduinoPower: minimum power (should be 0 for LEGO IR Receiver 8884)
-// - maxArduinoPower: maximum power (max. 1023)
+// - minArduinoPower: minimum power setting for Arduino based motor shields. You might need to adapt this to your specific shield and motor. 200 might be a good value for a start. Should be 0 for LEGO IR Receiver 8884.
+// - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023). You might need to adapt this to your specific shield and motor. 400 might be a good value for a start.
 // - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused). In case of LEGO IR Receiver 8884, this is the motor connected to the red port.
 // - configMotorB: same for motor B; if IR receiver: blue port
 // - irChannel: if a LEGO IR Receiver 8884 is used, the selected channel of the receiver. May be 0, 1, 2 or 3. If the loco uses multiple IR receivers on different channels, additional motor shields for the loco are required.
@@ -96,79 +96,80 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
 // List of train lights including their configuration
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
+{
     {
-        {
-            // 0: interior lighting
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D4,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = MAX_ARDUINO_POWER,
-            .powerLevelOn = 0,
-        },
-        {
-            // 1: head lights / red
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D8,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = MAX_ARDUINO_POWER,
-        },
-        {
-            // 2: head lights / white
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D6,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = MAX_ARDUINO_POWER,
-        },
-        {
-            // 3: head lights / ground
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D7,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 0,
-        },
-        {
-            // 4: rear lights / red component
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D1,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 250,
-        },
-        {
-            // 5: rear lights / green component
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D2,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 600,
-        },
-        {
-            // 6: rear lights / blue component
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D3,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = MAX_ARDUINO_POWER,
-        },
-        {
-            // 7: rear lights / ground
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D0,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 0,
-        }};
+        // 0: interior lighting
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D4,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = MAX_ARDUINO_POWER,
+        .powerLevelOn = 0,
+    },
+    {
+        // 1: head lights / red
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D8,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = 0,
+        .powerLevelOn = MAX_ARDUINO_POWER,
+    },
+    {
+        // 2: head lights / white
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D6,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = 0,
+        .powerLevelOn = MAX_ARDUINO_POWER,
+    },
+    {
+        // 3: head lights / ground
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D7,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = 0,
+        .powerLevelOn = 0,
+    },
+    {
+        // 4: rear lights / red component
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D1,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = 0,
+        .powerLevelOn = 250,
+    },
+    {
+        // 5: rear lights / green component
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D2,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = 0,
+        .powerLevelOn = 600,
+    },
+    {
+        // 6: rear lights / blue component
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D3,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = 0,
+        .powerLevelOn = MAX_ARDUINO_POWER,
+    },
+    {
+        // 7: rear lights / ground
+        .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+        .pin = D0,
+        .motorShieldIndex = 0,
+        .motorPortIndex = -1,
+        .powerLevelOff = 0,
+        .powerLevelOn = 0,
+    }
+};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -181,120 +182,134 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 
 // List of function mappings
 TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
+{
+    // fn1: forward mode. front lights white, rear lights red
     {
-        // fn1: forward mode. front lights white, rear lights red
-        {
-            // head lights red off
-            .locoAddress = 7938,
-            .fnNo = 1,
-            .fnOnOff = true,
-            .trainLightIndex = 1,
-            .trainLightStatus = TrainLightStatus::OFF},
-        {// head lights white on
-         .locoAddress = 7938,
-         .fnNo = 1,
-         .fnOnOff = true,
-         .trainLightIndex = 2,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights red component on
-         .locoAddress = 7938,
-         .fnNo = 1,
-         .fnOnOff = true,
-         .trainLightIndex = 4,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights green component off
-         .locoAddress = 7938,
-         .fnNo = 1,
-         .fnOnOff = true,
-         .trainLightIndex = 5,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights blue component off
-         .locoAddress = 7938,
-         .fnNo = 1,
-         .fnOnOff = true,
-         .trainLightIndex = 6,
-         .trainLightStatus = TrainLightStatus::OFF},
+        // head lights red off
+        .locoAddress = 7938,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // head lights white on
+        .locoAddress = 7938,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights red component on
+        .locoAddress = 7938,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 4,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights green component off
+        .locoAddress = 7938,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 5,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights blue component off
+        .locoAddress = 7938,
+        .fnNo = 1,
+        .fnOnOff = true,
+        .trainLightIndex = 6,
+        .trainLightStatus = TrainLightStatus::OFF},
 
-        // fn2: backwards mode. front lights red, rear lights white
-        {
-            // head lights red on
-            .locoAddress = 7938,
-            .fnNo = 2,
-            .fnOnOff = true,
-            .trainLightIndex = 1,
-            .trainLightStatus = TrainLightStatus::ON},
-        {// head lights white off
-         .locoAddress = 7938,
-         .fnNo = 2,
-         .fnOnOff = true,
-         .trainLightIndex = 2,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights red component on
-         .locoAddress = 7938,
-         .fnNo = 2,
-         .fnOnOff = true,
-         .trainLightIndex = 4,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights green component on
-         .locoAddress = 7938,
-         .fnNo = 2,
-         .fnOnOff = true,
-         .trainLightIndex = 5,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights blue component on
-         .locoAddress = 7938,
-         .fnNo = 2,
-         .fnOnOff = true,
-         .trainLightIndex = 6,
-         .trainLightStatus = TrainLightStatus::ON},
+    // fn2: backwards mode. front lights red, rear lights white
+    {
+        // head lights red on
+        .locoAddress = 7938,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // head lights white off
+        .locoAddress = 7938,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights red component on
+        .locoAddress = 7938,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 4,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights green component on
+        .locoAddress = 7938,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 5,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights blue component on
+        .locoAddress = 7938,
+        .fnNo = 2,
+        .fnOnOff = true,
+        .trainLightIndex = 6,
+        .trainLightStatus = TrainLightStatus::ON},
 
-        // fn3: all exterior lights off. front and rear lights off
-        {
-            // head lights red off
-            .locoAddress = 7938,
-            .fnNo = 3,
-            .fnOnOff = true,
-            .trainLightIndex = 1,
-            .trainLightStatus = TrainLightStatus::OFF},
-        {// head lights white off
-         .locoAddress = 7938,
-         .fnNo = 3,
-         .fnOnOff = true,
-         .trainLightIndex = 2,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights red component off
-         .locoAddress = 7938,
-         .fnNo = 3,
-         .fnOnOff = true,
-         .trainLightIndex = 4,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights green component off
-         .locoAddress = 7938,
-         .fnNo = 3,
-         .fnOnOff = true,
-         .trainLightIndex = 5,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights blue component off
-         .locoAddress = 7938,
-         .fnNo = 3,
-         .fnOnOff = true,
-         .trainLightIndex = 6,
-         .trainLightStatus = TrainLightStatus::OFF},
+    // fn3: all exterior lights off. front and rear lights off
+    {
+        // head lights red off
+        .locoAddress = 7938,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // head lights white off
+        .locoAddress = 7938,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights red component off
+        .locoAddress = 7938,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 4,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights green component off
+        .locoAddress = 7938,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 5,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights blue component off
+        .locoAddress = 7938,
+        .fnNo = 3,
+        .fnOnOff = true,
+        .trainLightIndex = 6,
+        .trainLightStatus = TrainLightStatus::OFF},
 
-        // fn4: interior lights
-        {
-            // interior lights on
-            .locoAddress = 7938,
-            .fnNo = 4,
-            .fnOnOff = true,
-            .trainLightIndex = 0,
-            .trainLightStatus = TrainLightStatus::ON},
-        {// interior lights off
-         .locoAddress = 7938,
-         .fnNo = 4,
-         .fnOnOff = false,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF}};
+    // fn4: interior lights
+    {
+        // interior lights on
+        .locoAddress = 7938,
+        .fnNo = 4,
+        .fnOnOff = true,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // interior lights off
+        .locoAddress = 7938,
+        .fnNo = 4,
+        .fnOnOff = false,
+        .trainLightIndex = 0,
+        .trainLightStatus = TrainLightStatus::OFF}
+};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -307,91 +322,103 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 
 // List of train light triggers
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
+{
+    // forward mode. front lights white, rear lights red
     {
-        // forward mode. front lights white, rear lights red
-        {
-            // head lights red off
-            .locoAddress = 7938,
-            .lightEventType = LightEventType::FORWARD,
-            .trainLightIndex = 1,
-            .trainLightStatus = TrainLightStatus::OFF},
-        {// head lights white on
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::FORWARD,
-         .trainLightIndex = 2,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights red component on
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::FORWARD,
-         .trainLightIndex = 4,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights green component off
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::FORWARD,
-         .trainLightIndex = 5,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights blue component off
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::FORWARD,
-         .trainLightIndex = 6,
-         .trainLightStatus = TrainLightStatus::OFF},
+        // head lights red off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // head lights white on
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights red component on
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 4,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights green component off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 5,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights blue component off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::FORWARD,
+        .trainLightIndex = 6,
+        .trainLightStatus = TrainLightStatus::OFF},
 
-        // backward mode. front lights red, rear lights white
-        {
-            // head lights red on
-            .locoAddress = 7938,
-            .lightEventType = LightEventType::REVERSE,
-            .trainLightIndex = 1,
-            .trainLightStatus = TrainLightStatus::ON},
-        {// head lights white off
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::REVERSE,
-         .trainLightIndex = 2,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights red component on
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::REVERSE,
-         .trainLightIndex = 4,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights green component on
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::REVERSE,
-         .trainLightIndex = 5,
-         .trainLightStatus = TrainLightStatus::ON},
-        {// rear lights blue component on
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::REVERSE,
-         .trainLightIndex = 6,
-         .trainLightStatus = TrainLightStatus::ON},
+    // backward mode. front lights red, rear lights white
+    {
+        // head lights red on
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // head lights white off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights red component on
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 4,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights green component on
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 5,
+        .trainLightStatus = TrainLightStatus::ON},
+    {
+        // rear lights blue component on
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::REVERSE,
+        .trainLightIndex = 6,
+        .trainLightStatus = TrainLightStatus::ON},
 
-        // this section may be commented out to prevent the head and rear lights from being switched off upon stop
-        // stop: all exterior lights off. front and rear lights off
-        {
-            // head lights red off
-            .locoAddress = 7938,
-            .lightEventType = LightEventType::STOP,
-            .trainLightIndex = 1,
-            .trainLightStatus = TrainLightStatus::OFF},
-        {// head lights white off
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::STOP,
-         .trainLightIndex = 2,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights red component off
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::STOP,
-         .trainLightIndex = 4,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights green component off
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::STOP,
-         .trainLightIndex = 5,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {// rear lights blue component off
-         .locoAddress = 7938,
-         .lightEventType = LightEventType::STOP,
-         .trainLightIndex = 6,
-         .trainLightStatus = TrainLightStatus::OFF},
+    // this section may be commented out to prevent the head and rear lights from being switched off upon stop
+    // stop: all exterior lights off. front and rear lights off
+    {
+        // head lights red off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 1,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // head lights white off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 2,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights red component off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 4,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights green component off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 5,
+        .trainLightStatus = TrainLightStatus::OFF},
+    {
+        // rear lights blue component off
+        .locoAddress = 7938,
+        .lightEventType = LightEventType::STOP,
+        .trainLightIndex = 6,
+        .trainLightStatus = TrainLightStatus::OFF},
 };
 
 // ***************************
@@ -401,10 +428,16 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 // Constants for motorshield type Lego IR Receiver 8884
 #define IR_LED_PIN D5 // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
-// Digital output PIN to monitor controller operation (typically a LED)
-const bool STATUS_LED_PIN_INSTALLED = false; // set to false if no LED is installed
+// Digital output pin to monitor controller operation (typically a LED)
+// Set to false if no status LED is installed
+const bool STATUS_LED_PIN_INSTALLED = false;
+// If installed, the pin controlling the status LED
 const uint8_t STATUS_LED_PIN = D4;
+// If installed, set to true to flip high/low state of the status led pin
 const bool STATUS_LED_REVERSE = true;
+// Power level of the status LED (0..1023)
+// Recommended max. power levels: white: 800, blue: 600, green: 500, yellow: 350, red: 300
+const int STATUS_LED_POWER = 300;
 
 // Report battery level
 const bool REPORT_BATTERYLEVEL = false;       // set to true or false to allow or omit battery level reports

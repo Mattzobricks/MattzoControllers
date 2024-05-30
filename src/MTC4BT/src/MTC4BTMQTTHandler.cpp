@@ -44,9 +44,9 @@ void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *control
         if(cmd) free(cmd);
         return;
     }
+    
     // free if not any of the above commands!
-    if (cmd)
-        free(cmd);
+    if (cmd) free(cmd);
 }
 
 void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controller)
