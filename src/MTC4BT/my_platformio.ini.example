@@ -10,10 +10,12 @@ default_envs = esp32doit-devkit-v1
 data_dir = $PROJECT_DIR/data
 
 [common]
-; To show memory usage every minute, uncomment the following lines
-;build_flags = 
+; To show memory usage every minute, uncomment the line -DTICKER=1
+additional_build_flags =
 ;	-DTICKER=1
 upload_com_port = COM3
+; for macOS, just as example
+;upload_com_port = /dev/tty.usb
 
 [env:az-delivery-devkit-v4]
 ; Use either the 'upload_port' line above if the ESP32 is connected to your PC's USB port or enable/configure the three lines below to use OTA updates.
