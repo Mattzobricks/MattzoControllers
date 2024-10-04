@@ -155,7 +155,7 @@ void MTC4BTController::discoveryLoop(void *parm)
             }
         }
 
-        if (undiscoveredHubs.size() > 0) {
+        if (undiscoveredHubs.size() > 0 || controller->Locomotives.size() == 0 ) {
             // Start discovery for undiscovered hubs.
             controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
         }
