@@ -1,13 +1,13 @@
 #include <Arduino.h>
 
+#include "MCJsonConfig.h"
 #include "MTC4BTController.h"
 #include "MTC4BTMQTTHandler.h"
 #include "MattzoMQTTSubscriber.h"
 #include "MattzoWifiClient.h"
-#include "MCJsonConfig.h"
-#include "log4MC.h"
 #include "loadControllerConfiguration.h"
 #include "loadNetworkConfiguration.h"
+#include "log4MC.h"
 
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
@@ -87,15 +87,15 @@ void setup()
     // Setup logging (from now on we can use log4MC).
     log4MC::Setup(networkConfig->WiFi->hostname.c_str(), networkConfig->Logging);
 
+    // Setup and connect to WiFi.
+    MattzoWifiClient::Setup(networkConfig->WiFi);
+
     // Load the controller configuration.
     log4MC::info("Setup: Loading controller configuration...");
     controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE);
     controller = new MTC4BTController();
     controller->Setup(controllerConfig);
     log4MC::info("Setup: Controller configuration completed.");
-
-    // Setup and connect to WiFi.
-    MattzoWifiClient::Setup(networkConfig->WiFi);
 
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
     // MattzoMQTTPublisher::Setup(ROCRAIL_COMMAND_QUEUE, MQTT_OUTGOING_QUEUE_LENGTH);
@@ -117,4 +117,5 @@ void setup()
 void loop()
 {
     controller->Loop();
+    MattzoWifiClient::Loop();
 }

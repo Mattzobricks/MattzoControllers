@@ -4,7 +4,9 @@
 #include <PubSubClient.h>
 
 WiFiClient wifiSubscriberClient;
-PubSubClient mqttSubscriberClient(wifiSubscriberClient);
+EthernetClient ethClient;
+// PubSubClient mqttSubscriberClient(wifiSubscriberClient);
+PubSubClient mqttSubscriberClient;
 
 void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm))
 {
@@ -24,6 +26,11 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
 
     // Setup MQTT client.
     log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
+    if (MattzoWifiClient::useWifiStatus) {
+        mqttSubscriberClient.setClient(wifiSubscriberClient);
+    } else {
+        mqttSubscriberClient.setClient(ethClient);
+    }
     mqttSubscriberClient.setServer(_config->ServerAddress.c_str(), _config->ServerPort);
     mqttSubscriberClient.setKeepAlive(_config->KeepAlive);
     mqttSubscriberClient.setBufferSize(MaxBufferSize);
