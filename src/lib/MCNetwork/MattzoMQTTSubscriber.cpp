@@ -5,7 +5,7 @@
 
 WiFiClient wifiSubscriberClient;
 EthernetClient ethClient;
-// PubSubClient mqttSubscriberClient(wifiSubscriberClient);
+
 PubSubClient mqttSubscriberClient;
 
 void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm))

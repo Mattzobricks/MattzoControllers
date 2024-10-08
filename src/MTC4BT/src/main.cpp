@@ -87,15 +87,15 @@ void setup()
     // Setup logging (from now on we can use log4MC).
     log4MC::Setup(networkConfig->WiFi->hostname.c_str(), networkConfig->Logging);
 
-    // Setup and connect to WiFi.
-    MattzoWifiClient::Setup(networkConfig->WiFi);
-
     // Load the controller configuration.
     log4MC::info("Setup: Loading controller configuration...");
     controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE);
     controller = new MTC4BTController();
     controller->Setup(controllerConfig);
     log4MC::info("Setup: Controller configuration completed.");
+
+    // Setup and connect to WiFi.
+    MattzoWifiClient::Setup(networkConfig->WiFi);
 
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
     // MattzoMQTTPublisher::Setup(ROCRAIL_COMMAND_QUEUE, MQTT_OUTGOING_QUEUE_LENGTH);

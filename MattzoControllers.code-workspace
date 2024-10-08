@@ -83,7 +83,8 @@
 			"ranges": "cpp",
 			"xlocale": "cpp",
 			"xlocinfo": "cpp",
-			"xstring": "cpp"
+			"xstring": "cpp",
+			"*.ipp": "cpp"
 		},
 	}
 }
