@@ -17,6 +17,8 @@ If compiled in, it will search for an ethernet module over SPI with also _D defi
 This has the least impact on the current code, in regards to the configuration.
 If we want it configurable in the json it has more impact.
 for testing purposes I will first implement the the first option and see how it works.
+
+The W5000 code comes from https://github.com/PuceBaboon/ESP32_W5500_NTP_CLIENT/blob/master/src/ESP32_NTP.ino
 */
 void MattzoWifiClient::Loop()
 {
@@ -25,6 +27,7 @@ void MattzoWifiClient::Loop()
     Ethernet.maintain();
     if (Ethernet.linkStatus() == LinkOFF) {
         Serial.println("Nolink");
+        delay(250);
     }
 #endif
 }

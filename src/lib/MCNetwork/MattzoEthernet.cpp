@@ -1,4 +1,8 @@
 #include "MattzoEthernet.h"
+
+/*
+The W5000 code comes from https://github.com/PuceBaboon/ESP32_W5500_NTP_CLIENT/blob/master/src/ESP32_NTP.ino
+*/
 /*
  * Wiz W5500 reset function.  Change this for the specific reset
  * sequence required for your particular board or module.

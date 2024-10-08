@@ -40,4 +40,11 @@ Controller Configuration
 [data_example/controller_config.json](data_example/controller_config.json)
 
 ---
+Using the W5500 ethernet module
+---
+It is now possible to make a wired network connection using the W5500 module.
+
+TODO: more documentation here.
+
+---
 For more information visit https://mattzobricks.com/controllers/mtc4bt

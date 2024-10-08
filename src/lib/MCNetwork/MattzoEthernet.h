@@ -3,6 +3,9 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 
+/*
+The W5000 code comes from https://github.com/PuceBaboon/ESP32_W5500_NTP_CLIENT/blob/master/src/ESP32_NTP.ino
+*/
 // standard pins for SPI are used, the next ones are specific
 #define RESET_P 26
 #define CS_P 5
