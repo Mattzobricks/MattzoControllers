@@ -42,9 +42,25 @@ Controller Configuration
 ---
 Using the W5500 ethernet module
 ---
-It is now possible to make a wired network connection using the W5500 module.
+It is now possible to make a wired network connection using the W5500 module. To enable it in the code, add -DWIRED in `my_platformio.ini`.
 
-TODO: more documentation here.
+For now the pins should be connected as folows:
+
+| W5500 pin  | ESP32 pin |
+|---|---|
+| RESET | GPIO 26 |
+| CS/SS  | GPIO 5  |
+| MOSI  | GPIO 23 |
+| MISO  | GPIO 19 |
+| SCK   | GPIO 18 |
+
+GND and 3V3 are also connected, the other pins are not connected.
+
+If the code is compiled with the -DWIRED, it will try and connect to the network using the W5500 module. If there is no networkcable connected, it will fall back to wifi. This is only done at the **STARTUP** of the module, it will **NOT FALLBACK to WiFI** if you disconnect the cable during normal operation, you have to restart the ESP!
+
+OTA will not work when the network connction is over the cable, disconnect the cable and restart the module so it starts in WiFi mode. This limitation is caused by the ArduinoOTA library being hard wired (pun intended) to Wifi.h (at the time of writing). 
+
+The IP address is different for Wifi and cable because an other MAC address is used.
 
 ---
 For more information visit https://mattzobricks.com/controllers/mtc4bt
