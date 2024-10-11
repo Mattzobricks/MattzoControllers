@@ -9,6 +9,8 @@
 
 // WiFi library for ESP-32
 #include "MCMQTTConfiguration.h"
+#include <Ethernet.h>
+#include <EthernetUdp.h>
 #include <WiFi.h>
 
 // MQTT task priority.

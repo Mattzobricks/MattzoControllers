@@ -20,7 +20,8 @@ MCConnectionStatus MController::GetConnectionStatus()
         return MCConnectionStatus::initializing;
     }
 
-    if (MattzoWifiClient::GetStatus() != WL_CONNECTED) {
+    if (MattzoWifiClient::GetStatus() != WL_CONNECTED &&
+        MattzoWifiClient::GetStatus() == LinkOFF) {
         return MCConnectionStatus::connecting_wifi;
     }
 
@@ -63,7 +64,6 @@ void MController::Loop()
                 led->SetCurrentPwrPerc(currentPwrPerc);
             }
         }
-
         if (channel->GetAttachedDevice() == DeviceType::StatusLight) {
             MCLedBase *led = findLedByPinNumber(channel->GetChannel()->GetAddressAsEspPinNumber());
             if (led) {
