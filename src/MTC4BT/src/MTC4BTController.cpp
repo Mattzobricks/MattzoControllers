@@ -83,32 +83,37 @@ void MTC4BTController::HandleSys(const bool ebrakeEnabled)
 
 void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward)
 {
-    BLELocomotive *loco = getLocomotive(locoAddress);
-    if (loco) {
-        // Loco is under the control of this controller. Process command!
+    for (BLELocomotive *loco : Locomotives) {
+        // BLELocomotive *loco = getLocomotive(locoAddress);
+        if (loco->GetLocoAddress() == locoAddress) {
+            // Loco is under the control of this controller. Process command!
 
-        // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
-        int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
+            // Calculate target speed percentage (as percentage if mode is "percent", or else as a percentage of max speed).
+            int targetSpeedPerc = strcmp(mode, "percent") == 0 ? speed : (speed * maxSpeed) / 100;
 
-        // Calculate direction multiplier (1 or -1)
-        int8_t dirMultiplier = dirForward ? 1 : -1;
+            // Calculate direction multiplier (1 or -1)
+            int8_t dirMultiplier = dirForward ? 1 : -1;
 
-        // Log message and execute drive command.
-        log4MC::vlogf(LOG_DEBUG, "Ctrl: Received lc command for loco address '%u', speed %i.", locoAddress, targetSpeedPerc * dirMultiplier);
-        loco->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
+            // Log message and execute drive command.
+            log4MC::vlogf(LOG_DEBUG, "Ctrl: Received lc command for loco address '%u', speed %i.", locoAddress, targetSpeedPerc * dirMultiplier);
+            loco->Drive(minSpeed, targetSpeedPerc * dirMultiplier);
+        }
     }
 }
 
 void MTC4BTController::HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
-    BLELocomotive *loco = getLocomotive(locoAddress);
-    if (!loco) {
+    bool locoFound = false;
+    for (BLELocomotive *loco : Locomotives) {
+        if (loco->GetLocoAddress() == locoAddress) {
+            loco->TriggerEvent(source, eventType, eventId, value);
+            locoFound = true;
+        }
+    }
+    if (!locoFound) {
         // Not a loco under our control. Ignore trigger.
         log4MC::vlogf(LOG_DEBUG, "Ctrl: Loco with address '%u' is not under our control. Trigger ignored.", locoAddress);
-        return;
     }
-
-    loco->TriggerEvent(source, eventType, eventId, value);
 }
 
 void MTC4BTController::discoveryLoop(void *parm)
@@ -155,7 +160,7 @@ void MTC4BTController::discoveryLoop(void *parm)
             }
         }
 
-        if (undiscoveredHubs.size() > 0) {
+        if (undiscoveredHubs.size() > 0 || controller->Locomotives.size() == 0) {
             // Start discovery for undiscovered hubs.
             controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
         }

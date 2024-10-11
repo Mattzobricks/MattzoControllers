@@ -1,5 +1,5 @@
 [platformio]
-default_envs = esp32doit-devkit-v1
+default_envs = az-delivery-devkit-v4
 
 ; This controller must be configured through config files in the folder you define below.
 ; Configure your network in the `network_config.json` file.
