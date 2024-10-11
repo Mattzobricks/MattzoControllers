@@ -11,7 +11,11 @@ enum BLEHubType {
     PU,
 
     // SBrick (Vengit).
-    SBrick
+    SBrick,
+
+    // BuWizz2
+    BuWizz2
+
 };
 
 // String switch paridgam
@@ -20,6 +24,7 @@ struct bleHubTypeMap : public std::map<std::string, BLEHubType> {
     {
         this->operator[]("PU") = BLEHubType::PU;
         this->operator[]("SBrick") = BLEHubType::SBrick;
+        this->operator[]("BuWizz2") = BLEHubType::BuWizz2;
     };
     ~bleHubTypeMap() {}
 };
