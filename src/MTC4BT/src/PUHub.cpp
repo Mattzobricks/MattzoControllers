@@ -95,16 +95,20 @@ void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
         parsePortMessage(pData);
         break;
     }
-        // case (byte)MessageType::PORT_VALUE_SINGLE:
-        // {
-        //     parseSensorMessage(pData);
-        //     break;
-        // }
-        // case (byte)MessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
-        // {
-        //     parsePortAction(pData);
-        //     break;
-        // }
+    // case (byte)MessageType::PORT_VALUE_SINGLE:
+    // {
+    //     parseSensorMessage(pData);
+    //     break;
+    // }
+    // case (byte)MessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
+    // {
+    //     parsePortAction(pData);
+    //     break;
+    // }
+    default:
+#ifdef DEBUGNOTIFYPU
+        dumpPData(pData, length);
+#endif
     }
 }
 

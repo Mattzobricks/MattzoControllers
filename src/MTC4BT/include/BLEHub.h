@@ -111,6 +111,7 @@ class BLEHub
 
   protected:
     void initChannelControllers();
+    void dumpPData(uint8_t *pData, size_t length);
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
     HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
