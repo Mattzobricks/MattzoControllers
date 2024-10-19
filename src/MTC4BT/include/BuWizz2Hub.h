@@ -36,8 +36,5 @@ class BuWizz2Hub : public BLEHub
     byte _hubLedPort;
 
     void parseDeviceSatusMessage(uint8_t *pData, size_t length);
-    void setLedColor(HubLedColor color);
-    void setLedHSVColor(int hue, double saturation, double value);
-    void setLedRGBColor(char red, char green, char blue);
     void writeValue(byte command[], int size);
 };

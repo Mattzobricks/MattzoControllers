@@ -51,18 +51,13 @@ void BuWizz2Hub::DriveTaskLoop()
                 motorFound = true;
             }
 
-            if (controller->GetHubChannel() == BLEHubChannel::OnboardLED) {
-                // Update onboard LED channel state.
-                setLedColor(getRawLedColorForController(controller));
-            } else {
-                // Update current channel pwr.
-                controller->UpdateCurrentPwrPerc();
+            // Update current channel pwr.
+            controller->UpdateCurrentPwrPerc();
 
-                // Construct drive command.
-                byte channelPwr = getRawChannelPwrForController(controller);
-                byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
-                writeValue(setMotorCommand, 6);
-            }
+            // Construct drive command.
+            byte channelPwr = getRawChannelPwrForController(controller);
+            //byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
+            //writeValue(setMotorCommand, 6);
         }
 
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
@@ -95,7 +90,7 @@ void BuWizz2Hub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteri
     //     break;
     // }
     case (byte)MessageType::BUW2_DEVICE_STATUS:
-        parseDeviceSatusMessage(pData,length);
+        parseDeviceSatusMessage(pData, length);
         // log4MC::vlogf(LOG_DEBUG,"BatteryVoltage: %f",batteryVoltage);
         break;
 
@@ -175,74 +170,9 @@ void BuWizz2Hub::parseDeviceSatusMessage(uint8_t *pData, size_t length)
 {
 
     uint8_t digitalVbat = pData[2];
-    batteryVoltage = 3.0+ digitalVbat*0.01;
+    batteryVoltage = 3.0 + digitalVbat * 0.01;
     status = pData[1];
     powerLevel = pData[8];
-}
-
-/**
- * @brief Set the color of the HUB LED with predefined colors
- * @param [in] color one of the available hub colors
- */
-void BuWizz2Hub::setLedColor(HubLedColor color)
-{
-    if (_hubLedPort == 0) {
-        return;
-    }
-
-    byte setColorMode[8] = {0x41, _hubLedPort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00};
-    writeValue(setColorMode, 8);
-
-    byte setColor[6] = {0x81, _hubLedPort, 0x11, 0x51, 0x00, color};
-    writeValue(setColor, 6);
-}
-
-/**
- * @brief Set the color of the HUB LED with HSV values
- * @param [in] hue 0..360
- * @param [in] saturation 0..1
- * @param [in] value 0..1
- */
-void BuWizz2Hub::setLedHSVColor(int hue, double saturation, double value)
-{
-    hue = hue % 360; // map hue to 0..360
-    double huePart = hue / 60.0;
-    double fract = huePart - floor(huePart);
-
-    double p = value * (1. - saturation);
-    double q = value * (1. - saturation * fract);
-    double t = value * (1. - saturation * (1. - fract));
-
-    if (huePart >= 0.0 && huePart < 1.0) {
-        setLedRGBColor((char)(value * 255), (char)(t * 255), (char)(p * 255));
-    } else if (huePart >= 1.0 && huePart < 2.0) {
-        setLedRGBColor((char)(q * 255), (char)(value * 255), (char)(p * 255));
-    } else if (huePart >= 2.0 && huePart < 3.0) {
-        setLedRGBColor((char)(p * 255), (char)(value * 255), (char)(t * 255));
-    } else if (huePart >= 3.0 && huePart < 4.0) {
-        setLedRGBColor((char)(p * 255), (char)(q * 255), (char)(value * 255));
-    } else if (huePart >= 4.0 && huePart < 5.0) {
-        setLedRGBColor((char)(t * 255), (char)(p * 255), (char)(value * 255));
-    } else if (huePart >= 5.0 && huePart < 6.0) {
-        setLedRGBColor((char)(value * 255), (char)(p * 255), (char)(q * 255));
-    } else {
-        setLedRGBColor(0, 0, 0);
-    }
-}
-
-/**
- * @brief Set the color of the HUB LED with RGB values
- * @param [in] red 0..255
- * @param [in] green 0..255
- * @param [in] blue 0..255
- */
-void BuWizz2Hub::setLedRGBColor(char red, char green, char blue)
-{
-    byte setRGBMode[8] = {0x41, _hubLedPort, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00};
-    writeValue(setRGBMode, 8);
-
-    byte setRGBColor[8] = {0x81, _hubLedPort, 0x11, 0x51, 0x01, red, green, blue};
-    writeValue(setRGBColor, 8);
 }
 
 void BuWizz2Hub::writeValue(byte command[], int size)
