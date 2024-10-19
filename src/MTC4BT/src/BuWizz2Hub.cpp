@@ -12,6 +12,9 @@ BuWizz2Hub::BuWizz2Hub(BLEHubConfiguration *config)
     : BLEHub(config)
 {
     _hubLedPort = 0;
+    batteryVoltage = 0.0;
+    status = 0;
+    powerLevel = 0;
 }
 
 bool BuWizz2Hub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
@@ -19,16 +22,16 @@ bool BuWizz2Hub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds
     _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
 
     if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
-        log4MC::error("BLE : Unable to attach to remote control service.");
+        log4MC::error("BLE : BuWizz2 : Unable to attach to remote control service.");
         return false;
     }
 
     if (!_remoteControlCharacteristic->canWrite()) {
-        log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
+        log4MC::error("BLE : BuWizz2 : Remote control characteristic doesn't allow writing.");
         return false;
     }
 
-    log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout not set for PU hubs");
+    log4MC::vlogf(LOG_INFO, "BLE : BuWizz2 : Watchdog timeout not set");
 
     return true;
 }
@@ -85,16 +88,17 @@ int16_t BuWizz2Hub::MapPwrPercToRaw(int pwrPerc)
 
 void BuWizz2Hub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-    switch (pData[2]) {
+    switch (pData[0]) {
     // case (byte)MessageType::HUB_PROPERTIES:
     // {
     //     parseDeviceInfo(pData);
     //     break;
     // }
-    case (byte)MessageType::HUB_ATTACHED_IO: {
-        parsePortMessage(pData);
+    case (byte)MessageType::BUW2_DEVICE_STATUS:
+        parseDeviceSatusMessage(pData,length);
+        // log4MC::vlogf(LOG_DEBUG,"BatteryVoltage: %f",batteryVoltage);
         break;
-    }
+
         // case (byte)MessageType::PORT_VALUE_SINGLE:
         // {
         //     parseSensorMessage(pData);
@@ -105,24 +109,75 @@ void BuWizz2Hub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteri
         //     parsePortAction(pData);
         //     break;
         // }
+    default:
+#ifdef DEBUGNOTIFYBUWIZZ2
+        dumpPData(pData, length);
+#endif
     }
 }
 
+/*
+[0169] [0] 0000 00 18 5c 00 00 00 00 00 00 19 25 00 fc ff b9 fa  ..\.......%.....
+[0170] [0] 0010 00 00 00 00                                      '....'
+
+00 = cmd 00 device status report
+18 = 11000 -> battery full // 78 = 1111000
+5c = battery voltage = 92*0.01+3 = 3.92 Volt
+00 = output voltage motor = 0
+00 00 00 00 = motor currents = 0
+00 current power level = 0 = disable
+19 current temp = 25 deg C
+25 00 Accelerometer x-axis value (left-aligned 12-bit signed value, 12 mg/digit)
+fc ff Accelerometer y-axis value
+b9 fa Accelerometer z-axis value
+
+1
+2
+3
+4-7
+8
+9
+10-11
+12-13
+14-15
+7
+Byte        | Function / value
+0 (command) |0x00
+1           | Status flags - bit mapped to the following functions:
+            | Bit | Function
+            | 7   | unused
+            | 6   | USB connection status (1 - cable connected)
+            | 5   | Battery charging status (1 - battery is charging, 0 - battery is full or not charging)
+            | 3-4 | Battery level status (0 - empty, motors disabled; 1 - low; 2 - medium; 3 - full)
+            | 2-1 | unused
+            | 0   | error (overcurrent, overtemperature...)
+2           | Battery voltage (3 V + value * 0,01 V) - range 3,00 V - 4,27 V
+            | Example: 0x00 => 3,00 V, 0x7F => 4,27 V
+3           | Output (motor) voltage (4 V + value * 0,05 V) - range 4,00 V - 16,75 V
+4-7         | Motor currents, 8-bit value for each motor output (value * 0,033 A) - range 0 - 8,5 A
+8           | Current power level
+            | Value | Function
+            | 0     | Power is disabled (default value after start or BLE disconnect)
+            | 1     | Slow
+            | 2     | Normal
+            | 3     | Fast
+            | 4     | LDCRS
+9           | Microcontroller temperature (value in °C)
+10-11       | Accelerometer x-axis value (left-aligned 12-bit signed value, 12 mg/digit)
+12-13       | Accelerometer y-axis value (left-aligned 12-bit signed value, 12 mg/digit)
+14-15       | Accelerometer z-axis value (left-aligned 12-bit signed value, 12 mg/digit)
+*/
 /**
  * @brief Parse the incoming characteristic notification for a Port Message
  * @param [in] pData The pointer to the received data
  */
-void BuWizz2Hub::parsePortMessage(uint8_t *pData)
+void BuWizz2Hub::parseDeviceSatusMessage(uint8_t *pData, size_t length)
 {
-    byte port = pData[3];
-    bool isConnected = (pData[4] == 1 || pData[4] == 2) ? true : false;
-    if (isConnected) {
-        // log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
-        if (pData[5] == 0x0017) {
-            _hubLedPort = port;
-            log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB LED at port %x", port);
-        }
-    }
+
+    uint8_t digitalVbat = pData[2];
+    batteryVoltage = 3.0+ digitalVbat*0.01;
+    status = pData[1];
+    powerLevel = pData[8];
 }
 
 /**

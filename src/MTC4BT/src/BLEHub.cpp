@@ -281,7 +281,6 @@ bool BLEHub::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteris
 
     // Obtain a reference to the remote control characteristic in the remote control service of the BLE server.
     _remoteControlCharacteristic = _remoteControlService->getCharacteristic(characteristicUUID);
-
     return _remoteControlCharacteristic != nullptr;
 }
 

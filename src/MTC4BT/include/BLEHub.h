@@ -25,6 +25,7 @@
 #define ConnectDelayInSeconds 5
 
 enum struct MessageType {
+    BUW2_DEVICE_STATUS = 0x00,
     HUB_PROPERTIES = 0x01,
     HUB_ACTIONS = 0x02,
     HUB_ALERTS = 0x03,
