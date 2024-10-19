@@ -69,15 +69,10 @@ No response is sent.
 */
 void BuWizz2Hub::DriveTaskLoop()
 {
-    bool channel1Forward = false;
-    bool channel2Forward = false;
-    bool channel3Forward = false;
-    bool channel4Forward = false;
-
-    uint8_t channel1Pwr = 0;
-    uint8_t channel2Pwr = 0;
-    uint8_t channel3Pwr = 0;
-    uint8_t channel4Pwr = 0;
+    int8_t channel1Pwr = 0;
+    int8_t channel2Pwr = 0;
+    int8_t channel3Pwr = 0;
+    int8_t channel4Pwr = 0;
 
     for (;;) {
 
@@ -85,27 +80,30 @@ void BuWizz2Hub::DriveTaskLoop()
         for (BLEHubChannelController *controller : _channelControllers) {
             switch (controller->GetHubChannel()) {
             case BLEHubChannel::A: // 1
-                channel1Forward = controller->IsDrivingForward();
                 channel1Pwr = getRawChannelPwrForController(controller);
                 break;
             case BLEHubChannel::B: // 2
-                channel2Forward = controller->IsDrivingForward();
                 channel2Pwr = getRawChannelPwrForController(controller);
                 break;
             case BLEHubChannel::C: // 3
-                channel3Forward = controller->IsDrivingForward();
                 channel3Pwr = getRawChannelPwrForController(controller);
                 break;
             case BLEHubChannel::D: // 4
-                channel4Forward = controller->IsDrivingForward();
                 channel4Pwr = getRawChannelPwrForController(controller);
                 break;
             }
 
-            // Construct drive command.
-            byte channelPwr = getRawChannelPwrForController(controller);
-            // byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
-            // writeValue(setMotorCommand, 6);
+            // Construct one drive command for all channels.
+            uint8_t byteCmd[13] = {
+                SET_MOTOR_DATA,
+                channel1Pwr,
+                channel2Pwr,
+                channel3Pwr,
+                channel4Pwr,
+                15}; // break flag,
+            if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
+                log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unabled to write to BUWIZZ2 characteristic.");
+            }
         }
 
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
@@ -116,6 +114,13 @@ void BuWizz2Hub::DriveTaskLoop()
     }
 }
 
+/*
+ 0x81 (-127): Full backwards
+ 0x00 (0): Stop
+ 0x7F (127): Full forwards
+
+ map(value, fromLow, fromHigh, toLow, toHigh)
+*/
 int16_t BuWizz2Hub::MapPwrPercToRaw(int pwrPerc)
 {
     if (pwrPerc == 0) {
@@ -123,10 +128,10 @@ int16_t BuWizz2Hub::MapPwrPercToRaw(int pwrPerc)
     }
 
     if (pwrPerc > 0) {
-        return map(pwrPerc, 0, 100, PU_MIN_SPEED_FORWARD, PU_MAX_SPEED_FORWARD);
+        return map(pwrPerc, 0, 100, BUWIZZ2_MIN_SPEED_FORWARD, BUWIZZ2_MAX_SPEED_FORWARD);
     }
 
-    return map(abs(pwrPerc), 0, 100, PU_MIN_SPEED_REVERSE, PU_MAX_SPEED_REVERSE);
+    return map(abs(pwrPerc), 0, 100, BUWIZZ2_MIN_SPEED_REVERSE, BUWIZZ2_MAX_SPEED_REVERSE);
 }
 
 void BuWizz2Hub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
