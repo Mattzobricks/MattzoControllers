@@ -36,28 +36,76 @@ bool BuWizz2Hub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds
     return true;
 }
 
+/*
+0x10 Set motor data
+Transfers motor data to the device.
+Byte         | Function / value
+0 (command)  | 0x10 - Set motor data
+1-4          | 0x10 - Set motor data
+             | Motor data (signed 8-bit value for each motor output)
+             | 0x81 (-127): Full backwards
+             | 0x00 (0): Stop
+             | 0x7F (127): Full forwards
+5            | Brake flags - bit mapped to bits 3-0 (1 bit per each motor, bit 0 for first motor, bit 3 for the last)
+             | If brake flag is set for a target motor, slow-decay control mode will be used
+             | (shortcircuiting the motor armature over the inactive phase).
+             | If flag is not set, the corresponding motor will be controlled in fast-decay control
+             | method (coasting the motor during the inactive phase).
+No response is generated
+
+<Q> only send following command at connction, because it is in the config?
+0x11 Set power level
+Changes the power level.
+Byte        | Function / value
+0 (command) | 0x11 - Set power level
+1           | Power level index
+            | Value | Function
+            | 0     | Power is disabled (default value after start or BLE disconnect)
+            | 1     | Slow
+            | 2     | Normal
+            | 3     | Fast
+            | 4     | LDCRS
+No response is sent.
+*/
 void BuWizz2Hub::DriveTaskLoop()
 {
+    bool channel1Forward = false;
+    bool channel2Forward = false;
+    bool channel3Forward = false;
+    bool channel4Forward = false;
+
+    uint8_t channel1Pwr = 0;
+    uint8_t channel2Pwr = 0;
+    uint8_t channel3Pwr = 0;
+    uint8_t channel4Pwr = 0;
+
     for (;;) {
-        bool motorFound = false;
-        int16_t currentSpeedPerc = 0;
-        int16_t targetSpeedPerc = 0;
 
+        // values for all 4 ports
         for (BLEHubChannelController *controller : _channelControllers) {
-            // Determine current drive state.
-            if (!motorFound && controller->GetAttachedDevice() == DeviceType::Motor) {
-                currentSpeedPerc = controller->GetCurrentPwrPerc();
-                targetSpeedPerc = controller->GetTargetPwrPerc();
-                motorFound = true;
+            switch (controller->GetHubChannel()) {
+            case BLEHubChannel::A: // 1
+                channel1Forward = controller->IsDrivingForward();
+                channel1Pwr = getRawChannelPwrForController(controller);
+                break;
+            case BLEHubChannel::B: // 2
+                channel2Forward = controller->IsDrivingForward();
+                channel2Pwr = getRawChannelPwrForController(controller);
+                break;
+            case BLEHubChannel::C: // 3
+                channel3Forward = controller->IsDrivingForward();
+                channel3Pwr = getRawChannelPwrForController(controller);
+                break;
+            case BLEHubChannel::D: // 4
+                channel4Forward = controller->IsDrivingForward();
+                channel4Pwr = getRawChannelPwrForController(controller);
+                break;
             }
-
-            // Update current channel pwr.
-            controller->UpdateCurrentPwrPerc();
 
             // Construct drive command.
             byte channelPwr = getRawChannelPwrForController(controller);
-            //byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
-            //writeValue(setMotorCommand, 6);
+            // byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
+            // writeValue(setMotorCommand, 6);
         }
 
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
