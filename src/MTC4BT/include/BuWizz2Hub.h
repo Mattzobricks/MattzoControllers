@@ -13,6 +13,7 @@
 #define BUWIZZ2_MIN_SPEED_REVERSE 0x81
 
 const int8_t SET_MOTOR_DATA = 0x10;
+const int8_t SET_POWER_LEVEL = 0x11;
 
 class BuWizz2Hub : public BLEHub
 {
@@ -21,9 +22,11 @@ class BuWizz2Hub : public BLEHub
     bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds);
     void DriveTaskLoop();
     int16_t MapPwrPercToRaw(int pwrPerc);
+    void setPowerLevel(uint8_t newLevel);
     double batteryVoltage;
     uint8_t status;
     uint8_t powerLevel;
+    uint8_t defaultPowerLevel; // will be configuarable
 
     /**
      * @brief Callback function for notifications of a specific characteristic

@@ -14,6 +14,7 @@ BuWizz2Hub::BuWizz2Hub(BLEHubConfiguration *config)
     batteryVoltage = 0.0;
     status = 0;
     powerLevel = 0;
+    defaultPowerLevel = 2; // Normal
 }
 
 bool BuWizz2Hub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
@@ -73,7 +74,22 @@ void BuWizz2Hub::DriveTaskLoop()
     uint8_t channel3Pwr = 0;
     uint8_t channel4Pwr = 0;
 
+    uint8_t oldChannel1Pwr = 1;
+    uint8_t oldChannel2Pwr = 1;
+    uint8_t oldChannel3Pwr = 1;
+    uint8_t oldChannel4Pwr = 1;
+
     for (;;) {
+        if (powerLevel != defaultPowerLevel) { // powerlevel is updated by the NotifyCall back and is always up to date
+            // set powerlevel of the device
+            uint8_t byteCmd[2] = {
+                SET_POWER_LEVEL,
+                defaultPowerLevel};
+            log4MC::vlogf(LOG_DEBUG, "Set power level %02x", defaultPowerLevel);
+            if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), true)) {
+                log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unabled to write to BUWIZZ2 characteristic.");
+            }
+        }
 
         // values for all 4 ports
         for (BLEHubChannelController *controller : _channelControllers) {
@@ -93,22 +109,31 @@ void BuWizz2Hub::DriveTaskLoop()
                 channel4Pwr = getRawChannelPwrForController(controller);
                 break;
             }
+        }
+        if ((channel1Pwr != oldChannel1Pwr) ||
+            (channel2Pwr != oldChannel2Pwr) ||
+            (channel3Pwr != oldChannel3Pwr) ||
+            (channel4Pwr != oldChannel4Pwr)) {
 
+            oldChannel1Pwr = channel1Pwr;
+            oldChannel2Pwr = channel2Pwr;
+            oldChannel3Pwr = channel3Pwr;
+            oldChannel4Pwr = channel4Pwr;
             // Construct one drive command for all channels.
-            uint8_t byteCmd[7] = {
-                SET_MOTOR_DATA,
-                channel1Pwr,
-                channel2Pwr,
-                channel3Pwr,
-                channel4Pwr,
-                15}; // break flag
+            uint8_t
+                byteCmd[6] = {
+                    SET_MOTOR_DATA,
+                    channel1Pwr,
+                    channel2Pwr,
+                    channel3Pwr,
+                    channel4Pwr,
+                    0}; // break flag
 
-            //log4MC::vlogf(LOG_DEBUG, "Motor 1,2,3,4 %02x %02x %02x %02x", channel1Pwr, channel3Pwr, channel3Pwr, channel4Pwr);
-            if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
+            log4MC::vlogf(LOG_DEBUG, "Motor 1,2,3,4 %02x %02x %02x %02x", channel1Pwr, channel2Pwr, channel3Pwr, channel4Pwr);
+            if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), true)) {
                 log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unabled to write to BUWIZZ2 characteristic.");
             }
         }
-
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
         // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
@@ -127,18 +152,18 @@ void BuWizz2Hub::DriveTaskLoop()
 int16_t BuWizz2Hub::MapPwrPercToRaw(int pwrPerc)
 {
     int16_t retval;
-    //log4MC::vlogf(LOG_DEBUG, " BuWizz2: positive map: %d", pwrPerc);
+    // log4MC::vlogf(LOG_DEBUG, " BuWizz2: positive map: %d", pwrPerc);
     if (pwrPerc == 0) {
         return 0; // 0 = float, 127 = stop motor
     }
 
     if (pwrPerc > 0) {
         retval = map(pwrPerc, 0, 100, BUWIZZ2_MIN_SPEED_FORWARD, BUWIZZ2_MAX_SPEED_FORWARD);
-        //log4MC::vlogf(LOG_DEBUG, " positive map: %4x", retval);
+        // log4MC::vlogf(LOG_DEBUG, " positive map: %4x", retval);
         return retval;
     }
     retval = map(abs(pwrPerc), 0, 100, BUWIZZ2_MIN_SPEED_REVERSE, BUWIZZ2_MAX_SPEED_REVERSE);
-    //log4MC::vlogf(LOG_DEBUG, " negative map: %4x", retval);
+    // log4MC::vlogf(LOG_DEBUG, " negative map: %4x", retval);
     return retval;
 }
 
@@ -245,4 +270,9 @@ void BuWizz2Hub::writeValue(byte command[], int size)
     if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
         log4MC::vlogf(LOG_ERR, "BLE : Drive failed (%s). Unabled to write to PU characteristic.", GetAddress().toString().c_str());
     }
+}
+
+void BuWizz2Hub::setPowerLevel(uint8_t newLevel)
+{
+    defaultPowerLevel = newLevel;
 }
