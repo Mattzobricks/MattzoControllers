@@ -77,6 +77,8 @@ void BuWizz2Hub::DriveTaskLoop()
 
         // values for all 4 ports
         for (BLEHubChannelController *controller : _channelControllers) {
+            controller->UpdateCurrentPwrPerc();
+
             switch (controller->GetHubChannel()) {
             case BLEHubChannel::A: // 1
                 channel1Pwr = getRawChannelPwrForController(controller);
@@ -101,7 +103,7 @@ void BuWizz2Hub::DriveTaskLoop()
                 channel4Pwr,
                 15}; // break flag
 
-            log4MC::vlogf(LOG_DEBUG, "Motor 1,2,3,4 %02x %02x %02x %02x", channel1Pwr, channel3Pwr, channel3Pwr, channel4Pwr);
+            //log4MC::vlogf(LOG_DEBUG, "Motor 1,2,3,4 %02x %02x %02x %02x", channel1Pwr, channel3Pwr, channel3Pwr, channel4Pwr);
             if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
                 log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unabled to write to BUWIZZ2 characteristic.");
             }
@@ -125,18 +127,18 @@ void BuWizz2Hub::DriveTaskLoop()
 int16_t BuWizz2Hub::MapPwrPercToRaw(int pwrPerc)
 {
     int16_t retval;
-    log4MC::vlogf(LOG_DEBUG, " BuWizz2: positive map: %d", pwrPerc);
+    //log4MC::vlogf(LOG_DEBUG, " BuWizz2: positive map: %d", pwrPerc);
     if (pwrPerc == 0) {
         return 0; // 0 = float, 127 = stop motor
     }
 
     if (pwrPerc > 0) {
         retval = map(pwrPerc, 0, 100, BUWIZZ2_MIN_SPEED_FORWARD, BUWIZZ2_MAX_SPEED_FORWARD);
-        log4MC::vlogf(LOG_DEBUG, " positive map: %4x", retval);
+        //log4MC::vlogf(LOG_DEBUG, " positive map: %4x", retval);
         return retval;
     }
     retval = map(abs(pwrPerc), 0, 100, BUWIZZ2_MIN_SPEED_REVERSE, BUWIZZ2_MAX_SPEED_REVERSE);
-    log4MC::vlogf(LOG_DEBUG, " negative map: %4x", retval);
+    //log4MC::vlogf(LOG_DEBUG, " negative map: %4x", retval);
     return retval;
 }
 
