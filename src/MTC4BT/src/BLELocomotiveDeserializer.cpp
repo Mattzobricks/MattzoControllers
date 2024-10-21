@@ -20,6 +20,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
         const std::string address = hubConfig["address"];
         int16_t hubPwrIncStep = hubConfig["pwrIncStep"] | locoPwrIncStep;
         int16_t hubPwrDecStep = hubConfig["pwrDecStep"] | locoPwrDecStep;
+        const std::string powerlevel = hubConfig["powerlevel"] | "normal"; // for Buwizz2 only, default is 2
 
         // Iterate over channel configs and copy values from the JsonDocument to PortConfiguration objects.
         std::vector<MCChannelConfig *> channels;
@@ -51,7 +52,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
             channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, deviceTypeMap()[attachedDevice]));
         }
 
-        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels));
+        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buwizzPowerMap()[powerlevel]));
     }
 
     // Iterate over events and copy values from the JsonDocument to MCLocoEvent objects.

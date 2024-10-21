@@ -10,6 +10,7 @@ enum BLEHubChannel {
     OnboardLED = 99
 };
 
+// map channel numbers to to the blehub channels
 // String switch paridgam
 struct bleHubChannelMap : public std::map<std::string, BLEHubChannel> {
     bleHubChannelMap()
@@ -22,6 +23,10 @@ struct bleHubChannelMap : public std::map<std::string, BLEHubChannel> {
         this->operator[]("c") = BLEHubChannel::C;
         this->operator[]("D") = BLEHubChannel::D;
         this->operator[]("d") = BLEHubChannel::D;
+        this->operator[]("1") = BLEHubChannel::A;
+        this->operator[]("2") = BLEHubChannel::B;
+        this->operator[]("3") = BLEHubChannel::C;
+        this->operator[]("4") = BLEHubChannel::D;
         this->operator[]("LED") = BLEHubChannel::OnboardLED;
         this->operator[]("Led") = BLEHubChannel::OnboardLED;
         this->operator[]("led") = BLEHubChannel::OnboardLED;

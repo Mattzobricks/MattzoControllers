@@ -25,6 +25,7 @@
 #define ConnectDelayInSeconds 5
 
 enum struct MessageType {
+    BUW2_DEVICE_STATUS = 0x00,
     HUB_PROPERTIES = 0x01,
     HUB_ACTIONS = 0x02,
     HUB_ALERTS = 0x03,
@@ -111,6 +112,7 @@ class BLEHub
 
   protected:
     void initChannelControllers();
+    void dumpPData(uint8_t *pData, size_t length);
     void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
     HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
     uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);

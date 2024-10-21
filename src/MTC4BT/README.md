@@ -45,6 +45,18 @@ Controller Configuration
 ---
 [data_example/controller_config.json](data_example/controller_config.json)
 
+Supported hub types
+ - `PU` Lego powered up
+ - `SBrick` SBrick
+ - `BuWizz2` BuWizz version 2 (only!)
+
+ The BuWizz 2 hub has an additional configuration item `powerlevel` which can hold de following values (case sensitive!):
+  - `disabled` Power is disabled
+  -  `slow`
+  -  `normal` Default if not specified
+  -  `fast`
+  -  `ldcrs`
+  
 ---
 Using the W5500 ethernet module
 ---
