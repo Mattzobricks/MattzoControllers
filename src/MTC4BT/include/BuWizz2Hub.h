@@ -39,5 +39,4 @@ class BuWizz2Hub : public BLEHub
 
   private:
     void parseDeviceSatusMessage(uint8_t *pData, size_t length);
-    void writeValue(byte command[], int size);
 };

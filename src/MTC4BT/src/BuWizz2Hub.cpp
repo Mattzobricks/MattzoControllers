@@ -261,17 +261,6 @@ void BuWizz2Hub::parseDeviceSatusMessage(uint8_t *pData, size_t length)
     powerLevel = pData[8];
 }
 
-void BuWizz2Hub::writeValue(byte command[], int size)
-{
-    byte byteCmd[size + 2] = {(byte)(size + 2), 0x00};
-    memcpy(byteCmd + 2, command, size);
-
-    // Send drive command.
-    if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
-        log4MC::vlogf(LOG_ERR, "BLE : Drive failed (%s). Unabled to write to PU characteristic.", GetAddress().toString().c_str());
-    }
-}
-
 void BuWizz2Hub::setPowerLevel(uint8_t newLevel)
 {
     defaultPowerLevel = newLevel;
