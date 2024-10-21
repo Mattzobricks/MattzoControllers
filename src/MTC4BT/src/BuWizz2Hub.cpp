@@ -212,16 +212,6 @@ void BuWizz2Hub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteri
 fc ff Accelerometer y-axis value
 b9 fa Accelerometer z-axis value
 
-1
-2
-3
-4-7
-8
-9
-10-11
-12-13
-14-15
-7
 Byte        | Function / value
 0 (command) |0x00
 1           | Status flags - bit mapped to the following functions:
