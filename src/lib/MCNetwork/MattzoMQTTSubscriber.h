@@ -92,6 +92,9 @@ class MattzoMQTTSubscriber
     // Returns the current MQTT connection status.
     static int GetStatus();
 
+    // All code that should be handled in the Loop
+    static void Loop();
+
     //pointer to hanler function
     static void (*handler)(const char *message);
   private:

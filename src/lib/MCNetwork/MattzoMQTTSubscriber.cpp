@@ -41,9 +41,6 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler
     strcpy(_subscriberName, _config->SubscriberName);
     strcat(_subscriberName, "Subscriber");
 
-    // Start MQTT task loop to handle queued messages.
-    // xTaskCreatePinnedToCore(handleMQTTMessageLoop, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
-
     // Setup completed.
     _setupCompleted = true;
 
@@ -137,7 +134,23 @@ void MattzoMQTTSubscriber::reconnect()
         }
     }
 }
+void MattzoMQTTSubscriber::Loop()
+{
+    // Wait for connection to MQTT (because we need it to send messages to the broker).
+    if (!mqttSubscriberClient.connected()) {
+        reconnect();
+    }
 
+    if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
+        lastPing = millis();
+
+        // Send a ping message.
+        sendMessage("roc2bricks/ping", _subscriberName);
+    }
+
+    // Allow the MQTT client to process incoming messages and maintain its connection to the server.
+    mqttSubscriberClient.loop();
+}
 /// <summary>
 /// The main (endless) task loop.
 /// </summary>
@@ -154,20 +167,7 @@ void MattzoMQTTSubscriber::taskLoop(void *parm)
 
         // Loop forever.
         for (;;) {
-            // Wait for connection to MQTT (because we need it to send messages to the broker).
-            if (!mqttSubscriberClient.connected()) {
-                reconnect();
-            }
-
-            if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
-                lastPing = millis();
-
-                // Send a ping message.
-                sendMessage("roc2bricks/ping", _subscriberName);
-            }
-
-            // Allow the MQTT client to process incoming messages and maintain its connection to the server.
-            mqttSubscriberClient.loop();
+            Loop();
 
             // Wait a while before trying again (allowing other tasks to do their work).
             vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
@@ -192,4 +192,4 @@ bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();
 char MattzoMQTTSubscriber::_subscriberName[60] = "Unknown";
 MCMQTTConfiguration *MattzoMQTTSubscriber::_config = nullptr;
-void (*MattzoMQTTSubscriber::handler)(const char *message)= nullptr;
+void (*MattzoMQTTSubscriber::handler)(const char *message) = nullptr;

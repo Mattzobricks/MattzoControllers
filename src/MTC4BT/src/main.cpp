@@ -47,28 +47,6 @@ void setupTicker()
 #endif
 #endif
 
-void handleMQTTMessageLoop(void *parm)
-{
-    for (;;) {
-        char *message;
-
-        // See if there's a message in the queue (do not block).
-        while (xQueueReceive(MattzoMQTTSubscriber::IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
-            // Output message to serial for debug.
-            // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
-
-            // Parse message and translate to an action for devices attached to this controller.
-            MTC4BTMQTTHandler::Handle(message);
-
-            // Erase message from memory by freeing it.
-            free(message);
-        }
-
-        // Wait a while before trying again (allowing other tasks to do their work)?
-        vTaskDelay(50 / portTICK_PERIOD_MS);
-    }
-}
-
 void setup()
 {
     // Configure Serial.
@@ -102,7 +80,6 @@ void setup()
 
     // Setup MQTT subscriber (use controller name as part of the subscriber name).
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
-    //MattzoMQTTSubscriber::Setup(networkConfig->MQTT, handleMQTTMessageLoop);
     MattzoMQTTSubscriber::Setup(networkConfig->MQTT, MTC4BTMQTTHandler::Handle);
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
