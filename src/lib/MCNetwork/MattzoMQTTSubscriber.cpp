@@ -7,8 +7,8 @@ WiFiClient wifiSubscriberClient;
 EthernetClient ethClient;
 
 PubSubClient mqttSubscriberClient;
-
-void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm))
+void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler)(const char *message))
+// void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm))
 {
 #if !defined(ESP32)
 #error "Error: this sketch is designed for ESP32 only."
@@ -22,7 +22,8 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
     }
 
     // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
-    IncomingQueue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
+    // IncomingQueue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
+    handler = MQTThandler;
 
     // Setup MQTT client.
     log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
@@ -41,7 +42,7 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTM
     strcat(_subscriberName, "Subscriber");
 
     // Start MQTT task loop to handle queued messages.
-    xTaskCreatePinnedToCore(handleMQTTMessageLoop, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
+    // xTaskCreatePinnedToCore(handleMQTTMessageLoop, "MQTTHandler", MQTT_TASK_STACK_DEPTH, NULL, MQTT_TASK_PRIORITY, NULL, MQTT_HANDLE_MESSAGE_TASK_COREID);
 
     // Setup completed.
     _setupCompleted = true;
@@ -73,7 +74,8 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
         }
     }
     message[length] = '\0';
-
+    log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. ", topic);
+    /*
     // Store pointer to message in queue (don't block if the queue is full).
     if (xQueueSendToBack(IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
         // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(message));
@@ -82,6 +84,10 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
         free(message);
         log4MC::warn("MQTT: Incoming MQTT message queue full");
     }
+    */
+    if (handler) // shouldn't be null, but in just in case it is do not crash!
+        (*handler)(message);
+    free(message);
 }
 
 /// <summary>
@@ -186,3 +192,4 @@ bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();
 char MattzoMQTTSubscriber::_subscriberName[60] = "Unknown";
 MCMQTTConfiguration *MattzoMQTTSubscriber::_config = nullptr;
+void (*MattzoMQTTSubscriber::handler)(const char *message)= nullptr;

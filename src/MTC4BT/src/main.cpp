@@ -58,7 +58,7 @@ void handleMQTTMessageLoop(void *parm)
             // Serial.print("[" + String(xPortGetCoreID()) + "] Ctrl: Received MQTT message; " + message);
 
             // Parse message and translate to an action for devices attached to this controller.
-            MTC4BTMQTTHandler::Handle(message, controller);
+            MTC4BTMQTTHandler::Handle(message);
 
             // Erase message from memory by freeing it.
             free(message);
@@ -102,7 +102,8 @@ void setup()
 
     // Setup MQTT subscriber (use controller name as part of the subscriber name).
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
-    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, handleMQTTMessageLoop);
+    //MattzoMQTTSubscriber::Setup(networkConfig->MQTT, handleMQTTMessageLoop);
+    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, MTC4BTMQTTHandler::Handle);
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
