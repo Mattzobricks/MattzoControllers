@@ -101,5 +101,6 @@ void setup()
 void loop()
 {
     controller->Loop();
+    MattzoMQTTSubscriber::Loop();
     MattzoWifiClient::Loop();
 }

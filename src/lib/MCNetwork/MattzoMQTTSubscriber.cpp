@@ -43,9 +43,6 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler
 
     // Setup completed.
     _setupCompleted = true;
-
-    // Start task loop.
-    xTaskCreatePinnedToCore(taskLoop, "MQTTSubscriber", StackDepth, NULL, TaskPriority, NULL, CoreID);
 }
 
 int MattzoMQTTSubscriber::GetStatus()
@@ -72,16 +69,6 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
     }
     message[length] = '\0';
     log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. ", topic);
-    /*
-    // Store pointer to message in queue (don't block if the queue is full).
-    if (xQueueSendToBack(IncomingQueue, (void *)&message, (TickType_t)0) == pdTRUE) {
-        // Serial.println("[" + String(xPortGetCoreID()) + "] Ctrl: Queued incoming MQTT message [" + String(topic) + "]: " + String(message));
-    } else {
-        // Free the allocated memory block as we couldn't queue the message anyway.
-        free(message);
-        log4MC::warn("MQTT: Incoming MQTT message queue full");
-    }
-    */
     if (handler) // shouldn't be null, but in just in case it is do not crash!
         (*handler)(message);
     free(message);
@@ -150,33 +137,6 @@ void MattzoMQTTSubscriber::Loop()
 
     // Allow the MQTT client to process incoming messages and maintain its connection to the server.
     mqttSubscriberClient.loop();
-}
-/// <summary>
-/// The main (endless) task loop.
-/// </summary>
-/// <param name="parm"></param>
-void MattzoMQTTSubscriber::taskLoop(void *parm)
-{
-    try {
-        /* code */
-        if (!_setupCompleted) {
-            const char *message = "MQTT: Setup not completed. Execute .Setup() first.";
-            log4MC::error(message);
-            throw message;
-        }
-
-        // Loop forever.
-        for (;;) {
-            Loop();
-
-            // Wait a while before trying again (allowing other tasks to do their work).
-            vTaskDelay(HandleMessageDelayInMilliseconds / portTICK_PERIOD_MS);
-        }
-    } catch (const std::exception &e) {
-        log4MC::vlogf(LOG_EMERG, "Caught exception: %s", e.what());
-    } catch (...) {
-        log4MC::fatal("Caught an unknown exception");
-    }
 }
 
 // Initialize static members.
