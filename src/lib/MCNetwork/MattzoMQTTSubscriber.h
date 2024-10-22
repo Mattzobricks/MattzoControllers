@@ -86,11 +86,16 @@ class MattzoMQTTSubscriber
     /// <summary>
     /// Setup the MQTT Subscriber.
     /// </summary>
-    static void Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm));
+    static void Setup(MCMQTTConfiguration *config, void (*MQTThandler)(const char *message));
 
     // Returns the current MQTT connection status.
     static int GetStatus();
 
+    // All code that should be handled in the Loop
+    static void Loop();
+
+    //pointer to hanler function
+    static void (*handler)(const char *message);
   private:
     static MCMQTTConfiguration *_config;
     static char _subscriberName[60];
