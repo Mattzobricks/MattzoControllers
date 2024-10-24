@@ -30,6 +30,9 @@ class MController
     // Updates emergency brake based on the current controller connection status and controls leds.
     void Loop();
 
+    // Loop is not running in setup but the led needs to be set to indicate searching for network (or something)
+    void setStatusLedInSetup(int powerPerc);
+
     // Returns a boolean value indicating whether the e-brake flag is currently set or not.
     bool GetEmergencyBrake();
 

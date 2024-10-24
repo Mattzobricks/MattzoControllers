@@ -97,6 +97,21 @@ void MController::Loop()
     }
 }
 
+/*
+    The controller is not running during setup, but we need a status led
+*/
+void MController::setStatusLedInSetup(int powerPerc)
+{
+    for (MCChannelController *channel : _channelControllers) {
+        if (channel->GetAttachedDevice() == DeviceType::StatusLight) {
+            MCLedBase *led = findLedByPinNumber(channel->GetChannel()->GetAddressAsEspPinNumber());
+            if (led) {
+                led->SetCurrentPwrPerc(powerPerc);
+            }
+        }
+    }
+}
+
 bool MController::GetEmergencyBrake()
 {
     // E-brake is enabled when specifically requested (through MQTT) or when the controller is not connected.
