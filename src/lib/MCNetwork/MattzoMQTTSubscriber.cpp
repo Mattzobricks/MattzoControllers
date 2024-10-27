@@ -8,7 +8,6 @@ EthernetClient ethClient;
 
 PubSubClient mqttSubscriberClient;
 void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler)(const char *message))
-// void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*handleMQTTMessageLoop)(void *parm))
 {
 #if !defined(ESP32)
 #error "Error: this sketch is designed for ESP32 only."
@@ -21,8 +20,6 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler
         return;
     }
 
-    // Setup a queue with a fixed length that will hold pointers to incoming MQTT messages.
-    // IncomingQueue = xQueueCreate(MQTT_INCOMING_QUEUE_LENGTH, sizeof(char *));
     handler = MQTThandler;
 
     // Setup MQTT client.
