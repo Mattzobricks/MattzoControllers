@@ -15,12 +15,16 @@ data_dir = $PROJECT_DIR/data
 ; To use w5500 module for wired connections, uncomment the line -DWIRED
 ; To see what the hubs report back on not chached messages uncomment the lines,
 ;   this is for degugging only and should only be used if instructed to do so
+; To reduce the delays in the BLE driverloops change the value of DRIVERTASKELAY,
+;   changing this yourself without a hint of the developers may cause strange behavours
+;   and even crashes!
 additional_build_flags =
 ;    -DWIRED
 ;	 -DTICKER=1
 ;    -DDEBUGNOTIFYBUWIZZ2
 ;    -DDEBUGNOTIFYPU
 ;    -DDEBUGNOTIFYPU
+;    -DDRIVERTASKELAY=250
 upload_com_port = COM3
 ; for macOS, just as example
 ;upload_com_port = /dev/tty.usb

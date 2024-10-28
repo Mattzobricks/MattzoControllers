@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "BuWizz2Hub.h"
+#include "DriverTaskDelay.h"
 #include "log4MC.h"
 
 #define MAX_BuWizz2Hub_CHANNEL_COUNT 4
@@ -138,7 +139,7 @@ void BuWizz2Hub::DriveTaskLoop()
         // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
         // Wait 50 milliseconds.
-        vTaskDelay(250 / portTICK_PERIOD_MS);
+        vTaskDelay(DRIVERTASKDELAY / portTICK_PERIOD_MS);
     }
 }
 
