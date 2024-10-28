@@ -94,9 +94,13 @@ void setup()
     controller->Setup(controllerConfig);
     log4MC::info("Setup: Controller configuration completed.");
 
+    controller->setStatusLedInSetup(100); // led on
+
     // Setup and connect to WiFi.
     MattzoWifiClient::Setup(networkConfig->WiFi);
 
+    controller->setStatusLedInSetup(0); // led off
+    
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
     // MattzoMQTTPublisher::Setup(ROCRAIL_COMMAND_QUEUE, MQTT_OUTGOING_QUEUE_LENGTH);
 
@@ -108,7 +112,7 @@ void setup()
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
 
     if (controllerConfig->Locomotives.size() == 0) {
-        log4MC::vlogf(LOG_WARNING, "No locomotives found in the configuration, going into BLE scan mode.");    
+        log4MC::vlogf(LOG_WARNING, "No locomotives found in the configuration, going into BLE scan mode.");
     } else {
         log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
     }
