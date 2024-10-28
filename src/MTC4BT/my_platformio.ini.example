@@ -7,14 +7,20 @@ default_envs = az-delivery-devkit-v4
 ; See the `/data_example` folder for example configuration files. 
 ; Run `platformio.exe run --target uploadfs` to upload the data-folder content to the ESP32.
 ; moved to my_platformio.ini
+; for Linux you have to add a / before $PROJECT_DIR
 data_dir = $PROJECT_DIR/data
 
 [common]
 ; To show memory usage every minute, uncomment the line -DTICKER=1
 ; To use w5500 module for wired connections, uncomment the line -DWIRED
+; To see what the hubs report back on not chached messages uncomment the lines,
+;   this is for degugging only and should only be used if instructed to do so
 additional_build_flags =
-;       -DWIRED
-;	-DTICKER=1
+;    -DWIRED
+;	 -DTICKER=1
+;    -DDEBUGNOTIFYBUWIZZ2
+;    -DDEBUGNOTIFYPU
+;    -DDEBUGNOTIFYPU
 upload_com_port = COM3
 ; for macOS, just as example
 ;upload_com_port = /dev/tty.usb

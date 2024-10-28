@@ -11,7 +11,11 @@ enum BLEHubType {
     PU,
 
     // SBrick (Vengit).
-    SBrick
+    SBrick,
+
+    // BuWizz2
+    BuWizz2
+
 };
 
 // String switch paridgam
@@ -20,14 +24,28 @@ struct bleHubTypeMap : public std::map<std::string, BLEHubType> {
     {
         this->operator[]("PU") = BLEHubType::PU;
         this->operator[]("SBrick") = BLEHubType::SBrick;
+        this->operator[]("BuWizz2") = BLEHubType::BuWizz2;
     };
     ~bleHubTypeMap() {}
+};
+
+// Map BuWizz2 powerlevel names to numers
+struct buwizzPowerMap : public std::map<std::string, uint8_t> {
+    buwizzPowerMap()
+    {
+        this->operator[]("disabled") = 0;
+        this->operator[]("slow") = 1;
+        this->operator[]("normal") = 2;
+        this->operator[]("fast") = 3;
+        this->operator[]("ldcrs") = 4;
+    };
+    ~buwizzPowerMap() {}
 };
 
 class BLEHubConfiguration
 {
   public:
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels,uint8_t powerlevel );
 
     // Type of Hub.
     BLEHubType HubType;
@@ -37,4 +55,7 @@ class BLEHubConfiguration
 
     // Hub channels.
     std::vector<MCChannelConfig *> Channels;
+
+    //hub power level, only valid for BuWizz2, the rest is ignored
+    uint8_t powerLevel;
 };

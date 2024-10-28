@@ -281,7 +281,6 @@ bool BLEHub::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteris
 
     // Obtain a reference to the remote control characteristic in the remote control service of the BLE server.
     _remoteControlCharacteristic = _remoteControlService->getCharacteristic(characteristicUUID);
-
     return _remoteControlCharacteristic != nullptr;
 }
 
@@ -314,4 +313,41 @@ void BLEHub::disconnected()
     if (this->_onConnectionChangedCallback) {
         this->_onConnectionChangedCallback(false);
     }
+}
+
+// dump in hex the pdata block, this should ease programming
+// new BLE devices, or add posibilities/capablities of existing
+// hubs
+void BLEHub::dumpPData(uint8_t *pData, size_t length)
+{
+    char buffer[17 * 3 + 25];
+    char asciiBuffer[18];
+    char byteBuffer[5];
+    size_t index; // needed outside the loop!
+    for (index = 0; index < length; index++) {
+        if ((index % 16) == 0) {
+            if (index != 0) {
+                log4MC::vlogf(LOG_DEBUG, "%s %s", buffer, asciiBuffer);
+            }
+            // Output the offset.
+            snprintf(buffer, 6, "%04x ", index);
+        }
+        // Output the byte value.
+        snprintf(byteBuffer, 4, "%02x ", pData[index]);
+        strncat(buffer, byteBuffer, 4);
+        if ((pData[index] < 0x20) || (pData[index] > 0x7e)) {
+            asciiBuffer[index % 16] = '.';
+        } else {
+            asciiBuffer[index % 16] = pData[index];
+        }
+        asciiBuffer[(index % 16) + 1] = '\0';
+    }
+    // Pad out last line if not exactly 16 characters.
+    while ((index % 16) != 0) {
+        strncat(buffer, "   ", 4);
+        index++;
+    }
+
+    // And print the final ASCII bit.
+    log4MC::vlogf(LOG_DEBUG, "%s '%s'", buffer, asciiBuffer);
 }
