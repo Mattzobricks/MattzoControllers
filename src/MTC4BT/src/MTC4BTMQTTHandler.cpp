@@ -1,24 +1,28 @@
 #include "MTC4BTMQTTHandler.h"
 #include "log4MC.h"
+#include "MTC4BTController.h"
 
-void MTC4BTMQTTHandler::Handle(const char *message, MTC4BTController *controller)
+// it is globaly devined in main.cpp
+extern MTC4BTController *controller;
+
+void MTC4BTMQTTHandler::Handle(const char *message)
 {
     char *pos;
 
     // parse the rocrail mqtt messages, all of them,
     if ((pos = strstr(message, "<sys ")) != nullptr) {
         // found <sys
-        handleSys(pos, controller);
+        handleSys(pos);
     } else if ((pos = strstr(message, "<lc ")) != nullptr) {
         // found <lc
-        handleLc(pos, controller);
+        handleLc(pos);
     } else if ((pos = strstr(message, "<fn ")) != nullptr) {
         // found <fn
-        handleFn(pos, controller);
+        handleFn(pos);
     } // IGNORE THE REST
 }
 
-void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *controller)
+void MTC4BTMQTTHandler::handleSys(const char *message)
 {
     char *cmd = nullptr;
     if (!XmlParser::tryReadCharAttr(message, "cmd", &cmd)) {
@@ -49,7 +53,7 @@ void MTC4BTMQTTHandler::handleSys(const char *message, MTC4BTController *control
     if (cmd) free(cmd);
 }
 
-void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controller)
+void MTC4BTMQTTHandler::handleLc(const char *message)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr)) {
@@ -117,7 +121,7 @@ void MTC4BTMQTTHandler::handleLc(const char *message, MTC4BTController *controll
     if (mode) free(mode);
 }
 
-void MTC4BTMQTTHandler::handleFn(const char *message, MTC4BTController *controller)
+void MTC4BTMQTTHandler::handleFn(const char *message)
 {
     int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr)) {

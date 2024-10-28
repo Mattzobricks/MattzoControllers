@@ -23,11 +23,13 @@ The W5000 code comes from https://github.com/PuceBaboon/ESP32_W5500_NTP_CLIENT/b
 void MattzoWifiClient::Loop()
 {
 #ifdef WIRED
-    // You only need to call maintain if you're using DHCP.
-    Ethernet.maintain();
-    if (Ethernet.linkStatus() == LinkOFF) {
-        Serial.println("Nolink");
-        delay(250);
+    if (!useWifiStatus) { // if we are on the wire
+        // You only need to call maintain if you're using DHCP.
+        Ethernet.maintain();
+        if (Ethernet.linkStatus() == LinkOFF) {
+            Serial.println("Nolink");
+            delay(250);
+        }
     }
 #endif
 }
