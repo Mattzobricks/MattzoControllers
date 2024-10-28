@@ -48,9 +48,9 @@ Controller Configuration
 Supported hub types
  - `PU` Lego powered up
  - `SBrick` SBrick
- - `BuWizz2` BuWizz version 2 (only!)
+ - `BuWizz2` BuWizz (version 2.0 only)
 
- The BuWizz 2 hub has an additional configuration item `powerlevel` which can hold de following values (case sensitive!):
+ The BuWizz 2.0 hub has an additional configuration item `powerlevel` which can hold de following values (case sensitive!):
   - `disabled` Power is disabled
   -  `slow`
   -  `normal` Default if not specified
