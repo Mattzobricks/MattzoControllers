@@ -129,7 +129,7 @@ void BuWizz2Hub::DriveTaskLoop()
                     channel4Pwr,
                     0}; // break flag
 
-            log4MC::vlogf(LOG_DEBUG, "Motor 1,2,3,4 %02x %02x %02x %02x", channel1Pwr, channel2Pwr, channel3Pwr, channel4Pwr);
+            // log4MC::vlogf(LOG_DEBUG, "Motor 1,2,3,4 %02x %02x %02x %02x", channel1Pwr, channel2Pwr, channel3Pwr, channel4Pwr);
             if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), true)) {
                 log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unabled to write to BUWIZZ2 characteristic.");
             }
