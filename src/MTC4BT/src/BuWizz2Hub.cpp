@@ -14,7 +14,7 @@ BuWizz2Hub::BuWizz2Hub(BLEHubConfiguration *config)
     batteryVoltage = 0.0;
     status = 0;
     powerLevel = 0;
-    defaultPowerLevel = config->powerLevel; //2; // Normal
+    defaultPowerLevel = config->powerLevel; // 2; // Normal
 }
 
 bool BuWizz2Hub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
@@ -174,8 +174,8 @@ void BuWizz2Hub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteri
         parseDeviceSatusMessage(pData, length);
         // log4MC::vlogf(LOG_DEBUG,"BatteryVoltage: %f",batteryVoltage);
         break;
-    default:
 #ifdef DEBUGNOTIFYBUWIZZ2
+    default:
         dumpPData(pData, length);
 #endif
     }
