@@ -65,7 +65,7 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
         }
     }
     message[length] = '\0';
-    log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. ", topic);
+    //log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. ", topic);
     if (handler) // shouldn't be null, but in just in case it is do not crash!
         (*handler)(message);
     free(message);
