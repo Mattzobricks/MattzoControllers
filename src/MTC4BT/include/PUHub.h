@@ -31,7 +31,7 @@ class PUHub : public BLEHub
 
   private:
     byte _hubLedPort;
-
+    void parsePortAction(uint8_t *pData, size_t length);
     void parsePortMessage(uint8_t *pData);
     void setLedColor(HubLedColor color);
     void setLedHSVColor(int hue, double saturation, double value);

@@ -84,7 +84,9 @@
 			"xlocale": "cpp",
 			"xlocinfo": "cpp",
 			"xstring": "cpp",
-			"*.ipp": "cpp"
+			"*.ipp": "cpp",
+			"span": "cpp",
+			"format": "cpp"
 		},
 	}
 }

@@ -36,6 +36,15 @@ bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 
 void PUHub::DriveTaskLoop()
 {
+
+    uint8_t channelAPwr = 0;
+    uint8_t channelBPwr = 0;
+    HubLedColor channelLedColor = BLACK;
+
+    uint8_t oldChannelAPwr = 1;
+    uint8_t oldChannelBPwr = 1;
+    HubLedColor oldChannelLedColor = NONE;
+
     for (;;) {
         bool motorFound = false;
         int16_t currentSpeedPerc = 0;
@@ -49,17 +58,44 @@ void PUHub::DriveTaskLoop()
                 motorFound = true;
             }
 
-            if (controller->GetHubChannel() == BLEHubChannel::OnboardLED) {
+            BLEHubChannel currentChannel = controller->GetHubChannel();
+            if (currentChannel == BLEHubChannel::OnboardLED) {
                 // Update onboard LED channel state.
-                setLedColor(getRawLedColorForController(controller));
+                channelLedColor = getRawLedColorForController(controller);
+                if (channelLedColor != oldChannelLedColor) {
+                    setLedColor(channelLedColor);
+                    oldChannelLedColor = channelLedColor;
+                }
             } else {
+                bool doMotorUpdate = false;
+                byte channelPwr;
                 // Update current channel pwr.
                 controller->UpdateCurrentPwrPerc();
 
+                switch (currentChannel) {
+                case BLEHubChannel::A:
+                    channelAPwr = getRawChannelPwrForController(controller);
+                    if (channelAPwr != oldChannelAPwr) {
+                        channelPwr = channelAPwr;
+                        oldChannelAPwr = channelAPwr;
+                        doMotorUpdate = true;
+                    }
+                    break;
+                case BLEHubChannel::B:
+                    channelBPwr = getRawChannelPwrForController(controller);
+                    if (channelBPwr != oldChannelBPwr) {
+                        channelPwr = channelBPwr;
+                        oldChannelBPwr = channelBPwr;
+                        doMotorUpdate = true;
+                    }
+                    break;
+                }
                 // Construct drive command.
-                byte channelPwr = getRawChannelPwrForController(controller);
-                byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
-                writeValue(setMotorCommand, 6);
+                if (doMotorUpdate) {
+                    // log4MC::debug("Send motor command");
+                    byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
+                    writeValue(setMotorCommand, 6);
+                }
             }
         }
 
@@ -101,16 +137,25 @@ void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
         //     parseSensorMessage(pData);
         //     break;
         // }
-        // case (byte)MessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
-        // {
-        //     parsePortAction(pData);
-        //     break;
-        // }
+    case (byte)MessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
+        parsePortAction(pData, length);
+        break;
 #ifdef DEBUGNOTIFYPU
     default:
         dumpPData(pData, length);
 #endif
     }
+}
+
+/**
+ * @brief Parse the incoming characteristic notification for a Port output feadback
+ * for know we see it as the ack
+ * @param [in] pData The pointer to the received data
+ */
+void PUHub::parsePortAction(uint8_t *pData, size_t length)
+{
+    // empty function 
+    // dumpPData(pData, length, length);
 }
 
 /**
