@@ -17,6 +17,9 @@ class MTC4BTController : public MController
     // Controller setup.
     void Setup(MTC4BTConfiguration *config);
 
+    // Start the scanner
+    void SetupScanner();
+
     // Controller loop.
     void Loop();
 

@@ -85,6 +85,9 @@ void setup()
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
     MattzoMQTTSubscriber::Setup(networkConfig->MQTT, MTC4BTMQTTHandler::Handle);
 
+    // all network stuff is done, start the scanner
+    controller->SetupScanner();
+
     log4MC::info("Setup: MattzoTrainController for BLE running.");
     log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
 

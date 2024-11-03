@@ -50,7 +50,10 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
 
     // Setup MTC4BT specific controller configuration.
     initLocomotives(config->Locomotives);
+}
 
+void MTC4BTController::SetupScanner()
+{
     // Initialize BLE hub scanner.
     log4MC::info("Setup: Initializing BLE...");
     _hubScanner = new BLEHubScanner();
