@@ -35,11 +35,12 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const std::string address = espPinConfig["pin"];
         int16_t pinPwrIncStep = espPinConfig["pwrIncStep"] | pwrIncStep;
         int16_t pinPwrDecStep = espPinConfig["pwrDecStep"] | pwrDecStep;
+        int16_t pinPwr = espPinConfig["power"] | 100;
         const bool isInverted = espPinConfig["inverted"] | false;
         const std::string attachedDevice = espPinConfig["attachedDevice"] | "nothing";
 
         MCChannel *espChannel = new MCChannel(ChannelType::EspPinChannel, address);
-        config->EspPins.push_back(new MCChannelConfig(espChannel, pinPwrIncStep, pinPwrDecStep, isInverted, deviceTypeMap()[attachedDevice]));
+        config->EspPins.push_back(new MCChannelConfig(espChannel, pinPwrIncStep, pinPwrDecStep, isInverted, pinPwr, deviceTypeMap()[attachedDevice]));
     }
     log4MC::vlogf(LOG_INFO, "Config: Read ESP pin configuration (%u).", config->EspPins.size());
 

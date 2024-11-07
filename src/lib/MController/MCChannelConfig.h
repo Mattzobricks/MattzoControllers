@@ -7,7 +7,7 @@
 class MCChannelConfig
 {
   public:
-    MCChannelConfig(MCChannel *channel, int pwrIncStep, int pwrDecStep, bool isInverted, DeviceType deviceType);
+    MCChannelConfig(MCChannel *channel, int pwrIncStep, int pwrDecStep, bool isInverted, int pinPwr, DeviceType deviceType);
 
     // Returns the channel.
     MCChannel *GetChannel();
@@ -17,6 +17,9 @@ class MCChannelConfig
 
     // Returns the power step used when increasing power on the channel.
     int GetPwrIncStep();
+
+    // Returns the power % factor on the channel.
+    int GetPwr();
 
     // Returns the power step used when decreasing power on the channel.
     int GetPwrDecStep();
@@ -30,6 +33,9 @@ class MCChannelConfig
 
     // Power step to use when increasing power on the channel.
     int _pwrIncStep;
+
+    // Power percentage 0-100.
+    int _pwr;
 
     // Power step to use when decreasing power on the channel.
     int _pwrDecStep;

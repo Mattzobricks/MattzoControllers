@@ -51,19 +51,16 @@ int16_t MCChannelController::GetTargetPwrPerc()
 
 void MCChannelController::SetTargetPwrPerc(int16_t targetPwrPerc)
 {
-    _targetPwrPerc = normalizePwrPerc(_config->IsInverted()
-                                          ? targetPwrPerc * -1
-                                          : targetPwrPerc);
+    // force first multiplication then division!
+    
+    _targetPwrPerc = (normalizePwrPerc(_config->IsInverted() ? -targetPwrPerc : targetPwrPerc)*_config->GetPwr())/100;
 }
 
 int16_t MCChannelController::GetCurrentPwrPerc()
 {
-    if (_ebrake || _mbrake)
-    {
-        switch (GetAttachedDevice())
-        {
-        case DeviceType::Light:
-        {
+    if (_ebrake || _mbrake) {
+        switch (GetAttachedDevice()) {
+        case DeviceType::Light: {
             // Force blinking lights (50% when on, 0% when off) when e-brake is enabled.
             return MCLightController::Blink() ? 50 : 0;
         }
@@ -91,8 +88,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 {
     unsigned long timeStamp = millis();
 
-    if (_ebrake || _mbrake)
-    {
+    if (_ebrake || _mbrake) {
         // Update of current pwr required (directly to zero), if we're e-braking.
         return true;
     }
