@@ -29,7 +29,7 @@ class PUHub : public BLEHub
      */
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
-  private:
+  protected:
     byte _hubLedPort;
     void parsePortAction(uint8_t *pData, size_t length);
     void parsePortMessage(uint8_t *pData);

@@ -167,15 +167,10 @@ void PUHub::parsePortMessage(uint8_t *pData)
     byte port = pData[3];
     bool isConnected = (pData[4] == 1 || pData[4] == 2) ? true : false;
     if (isConnected) {
-        log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
+        //log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
         if (pData[5] == 0x0017) {
             _hubLedPort = port;
             log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB LED at port %x", port);
-        }
-        if (pData[5] == 0x0037) {
-            // we have found switches
-            byte setPortInputFormatSetup[8] = {0x41, port, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01};
-            writeValue(setPortInputFormatSetup, 8);
         }
     }
 }
