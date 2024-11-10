@@ -3,8 +3,11 @@
 #include "DriverTaskDelay.h"
 #include "PURemote.h"
 #include "log4MC.h"
+#include <PubSubClient.h>
 
 #define MAX_PUHUB_CHANNEL_COUNT 2
+
+extern PubSubClient mqttSubscriberClient;
 
 PURemote::PURemote(BLEHubConfiguration *config)
     : PUHub(config)
@@ -53,7 +56,8 @@ void PURemote::parseHWNeworkCommandMessage(uint8_t *pData, size_t length)
     case 0x02:            // H/W NetWork Command Type = 0x02 Connection Request [Upstream]
         value = pData[4]; // is the green button pressed or released? 1 or 0
         if (value == 1) {
-            log4MC::info("Green button pressed.");
+            // log4MC::info("Green button pressed.");
+            mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"go\" informall=\"true\"/>");
         }
         break;
 
@@ -73,22 +77,25 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
 
     if ((port == 0) || (port == 1)) {
         // port A or B of the remote
-        //dumpPData(pData, length);
+        // dumpPData(pData, length);
         // plus  pressed = 0x01
         // red   pressed = 0x7f
         // minus pressed = 0xff
-        switch (value)
-        {
+        switch (value) {
         case 0x01: // plus  pressed = 0x01
             log4MC::info("Plus button pressed.");
             break;
-        case 0x7f: // plus  pressed = 0x01
-            log4MC::info("Red button pressed.");
+        case 0x7f: // red  pressed = 0x7f
+            if (port == 1) {
+                mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"ebreak\" informall=\"true\"/>");
+            } else {
+                log4MC::info("Red button pressed.");
+            }
             break;
-        case 0xff: // plus  pressed = 0x01
+        case 0xff: // minus  pressed = 0x01
             log4MC::info("Minus button pressed.");
             break;
-        
+
         default:
             break;
         }
