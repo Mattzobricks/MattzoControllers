@@ -13,14 +13,38 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
     // Iterate over hub configs and copy values from the JsonDocument to BLEHubConfiguration objects.
     std::vector<BLEHubConfiguration *> hubs;
     JsonArray hubConfigs = locoConfig["bleHubs"].as<JsonArray>();
+    remoteAddress PUremoteAddress; // only valid for PURemotes
 
-    for (JsonObject hubConfig : hubConfigs) {
-        // Read hub specific properties.
-        const std::string hubType = hubConfig["type"];
-        const std::string address = hubConfig["address"];
-        int16_t hubPwrIncStep = hubConfig["pwrIncStep"] | locoPwrIncStep;
-        int16_t hubPwrDecStep = hubConfig["pwrDecStep"] | locoPwrDecStep;
-        const std::string powerlevel = hubConfig["powerlevel"] | "normal"; // for Buwizz2 only, default is 2
+    std::vector<MCChannelConfig *> channels;
+    if (strcmp(hubType.c_str(), "PUController") == 0) {
+        // ignore the channels for the controller, just add the led
+        MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, "LED");
+        hubChannel->SetParentAddress(address);
+        std::string attachedDevice = "light";
+        channels.push_back(new MCChannelConfig(hubChannel, hubPwrIncStep, hubPwrDecStep, false, 100, deviceTypeMap()[attachedDevice]));
+        JsonObject remoteRanges = hubConfig["range"].as<JsonObject>();
+        int max, min, portA, portB;
+        min = remoteRanges["min"] | -1;
+        max = remoteRanges["max"] | -1;
+        portA = remoteRanges["portA"] | -1;
+        portB = remoteRanges["portB"] | -1;
+        if (portA == -1 || portB == -1) {
+            PUremoteAddress.isRange = true; // we assume we have a min and a max
+            PUremoteAddress.addr.R.min = min;
+            PUremoteAddress.addr.R.max = max;
+        } else {
+            PUremoteAddress.isRange = false;
+            PUremoteAddress.addr.F.portA = portA;
+            PUremoteAddress.addr.F.portB = portB;
+        }
+    } else {
+        for (JsonObject hubConfig : hubConfigs) {
+            // Read hub specific properties.
+            const std::string hubType = hubConfig["type"];
+            const std::string address = hubConfig["address"];
+            int16_t hubPwrIncStep = hubConfig["pwrIncStep"] | locoPwrIncStep;
+            int16_t hubPwrDecStep = hubConfig["pwrDecStep"] | locoPwrDecStep;
+            const std::string powerlevel = hubConfig["powerlevel"] | "normal"; // for Buwizz2 only, default is 2
         remoteAddress PUremoteAddress;                                     // only valid for PURemotes
 
         std::vector<MCChannelConfig *> channels;
