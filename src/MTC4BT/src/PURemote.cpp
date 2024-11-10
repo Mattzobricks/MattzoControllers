@@ -20,7 +20,7 @@ void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacterist
     //     parseDeviceInfo(pData);
     //     break;
     // }
-    case (byte)MessageType::HUB_ATTACHED_IO:
+    case (byte)PUMessageType::HUB_ATTACHED_IO:
         parsePortMessage(pData);
         break;
 
@@ -29,7 +29,7 @@ void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacterist
         //     parseSensorMessage(pData);
         //     break;
         // }
-    case (byte)MessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
+    case (byte)PUMessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
         parsePortAction(pData, length);
         break;
 #ifdef DEBUGNOTIFYPU
