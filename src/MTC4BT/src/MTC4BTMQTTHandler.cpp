@@ -2,6 +2,8 @@
 #include "log4MC.h"
 #include "MTC4BTController.h"
 
+#include "rocrailitems/lclist.h"
+
 // it is globaly devined in main.cpp
 extern MTC4BTController *controller;
 
@@ -19,6 +21,14 @@ void MTC4BTMQTTHandler::Handle(const char *message)
     } else if ((pos = strstr(message, "<fn ")) != nullptr) {
         // found <fn
         handleFn(pos);
+    } // IGNORE THE REST
+}
+
+void MTC4BTMQTTHandler::infoHandle(const char *message)
+{
+    char *pos;
+    if ((pos = strstr(message, "<lclist")) != nullptr) {
+        handleLCList(pos + 5);
     } // IGNORE THE REST
 }
 
@@ -119,6 +129,41 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
     // Ask controller to handle the loco command.
     controller->HandleLc(addr, speed, minSpeed, maxSpeed, mode, dirForward);
     if (mode) free(mode);
+}
+
+// Compares two intervals according to starting times.
+bool compareAddress(lc * i1, lc * i2)
+{
+    return (i1->addr < i2->addr);
+}
+
+void MTC4BTMQTTHandler::handleLCList(const char *message)
+{
+    const char *pos = message;
+    log4MC::vlogf(LOG_DEBUG, "Going for delete loco list.");
+    for (auto p : locs) {
+        delete p;
+    }
+    locs.clear(); // delete all previous locs
+    log4MC::vlogf(LOG_DEBUG, "Going for loco list.");
+    lc *loc = NULL;
+    while ((pos = strstr(pos, "<lc")) != nullptr) {
+        // found a loc
+        char *id = NULL;
+        int addr = 0;
+        if (!XmlParser::tryReadCharAttr(pos, "id", &id)) {
+            // id can not be empty
+        }
+        if (!XmlParser::tryReadIntAttr(pos, "addr", &addr)) {
+            // just ignore for now
+        }
+        loc = new lc(id, addr, NULL, 0, 0, 0);
+        locs.push_back(loc);
+        pos++;
+    }
+    // sort locs by address
+    sort(locs.begin(), locs.end(), compareAddress);
+    log4MC::vlogf(LOG_DEBUG, "Got for loco list.");
 }
 
 void MTC4BTMQTTHandler::handleFn(const char *message)

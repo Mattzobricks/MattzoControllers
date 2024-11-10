@@ -46,6 +46,7 @@ class PUHub : public BLEHub
     void DriveTaskLoop();
     int16_t MapPwrPercToRaw(int pwrPerc);
 
+    void setHubParameter(BLEHubParam paramname, void *value);
     /**
      * @brief Callback function for notifications of a specific characteristic
      * @param [in] pBLERemoteCharacteristic The pointer to the characteristic

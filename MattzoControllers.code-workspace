@@ -86,7 +86,22 @@
 			"xstring": "cpp",
 			"*.ipp": "cpp",
 			"span": "cpp",
-			"format": "cpp"
+			"format": "cpp",
+			"cfenv": "cpp",
+			"charconv": "cpp",
+			"complex": "cpp",
+			"condition_variable": "cpp",
+			"source_location": "cpp",
+			"iostream": "cpp",
+			"mutex": "cpp",
+			"thread": "cpp",
+			"typeindex": "cpp",
+			"variant": "cpp",
+			"numbers": "cpp",
+			"stop_token": "cpp",
+			"semaphore": "cpp",
+			"stdfloat": "cpp",
+			"text_encoding": "cpp"
 		},
 	}
 }

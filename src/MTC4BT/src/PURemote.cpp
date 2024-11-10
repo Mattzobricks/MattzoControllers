@@ -13,6 +13,15 @@ PURemote::PURemote(BLEHubConfiguration *config)
     : PUHub(config)
 {
     // do controller stuff
+    currentLC = new lc(nullptr, 0, false, 0, 0, 0);
+    // just for testing, will be filled with the config later on!
+    index = -1;
+    minRange = 3;
+    maxRange = 10;
+}
+
+void PURemote::setHubParameter(BLEHubParam paramname, void *value)
+{
 }
 
 void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
@@ -58,6 +67,8 @@ void PURemote::parseHWNeworkCommandMessage(uint8_t *pData, size_t length)
         if (value == 1) {
             // log4MC::info("Green button pressed.");
             mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"go\" informall=\"true\"/>");
+            // force refresh locs list
+            mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
         }
         break;
 
@@ -83,7 +94,28 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
         // minus pressed = 0xff
         switch (value) {
         case 0x01: // plus  pressed = 0x01
-            log4MC::info("Plus button pressed.");
+            if (port == 1) {
+                if (locs.size() == 0) {
+                    mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
+                } else {
+                    // find the next that is in the range, when at the last one, start at the first one again.
+                    int roundcount = 0;
+                    while (roundcount != 2) {
+                        index++;
+                        if (index >= locs.size()) {
+                            index = 0;
+                            roundcount++;
+                        }
+                        if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
+                            // found a new index;
+                            break;
+                        }
+                    }
+                    log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
+                }
+            } else {
+                log4MC::info("Plus button pressed.");
+            }
             break;
         case 0x7f: // red  pressed = 0x7f
             if (port == 1) {
@@ -93,7 +125,28 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
             }
             break;
         case 0xff: // minus  pressed = 0x01
-            log4MC::info("Minus button pressed.");
+            if (port == 1) {
+                if (locs.size() == 0) {
+                    mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
+                } else {
+                    // find the next that is in the range, when at the last one, start at the first one again.
+                    int roundcount = 0;
+                    while (roundcount != 2) {
+                        index--;
+                        if (index < 0) {
+                            index = locs.size()-1;
+                            roundcount++;
+                        }
+                        if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
+                            // found a new index;
+                            break;
+                        }
+                    }
+                    log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
+               }
+            } else {
+                log4MC::info("Minus button pressed.");
+            }
             break;
 
         default:

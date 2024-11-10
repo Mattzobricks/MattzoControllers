@@ -17,7 +17,10 @@ BuWizz2Hub::BuWizz2Hub(BLEHubConfiguration *config)
     powerLevel = 0;
     defaultPowerLevel = config->powerLevel; // 2; // Normal
 }
+void BuWizz2Hub::setHubParameter(BLEHubParam paramname, void *value)
+{
 
+}
 bool BuWizz2Hub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
     _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;

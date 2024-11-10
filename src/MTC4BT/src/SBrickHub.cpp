@@ -20,6 +20,9 @@ SBrickHub::SBrickHub(BLEHubConfiguration *config)
     : BLEHub(config)
 {
 }
+void SBrickHub::setHubParameter(BLEHubParam paramname, void *value)
+{
+}
 
 bool SBrickHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {

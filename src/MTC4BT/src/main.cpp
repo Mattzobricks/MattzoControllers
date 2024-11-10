@@ -9,6 +9,8 @@
 #include "loadNetworkConfiguration.h"
 #include "log4MC.h"
 
+#include "rocrailitems/lclist.h"
+
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
 
@@ -77,13 +79,13 @@ void setup()
     MattzoWifiClient::Setup(networkConfig->WiFi);
 
     controller->setStatusLedInSetup(0); // led off
-    
+
     // Setup MQTT publisher (with a queue that can hold 1000 messages).
     // MattzoMQTTPublisher::Setup(ROCRAIL_COMMAND_QUEUE, MQTT_OUTGOING_QUEUE_LENGTH);
 
     // Setup MQTT subscriber (use controller name as part of the subscriber name).
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
-    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, MTC4BTMQTTHandler::Handle);
+    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, MTC4BTMQTTHandler::Handle,MTC4BTMQTTHandler::infoHandle);
 
     // all network stuff is done, start the scanner
     controller->SetupScanner();
@@ -96,6 +98,10 @@ void setup()
     } else {
         log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
     }
+
+    // stuff for the remote
+    locs.reserve(10);
+
 #ifdef ESP32
 #ifdef SETUPTICKER
     setupTicker();

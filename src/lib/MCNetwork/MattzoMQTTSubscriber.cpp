@@ -7,7 +7,7 @@ WiFiClient wifiSubscriberClient;
 EthernetClient ethClient;
 
 PubSubClient mqttSubscriberClient;
-void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler)(const char *message))
+void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler)(const char *message), void (*MQTTinfohandler)(const char *message))
 {
 #if !defined(ESP32)
 #error "Error: this sketch is designed for ESP32 only."
@@ -21,6 +21,7 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler
     }
 
     handler = MQTThandler;
+    infohandler = MQTTinfohandler;
 
     // Setup MQTT client.
     log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
@@ -53,21 +54,25 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
     char *message = (char *)malloc(length + 1);
     for (int i = 0; i < length; i++) {
         message[i] = (char)payload[i];
+        /* for the remote, more commands have to be processed, keeping the "short" list is getting expensive
         if (i == 4) {
             // Check if this is a message we should ignore.
             if ((strstr(message, "<sys ")) == nullptr &&
                 (strstr(message, "<lc ")) == nullptr &&
-                (strstr(message, "<fn ")) == nullptr) {
+                (strstr(message, "<fn ")) == nullptr&&
+                (strstr(message, "<lclist")) == nullptr) {
                 // Nothing we can handle, so ignore this message.
                 free(message);
                 return;
             }
-        }
+        }*/
     }
     message[length] = '\0';
     //log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. ", topic);
-    if (handler) // shouldn't be null, but in just in case it is do not crash!
+    if (handler && strstr(topic, MQTT_TOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
         (*handler)(message);
+    if (infohandler && strstr(topic, MQTT_INFOTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
+        (*infohandler)(message);
     free(message);
 }
 
@@ -106,10 +111,12 @@ void MattzoMQTTSubscriber::reconnect()
 
         log4MC::info("MQTT: Subscriber attempting to connect...");
 
-        if (mqttSubscriberClient.connect(_subscriberName, _config->Topic, 0, false, lastWillMessage_char)) {
+        if (mqttSubscriberClient.connect(_subscriberName, MQTT_TOPIC, 0, false, lastWillMessage_char)) {
             log4MC::info("MQTT: Subscriber connected");
-            mqttSubscriberClient.subscribe(_config->Topic);
-            log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", _config->Topic);
+            mqttSubscriberClient.subscribe(MQTT_TOPIC);
+            log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_TOPIC);
+            mqttSubscriberClient.subscribe(MQTT_INFOTOPIC);
+            log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_INFOTOPIC);
         } else {
             log4MC::vlogf(LOG_WARNING, "MQTT: Subscriber connect failed, rc=%u. Try again in a few seconds...", mqttSubscriberClient.state());
 
@@ -150,3 +157,4 @@ unsigned long MattzoMQTTSubscriber::lastPing = millis();
 char MattzoMQTTSubscriber::_subscriberName[60] = "Unknown";
 MCMQTTConfiguration *MattzoMQTTSubscriber::_config = nullptr;
 void (*MattzoMQTTSubscriber::handler)(const char *message) = nullptr;
+void (*MattzoMQTTSubscriber::infohandler)(const char *message) = nullptr;

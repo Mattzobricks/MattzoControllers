@@ -15,6 +15,10 @@ PUHub::PUHub(BLEHubConfiguration *config)
     _hubLedPort = 0;
 }
 
+void PUHub::setHubParameter(BLEHubParam paramname, void *value)
+{
+}
+
 bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
     _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
@@ -154,7 +158,7 @@ void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
  */
 void PUHub::parsePortAction(uint8_t *pData, size_t length)
 {
-    // empty function 
+    // empty function
     dumpPData(pData, length);
 }
 
@@ -167,7 +171,7 @@ void PUHub::parsePortMessage(uint8_t *pData)
     byte port = pData[3];
     bool isConnected = (pData[4] == 1 || pData[4] == 2) ? true : false;
     if (isConnected) {
-        //log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
+        // log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
         if (pData[5] == 0x0017) {
             _hubLedPort = port;
             log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB LED at port %x", port);
