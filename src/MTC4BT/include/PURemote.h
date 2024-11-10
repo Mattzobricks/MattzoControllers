@@ -20,6 +20,8 @@ class PURemote : public PUHub
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
   protected:
+    void parsePortValueSingleMessage(uint8_t *pData, size_t length);
+    void parseHWNeworkCommandMessage(uint8_t *pData, size_t length);
     void parsePortAction(uint8_t *pData, size_t length);
     void parsePortMessage(uint8_t *pData);
 };
