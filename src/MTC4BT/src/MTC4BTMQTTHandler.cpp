@@ -163,6 +163,19 @@ void MTC4BTMQTTHandler::handleLCList(const char *message)
     }
     // sort locs by address
     sort(locs.begin(), locs.end(), compareAddress);
+    // find the range index offeset
+
+    // first find the remote hubs to find the range of the PURemote(s)
+    /*
+     * for all controller 'locomotinves' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
+     */
+    for (BLELocomotive *loco : controller->Locomotives) {
+        for (BLEHub * hub : loco->Hubs) {
+            if (hub->_config->HubType == BLEHubType::PUController) {
+                log4MC::vlogf(LOG_DEBUG, "Found an PURemote");
+            }
+        }
+    }
     log4MC::vlogf(LOG_DEBUG, "Got for loco list.");
 }
 

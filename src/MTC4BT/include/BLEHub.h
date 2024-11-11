@@ -135,4 +135,5 @@ class BLEHub
     // The following classes can access private members of BLEHub.
     friend class BLEClientCallback;
     friend class BLEDeviceCallbacks;
+    friend class MTC4BTMQTTHandler;
 };

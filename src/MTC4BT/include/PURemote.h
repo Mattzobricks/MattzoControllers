@@ -21,7 +21,8 @@ class PURemote : public PUHub
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
   protected:
-    lc *currentLC;
+    lc *currentLCPortA;
+    lc *currentLCPortB;
     int index;
     int minRange;
     int maxRange;

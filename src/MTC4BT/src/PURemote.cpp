@@ -13,7 +13,8 @@ PURemote::PURemote(BLEHubConfiguration *config)
     : PUHub(config)
 {
     // do controller stuff
-    currentLC = new lc(nullptr, 0, false, 0, 0, 0);
+    currentLCPortA = new lc(nullptr, 0, false, 0, 0, 0);
+    currentLCPortB = new lc(nullptr, 0, false, 0, 0, 0);
     // just for testing, will be filled with the config later on!
     index = -1;
     minRange = 3;
@@ -112,7 +113,17 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                         }
                     }
                     log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
+                    if (roundcount == 2) {
+                        index = -1;
+                    } else {
+                        currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
+                        // get current info of the loc from rocrail and start following it!
+                        char request[200];
+                        snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locs[index]->id);
+                        mqttSubscriberClient.publish("rocrail/service/client", request);
+                    }
                 }
+
             } else {
                 log4MC::info("Plus button pressed.");
             }
@@ -134,7 +145,7 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                     while (roundcount != 2) {
                         index--;
                         if (index < 0) {
-                            index = locs.size()-1;
+                            index = locs.size() - 1;
                             roundcount++;
                         }
                         if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
@@ -143,7 +154,7 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                         }
                     }
                     log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
-               }
+                }
             } else {
                 log4MC::info("Minus button pressed.");
             }
