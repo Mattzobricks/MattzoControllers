@@ -1,6 +1,6 @@
 #include "MTC4BTMQTTHandler.h"
-#include "log4MC.h"
 #include "MTC4BTController.h"
+#include "log4MC.h"
 
 #include "rocrailitems/lclist.h"
 
@@ -37,7 +37,8 @@ void MTC4BTMQTTHandler::handleSys(const char *message)
     char *cmd = nullptr;
     if (!XmlParser::tryReadCharAttr(message, "cmd", &cmd)) {
         log4MC::warn("MQTT: Received 'sys' command, but couldn't read 'cmd' attribute.");
-        if(cmd) free(cmd);
+        if (cmd)
+            free(cmd);
         return;
     }
 
@@ -46,7 +47,8 @@ void MTC4BTMQTTHandler::handleSys(const char *message)
 
         // Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency brake flag is set. All trains will stop immediately.
         controller->HandleSys(true);
-    	if(cmd) free(cmd);
+        if (cmd)
+            free(cmd);
         return;
     }
 
@@ -55,12 +57,14 @@ void MTC4BTMQTTHandler::handleSys(const char *message)
 
         // Upon receiving "go" command, the emergency brake flag is released (i.e. pressing the light bulb in Rocview).
         controller->HandleSys(false);
-        if(cmd) free(cmd);
+        if (cmd)
+            free(cmd);
         return;
     }
-    
+
     // free if not any of the above commands!
-    if (cmd) free(cmd);
+    if (cmd)
+        free(cmd);
 }
 
 void MTC4BTMQTTHandler::handleLc(const char *message)
@@ -74,7 +78,7 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
 
     if (!controller->HasLocomotive(addr)) {
         // Not a loco under our control. Ignore message.
-        //log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
+        // log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
         return;
     }
 
@@ -109,11 +113,12 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
     }
 
     // Get speed mode (percentage or km/h).
-    char *mode =nullptr;
+    char *mode = nullptr;
     if (!XmlParser::tryReadCharAttr(message, "V_mode", &mode)) {
         // Log error, ignore message.
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'V_mode' attribute.");
-        if (mode) free(mode);
+        if (mode)
+            free(mode);
         return;
     }
 
@@ -122,17 +127,19 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
     if (!XmlParser::tryReadBoolAttr(message, "dir", &dirForward)) {
         // Log error, ignore message.
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'dir' attribute.");
-        if (mode) free(mode);
+        if (mode)
+            free(mode);
         return;
     }
 
     // Ask controller to handle the loco command.
     controller->HandleLc(addr, speed, minSpeed, maxSpeed, mode, dirForward);
-    if (mode) free(mode);
+    if (mode)
+        free(mode);
 }
 
 // Compares two intervals according to starting times.
-bool compareAddress(lc * i1, lc * i2)
+bool compareAddress(lc *i1, lc *i2)
 {
     return (i1->addr < i2->addr);
 }
@@ -165,17 +172,7 @@ void MTC4BTMQTTHandler::handleLCList(const char *message)
     sort(locs.begin(), locs.end(), compareAddress);
     // find the range index offeset
 
-    // first find the remote hubs to find the range of the PURemote(s)
-    /*
-     * for all controller 'locomotinves' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
-     */
-    for (BLELocomotive *loco : controller->Locomotives) {
-        for (BLEHub * hub : loco->Hubs) {
-            if (hub->_config->HubType == BLEHubType::PUController) {
-                log4MC::vlogf(LOG_DEBUG, "Found an PURemote");
-            }
-        }
-    }
+    controller->handleLCList();
     log4MC::vlogf(LOG_DEBUG, "Got for loco list.");
 }
 
@@ -188,8 +185,7 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
         return;
     }
 
-    if (!controller->HasLocomotive(addr))
-    {
+    if (!controller->HasLocomotive(addr)) {
         // Not a loco under our control. Stop parsing and ignore message.
         // log4MC::vlogf(LOG_DEBUG, "MQTT: Loco with address '%u' is not under our control. Lc command ignored.", addr);
         return;

@@ -18,9 +18,23 @@ PURemote::PURemote(BLEHubConfiguration *config)
     // just for testing, will be filled with the config later on!
     index = -1;
     minRange = 3;
-    maxRange = 10;
+    maxRange = 10000;
 }
 
+int PURemote::getLowIndex()
+{
+    return lowIndex;
+}
+
+void PURemote::setLowIndex(int index)
+{
+    lowIndex = index;
+}
+
+int PURemote::getMinRange()
+{
+    return minRange;
+}
 void PURemote::setHubParameter(BLEHubParam paramname, void *value)
 {
 }
@@ -67,6 +81,7 @@ void PURemote::parseHWNeworkCommandMessage(uint8_t *pData, size_t length)
         value = pData[4]; // is the green button pressed or released? 1 or 0
         if (value == 1) {
             // log4MC::info("Green button pressed.");
+            // setHubLedColor(hubColour);
             mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"go\" informall=\"true\"/>");
             // force refresh locs list
             mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
@@ -116,6 +131,8 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                     if (roundcount == 2) {
                         index = -1;
                     } else {
+                        // hubColour = (HubLedColor)(((index - lowIndex) % 10) + 1);
+                        SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
                         currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
                         // get current info of the loc from rocrail and start following it!
                         char request[200];

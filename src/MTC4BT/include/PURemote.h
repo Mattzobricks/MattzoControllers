@@ -20,9 +20,15 @@ class PURemote : public PUHub
      */
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
+    int getLowIndex();
+    void setLowIndex(int index);
+
+    int getMinRange();
+
   protected:
     lc *currentLCPortA;
     lc *currentLCPortB;
+    int lowIndex; // needed for the ofset for the ledcolour
     int index;
     int minRange;
     int maxRange;

@@ -32,6 +32,9 @@ class MTC4BTController : public MController
     // Handles the given loco command (if loco is under control if this controller).
     void HandleLc(int locoAddress, int speed, int minSpeed, int maxSpeed, char *mode, bool dirForward);
 
+    // Handles the LCList command, it sets the lowindex for the right led colour
+    void handleLCList();
+
     // Handles the given trigger (if loco is under control of this controller).
     void HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value);
 

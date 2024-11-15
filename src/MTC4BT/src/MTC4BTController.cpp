@@ -4,6 +4,8 @@
 #include "enums.h"
 #include "log4MC.h"
 
+#include "PURemote.h"
+
 // The priority at which the task should run.
 // Systems that include MPU support can optionally create tasks in a privileged (system) mode by setting bit portPRIVILEGE_BIT of the priority parameter.
 // For example, to create a privileged task at priority 2 the uxPriority parameter should be set to ( 2 | portPRIVILEGE_BIT ).
@@ -103,7 +105,34 @@ void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int ma
         }
     }
 }
+void MTC4BTController::handleLCList()
+{
+    /* for all controller 'locomotinves' for all hubs, find the PURemotes (HubType = BLEHubType::PUController) 
+    */
+    for (BLELocomotive *loco : Locomotives) {
+        for (BLEHub *hub : loco->Hubs) {
+            if (hub->GetHubType() == BLEHubType::PUController) {
+                // log4MC::vlogf(LOG_DEBUG, "Found an PURemote");
+                //  find the index where minRange is valid
+                int index = 0;
+                int minRange = ((PURemote *)hub)->getMinRange();
+                int addr = 0;
+                ((PURemote *)hub)->setLowIndex(0);
 
+                while (index < locs.size() &&
+                       locs[index]->addr < minRange) {
+                    index++;
+                }
+                if (index != locs.size()) {
+                    ((PURemote *)hub)->setLowIndex(index);
+                } else {
+                    ((PURemote *)hub)->setLowIndex(-1);
+                }
+                // log4MC::vlogf(LOG_DEBUG, "index %d", index);
+            }
+        }
+    }
+}
 void MTC4BTController::HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
     bool locoFound = false;
@@ -145,7 +174,7 @@ void MTC4BTController::discoveryLoop(void *parm)
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
                             // For hubs of this loco that have an onboard LED, force it to be on (white) by default.
-                            loco->SetHubLedColor(HubLedColor::WHITE);
+                            // TODO: CHECK if this line can be removed loco->SetHubLedColor(hub->hubColour);
 
                             // Blink lights for a while when connected.
                             loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
