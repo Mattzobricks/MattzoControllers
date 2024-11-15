@@ -56,7 +56,18 @@ Supported hub types
   -  `normal` Default if not specified
   -  `fast`
   -  `ldcrs`
-  
+
+The channel supports the `power` field, this must be between 1 and 100, with this field it is posible to mix different motor types to achieve the same wheel speed.
+```
+"channels": [
+            {
+              "channel": "A",
+              "attachedDevice": "motor"
+              "power" : 75
+            }
+          ]
+```
+
 ---
 Using the W5500 ethernet module
 ---
