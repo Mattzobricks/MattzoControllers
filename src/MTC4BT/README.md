@@ -62,7 +62,7 @@ The channel supports the `power` field, this must be between 1 and 100, with thi
 "channels": [
             {
               "channel": "A",
-              "attachedDevice": "motor"
+              "attachedDevice": "motor",
               "power" : 75
             }
           ]
