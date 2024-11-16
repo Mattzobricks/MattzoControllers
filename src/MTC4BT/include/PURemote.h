@@ -30,8 +30,11 @@ class PURemote : public PUHub
     lc *currentLCPortB;
     int lowIndex; // needed for the ofset for the ledcolour
     int index;
+    bool isRange;
     int minRange;
     int maxRange;
+    int portA;
+    int portB;
     void parsePortValueSingleMessage(uint8_t *pData, size_t length);
     void parseHWNeworkCommandMessage(uint8_t *pData, size_t length);
     void parsePortAction(uint8_t *pData, size_t length);

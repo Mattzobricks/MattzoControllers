@@ -17,8 +17,15 @@ PURemote::PURemote(BLEHubConfiguration *config)
     currentLCPortB = new lc(nullptr, 0, false, 0, 0, 0);
     // just for testing, will be filled with the config later on!
     index = -1;
-    minRange = 3;
-    maxRange = 10000;
+    if (config->remote.isRange) {
+        isRange = true;
+        minRange = config->remote.addr.R.min;
+        maxRange = config->remote.addr.R.max;
+    } else {
+        isRange = false;
+        portA = config->remote.addr.F.portA;
+        portB = config->remote.addr.F.portB;
+    }
 }
 
 int PURemote::getLowIndex()
