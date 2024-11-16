@@ -131,7 +131,6 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                     if (roundcount == 2) {
                         index = -1;
                     } else {
-                        // hubColour = (HubLedColor)(((index - lowIndex) % 10) + 1);
                         SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
                         currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
                         // get current info of the loc from rocrail and start following it!
@@ -171,6 +170,16 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                         }
                     }
                     log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
+                    if (roundcount == 2) {
+                        index = -1;
+                    } else {
+                        SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
+                        currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
+                        // get current info of the loc from rocrail and start following it!
+                        char request[200];
+                        snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locs[index]->id);
+                        mqttSubscriberClient.publish("rocrail/service/client", request);
+                    }
                 }
             } else {
                 log4MC::info("Minus button pressed.");

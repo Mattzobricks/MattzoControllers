@@ -6,6 +6,24 @@
 #include "NimBLEAddress.h"
 #include <vector>
 
+typedef struct {
+    int min;
+    int max;
+} addrRange;
+typedef struct {
+    int portA;
+    int portB;
+} addrFixed;
+typedef union {
+    addrRange R;
+    addrFixed F;
+} addresses;
+
+typedef struct {
+    bool isRange;
+    addresses addr;
+} remoteAddress;
+
 enum BLEHubType {
     // Powered Up Hub (Lego).
     PU,
@@ -49,7 +67,7 @@ struct buwizzPowerMap : public std::map<std::string, uint8_t> {
 class BLEHubConfiguration
 {
   public:
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels,uint8_t powerlevel );
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel, remoteAddress address);
 
     // Type of Hub.
     BLEHubType HubType;
@@ -60,6 +78,8 @@ class BLEHubConfiguration
     // Hub channels.
     std::vector<MCChannelConfig *> Channels;
 
-    //hub power level, only valid for BuWizz2, the rest is ignored
+    // hub power level, only valid for BuWizz2, the rest is ignored
     uint8_t powerLevel;
+
+    remoteAddress remote;
 };

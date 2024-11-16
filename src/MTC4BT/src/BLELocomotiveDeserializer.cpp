@@ -21,7 +21,8 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
         int16_t hubPwrIncStep = hubConfig["pwrIncStep"] | locoPwrIncStep;
         int16_t hubPwrDecStep = hubConfig["pwrDecStep"] | locoPwrDecStep;
         const std::string powerlevel = hubConfig["powerlevel"] | "normal"; // for Buwizz2 only, default is 2
-        
+        remoteAddress PUremoteAddress;                                     // only valid for PURemotes
+
         std::vector<MCChannelConfig *> channels;
         if (strcmp(hubType.c_str(), "PUController") == 0) {
             // ignore the channels for the controller, just add the led
@@ -29,6 +30,21 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
             hubChannel->SetParentAddress(address);
             std::string attachedDevice = "light";
             channels.push_back(new MCChannelConfig(hubChannel, hubPwrIncStep, hubPwrDecStep, false, deviceTypeMap()[attachedDevice]));
+            JsonObject remoteRanges = hubConfig["range"].as<JsonObject>();
+            int max,min, portA, portB;
+            min = remoteRanges["min"] | -1;
+            max = remoteRanges["max"] | -1;
+            portA = remoteRanges["portA"] | -1;
+            portB = remoteRanges["portB"] | -1;
+            if (portA == -1 || portB == -1) {
+                PUremoteAddress.isRange = true; // we assume we have a min and a max
+                PUremoteAddress.addr.R.min = min;
+                PUremoteAddress.addr.R.max = max;
+            }else {
+                PUremoteAddress.isRange = false;
+                PUremoteAddress.addr.F.portA = portA;
+                PUremoteAddress.addr.F.portB = portB;
+            }
         } else {
             // Iterate over channel configs and copy values from the JsonDocument to PortConfiguration objects.
             JsonArray channelConfigs = hubConfig["channels"].as<JsonArray>();
@@ -59,7 +75,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
                 channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, deviceTypeMap()[attachedDevice]));
             }
         }
-        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buwizzPowerMap()[powerlevel]));
+        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buwizzPowerMap()[powerlevel],PUremoteAddress));
     }
 
     // Iterate over events and copy values from the JsonDocument to MCLocoEvent objects.
