@@ -116,23 +116,32 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
         return;
     }
+    char *prev_id = nullptr;
+    bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
+    if (prev_id)
+        free(prev_id);
+    if (!has_previd)
+        return;
+    // ignore all other lc commands on the info channel!
+
     // find the remote that controlls this locomotive, this part is also
     // in the regular lc command, this is only to get the initial values
     // of the locomotive
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message);
+        lc *currentLC = getCurrentLcSpeed(message, has_previd);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             remotes[i]->vModePercent = currentLC->vModePercent;
             remotes[i]->V = currentLC->V;
             remotes[i]->initiated = true;
         }
+        free(currentLC);
     }
     remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
 }
 
-lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
+lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd)
 {
     // there are remotes which handle this locomotive
     char *Vmode;
@@ -152,10 +161,6 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
     XmlParser::tryReadBoolAttr(message, "dir", &(currentLc->dir)); // current direction
     // placing="true" blockenterside="true"
     // are we in the info message?
-    char *prev_id = nullptr;
-    bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
-    if (prev_id)
-        free(prev_id);
     if (has_previd) {
         bool placing, blockenterside;
         XmlParser::tryReadBoolAttr(message, "placing", &(placing));
@@ -191,13 +196,14 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
     // of the locomotive
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message);
+        lc *currentLC = getCurrentLcSpeed(message, false);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             remotes[i]->vModePercent = currentLC->vModePercent;
             remotes[i]->V = currentLC->V;
             remotes[i]->initiated = true;
         }
+        free(currentLC);
     }
     remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
 
