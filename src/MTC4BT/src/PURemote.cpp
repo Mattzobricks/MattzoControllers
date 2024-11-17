@@ -164,6 +164,9 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                 log4MC::vlogf(LOG_INFO, "Plus button pressed. %d", currentLCPortA->initiated);
                 if (currentLCPortA->initiated) {
                     currentLCPortA->V += 10;
+                    if (currentLCPortA->V > currentLCPortA->Vmax) {
+                        currentLCPortA->V = currentLCPortA->Vmax;
+                    }
                     MTC4BTMQTTHandler::pubLcSpeed(currentLCPortA->id,
                                                   currentLCPortA->addr,
                                                   currentLCPortA->V);
@@ -184,8 +187,8 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                                                   currentLCPortA->V);
                 }
                 log4MC::vlogf(LOG_INFO, "Red button pressed. %s %d speed %d", currentLCPortA->id,
-                             currentLCPortA->addr,
-                             currentLCPortA->V);
+                              currentLCPortA->addr,
+                              currentLCPortA->V);
             }
             break;
         case 0xff: // minus  pressed = 0x01
@@ -219,13 +222,16 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
             } else {
                 if (currentLCPortA->initiated) {
                     currentLCPortA->V -= 10;
+                    if (currentLCPortA->V < -currentLCPortA->Vmax) {
+                        currentLCPortA->V = -currentLCPortA->Vmax;
+                    }
                     MTC4BTMQTTHandler::pubLcSpeed(currentLCPortA->id,
                                                   currentLCPortA->addr,
                                                   currentLCPortA->V);
                 }
                 log4MC::vlogf(LOG_INFO, "Min button pressed. %s %d speed %d", currentLCPortA->id,
-                             currentLCPortA->addr,
-                             currentLCPortA->V);
+                              currentLCPortA->addr,
+                              currentLCPortA->V);
             }
             break;
 

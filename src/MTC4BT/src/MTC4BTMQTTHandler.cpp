@@ -129,19 +129,21 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
     // of the locomotive
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message, has_previd);
+        lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->invdir);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             remotes[i]->vModePercent = currentLC->vModePercent;
             remotes[i]->V = currentLC->V;
+            remotes[i]->Vmax = currentLC->Vmax;
             remotes[i]->initiated = true;
+            remotes[i]->invdir = currentLC->invdir;
         }
         free(currentLC);
     }
     remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
 }
 
-lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd)
+lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, bool invdir)
 {
     // there are remotes which handle this locomotive
     char *Vmode;
@@ -166,6 +168,8 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd)
         XmlParser::tryReadBoolAttr(message, "placing", &(placing));
         // XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
         currentLc->invdir = !placing; // ignore stuff
+    } else {
+        currentLc->invdir = invdir;
     }
 
     if (!currentLc->dir) {
@@ -196,12 +200,14 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
     // of the locomotive
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message, false);
+        lc *currentLC = getCurrentLcSpeed(message, false, remotes[0]->invdir);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             remotes[i]->vModePercent = currentLC->vModePercent;
             remotes[i]->V = currentLC->V;
+            remotes[i]->Vmax = currentLC->Vmax;
             remotes[i]->initiated = true;
+            remotes[i]->invdir = currentLC->invdir;
         }
         free(currentLC);
     }

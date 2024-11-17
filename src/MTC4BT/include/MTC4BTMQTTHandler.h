@@ -24,5 +24,5 @@ class MTC4BTMQTTHandler
     static void handleLCList(const char *message);
     static void handleInfoLc(const char *message);
 
-    static lc *getCurrentLcSpeed(const char *message, bool has_previd);
+    static lc *getCurrentLcSpeed(const char *message, bool has_previd, bool invdir);
 };
