@@ -24,13 +24,15 @@ class PURemote : public PUHub
     void setLowIndex(int index);
 
     int getMinRange();
+    lc *getPortA(int address);
+    lc *getPortB(int address);
+    bool isRange;
 
   protected:
     lc *currentLCPortA;
     lc *currentLCPortB;
     int lowIndex; // needed for the ofset for the ledcolour
     int index;
-    bool isRange;
     int minRange;
     int maxRange;
     int portA;

@@ -2,8 +2,6 @@
 #include "MTC4BTController.h"
 #include "log4MC.h"
 
-#include "rocrailitems/lclist.h"
-
 // it is globaly devined in main.cpp
 extern MTC4BTController *controller;
 
@@ -29,6 +27,9 @@ void MTC4BTMQTTHandler::infoHandle(const char *message)
     char *pos;
     if ((pos = strstr(message, "<lclist")) != nullptr) {
         handleLCList(pos + 5);
+    } else if ((pos = strstr(message, "<lc ")) != nullptr) {
+        // found <lc
+        handleInfoLc(pos + 2);
     } // IGNORE THE REST
 }
 
@@ -66,6 +67,116 @@ void MTC4BTMQTTHandler::handleSys(const char *message)
     if (cmd)
         free(cmd);
 }
+/*
+<lc id="V100" addr="1" prev_id="V100" shortid="" roadname="" owner="" color=""
+number="" home="Shadow Station" desc="" dectype="" decfile="nmra-rp922.xml"
+docu="" image="v100.png" imagenr="0" remark="" len="25" radius="0" weight="0"
+nraxis="0" nrcars="0" manuid="" catnr="" purchased="" value="" identifier=""
+show="true" active="true" useshortid="false" mint="0" throttlenr="0" manually="false"
+bus="0" uid="0" secaddr="0" iid="" informall="false" oid="" prot="P" protver="1"
+spcnt="255" secspcnt="255" fncnt="2" V_min="30" V_mid="50" V_cru="80" V_max="100" V_maxsec="14"
+KMH_min="0" KMH_mid="0" KMH_cru="0" KMH_max="0" KMH_Rmin="0" KMH_Rmid="0" KMH_Rcru="0" KMH_Rmax="0"
+KMH_Smin="0" KMH_Smid="0" KMH_Scru="0" KMH_Smax="0" V_Rmin="0" V_Rmid="0" V_Rcru="0" V_Rmax="0" V_Smin="0"
+V_Smid="0" V_Scru="0" V_Smax="0" V_step="0" mass="0" minstep="0" maxstep="0" pwm="0" pwmcorrdiv="10"
+Vmidpercent="30" Vmaxmin="20" Vmaxmax="255" Vmaxkmh="0" Vmidset="true" V_mode="kmh" invdir="false"
+polarisation="true" regulated="true" restorefx="false" restorefxalways="false" restorespeed="false"
+info4throttle="false" dirpause="0" adjustaccel="false" maxload="0" accelmin="0" accelmax="0" decelerate="0"
+accelcv="3" accelcvindex="0" vmaxcv="5" vmaxcvindex="0" vmidcv="6" vmidcvindex="0" camhost="" camport="8081"
+camtype="0" camfile="stream.mjpg" camskip="0" camoption="0" blockwaittime="10" maxwaittime="0" evttimer="0"
+minenergypercentage="0" swaptimer="0" ent2incorr="100" priority="10" usescheduletime="false"
+commuter="false" shortin="false" inatpre2in="false" usemanualroutes="false" useownwaittime="false"
+startupscid="" startuptourid="" check2in="true" usedepartdelay="true" freeblockonenter="true"
+reducespeedatenter="false" routespeedatenter="false" v0onswap="false" resetplacing="false"
+manual="false" lookupschedule="false" lookupschedulevirtual="false" generated="false"
+swapondir="false" screcord="false" decoupler="false" engine="diesel" cargo="none"
+secondnextblock="false" secondnextblock4wait="false" era="0" class="" consist_syncfunmap="0"
+standalone="false" consist_lightsoff="false" consist_syncfun="false" consist_synclights="false"
+consist="" usebbt="false" bbtsteps="10" bbtstartinterval="10" bbtmaxdiff="250" bbtcorrection="25"
+bbtkey="0" cvnrs="1,2,3,4,5,6,17,18,29" destblockid="" cmdDelay="0" pause="false" mode="stop"
+fifotop="false" energypercentage="0" V="0" fx="0" throttleid="" trainlen="25" trainweight="0"
+blockid="" blockenterid="sb01" resumeauto="false" modereason="" waittime="0" V_hint="cruise"
+rdate="1730325551" runtime="37907" fn="false" blockenterside="true" cmd="modify" signalaspect=""
+sid="0" dir="false" placing="true" modeevent="true" shunting="false" mtime="0" scidx="-1" scheduleid=""
+tourid="" scheduleinithour="14" train="" V_realkmh="0" V_maxkmh="0" controlcode="" slavecode=""
+server="infw075D54C4" gotoblockid="" homeside="0" wheeldiameter="13.000000" wheelbase="0"
+maxincline="0" sernr="" coupler="" pwmkickstart="0" forcepriority="false" commuterblocks=""
+commuterlevel="" waitallblocks="false" waitallblocksalt="false" departdelay="0" routestack="false"
+stoponfailgoto="false" directgoto="false" engineFxType="" engineFxNr="0" sbt_decelerate="0"
+sbt_interval="0" bat_accelerate="0" bat_interval="0" arrivetime="1730146471"/>
+
+There could be fn's, but for the PU remote we are ignoring these.
+
+This command is needed to get info about the locomotive afer it is seleced by the remote
+*/
+void MTC4BTMQTTHandler::handleInfoLc(const char *message)
+{
+    int addr = 0;
+    if (!XmlParser::tryReadIntAttr(message, "addr", &addr)) {
+        // Log error, ignore message.
+        log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
+        return;
+    }
+    // find the remote that controlls this locomotive, this part is also
+    // in the regular lc command, this is only to get the initial values
+    // of the locomotive
+    std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
+    if (remotes.size() != 0) {
+        lc *currentLC = getCurrentLcSpeed(message);
+        // copy all found values to the remote(s)
+        for (int i = 0; i < remotes.size(); i++) {
+            remotes[i]->vModePercent = currentLC->vModePercent;
+            remotes[i]->V = currentLC->V;
+            remotes[i]->initiated = true;
+        }
+    }
+    remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
+}
+
+lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
+{
+    // there are remotes which handle this locomotive
+    char *Vmode;
+    lc *currentLc = new lc();
+    XmlParser::tryReadIntAttr(message, "V_max", &(currentLc->Vmax));
+    // XMLParser::tryReadIntAttr(message, "V_Rmax", &(currentLoc->VRmax));
+    // XMLParser::tryReadIntAttr(message, "V_Smax", &(currentLoc->VSmax));
+    if (XmlParser::tryReadCharAttr(message, "V_mode", &Vmode)) {
+        if (strstr(Vmode, "kmh") != nullptr) {
+            currentLc->vModePercent = false;
+        } else {
+            currentLc->vModePercent = true;
+        }
+        free(Vmode);
+    }
+    XmlParser::tryReadIntAttr(message, "V", &(currentLc->V));      // current speed
+    XmlParser::tryReadBoolAttr(message, "dir", &(currentLc->dir)); // current direction
+    // placing="true" blockenterside="true"
+    // are we in the info message?
+    char *prev_id = nullptr;
+    bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
+    if (prev_id)
+        free(prev_id);
+    if (has_previd) {
+        bool placing, blockenterside;
+        XmlParser::tryReadBoolAttr(message, "placing", &(placing));
+        // XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
+        currentLc->invdir = !placing; // ignore stuff
+    }
+
+    if (!currentLc->dir) {
+        currentLc->V = -currentLc->V;
+        currentLc->dir = true;
+    }
+
+    if (currentLc->invdir) {
+        currentLc->V = -currentLc->V;
+    }
+    if (currentLc->newSpeed != currentLc->V) {
+        // only change if we have a speed change, ignore 0 because that is our
+        currentLc->newSpeed = currentLc->V;
+    }
+    return currentLc;
+}
 
 void MTC4BTMQTTHandler::handleLc(const char *message)
 {
@@ -75,6 +186,20 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
         return;
     }
+    // find the remote that controlls this locomotive, this part is also
+    // in the regular lc command, this is only to get the initial values
+    // of the locomotive
+    std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
+    if (remotes.size() != 0) {
+        lc *currentLC = getCurrentLcSpeed(message);
+        // copy all found values to the remote(s)
+        for (int i = 0; i < remotes.size(); i++) {
+            remotes[i]->vModePercent = currentLC->vModePercent;
+            remotes[i]->V = currentLC->V;
+            remotes[i]->initiated = true;
+        }
+    }
+    remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
 
     if (!controller->HasLocomotive(addr)) {
         // Not a loco under our control. Ignore message.
@@ -213,4 +338,26 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
 
     // Ask controller to handle the function.
     controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
+}
+
+void MTC4BTMQTTHandler::pubGetShortLcList()
+{
+    mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
+}
+
+void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
+{
+    // get current info of the loc from rocrail and start following it!
+    char request[200];
+    snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locid);
+    mqttSubscriberClient.publish("rocrail/service/client", request);
+}
+
+void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
+{
+    char request[200];
+    bool dir = locV > 0;
+    snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr,
+             dir ? "true" : "false", abs(locV));
+    mqttSubscriberClient.publish("rocrail/service/client", request);
 }

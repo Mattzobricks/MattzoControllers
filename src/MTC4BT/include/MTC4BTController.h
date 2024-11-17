@@ -5,6 +5,8 @@
 #include "MController.h"
 #include "MTC4BTConfiguration.h"
 
+#include "rocrailitems/lclist.h"
+
 class MTC4BTController : public MController
 {
   public:
@@ -37,6 +39,9 @@ class MTC4BTController : public MController
 
     // Handles the given trigger (if loco is under control of this controller).
     void HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value);
+
+    // find all the remotes by address
+    std::vector<lc *> findRemoteByAddr(int addr);
 
   private:
     // Discovers new BLE devices.

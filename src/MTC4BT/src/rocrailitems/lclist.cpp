@@ -24,13 +24,19 @@ SOFTWARE.
 #include "lclist.h"
 #include "log4MC.h"
 
-lc::lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax) 
-: id(id), addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
+lc::lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
+    : id(id), addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
 {
     newSpeed = 0;
     V = 0;
+    initiated = false;
 }
-
+lc::lc()
+{
+    newSpeed = 0;
+    V = 0;
+    initiated = false;
+}
 lc::~lc()
 {
     log4MC::vlogf(LOG_DEBUG, "Delete %s", id);
@@ -43,7 +49,7 @@ void lc::setIdandAddr(const char *newId, const int newAddr)
 {
     if (id)
         free(id);
-    
+
     id = (char *)malloc(strlen(newId) + 1);
     strcpy(id, newId);
     addr = newAddr;
@@ -59,5 +65,4 @@ void lc::clear()
     initiated = false;
 }
 
-lc *currentLc; // only id is filled
 std::vector<lc *> locs;

@@ -105,10 +105,39 @@ void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int ma
         }
     }
 }
+
+std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
+{
+    std::vector<lc *> remotes;
+    remotes.reserve(6);
+    for (BLELocomotive *loco : Locomotives) {
+        for (BLEHub *hub : loco->Hubs) {
+            if (hub->GetHubType() == BLEHubType::PUController) {
+                PURemote *remoteHub = (PURemote *)hub;
+                //  find the index where minRange is valid
+                lc *locoLc;
+                if (remoteHub->isRange) {
+                    locoLc = remoteHub->getPortA(addr);
+                    if (locoLc)
+                        remotes.push_back(locoLc);
+                } else {
+                    locoLc = remoteHub->getPortA(addr);
+                    if (locoLc)
+                        remotes.push_back(locoLc);
+                    locoLc = remoteHub->getPortB(addr);
+                    if (locoLc)
+                        remotes.push_back(locoLc);
+                }
+            }
+        }
+    }
+    return remotes;
+}
+
 void MTC4BTController::handleLCList()
 {
-    /* for all controller 'locomotinves' for all hubs, find the PURemotes (HubType = BLEHubType::PUController) 
-    */
+    /* for all controller 'locomotinves' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
+     */
     for (BLELocomotive *loco : Locomotives) {
         for (BLEHub *hub : loco->Hubs) {
             if (hub->GetHubType() == BLEHubType::PUController) {

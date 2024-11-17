@@ -150,7 +150,7 @@ int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 10;
 uint8_t MattzoMQTTSubscriber::TaskPriority = 2;
 int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
-uint16_t MattzoMQTTSubscriber::MaxBufferSize = 1024;
+uint16_t MattzoMQTTSubscriber::MaxBufferSize = 10240;
 
 bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();

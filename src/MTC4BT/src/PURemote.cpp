@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "DriverTaskDelay.h"
+#include "MTC4BTMQTTHandler.h"
 #include "PURemote.h"
 #include "log4MC.h"
 #include <PubSubClient.h>
@@ -28,6 +29,20 @@ PURemote::PURemote(BLEHubConfiguration *config)
     }
 }
 
+lc *PURemote::getPortA(int address)
+{
+    if (currentLCPortA->addr == address && address != 0) {
+        return currentLCPortA;
+    }
+    return nullptr;
+}
+lc *PURemote::getPortB(int address)
+{
+    if (currentLCPortB->addr == address && address != 0) {
+        return currentLCPortB;
+    }
+    return nullptr;
+}
 int PURemote::getLowIndex()
 {
     return lowIndex;
@@ -119,7 +134,7 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
         case 0x01: // plus  pressed = 0x01
             if (port == 1) {
                 if (locs.size() == 0) {
-                    mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
+                    MTC4BTMQTTHandler::pubGetShortLcList();
                 } else {
                     // find the next that is in the range, when at the last one, start at the first one again.
                     int roundcount = 0;
@@ -140,28 +155,43 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                     } else {
                         SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
                         currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
-                        // get current info of the loc from rocrail and start following it!
-                        char request[200];
-                        snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locs[index]->id);
-                        mqttSubscriberClient.publish("rocrail/service/client", request);
+                        currentLCPortA->initiated = false;
+                        MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
                     }
                 }
 
             } else {
-                log4MC::info("Plus button pressed.");
+                log4MC::vlogf(LOG_INFO, "Plus button pressed. %d", currentLCPortA->initiated);
+                if (currentLCPortA->initiated) {
+                    currentLCPortA->V += 10;
+                    MTC4BTMQTTHandler::pubLcSpeed(currentLCPortA->id,
+                                                  currentLCPortA->addr,
+                                                  currentLCPortA->V);
+                }
+                log4MC::vlogf(LOG_INFO, "Plus button pressed. %s %d speed %d", currentLCPortA->id,
+                              currentLCPortA->addr,
+                              currentLCPortA->V);
             }
             break;
         case 0x7f: // red  pressed = 0x7f
             if (port == 1) {
                 mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"ebreak\" informall=\"true\"/>");
             } else {
-                log4MC::info("Red button pressed.");
+                if (currentLCPortA->initiated) {
+                    currentLCPortA->V = 0;
+                    MTC4BTMQTTHandler::pubLcSpeed(currentLCPortA->id,
+                                                  currentLCPortA->addr,
+                                                  currentLCPortA->V);
+                }
+                log4MC::vlogf(LOG_INFO, "Red button pressed. %s %d speed %d", currentLCPortA->id,
+                             currentLCPortA->addr,
+                             currentLCPortA->V);
             }
             break;
         case 0xff: // minus  pressed = 0x01
             if (port == 1) {
                 if (locs.size() == 0) {
-                    mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
+                    MTC4BTMQTTHandler::pubGetShortLcList();
                 } else {
                     // find the next that is in the range, when at the last one, start at the first one again.
                     int roundcount = 0;
@@ -182,14 +212,20 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                     } else {
                         SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
                         currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
-                        // get current info of the loc from rocrail and start following it!
-                        char request[200];
-                        snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locs[index]->id);
-                        mqttSubscriberClient.publish("rocrail/service/client", request);
+                        currentLCPortA->initiated = false;
+                        MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
                     }
                 }
             } else {
-                log4MC::info("Minus button pressed.");
+                if (currentLCPortA->initiated) {
+                    currentLCPortA->V -= 10;
+                    MTC4BTMQTTHandler::pubLcSpeed(currentLCPortA->id,
+                                                  currentLCPortA->addr,
+                                                  currentLCPortA->V);
+                }
+                log4MC::vlogf(LOG_INFO, "Min button pressed. %s %d speed %d", currentLCPortA->id,
+                             currentLCPortA->addr,
+                             currentLCPortA->V);
             }
             break;
 

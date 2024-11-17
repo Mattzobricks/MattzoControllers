@@ -43,6 +43,7 @@ typedef struct {
 class lc
 {
   public:
+    lc();
     lc(char *id,  int addr, bool vModePercent, int Vmax, int VRmax, int VSmax);
     ~lc();
 
@@ -67,5 +68,4 @@ class lc
     fn_t fn[32];
 };
 
-extern lc *currentLc; // only id is filled
 extern std::vector<lc *> locs;
