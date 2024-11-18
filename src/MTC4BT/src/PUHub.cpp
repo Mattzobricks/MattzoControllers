@@ -15,10 +15,6 @@ PUHub::PUHub(BLEHubConfiguration *config)
     _hubLedPort = 0;
 }
 
-void PUHub::setHubParameter(BLEHubParam paramname, void *value)
-{
-}
-
 bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
     _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;

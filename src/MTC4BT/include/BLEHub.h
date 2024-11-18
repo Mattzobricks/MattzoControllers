@@ -24,11 +24,6 @@
 // The number of seconds to wait for a Hub to connect.
 #define ConnectDelayInSeconds 5
 
-enum BLEHubParam {
-    ledColour = 0,
-    locomotive = 1,
-};
-
 // Abstract Bluetooth Low Energy (BLE) hub base class.
 class BLEHub
 {
@@ -93,13 +88,6 @@ class BLEHub
 
     // Abstract callback method used to handle hub notifications.
     virtual void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) = 0;
-
-    /**
-     * @brief setHubParameter, the paramname should do the cast, because it knows
-     * @param [in] paramname
-     * @param [in] value
-     */
-    virtual void setHubParameter(BLEHubParam paramname, void *value) = 0;
 
   protected:
     void initChannelControllers();

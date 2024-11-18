@@ -50,30 +50,13 @@ int MattzoMQTTSubscriber::GetStatus()
 
 void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-    // Allocate memory to hold the message.
-    char *message = (char *)malloc(length + 1);
-    for (int i = 0; i < length; i++) {
-        message[i] = (char)payload[i];
-        /* for the remote, more commands have to be processed, keeping the "short" list is getting expensive
-        if (i == 4) {
-            // Check if this is a message we should ignore.
-            if ((strstr(message, "<sys ")) == nullptr &&
-                (strstr(message, "<lc ")) == nullptr &&
-                (strstr(message, "<fn ")) == nullptr&&
-                (strstr(message, "<lclist")) == nullptr) {
-                // Nothing we can handle, so ignore this message.
-                free(message);
-                return;
-            }
-        }*/
-    }
-    message[length] = '\0';
+    char *message = (char *)payload;
+    payload[length] = 0;
     //log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. ", topic);
     if (handler && strstr(topic, MQTT_TOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
         (*handler)(message);
     if (infohandler && strstr(topic, MQTT_INFOTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
         (*infohandler)(message);
-    free(message);
 }
 
 /// <summary>
@@ -150,7 +133,7 @@ int MattzoMQTTSubscriber::HandleMessageDelayInMilliseconds = 10;
 uint8_t MattzoMQTTSubscriber::TaskPriority = 2;
 int8_t MattzoMQTTSubscriber::CoreID = 0;
 uint32_t MattzoMQTTSubscriber::StackDepth = 2048;
-uint16_t MattzoMQTTSubscriber::MaxBufferSize = 10240;
+uint16_t MattzoMQTTSubscriber::MaxBufferSize = 16384;
 
 bool MattzoMQTTSubscriber::_setupCompleted = false;
 unsigned long MattzoMQTTSubscriber::lastPing = millis();

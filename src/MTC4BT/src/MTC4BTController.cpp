@@ -4,6 +4,7 @@
 #include "enums.h"
 #include "log4MC.h"
 
+#include "MTC4BTMQTTHandler.h"
 #include "PURemote.h"
 
 // The priority at which the task should run.
@@ -141,23 +142,43 @@ void MTC4BTController::handleLCList()
     for (BLELocomotive *loco : Locomotives) {
         for (BLEHub *hub : loco->Hubs) {
             if (hub->GetHubType() == BLEHubType::PUController) {
-                // log4MC::vlogf(LOG_DEBUG, "Found an PURemote");
-                //  find the index where minRange is valid
-                int index = 0;
-                int minRange = ((PURemote *)hub)->getMinRange();
-                int addr = 0;
-                ((PURemote *)hub)->setLowIndex(0);
+                //   find the index where minRange is valid
+                PURemote *remoteHub = (PURemote *)hub;
+                if (remoteHub->isRange) {
+                    int index = 0;
+                    int minRange = remoteHub->getMinRange();
+                    int addr = 0;
+                    remoteHub->setLowIndex(0);
 
-                while (index < locs.size() &&
-                       locs[index]->addr < minRange) {
-                    index++;
-                }
-                if (index != locs.size()) {
-                    ((PURemote *)hub)->setLowIndex(index);
+                    while (index < locs.size() &&
+                           locs[index]->addr < minRange) {
+                        index++;
+                    }
+                    if (index != locs.size()) {
+                        remoteHub->setLowIndex(index);
+                    } else {
+                        remoteHub->setLowIndex(-1);
+                    }
                 } else {
-                    ((PURemote *)hub)->setLowIndex(-1);
+                    lc *lcportA = remoteHub->getPortA();
+                    lc *lcportB = remoteHub->getPortB();
+                    // set lcportA and LCportB
+                    for (int i = 0; i < locs.size(); i++) {
+                        // find the id of the locos.
+                        if (lcportA->addr == locs[i]->addr) {
+                            lcportA->setIdandAddr(locs[i]->id, locs[i]->addr);
+                            // get the loc info
+                            log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
+                            MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                        }
+                        if (lcportB->addr == locs[i]->addr) {
+                            lcportB->setIdandAddr(locs[i]->id, locs[i]->addr);
+                            // get the loc info
+                            log4MC::vlogf(LOG_DEBUG, "B id addr %s %d", locs[i]->id, locs[i]->addr);
+                            MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                        }
+                    }
                 }
-                // log4MC::vlogf(LOG_DEBUG, "index %d", index);
             }
         }
     }

@@ -26,6 +26,10 @@ PURemote::PURemote(BLEHubConfiguration *config)
         isRange = false;
         portA = config->remote.addr.F.portA;
         portB = config->remote.addr.F.portB;
+        currentLCPortA->addr = portA;
+        currentLCPortB->addr = portB;
+        currentLCPortA->initiated = false;
+        currentLCPortB->initiated = false;
     }
 }
 
@@ -36,12 +40,21 @@ lc *PURemote::getPortA(int address)
     }
     return nullptr;
 }
+lc *PURemote::getPortA()
+{
+    return currentLCPortA;
+}
+
 lc *PURemote::getPortB(int address)
 {
     if (currentLCPortB->addr == address && address != 0) {
         return currentLCPortB;
     }
     return nullptr;
+}
+lc *PURemote::getPortB()
+{
+    return currentLCPortB;
 }
 int PURemote::getLowIndex()
 {
@@ -56,9 +69,6 @@ void PURemote::setLowIndex(int index)
 int PURemote::getMinRange()
 {
     return minRange;
-}
-void PURemote::setHubParameter(BLEHubParam paramname, void *value)
-{
 }
 
 void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
@@ -106,7 +116,7 @@ void PURemote::parseHWNeworkCommandMessage(uint8_t *pData, size_t length)
             // setHubLedColor(hubColour);
             mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"go\" informall=\"true\"/>");
             // force refresh locs list
-            mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
+            MTC4BTMQTTHandler::pubGetShortLcList();
         }
         break;
 
@@ -133,35 +143,45 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
         switch (value) {
         case 0x01: // plus  pressed = 0x01
             if (port == 1) {
-                if (locs.size() == 0) {
-                    MTC4BTMQTTHandler::pubGetShortLcList();
-                } else {
-                    // find the next that is in the range, when at the last one, start at the first one again.
-                    int roundcount = 0;
-                    while (roundcount != 2) {
-                        index++;
-                        if (index >= locs.size()) {
-                            index = 0;
-                            roundcount++;
+                if (isRange) {
+                    if (locs.size() == 0) {
+                        MTC4BTMQTTHandler::pubGetShortLcList();
+                    } else {
+                        // find the next that is in the range, when at the last one, start at the first one again.
+                        int roundcount = 0;
+                        while (roundcount != 2) {
+                            index++;
+                            if (index >= locs.size()) {
+                                index = 0;
+                                roundcount++;
+                            }
+                            if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
+                                // found a new index;
+                                break;
+                            }
                         }
-                        if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
-                            // found a new index;
-                            break;
+                        //log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
+                        if (roundcount == 2) {
+                            index = -1;
+                        } else {
+                            SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
+                            currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
+                            currentLCPortA->initiated = false;
+                            MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
                         }
                     }
-                    log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
-                    if (roundcount == 2) {
-                        index = -1;
-                    } else {
-                        SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
-                        currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
-                        currentLCPortA->initiated = false;
-                        MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
+                } else {
+                    if (currentLCPortB->initiated) {
+                        currentLCPortB->V += 10;
+                        if (currentLCPortB->V > currentLCPortB->Vmax) {
+                            currentLCPortB->V = currentLCPortB->Vmax;
+                        }
+                        MTC4BTMQTTHandler::pubLcSpeed(currentLCPortB->id,
+                                                      currentLCPortB->addr,
+                                                      currentLCPortB->V);
                     }
                 }
-
             } else {
-                log4MC::vlogf(LOG_INFO, "Plus button pressed. %d", currentLCPortA->initiated);
                 if (currentLCPortA->initiated) {
                     currentLCPortA->V += 10;
                     if (currentLCPortA->V > currentLCPortA->Vmax) {
@@ -171,14 +191,20 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                                                   currentLCPortA->addr,
                                                   currentLCPortA->V);
                 }
-                log4MC::vlogf(LOG_INFO, "Plus button pressed. %s %d speed %d", currentLCPortA->id,
-                              currentLCPortA->addr,
-                              currentLCPortA->V);
             }
             break;
         case 0x7f: // red  pressed = 0x7f
             if (port == 1) {
-                mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"ebreak\" informall=\"true\"/>");
+                if (isRange) {
+                    mqttSubscriberClient.publish("rocrail/service/client", "<sys cmd=\"ebreak\" informall=\"true\"/>");
+                } else {
+                    if (currentLCPortB->initiated) {
+                        currentLCPortB->V = 0;
+                        MTC4BTMQTTHandler::pubLcSpeed(currentLCPortB->id,
+                                                      currentLCPortB->addr,
+                                                      currentLCPortB->V);
+                    }
+                }
             } else {
                 if (currentLCPortA->initiated) {
                     currentLCPortA->V = 0;
@@ -186,37 +212,45 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                                                   currentLCPortA->addr,
                                                   currentLCPortA->V);
                 }
-                log4MC::vlogf(LOG_INFO, "Red button pressed. %s %d speed %d", currentLCPortA->id,
-                              currentLCPortA->addr,
-                              currentLCPortA->V);
             }
             break;
         case 0xff: // minus  pressed = 0x01
             if (port == 1) {
-                if (locs.size() == 0) {
-                    MTC4BTMQTTHandler::pubGetShortLcList();
-                } else {
-                    // find the next that is in the range, when at the last one, start at the first one again.
-                    int roundcount = 0;
-                    while (roundcount != 2) {
-                        index--;
-                        if (index < 0) {
-                            index = locs.size() - 1;
-                            roundcount++;
+                if (isRange) {
+                    if (locs.size() == 0) {
+                        MTC4BTMQTTHandler::pubGetShortLcList();
+                    } else {
+                        // find the next that is in the range, when at the last one, start at the first one again.
+                        int roundcount = 0;
+                        while (roundcount != 2) {
+                            index--;
+                            if (index < 0) {
+                                index = locs.size() - 1;
+                                roundcount++;
+                            }
+                            if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
+                                // found a new index;
+                                break;
+                            }
                         }
-                        if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
-                            // found a new index;
-                            break;
+                        if (roundcount == 2) {
+                            index = -1;
+                        } else {
+                            SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
+                            currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
+                            currentLCPortA->initiated = false;
+                            MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
                         }
                     }
-                    log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
-                    if (roundcount == 2) {
-                        index = -1;
-                    } else {
-                        SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
-                        currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
-                        currentLCPortA->initiated = false;
-                        MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
+                } else {
+                    if (currentLCPortB->initiated) {
+                        currentLCPortB->V -= 10;
+                        if (currentLCPortB->V < -currentLCPortB->Vmax) {
+                            currentLCPortB->V = -currentLCPortB->Vmax;
+                        }
+                        MTC4BTMQTTHandler::pubLcSpeed(currentLCPortB->id,
+                                                      currentLCPortB->addr,
+                                                      currentLCPortB->V);
                     }
                 }
             } else {
@@ -229,9 +263,6 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
                                                   currentLCPortA->addr,
                                                   currentLCPortA->V);
                 }
-                log4MC::vlogf(LOG_INFO, "Min button pressed. %s %d speed %d", currentLCPortA->id,
-                              currentLCPortA->addr,
-                              currentLCPortA->V);
             }
             break;
 

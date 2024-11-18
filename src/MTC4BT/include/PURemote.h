@@ -10,7 +10,6 @@ class PURemote : public PUHub
 {
   public:
     PURemote(BLEHubConfiguration *config);
-    void setHubParameter(BLEHubParam paramname, void *value);
     /**
      * @brief Callback function for notifications of a specific characteristic
      * @param [in] pBLERemoteCharacteristic The pointer to the characteristic
@@ -25,7 +24,9 @@ class PURemote : public PUHub
 
     int getMinRange();
     lc *getPortA(int address);
+    lc *getPortA();
     lc *getPortB(int address);
+    lc *getPortB();
     bool isRange;
 
   protected:

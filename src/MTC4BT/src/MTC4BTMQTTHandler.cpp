@@ -138,9 +138,9 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
             remotes[i]->initiated = true;
             remotes[i]->invdir = currentLC->invdir;
         }
-        free(currentLC);
+        delete( currentLC);
+        remotes.clear(); // DO NOT FREE, THEY ARE REFERENCED BY THE REMOTES!
     }
-    remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
 }
 
 lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, bool invdir)
@@ -209,9 +209,9 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
             remotes[i]->initiated = true;
             remotes[i]->invdir = currentLC->invdir;
         }
-        free(currentLC);
+        delete( currentLC );
+        remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
     }
-    remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
 
     if (!controller->HasLocomotive(addr)) {
         // Not a loco under our control. Ignore message.

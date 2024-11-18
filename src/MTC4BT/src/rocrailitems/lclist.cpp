@@ -33,14 +33,15 @@ lc::lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
 }
 lc::lc()
 {
+    id = nullptr;
     newSpeed = 0;
     V = 0;
     initiated = false;
 }
 lc::~lc()
 {
-    log4MC::vlogf(LOG_DEBUG, "Delete %s", id);
     if (id) {
+        log4MC::vlogf(LOG_DEBUG, "Delete %s", id);
         free(id);
         id = nullptr;
     }
