@@ -62,7 +62,7 @@ Supported hub types
 
 It is now possible to make a wired network connection using the W5500 module. To enable it in the code, add -DWIRED in `my_platformio.ini`.
 
-For now the pins should be connected as folows:
+For now the pins should be connected as follows:
 
 | W5500 pin  | ESP32 pin |
 |---|---|
@@ -74,9 +74,9 @@ For now the pins should be connected as folows:
 
 GND and 3V3 are also connected, the other pins are not connected.
 
-If the code is compiled with the -DWIRED, it will try and connect to the network using the W5500 module. If there is no networkcable connected, it will fall back to wifi. This is only done at the **STARTUP** of the module, it will **NOT FALLBACK to WiFI** if you disconnect the cable during normal operation, you have to restart the ESP!
+If the code is compiled with the -DWIRED, it will try and connect to the network using the W5500 module. If there is no network cable connected, it will fall back to wifi. This is only done at the **STARTUP** of the module, it will **NOT FALLBACK to WiFI** if you disconnect the cable during normal operation, you have to restart the ESP!
 
-OTA will not work when the network connction is over the cable, disconnect the cable and restart the module so it starts in WiFi mode. This limitation is caused by the ArduinoOTA library being hard wired (pun intended) to Wifi.h (at the time of writing). 
+OTA will not work when the network connection is over the cable, disconnect the cable and restart the module so it starts in WiFi mode. This limitation is caused by the ArduinoOTA library being hard wired (pun intended) to Wifi.h (at the time of writing). 
 
 The IP address is different for Wifi and cable because an other MAC address is used.
 
@@ -84,11 +84,11 @@ The IP address is different for Wifi and cable because an other MAC address is u
 
 #### Configuring the `controller_config.json`
 
-The cofiguration has two modes, a range mode and a fixed mode.
+The configuration has two modes, a range mode and a fixed mode.
 
 ##### Range mode
 
-In the range mode, the configurtion looks something like this:
+In the range mode, the configuration looks something like this:
 
 ```
    {
@@ -107,13 +107,13 @@ In the range mode, the configurtion looks something like this:
     },
 ```
 
-The fields `address` and `name` are not used, but there should be a unique value in it to prevent strange behavour and it should not be in the addresses and names that Rocrail uses!
+The fields `address` and `name` are not used, but there should be a unique value in it to prevent strange behaviour and it should not be in the addresses and names that Rocrail uses!
 
 `min` and `max` indicate the locomotive address range in which you can select a locomotive.
 
 ##### Fixed mode
 
-In the fixed mode, the configurtion looks something like this:
+In the fixed mode, the configuration looks something like this:
 
 ```
     {
@@ -131,38 +131,38 @@ In the fixed mode, the configurtion looks something like this:
       ]
     },
 ```    
-he fields `address` and `name` are not used, but there should be a unique value in it to prevent strange behavour and it should not be in the addresses and names that Rocrail uses!
+he fields `address` and `name` are not used, but there should be a unique value in it to prevent strange behaviour and it should not be in the addresses and names that Rocrail uses!
 
-`portA` and `portB` holds the address of the locomotive you want to controll.
+`portA` and `portB` holds the address of the locomotive you want to control.
 
 #### Working with a PURemote
 
 Both modes use the keys in different ways, the PU remote has two ports, port A on the left and port B on the right. In both mode the PU remote should be bound to the MTC4BT. The led on the remote indicates it state: 
  - short flashes: the remote is in 'Discovery' mode, the remote is searching for the MTC4BT;
- - 50% on and 50% off: the remote is discoverd and bound the the MTC4BT, but the layout is swithed off, or in e-brake state;
+ - 50% on and 50% off: the remote is discoverd and bound the the MTC4BT, but the layout is switched off, or in e-brake state;
  - 100% on: the remote is discoverd and bound to the MTC4BT and the layout is switched on.
  **All button actions work only in the latter two modes!**
 
 ##### Range mode
 
-In the range mode, port B lets you select a locomotive in the configured range. At first, there are no locomotives loaded, pressing the 'green' button will turn on the layout, but also force a load of the locomotive list to MTC4BT. Pressing the '-' or '+' button on port B will also load the locomoives, no locomotive is selected, you need to press the '+' or '-' button a second time to select a locomotive.
+In the range mode, port B lets you select a locomotive in the configured range. At first, there are no locomotives loaded, pressing the 'green' button will turn on the layout, but also force a load of the locomotive list to MTC4BT. Pressing the '-' or '+' button on port B will also load the locomotives, no locomotive is selected, you need to press the '+' or '-' button a second time to select a locomotive.
 Buttons on port B:
  - '+' button, get the next locomotive in the range, the controller led will change colour.
  - '-' button, get the previous locomotive in the range, the controller led will change colour.
- - 'red' button, the e-brake or emergnecy brake is pressed and send to Rocrail, the led wil be flashing on and off.
-Wnen the last locomotive in the range is selected, it will circle back to the first or last in the list depending on the button.
+ - 'red' button, the e-brake or emergency brake is pressed and send to Rocrail, the led wil be flashing on and off.
+When the last locomotive in the range is selected, it will circle back to the first or last in the list depending on the button.
 The colours the led can have are:
- - off, not used, the controller is not discoverd and off;
- - pink, nubmer 1;
- - purple, number 2;
- - blue, number 3,
- - lighblue, number 4,
- - clyan, number 5,
- - green, number 6,
- - yellow, number 7,
- - orange, number 8,
- - red, number 9,
- - white no locomotive selected.
+ - off: not used, the controller is not discoverd and off;
+ - pink: number 1;
+ - purple: number 2;
+ - blue: number 3,
+ - lighblue: number 4,
+ - clyan: number 5,
+ - green: number 6,
+ - yellow: number 7,
+ - orange: number 8,
+ - red: number 9,
+ - white: no locomotive selected.
 
 Buttons on port A:
  - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
