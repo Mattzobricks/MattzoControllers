@@ -50,13 +50,12 @@ int MattzoMQTTSubscriber::GetStatus()
 
 void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-    char *message = (char *)payload;
-    payload[length] = 0;
-    //log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. ", topic);
+    payload[length-1] = 0;
+    //log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. (%s)", topic, (char * )payload );
     if (handler && strstr(topic, MQTT_TOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
-        (*handler)(message);
+        (*handler)((char *)payload);
     if (infohandler && strstr(topic, MQTT_INFOTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
-        (*infohandler)(message);
+        (*infohandler)((char *)payload);
 }
 
 /// <summary>
