@@ -179,6 +179,7 @@ Buttons on port A:
  - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
  - '-' button, decrement the speed with 10, this could be  '%' or 'kmh' until the min speed is reached;
  - 'red' button, set the speed to 0.
+ 
 Buttons on port B:
  - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
  - '-' button, decrement the speed with 10, this could be  '%' or 'kmh' until the min speed is reached;
