@@ -141,6 +141,7 @@ Both modes use the keys in different ways, the PU remote has two ports, port A o
  - short flashes: the remote is in 'Discovery' mode, the remote is searching for the MTC4BT;
  - 50% on and 50% off: the remote is discoverd and bound the the MTC4BT, but the layout is switched off, or in e-brake state;
  - 100% on: the remote is discoverd and bound to the MTC4BT and the layout is switched on.
+ 
  **All button actions work only in the latter two modes!**
 
 ##### Range mode
@@ -150,7 +151,9 @@ Buttons on port B:
  - '+' button, get the next locomotive in the range, the controller led will change colour.
  - '-' button, get the previous locomotive in the range, the controller led will change colour.
  - 'red' button, the e-brake or emergency brake is pressed and send to Rocrail, the led wil be flashing on and off.
+
 When the last locomotive in the range is selected, it will circle back to the first or last in the list depending on the button.
+
 The colours the led can have are:
  - off: not used, the controller is not discoverd and off;
  - pink: number 1;
@@ -179,7 +182,7 @@ Buttons on port A:
  - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
  - '-' button, decrement the speed with 10, this could be  '%' or 'kmh' until the min speed is reached;
  - 'red' button, set the speed to 0.
- 
+
 Buttons on port B:
  - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
  - '-' button, decrement the speed with 10, this could be  '%' or 'kmh' until the min speed is reached;
