@@ -52,7 +52,7 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
 {
     payload[length-1] = 0;
     //log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. (%s)", topic, (char * )payload );
-    if (handler && strstr(topic, MQTT_TOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
+    if (handler && strstr(topic, MQTT_COMMANDTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
         (*handler)((char *)payload);
     if (infohandler && strstr(topic, MQTT_INFOTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
         (*infohandler)((char *)payload);
@@ -93,10 +93,10 @@ void MattzoMQTTSubscriber::reconnect()
 
         log4MC::info("MQTT: Subscriber attempting to connect...");
 
-        if (mqttSubscriberClient.connect(_subscriberName, MQTT_TOPIC, 0, false, lastWillMessage_char)) {
+        if (mqttSubscriberClient.connect(_subscriberName, MQTT_COMMANDTOPIC, 0, false, lastWillMessage_char)) {
             log4MC::info("MQTT: Subscriber connected");
-            mqttSubscriberClient.subscribe(MQTT_TOPIC);
-            log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_TOPIC);
+            mqttSubscriberClient.subscribe(MQTT_COMMANDTOPIC);
+            log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_COMMANDTOPIC);
             mqttSubscriberClient.subscribe(MQTT_INFOTOPIC);
             log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_INFOTOPIC);
         } else {

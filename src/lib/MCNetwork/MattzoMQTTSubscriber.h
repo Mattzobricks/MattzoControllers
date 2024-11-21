@@ -35,7 +35,8 @@
 extern WiFiClient wifiSubscriberClient;
 extern PubSubClient mqttSubscriberClient;
 
-#define MQTT_TOPIC "rocrail/service/command"
+#define MQTT_COMMANDTOPIC "rocrail/service/command"
+#define MQTT_CLIENTTOPIC "rocrail/service/client"
 #define MQTT_INFOTOPIC "rocrail/service/info"
 
 // <summary>

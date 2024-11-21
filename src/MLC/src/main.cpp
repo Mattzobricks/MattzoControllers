@@ -732,7 +732,7 @@ void sendSensorEvent2MQTT(int sensorIndex, bool sensorState)
     mcLog2("Sending MQTT message: " + mqttMessage, LOG_DEBUG);
     char mqttMessage_char[255]; // message is usually 61 chars, so 255 chars should be enough
     mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
-    mqttClient.publish("rocrail/service/client", mqttMessage_char);
+    mqttClient.publish(MQTT_CLIENTTOPIC, mqttMessage_char);
 }
 
 void sendEmergencyBrake2MQTT(String emergencyBrakeReason)
@@ -741,7 +741,7 @@ void sendEmergencyBrake2MQTT(String emergencyBrakeReason)
     mcLog2("Sending emergency brake message via MQTT: " + mqttMessage, LOG_ERR);
     char mqttMessage_char[255]; // message with reason "bridge open" is 44 chars, so 255 chars should be enough
     mqttMessage.toCharArray(mqttMessage_char, mqttMessage.length() + 1);
-    mqttClient.publish("rocrail/service/client", mqttMessage_char);
+    mqttClient.publish(MQTT_CLIENTTOPIC, mqttMessage_char);
 }
 
 // Switches LED on if one or more sensors has contact

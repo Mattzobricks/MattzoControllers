@@ -78,8 +78,6 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
     mqtt->ServerPort = mqttConfig["port"] | 1883;
     mqtt->KeepAlive = mqttConfig["keepalive"] | 10;
     mqtt->Ping = mqttConfig["ping"] | 0;
-    //mqtt->Topic = "rocrail/service/command";
-    //mqtt->infoTopic = "rocrail/service/info";
     // Attach MQTT configuration.
     config->MQTT = mqtt;
 

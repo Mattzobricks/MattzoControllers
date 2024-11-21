@@ -354,7 +354,7 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
 
 void MTC4BTMQTTHandler::pubGetShortLcList()
 {
-    mqttSubscriberClient.publish("rocrail/service/client", "<model cmd=\"lclist\" val=\"short\"/>");
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<model cmd=\"lclist\" val=\"short\"/>");
 }
 
 void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
@@ -362,7 +362,7 @@ void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
     // get current info of the loc from rocrail and start following it!
     char request[200];
     snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locid);
-    mqttSubscriberClient.publish("rocrail/service/client", request);
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
@@ -371,5 +371,5 @@ void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
     bool dir = locV > 0;
     snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr,
              dir ? "true" : "false", abs(locV));
-    mqttSubscriberClient.publish("rocrail/service/client", request);
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
