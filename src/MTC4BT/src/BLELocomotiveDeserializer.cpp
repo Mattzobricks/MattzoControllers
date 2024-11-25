@@ -24,9 +24,23 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
         remoteAddress PUremoteAddress;                                     // only valid for PURemotes
 
         std::vector<MCChannelConfig *> channels;
-        if (strcmp(hubType.c_str(), "PUController") == 0) {
-            // ignore the channels for the controller, just add the led
-            MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, "LED");
+        JsonArray channelConfigs = hubConfig["channels"].as<JsonArray>();
+        for (JsonObject channelConfig : channelConfigs) {
+            // Read hub channel properties.
+            const std::string channel = channelConfig["channel"];
+            std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
+            const int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
+            const int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
+            int16_t chnlPwr = channelConfig["power"] | 100;
+            if (chnlPwr < 1 || chnlPwr > 100) {
+                log4MC::vlogf(LOG_ERR, "Config: ERROR the 'power' value must be between 1 and 100, using 100!");
+                chnlPwr = 100;
+            }
+            const char *dir = channelConfig["direction"] | "forward";
+            bool isInverted = strcmp(dir, "backward") == 0 || strcmp(dir, "reverse") == 0;
+            bool isPU = strcmp(hubType.c_str(), "PU") == 0;
+
+            MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
             hubChannel->SetParentAddress(address);
             std::string attachedDevice = "light";
             channels.push_back(new MCChannelConfig(hubChannel, hubPwrIncStep, hubPwrDecStep, false, 100, deviceTypeMap()[attachedDevice]));
