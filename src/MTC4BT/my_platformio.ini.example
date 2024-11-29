@@ -23,6 +23,7 @@ additional_build_flags =
 ;	 -DTICKER=1
 ;    -DDEBUGNOTIFYBUWIZZ2
 ;    -DDEBUGNOTIFYPU
+;    -DDEBUGNOTIFYPUREMOTE
 ;    -DDRIVERTASKDELAY=250
 upload_com_port = COM3
 ; for macOS, just as example

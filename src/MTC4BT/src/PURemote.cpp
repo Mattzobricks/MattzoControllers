@@ -95,7 +95,7 @@ void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacterist
     case (byte)PUMessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
         parsePortAction(pData, length);
         break;
-#ifdef DEBUGNOTIFYPU
+#ifdef DEBUGNOTIFYPUREMOTE
     default:
         dumpPData(pData, length);
 #endif
@@ -265,7 +265,7 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
             break;
         }
     }
-#ifdef DEBUGNOTIFYPU
+#ifdef DEBUGNOTIFYPUREMOTE
     else {
         dumpPData(pData, length);
     }
