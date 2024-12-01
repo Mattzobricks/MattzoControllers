@@ -102,7 +102,7 @@ void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacterist
     }
 }
 /**
- * @brief Parse the incoming characteristic notification for a HW Network Commands feadback
+ * @brief Parse the incoming characteristic notification for a HW Network Commands feedback
  * @param [in] pData The pointer to the received data
  * @param [in] length The length of to the received data
  */
@@ -272,7 +272,7 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
 #endif
 }
 /**
- * @brief Parse the incoming characteristic notification for a Port output feadback
+ * @brief Parse the incoming characteristic notification for a Port output feedback
  * for know we see it as the ack
  * @param [in] pData The pointer to the received data
  */
