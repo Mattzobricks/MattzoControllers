@@ -178,6 +178,7 @@ void MTC4BTController::handleLCList()
                             MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
                         }
                     }
+                    remoteHub->SetHubLedColor(GREEN);
                 }
             }
         }
