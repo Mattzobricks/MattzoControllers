@@ -137,7 +137,7 @@ std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
 
 void MTC4BTController::handleLCList()
 {
-    /* for all controller 'locomotinves' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
+    /* for all controller 'locomotives' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
      */
     for (BLELocomotive *loco : Locomotives) {
         for (BLEHub *hub : loco->Hubs) {
@@ -224,9 +224,6 @@ void MTC4BTController::discoveryLoop(void *parm)
                         if (loco->AllHubsConnected()) {
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
-                            // For hubs of this loco that have an onboard LED, force it to be on (white) by default.
-                            // TODO: CHECK if this line can be removed loco->SetHubLedColor(hub->hubColour);
-
                             // Blink lights for a while when connected.
                             loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
                         }
@@ -268,6 +265,5 @@ BLELocomotive *MTC4BTController::getLocomotive(uint address)
             return loco;
         }
     }
-
     return nullptr;
 }
