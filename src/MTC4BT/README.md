@@ -76,7 +76,7 @@ For now the pins should be connected as follows:
 | W5500 pin  | ESP32 pin |
 |---|---|
 | RESET | GPIO 26 |
-| CS/SS  | GPIO 5  |
+| CS/SS | GPIO 5  |
 | MOSI  | GPIO 23 |
 | MISO  | GPIO 19 |
 | SCK   | GPIO 18 |
@@ -88,6 +88,8 @@ If the code is compiled with the -DWIRED, it will try and connect to the network
 OTA will not work when the network connection is over the cable, disconnect the cable and restart the module so it starts in WiFi mode. This limitation is caused by the ArduinoOTA library being hard wired (pun intended) to Wifi.h (at the time of writing). 
 
 The IP address is different for Wifi and cable because an other MAC address is used.
+
+If a status LED is configured, it will turn on solid in network discovery. This will get the other statuses when out of setup and in the regular operation mode.
 
 ### Configuring the PURemote
 
@@ -182,6 +184,7 @@ Buttons on port A:
 ##### Fixed mode
 
 In the fixed mode, at first, there are no locomotives loaded, pressing the 'green' button will turn on the layout, but also force a load of the locomotive list to MTC4BT.
+The controller LED will turn green when a valid locomotive list is received from RocRail.
 The address of the locomotives for port A and port B are the ones in the configuration.
 
 Buttons on port A:
