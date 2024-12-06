@@ -279,7 +279,9 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
 void PURemote::parsePortAction(uint8_t *pData, size_t length)
 {
     // empty function
+#ifdef DEBUGNOTIFYPUREMOTE
     dumpPData(pData, length);
+#endif    
 }
 
 /**

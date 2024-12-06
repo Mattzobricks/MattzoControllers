@@ -155,7 +155,9 @@ void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
 void PUHub::parsePortAction(uint8_t *pData, size_t length)
 {
     // empty function
+#ifdef DEBUGNOTIFYPU
     dumpPData(pData, length);
+#endif    
 }
 
 /**
