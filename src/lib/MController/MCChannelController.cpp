@@ -118,7 +118,8 @@ bool MCChannelController::UpdateCurrentPwrPerc()
         (_targetPwrPerc >= 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
         (_targetPwrPerc < 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
         (_targetPwrPerc >= 0 && newPwrPerc < _targetPwrPerc && newPwrPerc < _currentPwrPerc)) {
-        _currentPwrPerc = _targetPwrPerc;
+        // do a normalize incase someone has some strange power steps.    
+        _currentPwrPerc = normalizePwrPerc(_targetPwrPerc);
         return true;
     }
 
