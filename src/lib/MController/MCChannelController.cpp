@@ -123,7 +123,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
     }
 
     if (abs(newPwrPerc) < _minPwrPerc) {
-        // New pwr is slower than min pwr, force to min pwr or stop immediately (dependend on wether we're accelarating or decelerating).
+        // New pwr is slower than min pwr, force to min pwr or stop immediately (dependent on wether we're accelerating or decelerating).
         dirMultiplier = newPwrPerc >= 0 ? 1 : -1;
         _currentPwrPerc = isAccelarating() ? _minPwrPerc * dirMultiplier : 0;
         return true;

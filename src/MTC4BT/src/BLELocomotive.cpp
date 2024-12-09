@@ -31,8 +31,8 @@ void BLELocomotive::Drive(const int16_t minSpeed, const int16_t pwrPerc)
         hub->Drive(minSpeed, pwrPerc);
 
         if ((currentPwrPerc < 0 && pwrPerc > 0) ||
-            currentPwrPerc > 0 && pwrPerc < 0 ||
-            currentPwrPerc != 0 && pwrPerc == 0) {
+            (currentPwrPerc > 0 && pwrPerc < 0) ||
+            (currentPwrPerc != 0 && pwrPerc == 0)) {
             // If we go from moving backward (< 0%) to moving forward (> 0%) or
             // if we go from moving forward (> 0) to moving backward (< 0%) or
             // if we go from moving (not 0%) to stand still (0%)
