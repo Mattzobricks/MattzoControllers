@@ -6,6 +6,24 @@
 #include "NimBLEAddress.h"
 #include <vector>
 
+typedef struct {
+    int min;
+    int max;
+} addrRange;
+typedef struct {
+    int portA;
+    int portB;
+} addrFixed;
+typedef union {
+    addrRange R;
+    addrFixed F;
+} addresses;
+
+typedef struct {
+    bool isRange;
+    addresses addr;
+} remoteAddress;
+
 enum BLEHubType {
     // Powered Up Hub (Lego).
     PU,
@@ -14,7 +32,10 @@ enum BLEHubType {
     SBrick,
 
     // BuWizz2
-    BuWizz2
+    BuWizz2,
+
+    // Powered Up remote
+    PUController
 
 };
 
@@ -25,6 +46,7 @@ struct bleHubTypeMap : public std::map<std::string, BLEHubType> {
         this->operator[]("PU") = BLEHubType::PU;
         this->operator[]("SBrick") = BLEHubType::SBrick;
         this->operator[]("BuWizz2") = BLEHubType::BuWizz2;
+        this->operator[]("PUController") = BLEHubType::PUController;
     };
     ~bleHubTypeMap() {}
 };
@@ -45,7 +67,7 @@ struct buwizzPowerMap : public std::map<std::string, uint8_t> {
 class BLEHubConfiguration
 {
   public:
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels,uint8_t powerlevel );
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel, remoteAddress address);
 
     // Type of Hub.
     BLEHubType HubType;
@@ -56,6 +78,8 @@ class BLEHubConfiguration
     // Hub channels.
     std::vector<MCChannelConfig *> Channels;
 
-    //hub power level, only valid for BuWizz2, the rest is ignored
+    // hub power level, only valid for BuWizz2, the rest is ignored
     uint8_t powerLevel;
+
+    remoteAddress remote;
 };

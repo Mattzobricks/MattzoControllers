@@ -1,9 +1,10 @@
 #include "BLEHubConfiguration.h"
 
-BLEHubConfiguration::BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel)
+BLEHubConfiguration::BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel, remoteAddress address)
 {
     HubType = hubType;
     DeviceAddress = new NimBLEAddress(deviceAddress);
     Channels = channels;
     powerLevel = powerlevel;
+    remote = address;
 }

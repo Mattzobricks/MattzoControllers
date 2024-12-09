@@ -74,7 +74,7 @@ class MCChannelController
     int16_t _minPwrPerc;
     int16_t _targetPwrPerc;
     int16_t _currentPwrPerc;
-    HubLedColor _hubLedColor = HubLedColor::BLACK; // off
+    HubLedColor _hubLedColor = HubLedColor::WHITE; // on, later in the code it is forced to turn WHITE so make it initial WHITE
 
     // The following (derived) class can access private members of MCChannelController.
     friend class BLEHubChannelController;

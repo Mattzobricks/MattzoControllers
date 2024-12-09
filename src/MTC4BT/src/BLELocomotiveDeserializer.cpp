@@ -21,43 +21,66 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
         int16_t hubPwrIncStep = hubConfig["pwrIncStep"] | locoPwrIncStep;
         int16_t hubPwrDecStep = hubConfig["pwrDecStep"] | locoPwrDecStep;
         const std::string powerlevel = hubConfig["powerlevel"] | "normal"; // for Buwizz2 only, default is 2
+        remoteAddress PUremoteAddress;                                     // only valid for PURemotes
 
-        // Iterate over channel configs and copy values from the JsonDocument to PortConfiguration objects.
         std::vector<MCChannelConfig *> channels;
-        JsonArray channelConfigs = hubConfig["channels"].as<JsonArray>();
-        for (JsonObject channelConfig : channelConfigs) {
-            // Read hub channel properties.
-            const std::string channel = channelConfig["channel"];
-            std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
-            const int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
-            const int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
-            int16_t chnlPwr = channelConfig["power"] | 100;
-            if (chnlPwr < 1 || chnlPwr > 100) {
-                log4MC::vlogf(LOG_ERR, "Config: ERROR the 'power' value must be between 1 and 100, using 100!");
-                chnlPwr = 100;
-            }
-            const char *dir = channelConfig["direction"] | "forward";
-            bool isInverted = strcmp(dir, "backward") == 0 || strcmp(dir, "reverse") == 0;
-            bool isPU = strcmp(hubType.c_str(), "PU") == 0;
-
-            MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
+        if (strcmp(hubType.c_str(), "PUController") == 0) {
+            // ignore the channels for the controller, just add the led
+            MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, "LED");
             hubChannel->SetParentAddress(address);
+            std::string attachedDevice = "light";
+            channels.push_back(new MCChannelConfig(hubChannel, hubPwrIncStep, hubPwrDecStep, false, 100, deviceTypeMap()[attachedDevice]));
+            JsonObject remoteRanges = hubConfig["range"].as<JsonObject>();
+            int max, min, portA, portB;
+            min = remoteRanges["min"] | -1;
+            max = remoteRanges["max"] | -1;
+            portA = remoteRanges["portA"] | -1;
+            portB = remoteRanges["portB"] | -1;
+            if (portA == -1 || portB == -1) {
+                PUremoteAddress.isRange = true; // we assume we have a min and a max
+                PUremoteAddress.addr.R.min = min;
+                PUremoteAddress.addr.R.max = max;
+            } else {
+                PUremoteAddress.isRange = false;
+                PUremoteAddress.addr.F.portA = portA;
+                PUremoteAddress.addr.F.portB = portB;
+            }
+        } else {
+            // Iterate over channel configs and copy values from the JsonDocument to PortConfiguration objects.
+            JsonArray channelConfigs = hubConfig["channels"].as<JsonArray>();
+            for (JsonObject channelConfig : channelConfigs) {
+                // Read hub channel properties.
+                const std::string channel = channelConfig["channel"];
+                std::string attachedDevice = channelConfig["attachedDevice"] | "nothing";
+                const int16_t chnlPwrIncStep = channelConfig["pwrIncStep"] | hubPwrIncStep;
+                const int16_t chnlPwrDecStep = channelConfig["pwrDecStep"] | hubPwrDecStep;
+                int16_t chnlPwr = channelConfig["power"] | 100;
+                if (chnlPwr < 1 || chnlPwr > 100) {
+                    log4MC::vlogf(LOG_ERR, "Config: ERROR the 'power' value must be between 1 and 100, using 100!");
+                    chnlPwr = 100;
+                }
+                const char *dir = channelConfig["direction"] | "forward";
+                bool isInverted = strcmp(dir, "backward") == 0 || strcmp(dir, "reverse") == 0;
+                bool isPU = strcmp(hubType.c_str(), "PU") == 0;
 
-            if (bleHubChannelMap()[hubChannel->GetAddress()] == BLEHubChannel::OnboardLED) {
-                if (!isPU) {
-                    // We currently only support the onboad LED of the PU Hub, so we skip this LED channel for now.
-                    log4MC::vlogf(LOG_WARNING, "Config: Support for hub channel %s is currently only available for PU Hubs.", channel);
-                    continue;
+                MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, channel);
+                hubChannel->SetParentAddress(address);
+
+                if (bleHubChannelMap()[hubChannel->GetAddress()] == BLEHubChannel::OnboardLED) {
+                    if (!isPU) {
+                        // We currently only support the onboad LED of the PU Hub, so we skip this LED channel for now.
+                        log4MC::vlogf(LOG_WARNING, "Config: Support for hub channel %s is currently only available for PU Hubs.", channel);
+                        continue;
+                    }
+
+                    // Enforce have a 'light' device "attached" for channel of type 'LED', no matter what the config said.
+                    attachedDevice = "light";
                 }
 
-                // Enforce have a 'light' device "attached" for channel of type 'LED', no matter what the config said.
-                attachedDevice = "light";
+                channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, chnlPwr, deviceTypeMap()[attachedDevice]));
             }
-
-            channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, chnlPwr, deviceTypeMap()[attachedDevice]));
         }
-
-        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buwizzPowerMap()[powerlevel]));
+        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buwizzPowerMap()[powerlevel], PUremoteAddress));
     }
 
     // Iterate over events and copy values from the JsonDocument to MCLocoEvent objects.

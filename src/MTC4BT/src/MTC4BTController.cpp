@@ -4,6 +4,9 @@
 #include "enums.h"
 #include "log4MC.h"
 
+#include "MTC4BTMQTTHandler.h"
+#include "PURemote.h"
+
 // The priority at which the task should run.
 // Systems that include MPU support can optionally create tasks in a privileged (system) mode by setting bit portPRIVILEGE_BIT of the priority parameter.
 // For example, to create a privileged task at priority 2 the uxPriority parameter should be set to ( 2 | portPRIVILEGE_BIT ).
@@ -104,6 +107,83 @@ void MTC4BTController::HandleLc(int locoAddress, int speed, int minSpeed, int ma
     }
 }
 
+std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
+{
+    std::vector<lc *> remotes;
+    remotes.reserve(6);
+    for (BLELocomotive *loco : Locomotives) {
+        for (BLEHub *hub : loco->Hubs) {
+            if (hub->GetHubType() == BLEHubType::PUController) {
+                PURemote *remoteHub = (PURemote *)hub;
+                //  find the index where minRange is valid
+                lc *locoLc;
+                if (remoteHub->isRange) {
+                    locoLc = remoteHub->getPortA(addr);
+                    if (locoLc)
+                        remotes.push_back(locoLc);
+                } else {
+                    locoLc = remoteHub->getPortA(addr);
+                    if (locoLc)
+                        remotes.push_back(locoLc);
+                    locoLc = remoteHub->getPortB(addr);
+                    if (locoLc)
+                        remotes.push_back(locoLc);
+                }
+            }
+        }
+    }
+    return remotes;
+}
+
+void MTC4BTController::handleLCList()
+{
+    /* for all controller 'locomotives' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
+     */
+    for (BLELocomotive *loco : Locomotives) {
+        for (BLEHub *hub : loco->Hubs) {
+            if (hub->GetHubType() == BLEHubType::PUController) {
+                //   find the index where minRange is valid
+                PURemote *remoteHub = (PURemote *)hub;
+                if (remoteHub->isRange) {
+                    int index = 0;
+                    int minRange = remoteHub->getMinRange();
+                    int addr = 0;
+                    remoteHub->setLowIndex(0);
+
+                    while (index < locs.size() &&
+                           locs[index]->addr < minRange) {
+                        index++;
+                    }
+                    if (index != locs.size()) {
+                        remoteHub->setLowIndex(index);
+                    } else {
+                        remoteHub->setLowIndex(-1);
+                    }
+                } else {
+                    lc *lcportA = remoteHub->getPortA();
+                    lc *lcportB = remoteHub->getPortB();
+                    // set lcportA and LCportB
+                    for (int i = 0; i < locs.size(); i++) {
+                        // find the id of the locos.
+                        if (lcportA->addr == locs[i]->addr) {
+                            lcportA->setIdandAddr(locs[i]->id, locs[i]->addr);
+                            // get the loc info
+                            log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
+                            MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                        }
+                        if (lcportB->addr == locs[i]->addr) {
+                            lcportB->setIdandAddr(locs[i]->id, locs[i]->addr);
+                            // get the loc info
+                            log4MC::vlogf(LOG_DEBUG, "B id addr %s %d", locs[i]->id, locs[i]->addr);
+                            MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                        }
+                    }
+                    remoteHub->SetHubLedColor(GREEN);
+                }
+            }
+        }
+    }
+}
 void MTC4BTController::HandleTrigger(int locoAddress, MCTriggerSource source, std::string eventType, std::string eventId, std::string value)
 {
     bool locoFound = false;
@@ -143,9 +223,6 @@ void MTC4BTController::discoveryLoop(void *parm)
                     if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {
                         if (loco->AllHubsConnected()) {
                             log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
-
-                            // For hubs of this loco that have an onboard LED, force it to be on (white) by default.
-                            loco->SetHubLedColor(HubLedColor::WHITE);
 
                             // Blink lights for a while when connected.
                             loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
@@ -188,6 +265,5 @@ BLELocomotive *MTC4BTController::getLocomotive(uint address)
             return loco;
         }
     }
-
     return nullptr;
 }

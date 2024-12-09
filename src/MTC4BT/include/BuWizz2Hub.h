@@ -15,6 +15,10 @@
 const int8_t SET_MOTOR_DATA = 0x10;
 const int8_t SET_POWER_LEVEL = 0x11;
 
+enum struct BuWizzMessageType {
+    BUW2_DEVICE_STATUS = 0x00,
+};
+
 class BuWizz2Hub : public BLEHub
 {
   public:

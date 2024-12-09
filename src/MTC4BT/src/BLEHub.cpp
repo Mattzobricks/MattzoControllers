@@ -29,6 +29,13 @@ BLEHub::BLEHub(BLEHubConfiguration *config)
     // _deviceInformationCharacteristic = nullptr;
 }
 
+/// @brief return the hub type
+/// @return BLEHubType
+BLEHubType BLEHub::GetHubType()
+{
+    return _config->HubType;
+}
+
 bool BLEHub::IsDiscovered()
 {
     return _isDiscovered;
@@ -240,7 +247,7 @@ HubLedColor BLEHub::getRawLedColorForController(BLEHubChannelController *control
 {
     if ((_ebrake || _blinkUntil > millis()) && controller->GetAttachedDevice() == DeviceType::Light) {
         // Force blinking LED (white when on, black when off) when requested.
-        return MCLightController::Blink() ? HubLedColor::WHITE : HubLedColor::BLACK;
+        return MCLightController::Blink() ? controller->GetHubLedColor() : HubLedColor::BLACK;
     }
 
     return controller->GetHubLedColor();

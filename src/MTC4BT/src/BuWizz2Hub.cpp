@@ -171,7 +171,7 @@ int16_t BuWizz2Hub::MapPwrPercToRaw(int pwrPerc)
 void BuWizz2Hub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
     switch (pData[0]) {
-    case (byte)MessageType::BUW2_DEVICE_STATUS:
+    case (byte)BuWizzMessageType::BUW2_DEVICE_STATUS:
         parseDeviceSatusMessage(pData, length);
         // log4MC::vlogf(LOG_DEBUG,"BatteryVoltage: %f",batteryVoltage);
         break;

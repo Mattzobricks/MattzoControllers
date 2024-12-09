@@ -35,7 +35,11 @@
 extern WiFiClient wifiSubscriberClient;
 extern PubSubClient mqttSubscriberClient;
 
-/// <summary>
+#define MQTT_COMMANDTOPIC "rocrail/service/command"
+#define MQTT_CLIENTTOPIC "rocrail/service/client"
+#define MQTT_INFOTOPIC "rocrail/service/info"
+
+// <summary>
 /// Class used to publish messages to an MQTT broker.
 /// </summary>
 class MattzoMQTTSubscriber
@@ -86,7 +90,7 @@ class MattzoMQTTSubscriber
     /// <summary>
     /// Setup the MQTT Subscriber.
     /// </summary>
-    static void Setup(MCMQTTConfiguration *config, void (*MQTThandler)(const char *message));
+    static void Setup(MCMQTTConfiguration *config, void (*MQTThandler)(const char *message), void (*MQTTinfohandler)(const char *message));
 
     // Returns the current MQTT connection status.
     static int GetStatus();
@@ -94,8 +98,10 @@ class MattzoMQTTSubscriber
     // All code that should be handled in the Loop
     static void Loop();
 
-    //pointer to hanler function
+    // pointer to hanler function
     static void (*handler)(const char *message);
+    static void (*infohandler)(const char *message);
+
   private:
     static MCMQTTConfiguration *_config;
     static char _subscriberName[60];

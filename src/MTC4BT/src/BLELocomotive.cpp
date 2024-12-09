@@ -1,8 +1,9 @@
 #include "BLELocomotive.h"
+#include "BuWizz2Hub.h"
 #include "MCLightController.h"
 #include "MController.h"
 #include "PUHub.h"
-#include "BuWizz2Hub.h"
+#include "PURemote.h"
 #include "SBrickHub.h"
 #include "log4MC.h"
 
@@ -149,6 +150,9 @@ void BLELocomotive::initHubs()
             break;
         case BLEHubType::BuWizz2:
             hub = new BuWizz2Hub(hubConfig);
+            break;
+        case BLEHubType::PUController:
+            hub = new PURemote(hubConfig);
             break;
         }
 
