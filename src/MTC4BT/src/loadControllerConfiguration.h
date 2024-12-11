@@ -54,7 +54,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             continue;
         }
 
-        config->Locomotives.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
+        config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
     }
 
     // Read loco config files.
@@ -73,7 +73,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             continue;
         }
 
-        config->Locomotives.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
+        config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
     }
 
     // Return MTC4BTConfiguration object.

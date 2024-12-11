@@ -91,12 +91,12 @@ void setup()
     controller->SetupScanner();
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
-    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
+    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
 
-    if (controllerConfig->Locomotives.size() == 0) {
+    if (controllerConfig->LocoConfigs.size() == 0) {
         log4MC::vlogf(LOG_WARNING, "No locomotives found in the configuration, going into BLE scan mode.");
     } else {
-        log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->Locomotives.size());
+        log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
     }
 
     // stuff for the remote

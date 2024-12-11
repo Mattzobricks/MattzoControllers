@@ -323,7 +323,7 @@ void BLEHub::disconnected()
 }
 
 // dump in hex the pdata block, this should ease programming
-// new BLE devices, or add posibilities/capablities of existing
+// new BLE devices, or add possibilities/capabilities of existing
 // hubs
 void BLEHub::dumpPData(uint8_t *pData, size_t length)
 {

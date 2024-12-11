@@ -52,7 +52,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
     MController::Setup(_config);
 
     // Setup MTC4BT specific controller configuration.
-    initLocomotives(config->Locomotives);
+    initLocomotives(config->LocoConfigs);
 }
 
 void MTC4BTController::SetupScanner()

@@ -6,5 +6,5 @@
 struct MTC4BTConfiguration : MCConfiguration {
   public:
     // BLE locomotive configurations.
-    std::vector<BLELocomotiveConfiguration *> Locomotives;
+    std::vector<BLELocomotiveConfiguration *> LocoConfigs;
 };

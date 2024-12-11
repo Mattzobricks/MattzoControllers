@@ -88,7 +88,7 @@ void BuWizz2Hub::DriveTaskLoop()
                 defaultPowerLevel};
             log4MC::vlogf(LOG_DEBUG, "Set power level %02x", defaultPowerLevel);
             if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), true)) {
-                log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unabled to write to BUWIZZ2 characteristic.");
+                log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unable to write to BUWIZZ2 characteristic.");
             }
         }
 
@@ -132,7 +132,7 @@ void BuWizz2Hub::DriveTaskLoop()
 
             // log4MC::vlogf(LOG_DEBUG, "Motor 1,2,3,4 %02x %02x %02x %02x", channel1Pwr, channel2Pwr, channel3Pwr, channel4Pwr);
             if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), true)) {
-                log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unabled to write to BUWIZZ2 characteristic.");
+                log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unable to write to BUWIZZ2 characteristic.");
             }
         }
         // Wait half the watchdog timeout (converted from s/10 to s/1000).
