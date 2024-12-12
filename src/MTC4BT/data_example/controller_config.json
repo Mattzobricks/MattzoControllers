@@ -1,13 +1,6 @@
 {
 	"name": "MTC4BT",
-    "pwrIncStep": 10,
-    "pwrDecStep": 10,
-	"espPins": [
-		{
-			"pin": 15,
-			"attachedDevice": "status"
-		}
-	],
+	"espPins": [],
 	"locos": [],
 	"locoConfigs": [
 		"/loco_simple.json"
