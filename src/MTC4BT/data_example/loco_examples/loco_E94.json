@@ -1,0 +1,19 @@
+{
+	"address": 94,
+	"name": "E94",
+	"pwrIncStep": 5,
+	"pwrDecStep": 10,
+	"bleHubs": [
+		{
+			"type": "SBrick",
+			"address": "84:2e:14:51:7f:c5",
+			"channels": [
+				{
+					"channel": "A",
+					"attachedDevice": "motor",
+					"direction": "forward"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,167 @@
+{
+    "address": 6051,
+    "name": "ICE",
+    "pwrIncStep": 10,
+    "pwrDecStep": 10,
+    "bleHubs": [
+        {
+            "type": "SBrick",
+            "address": "58:8e:81:58:b2:00",
+            "channels": [
+                {
+                    "channel": "B",
+                    "attachedDevice": "motor",
+                    "direction": "reverse"
+                },
+                {
+                    "channel": "D",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 10,
+                    "pwrDecStep": 20
+                },
+                {
+                    "channel": "A",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 10,
+                    "pwrDecStep": 20
+                }
+            ]
+        },
+        {
+            "type": "SBrick",
+            "address": "84:2e:14:51:69:92",
+            "channels": [
+                {
+                    "channel": "B",
+                    "attachedDevice": "motor",
+                    "direction": "forward"
+                },
+                {
+                    "channel": "D",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 10,
+                    "pwrDecStep": 20
+                },
+                {
+                    "channel": "A",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 10,
+                    "pwrDecStep": 20
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f1",
+                    "value": "on"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "forward"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "58:8e:81:58:b2:00",
+                    "channel": "D",
+                    "pwrPerc": 80
+                },
+                {
+                    "address": "58:8e:81:58:b2:00",
+                    "channel": "A",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "84:2e:14:51:69:92",
+                    "channel": "D",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "84:2e:14:51:69:92",
+                    "channel": "A",
+                    "pwrPerc": 80
+                }
+            ]
+        },
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f2",
+                    "value": "on"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "backward"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "58:8e:81:58:b2:00",
+                    "channel": "D",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "58:8e:81:58:b2:00",
+                    "channel": "A",
+                    "pwrPerc": 80
+                },
+                {
+                    "address": "84:2e:14:51:69:92",
+                    "channel": "D",
+                    "pwrPerc": 80
+                },
+                {
+                    "address": "84:2e:14:51:69:92",
+                    "channel": "A",
+                    "pwrPerc": 0
+                }
+            ]
+        },
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f3",
+                    "value": "off"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "stopped"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "58:8e:81:58:b2:00",
+                    "channel": "D",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "58:8e:81:58:b2:00",
+                    "channel": "A",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "84:2e:14:51:69:92",
+                    "channel": "D",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "84:2e:14:51:69:92",
+                    "channel": "A",
+                    "pwrPerc": 0
+                }
+            ]
+        }
+    ]
+}

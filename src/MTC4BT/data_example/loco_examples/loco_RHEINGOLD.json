@@ -1,0 +1,26 @@
+{
+	"address": 2,
+	"name": "RHEINGOLD",
+	"pwrIncStep": 5,
+	"pwrDecStep": 10,
+	"bleHubs": [
+		{
+			"type": "SBrick",
+			"address": "84:2e:14:4f:de:b6",
+			"channels": [
+				{
+					"channel": "B",
+					"attachedDevice": "motor",
+					"direction": "reverse"
+				},
+				{
+					"channel": "D",
+					"attachedDevice": "motor",
+					"direction": "forward"
+				}
+			]
+		}
+	],
+	"fn": [
+	]
+}

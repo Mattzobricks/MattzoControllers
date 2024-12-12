@@ -1,0 +1,18 @@
+{
+	"address": 1,
+	"name": "SIMPLE-LOCO",
+	"pwrIncStep": 10,
+	"pwrDecStep": 10,
+	"bleHubs": [
+		{
+			"type": "PU",
+			"address": "90:84:2b:0f:ac:c7",
+			"channels": [
+				{
+					"channel": "A",
+					"attachedDevice": "motor"
+				}
+			]
+		}
+	]
+}
