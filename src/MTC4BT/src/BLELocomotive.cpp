@@ -1,3 +1,7 @@
+/*
+* BLELocomotive
+*/
+
 #include "BLELocomotive.h"
 #include "BuWizz2Hub.h"
 #include "MCLightController.h"
@@ -8,7 +12,7 @@
 #include "log4MC.h"
 
 BLELocomotive::BLELocomotive(BLELocomotiveConfiguration *config, MController *controller)
-    : _config{config}, _controller{controller}
+    : BLEbaseDevice(controller), _config{config}
 {
     initHubs();
 }
@@ -80,34 +84,6 @@ void BLELocomotive::TriggerEvent(MCTriggerSource source, std::string eventType, 
     }
 }
 
-void BLELocomotive::BlinkLights(int durationInMs)
-{
-    if (!AllHubsConnected()) {
-        // Ignore blink request.
-        // log4MC::vlogf(LOG_INFO, "Loco: %s ignored blink lights request because not all its hubs are connected (yet).", _config->_name.c_str());
-        return;
-    }
-
-    // Handle blink on lights attached to channels of our hubs.
-    for (BLEHub *hub : Hubs) {
-        hub->BlinkLights(durationInMs);
-    }
-}
-
-void BLELocomotive::SetHubLedColor(HubLedColor color)
-{
-    if (!AllHubsConnected()) {
-        // Ignore led color request.
-        // log4MC::vlogf(LOG_INFO, "Loco: %s ignored led color request because not all its hubs are connected (yet).", _config->_name.c_str());
-        return;
-    }
-
-    // Set hub's onboard led color.
-    for (BLEHub *hub : Hubs) {
-        hub->SetHubLedColor(color);
-    }
-}
-
 void BLELocomotive::SetEmergencyBrake(const bool enabled)
 {
     // Handle e-brake on all channels of our hubs.
@@ -124,16 +100,6 @@ std::string BLELocomotive::GetLocoName()
 uint BLELocomotive::GetLocoAddress()
 {
     return _config->_address;
-}
-
-uint BLELocomotive::GetHubCount()
-{
-    return Hubs.size();
-}
-
-BLEHub *BLELocomotive::GetHub(uint index)
-{
-    return Hubs.at(index);
 }
 
 void BLELocomotive::initHubs()
@@ -186,15 +152,4 @@ void BLELocomotive::setManualBrake(const bool enabled)
     for (BLEHub *hub : Hubs) {
         hub->SetManualBrake(enabled);
     }
-}
-
-BLEHub *BLELocomotive::getHubByAddress(std::string address)
-{
-    for (BLEHub *hub : Hubs) {
-        if (hub->GetRawAddress().compare(address) == 0) {
-            return hub;
-        }
-    }
-
-    return nullptr;
 }
