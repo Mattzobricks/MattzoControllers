@@ -1,0 +1,71 @@
+{
+    "address": 1809,
+    "name": "BR52-1809",
+    "speedStep": 5,
+    "brakeStep": 10,
+    "bleHubs": [
+        {
+            "type": "SBrick",
+            "address": "84:2e:14:51:6b:53",
+            "channels": [
+                {
+                    "channel": "B",
+                    "attachedDevice": "motor",
+                    "direction": "forward"
+                },
+                {
+                    "channel": "D",
+                    "attachedDevice": "motor",
+                    "direction": "forward"
+                },
+                {
+                    "channel": "A",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 10,
+                    "pwrDecStep": 20
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f1",
+                    "value": "on"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "forward"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "84:2e:14:51:6b:53",
+                    "channel": "A",
+                    "pwrPerc": -80
+                }
+            ]
+        },
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f1",
+                    "value": "off"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "84:2e:14:51:6b:53",
+                    "channel": "A",
+                    "pwrPerc": 0
+                }
+            ]
+        }
+    ]
+}

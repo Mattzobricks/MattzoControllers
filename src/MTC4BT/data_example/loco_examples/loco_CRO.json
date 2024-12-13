@@ -1,0 +1,18 @@
+{
+	"address": 10277,
+	"name": "CRO",
+	"pwrIncStep": 10,
+	"pwrDecStep": 10,
+	"bleHubs": [
+		{
+			"type": "PU",
+			"address": "90:84:2b:0f:ac:c7",
+			"channels": [
+				{
+					"channel": "A",
+					"attachedDevice": "motor"
+				}
+			]
+		}
+	]
+}
