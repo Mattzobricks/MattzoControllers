@@ -24,11 +24,6 @@ void BLERemote::initHubs()
             hub = new PURemote(hubConfig);
             break;
         }
-
-        if (hub) {
-            hub->SetConnectCallback([this](bool connected) -> void { handleConnectCallback(connected); });
-            Hubs.push_back(hub);
-        }
     }
 
     // log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
