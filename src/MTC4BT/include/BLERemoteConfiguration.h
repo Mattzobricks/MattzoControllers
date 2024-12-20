@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BLEHubConfiguration.h"
+
 // #include "MCLocoEvent.h"
 
 class BLERemoteConfiguration
@@ -10,5 +11,4 @@ class BLERemoteConfiguration
 
     std::string _name;
     std::vector<BLEHubConfiguration *> _hubs;
-    //std::vector<MCLocoEvent *> _events;
 };

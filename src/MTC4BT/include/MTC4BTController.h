@@ -2,6 +2,7 @@
 
 #include "BLEHubScanner.h"
 #include "BLELocomotive.h"
+#include "BLERemote.h"
 #include "MController.h"
 #include "MTC4BTConfiguration.h"
 
@@ -15,6 +16,7 @@ class MTC4BTController : public MController
 
     // Locomotives under control of this controller.
     std::vector<BLELocomotive *> Locomotives;
+    std::vector<BLERemote *> Remotes;
 
     // Controller setup.
     void Setup(MTC4BTConfiguration *config);
@@ -49,6 +51,7 @@ class MTC4BTController : public MController
 
     // Initializes locomotives with the given configuration.
     void initLocomotives(std::vector<BLELocomotiveConfiguration *> locoConfigs);
+    void initRemotes(std::vector<BLERemoteConfiguration *> remoteConfigs);
 
     // Returns the locomotive with the given address.
     BLELocomotive *getLocomotive(uint address);

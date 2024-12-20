@@ -32,12 +32,9 @@ class PURemote : public PUHub
   protected:
     lc *currentLCPortA;
     lc *currentLCPortB;
-    int lowIndex; // needed for the offset for the led colour
     int index;
-    int minRange;
-    int maxRange;
-    int portA;
-    int portB;
+    std::vector<lc *> lcs;
+
     void parsePortValueSingleMessage(uint8_t *pData, size_t length);
     void parseHWNetworkCommandMessage(uint8_t *pData, size_t length);
     void parsePortAction(uint8_t *pData, size_t length);

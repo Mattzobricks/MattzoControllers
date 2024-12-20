@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BLELocomotiveDeserializer.h"
+#include "BLERemoteDeserializer.h"
 
 #define DEFAULT_CONTROLLER_NAME "MTC4BT"
 #define DEFAULT_PWR_INC_STEP 10
@@ -57,6 +58,19 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
     }
 
+    // Iterate over remote configs and copy values from the JsonDocument to BLERemoteConfiguration objects.
+    JsonArray remoteConfigs = doc["remotes"].as<JsonArray>();
+    for (JsonObject remoteConfig : remoteConfigs) {
+        // Read if loco is enabled.
+        const bool enabled = remoteConfig["enabled"] | true;
+        if (!enabled) {
+            // Skip if loco is not enabled.
+            continue;
+        }
+
+        config->RemoteConfigs.push_back(BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep));
+    }
+
     // Read loco config files.
     JsonArray locoConfigFiles = doc["locoConfigs"].as<JsonArray>();
     for (int i = 0; i < locoConfigFiles.size(); i++) {
@@ -74,6 +88,25 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         }
 
         config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
+    }
+
+    // Read remote config files.
+    JsonArray remoteConfigFiles = doc["remoteConfigs"].as<JsonArray>();
+    for (int i = 0; i < remoteConfigFiles.size(); i++) {
+        const std::string remoteConfigFile = remoteConfigFiles[i];
+
+        // Read JSON controller config file.
+        DynamicJsonDocument remoteConfigDoc = MCJsonConfig::ReadJsonFile(remoteConfigFile.c_str());
+        JsonObject remoteConfig = remoteConfigDoc.as<JsonObject>();
+
+        // Read if loco is enabled.
+        const bool enabled = remoteConfig["enabled"] | true;
+        if (!enabled) {
+            // Skip if loco is not enabled.
+            continue;
+        }
+
+        config->RemoteConfigs.push_back(BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep));
     }
 
     // Return MTC4BTConfiguration object.

@@ -7,6 +7,8 @@
 #include "log4MC.h"
 #include <PubSubClient.h>
 
+#include "remoteList/modetypes.h"
+
 #define MAX_PUHUB_CHANNEL_COUNT 2
 
 extern PubSubClient mqttSubscriberClient;
@@ -14,24 +16,23 @@ extern PubSubClient mqttSubscriberClient;
 PURemote::PURemote(BLEHubConfiguration *config)
     : PUHub(config)
 {
+    index = -1; // index in the list, indicates no data from rocrail
+
+    // build loco list, because we need to update values (speed)
+    // all other devices are just the id's
+    // for the locos we need the short list to make it addressable by id and addr
+    if (_config->mode == listMode) {
+        for (auto item : _config->list.freeListItems) {
+            if (item->RRtype == RRloco) {
+                // add loco the the list
+                lcs.push_back(new lc((char *)item->id, item->addr));
+            }
+        }
+    }
     // do controller stuff
     currentLCPortA = new lc(nullptr, 0, false, 0, 0, 0);
     currentLCPortB = new lc(nullptr, 0, false, 0, 0, 0);
     // just for testing, will be filled with the config later on!
-    index = -1;
-    if (config->remote.isRange) {
-        isRange = true;
-        minRange = config->remote.addr.R.min;
-        maxRange = config->remote.addr.R.max;
-    } else {
-        isRange = false;
-        portA = config->remote.addr.F.portA;
-        portB = config->remote.addr.F.portB;
-        currentLCPortA->addr = portA;
-        currentLCPortB->addr = portB;
-        currentLCPortA->initiated = false;
-        currentLCPortB->initiated = false;
-    }
 }
 
 lc *PURemote::getPortA(int address)
@@ -59,17 +60,19 @@ lc *PURemote::getPortB()
 }
 int PURemote::getLowIndex()
 {
-    return lowIndex;
+    // return lowIndex;
+    return 0;
 }
 
 void PURemote::setLowIndex(int index)
 {
-    lowIndex = index;
+    // lowIndex = index;
 }
 
 int PURemote::getMinRange()
 {
-    return minRange;
+    //return minRange;
+    return 0;
 }
 
 void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
@@ -113,11 +116,19 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
     case 0x02:            // H/W NetWork Command Type = 0x02 Connection Request [Upstream]
         value = pData[4]; // is the green button pressed or released? 1 or 0
         if (value == 1) {
-            // log4MC::info("Green button pressed.");
-            // setHubLedColor(hubColour);
-            mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
-            // force refresh locs list
-            MTC4BTMQTTHandler::pubGetShortLcList();
+            PUbutton pressedButton = PUbutton::Green;
+            // Do Green button actions
+            if (_config->mode == listMode) {
+                // we are in lst mode, and Green and port B are fixed
+                //_config->list.buttons->getButton(RRloco,Green)
+            }
+            /* old code
+                        // log4MC::info("Green button pressed.");
+                        // setHubLedColor(hubColour);
+                        mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
+                        // force refresh locs list
+                        MTC4BTMQTTHandler::pubGetShortLcList();
+                        */
         }
         break;
 
@@ -128,10 +139,12 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
 
 void PURemote::setPortAColourAndLC()
 {
+    /*
     SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
     currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
     currentLCPortA->initiated = false;
     MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
+    */
 }
 
 void PURemote::incLocSpeed(lc *currentLC, int increment)
@@ -183,86 +196,106 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
         // plus  pressed = 0x01
         // red   pressed = 0x7f
         // minus pressed = 0xff
-        switch (value) {
-        case 0x01: // plus  pressed = 0x01
-            if (port == 1) {
-                if (isRange) {
-                    if (locs.size() == 0) {
-                        MTC4BTMQTTHandler::pubGetShortLcList();
-                    } else {
-                        // find the next that is in the range, when at the last one, start at the first one again.
-                        int roundcount = 0;
-                        while (roundcount != 2) {
-                            index++;
-                            if (index >= locs.size()) {
-                                index = 0;
-                                roundcount++;
+        /* TODO: old code remove
+                switch (value) {
+                case 0x01: // plus  pressed = 0x01
+                    if (port == 1) {
+                        if (isRange) {
+                            if (locs.size() == 0) {
+                                MTC4BTMQTTHandler::pubGetShortLcList();
+                            } else {
+                                // find the next that is in the range, when at the last one, start at the first one again.
+                                int roundcount = 0;
+                                while (roundcount != 2) {
+                                    index++;
+                                    if (index >= locs.size()) {
+                                        index = 0;
+                                        roundcount++;
+                                    }
+                                    if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
+                                        // found a new index;
+                                        break;
+                                    }
+                                }
+                                // log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
+                                if (roundcount == 2) {
+                                    index = -1;
+                                } else {
+                                    setPortAColourAndLC();
+                                }
                             }
-                            if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
-                                // found a new index;
-                                break;
-                            }
-                        }
-                        // log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
-                        if (roundcount == 2) {
-                            index = -1;
                         } else {
-                            setPortAColourAndLC();
+                            incLocSpeed(currentLCPortB, 10);
                         }
-                    }
-                } else {
-                    incLocSpeed(currentLCPortB, 10);
-                }
-            } else {
-                incLocSpeed(currentLCPortA, 10);
-            }
-            break;
-        case 0x7f: // red  pressed = 0x7f
-            if (port == 1) {
-                if (isRange) {
-                    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");
-                } else {
-                    setLocSpeed(currentLCPortB, 0);
-                }
-            } else {
-                setLocSpeed(currentLCPortA, 0);
-            }
-            break;
-        case 0xff: // minus  pressed = 0x01
-            if (port == 1) {
-                if (isRange) {
-                    if (locs.size() == 0) {
-                        MTC4BTMQTTHandler::pubGetShortLcList();
                     } else {
-                        // find the next that is in the range, when at the last one, start at the first one again.
-                        int roundcount = 0;
-                        while (roundcount != 2) {
-                            index--;
-                            if (index < 0) {
-                                index = locs.size() - 1;
-                                roundcount++;
-                            }
-                            if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
-                                // found a new index;
-                                break;
-                            }
-                        }
-                        if (roundcount == 2) {
-                            index = -1;
-                        } else {
-                            setPortAColourAndLC();
-                        }
+                        incLocSpeed(currentLCPortA, 10);
                     }
-                } else {
-                    decLocSpeed(currentLCPortB, 10);
-                }
-            } else {
-                decLocSpeed(currentLCPortA, 10);
-            }
-            break;
+                    break;
+                case 0x7f: // red  pressed = 0x7f
+                    if (port == 1) {
+                        if (isRange) {
+                            mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");
+                        } else {
+                            setLocSpeed(currentLCPortB, 0);
+                        }
+                    } else {
+                        setLocSpeed(currentLCPortA, 0);
+                    }
+                    break;
+                case 0xff: // minus  pressed = 0x01
+                    if (port == 1) {
+                        if (isRange) {
+                            if (locs.size() == 0) {
+                                MTC4BTMQTTHandler::pubGetShortLcList();
+                            } else {
+                                // find the next that is in the range, when at the last one, start at the first one again.
+                                int roundcount = 0;
+                                while (roundcount != 2) {
+                                    index--;
+                                    if (index < 0) {
+                                        index = locs.size() - 1;
+                                        roundcount++;
+                                    }
+                                    if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
+                                        // found a new index;
+                                        break;
+                                    }
+                                }
+                                if (roundcount == 2) {
+                                    index = -1;
+                                } else {
+                                    setPortAColourAndLC();
+                                }
+                            }
+                        } else {
+                            decLocSpeed(currentLCPortB, 10);
+                        }
+                    } else {
+                        decLocSpeed(currentLCPortA, 10);
+                    }
+                    break;
 
-        default:
+                default:
+                    break;
+                }
+                */
+        PUbutton pressedButton;
+        switch (value) {
+        case 0x01: // plus
+            pressedButton = (port == 0) ? PUbutton::Aplus : PUbutton::Bplus;
             break;
+        case 0x7f: // red
+            pressedButton = (port == 0) ? PUbutton::Ared : PUbutton::Bred;
+            break;
+        case 0xff: // minus
+            pressedButton = (port == 0) ? PUbutton::Amin : PUbutton::Bmin;
+            break;
+        default:
+            pressedButton = Bnone;
+            break;
+        }
+        if (pressedButton != Bnone) {
+            // do button actions
         }
     }
 #ifdef DEBUGNOTIFYPUREMOTE
@@ -281,7 +314,7 @@ void PURemote::parsePortAction(uint8_t *pData, size_t length)
     // empty function
 #ifdef DEBUGNOTIFYPUREMOTE
     dumpPData(pData, length);
-#endif    
+#endif
 }
 
 /**

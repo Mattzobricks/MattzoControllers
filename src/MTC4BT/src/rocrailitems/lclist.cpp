@@ -38,6 +38,24 @@ lc::lc()
     V = 0;
     initiated = false;
 }
+lc::lc(char *newId)
+{
+    lc();
+    id = (char *)malloc(strlen(newId) + 1);
+    strcpy(id, newId);
+}
+lc::lc(char *newId, int newAddr)
+{
+    lc();
+    id = (char *)malloc(strlen(newId) + 1);
+    strcpy(id, newId);
+    addr = newAddr;
+}
+lc::lc(int addr)
+    : addr(addr)
+{
+    lc();
+}
 lc::~lc()
 {
     if (id) {

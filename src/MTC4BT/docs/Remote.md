@@ -48,13 +48,13 @@ For switches:
  - turnout
  - left
  - right
- - (nop)
+ - noop
 
 For outputs:
  - flip
  - on
  - off
- - (nop)
+ - noop
 
 For signals:
  - flip 
@@ -62,7 +62,7 @@ For signals:
  - red
  - yellow
  - white
- - (nop)
+ - noop
 
 ## Implementation
 
@@ -70,10 +70,36 @@ Some kind of structure is needed to hold the configuration of the list buttons.
 
 Remote switch structure, this list is leading, so from the item type in the list, the button and action is determined. 
 ```
-   type: loco, switch, signal, output
-     array of buttons
-       buttonName: A+, Ared, A-, B+ Bred, B-, Green
-       action:     inc, dec, stop, flip, on, off, green, red, yellow, white, left, right, straight, turnout, go, ebrake
+  array of types (loco, switch, signal, output)
+    array of buttons ( A+, Ared, A-, B+ Bred, B-, Green )
+      action:     inc, dec, stop, flip, on, off, green, red, yellow, white, left, right,  straight, turnout, go, ebrake, noop
+      reserved actions: navUp, navDown
+```
+
+The json would look like:
+```
+"buttons" : [
+  {
+    "button" : "Ared",
+    "type"   : "signal"
+    "action" : "red"
+  },
+  {
+    "button" : "A-",
+    "type"   : "signal"
+    "action" : "flip"
+  },
+  {
+    "button" : "Ared",
+    "type"   : "switch"
+    "action" : "turnout"
+  },
+  {
+    "button" : "A-",
+    "type"   : "switch"
+    "action" : "flip"
+  } 
+]
 ```
 
 List items
@@ -83,6 +109,19 @@ List items
     type:    loco, switch, signal, output
     ledcolour: (names from enum.h)
 ```
+In list mode, the first item is default selected (after the data is collected from rocrail)
+
+
+### Implementation hints for parsePortValueSingleMessage() port A and port B
+
+Input values of this function are the port number and value of the button.
+
+port 0 is port A
+port 1 is port B
+
+### Implementation hints for parseHWNetworkCommandMessage() Green button
+
+`case 0x2` and `value == 1` means Green buttons in pressed.
 
 # Free mode
 
@@ -111,5 +150,5 @@ Free items
 
 # Common function
 
-checkAction(type, action) returns true if the type and action are a valid combination
-checkButton(button) returns true if is a valid button name
+ - checkAction(type, action) returns true if the type and action are a valid combination
+ - checkButton(button) returns true if is a valid button name

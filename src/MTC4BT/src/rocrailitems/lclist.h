@@ -45,6 +45,9 @@ class lc
   public:
     lc();
     lc(char *id,  int addr, bool vModePercent, int Vmax, int VRmax, int VSmax);
+    lc(char *id,  int addr);
+    lc(char *id);
+    lc(int addr);
     ~lc();
 
     // used for the std::find

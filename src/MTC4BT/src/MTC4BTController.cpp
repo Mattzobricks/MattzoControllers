@@ -53,6 +53,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
 
     // Setup MTC4BT specific controller configuration.
     initLocomotives(config->LocoConfigs);
+    initRemotes(config->RemoteConfigs);
 }
 
 void MTC4BTController::SetupScanner()
@@ -111,8 +112,8 @@ std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
 {
     std::vector<lc *> remotes;
     remotes.reserve(6);
-    for (BLELocomotive *loco : Locomotives) {
-        for (BLEHub *hub : loco->Hubs) {
+    for (BLERemote *remote : Remotes) {
+        for (BLEHub *hub : remote->Hubs) {
             if (hub->GetHubType() == BLEHubType::PUController) {
                 PURemote *remoteHub = (PURemote *)hub;
                 //  find the index where minRange is valid
@@ -139,8 +140,8 @@ void MTC4BTController::handleLCList()
 {
     /* for all controller 'locomotives' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
      */
-    for (BLELocomotive *loco : Locomotives) {
-        for (BLEHub *hub : loco->Hubs) {
+    for (BLERemote *remote: Remotes) {
+        for (BLEHub *hub : remote->Hubs) {
             if (hub->GetHubType() == BLEHubType::PUController) {
                 //   find the index where minRange is valid
                 PURemote *remoteHub = (PURemote *)hub;
@@ -255,6 +256,14 @@ void MTC4BTController::initLocomotives(std::vector<BLELocomotiveConfiguration *>
     for (BLELocomotiveConfiguration *locoConfig : locoConfigs) {
         // Keep an instance of the configured loco and pass it a reference to this controller.
         Locomotives.push_back(new BLELocomotive(locoConfig, this));
+    }
+}
+
+void MTC4BTController::initRemotes(std::vector<BLERemoteConfiguration *> remoteConfigs)
+{
+    for (BLERemoteConfiguration *remoteConfig : remoteConfigs) {
+        // Keep an instance of the configured loco and pass it a reference to this controller.
+        Remotes.push_back(new BLERemote(remoteConfig, this));
     }
 }
 

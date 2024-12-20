@@ -14,6 +14,17 @@ BLERemote::BLERemote(BLERemoteConfiguration *config, MController *controller)
     initHubs();
 }
 
+bool BLERemote::AllHubsConnected()
+{
+    for (BLEHub *hub : Hubs) {
+        if (!hub->IsConnected()) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void BLERemote::initHubs()
 {
     for (BLEHubConfiguration *hubConfig : _config->_hubs) {
