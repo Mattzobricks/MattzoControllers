@@ -19,6 +19,8 @@ class PURemote : public PUHub
      */
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
+    void buttonHandleAction(PUbutton button);
+
     int getLowIndex();
     void setLowIndex(int index);
 
@@ -30,10 +32,11 @@ class PURemote : public PUHub
     bool isRange;
 
   protected:
+    lc *currentLC;          // used in list mode
     lc *currentLCPortA;
     lc *currentLCPortB;
     int index;
-    std::vector<lc *> lcs;
+    std::vector<lc *> lcs;  // used in free mode
 
     void parsePortValueSingleMessage(uint8_t *pData, size_t length);
     void parseHWNetworkCommandMessage(uint8_t *pData, size_t length);

@@ -117,7 +117,10 @@ In list mode, the first item is default selected (after the data is collected fr
 Input values of this function are the port number and value of the button.
 
 port 0 is port A
+
 port 1 is port B
+
+In combination with the values from the PURemote 0x01, 0x7f and 0xff it will combine to the the button pressed on the remote.
 
 ### Implementation hints for parseHWNetworkCommandMessage() Green button
 

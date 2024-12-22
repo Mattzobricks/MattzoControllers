@@ -24,13 +24,16 @@ SOFTWARE.
 #include "lclist.h"
 #include "log4MC.h"
 
-lc::lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
-    : id(id), addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
+lc::lc(char *newId, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
+    : addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
 {
     newSpeed = 0;
     V = 0;
     initiated = false;
+    id = (char *)malloc(strlen(newId) + 1);
+    strcpy(id, newId);
 }
+
 lc::lc()
 {
     id = nullptr;
@@ -38,24 +41,27 @@ lc::lc()
     V = 0;
     initiated = false;
 }
+
 lc::lc(char *newId)
 {
     lc();
     id = (char *)malloc(strlen(newId) + 1);
     strcpy(id, newId);
 }
+
 lc::lc(char *newId, int newAddr)
+    : addr(newAddr)
 {
-    lc();
     id = (char *)malloc(strlen(newId) + 1);
     strcpy(id, newId);
-    addr = newAddr;
 }
-lc::lc(int addr)
-    : addr(addr)
+
+lc::lc(int newAddr)
+    : addr(newAddr)
 {
     lc();
 }
+
 lc::~lc()
 {
     if (id) {

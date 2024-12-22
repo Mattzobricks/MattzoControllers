@@ -352,6 +352,11 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
 }
 
+void MTC4BTMQTTHandler::pubGo()
+{
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
+}
+
 void MTC4BTMQTTHandler::pubGetShortLcList()
 {
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<model cmd=\"lclist\" val=\"short\"/>");

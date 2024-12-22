@@ -86,7 +86,12 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                 PUbutton button = PUbuttonMap()[buttonStr];
                 RRdevice device = RRdeviceMap()[typeStr];
                 RRaction action = RRactionMap()[actionStr];
-                buttons->setButton(device, button, action);
+                if (button != PUbutton::Bplus && button != PUbutton::Bmin && button != PUbutton::Bred && button != PUbutton::Green) {
+                    // ignore B+ B-  Bred and Green in list mode
+                    buttons->setButton(device, button, action);
+                } else {
+                    log4MC::vlogf(LOG_ERR, "RemoteConfig: Redefining '%s' button not allowed: ignoring this item!", buttonStr.c_str());
+                }
             }
             // store buttons and freeListItems in the remote hub config and set its type to `mode`
             hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttons, freeListItems));

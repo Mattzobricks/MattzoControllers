@@ -45,12 +45,13 @@ class lc
   public:
     lc();
     lc(char *id,  int addr, bool vModePercent, int Vmax, int VRmax, int VSmax);
-    lc(char *id,  int addr);
-    lc(char *id);
-    lc(int addr);
+    lc(char *newId,  int newAddr);
+    lc(char *newId);
+    lc(int newAddr);
     ~lc();
 
     // used for the std::find
+    // example: std::vector<lc *>::iterator itr = std::find(locs.begin(), locs.end(), currentLc);
     bool operator==(const lc &rhs) const { return strcmp(this->id, rhs.id) == 0; }
 
     void setIdandAddr(const char *newId, const int ewAddr);

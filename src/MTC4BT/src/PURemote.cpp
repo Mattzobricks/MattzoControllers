@@ -29,9 +29,6 @@ PURemote::PURemote(BLEHubConfiguration *config)
             }
         }
     }
-    // do controller stuff
-    currentLCPortA = new lc(nullptr, 0, false, 0, 0, 0);
-    currentLCPortB = new lc(nullptr, 0, false, 0, 0, 0);
     // just for testing, will be filled with the config later on!
 }
 
@@ -71,7 +68,7 @@ void PURemote::setLowIndex(int index)
 
 int PURemote::getMinRange()
 {
-    //return minRange;
+    // return minRange;
     return 0;
 }
 
@@ -116,12 +113,7 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
     case 0x02:            // H/W NetWork Command Type = 0x02 Connection Request [Upstream]
         value = pData[4]; // is the green button pressed or released? 1 or 0
         if (value == 1) {
-            PUbutton pressedButton = PUbutton::Green;
-            // Do Green button actions
-            if (_config->mode == listMode) {
-                // we are in lst mode, and Green and port B are fixed
-                //_config->list.buttons->getButton(RRloco,Green)
-            }
+            buttonHandleAction(PUbutton::Green);
             /* old code
                         // log4MC::info("Green button pressed.");
                         // setHubLedColor(hubColour);
@@ -295,7 +287,7 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
             break;
         }
         if (pressedButton != Bnone) {
-            // do button actions
+            buttonHandleAction(pressedButton);
         }
     }
 #ifdef DEBUGNOTIFYPUREMOTE
@@ -336,5 +328,14 @@ void PURemote::parsePortMessage(uint8_t *pData)
             byte setPortInputFormatSetup[8] = {0x41, port, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01};
             writeValue(setPortInputFormatSetup, 8);
         }
+    }
+}
+
+void PURemote::buttonHandleAction(PUbutton button)
+{
+    if (_config->mode == listMode) {
+        // get current selected device
+    } else {
+        // TODO:we are in freeMode
     }
 }

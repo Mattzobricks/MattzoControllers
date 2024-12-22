@@ -16,6 +16,7 @@ class MTC4BTMQTTHandler
     static void pubGetShortLcList();
     static void pubGetLcInfo(char *locid);
     static void pubLcSpeed(char *locid, int addr, long locV);
+    static void pubGo();
 
   private:
     static void handleSys(const char *message);
