@@ -10,11 +10,11 @@ It currently supports the following type of BLE devices:
 
 Please note the firmware only runs on [ESP32](https://www.espressif.com/en/products/socs/esp32) MCU's.
 
-The firmware has been tested succesfully with these boards:
+The firmware has been tested successfully with these boards:
 - AZDelivery ESP32 NodeMCU Module (verified by [MattzoBricks](https://mattzobricks.com/forums/users/rbrink))
 - DOIT DEVKIT V1 ESP32-WROOM-32 Development Board (verified by [Steven Elston](https://mattzobricks.com/forums/users/steve1814))
 
-If you have tested the firmware succesfully with a different board, please let us know through [our forum](https://mattzobricks.com/forums/forum/mattzobricks-forum).
+If you have tested the firmware successfully with a different board, please let us know through [our forum](https://mattzobricks.com/forums/forum/mattzobricks-forum).
 
 ---
 ## Getting Started
