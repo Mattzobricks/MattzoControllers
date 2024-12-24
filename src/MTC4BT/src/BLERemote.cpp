@@ -36,6 +36,4 @@ void BLERemote::initHubs()
             break;
         }
     }
-
-    // log4MC::vlogf(LOG_INFO, "Loco: %s hub config initialized.", _config->_name.c_str());
 }

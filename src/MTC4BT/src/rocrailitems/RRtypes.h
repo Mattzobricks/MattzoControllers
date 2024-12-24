@@ -6,11 +6,11 @@
 #include <map>
 
 typedef enum {
-    RRloco = 0,
+    RRloco = 1,
     RRswitch,
     RRsignal,
     RRoutput,
-    RRmaxdevice = RRoutput
+    RRmaxdevice // This should be the last item
 } RRdevice;
 
 struct RRdeviceMap : public std::map<std::string, RRdevice> {

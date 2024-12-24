@@ -16,6 +16,8 @@ extern PubSubClient mqttSubscriberClient;
 PURemote::PURemote(BLEHubConfiguration *config)
     : PUHub(config)
 {
+    log4MC::debug("Init remote");
+
     index = 0;
 
     // build loco list, because we need to update values (speed)
@@ -320,6 +322,8 @@ void PURemote::buttonHandleAction(PUbutton button)
         // get current selected device
         RRdevice device = _config->list.freeListItems[index]->RRtype;
         RRaction action = _config->list.buttons->getButton(device, button);
+
+        log4MC::vlogf(LOG_DEBUG,"Got a key press device %s action %s",device,action);
         // make a nice switch statement here, maybe change it when implementing the freeMode ;-)
         switch (action) {
         case navUp:

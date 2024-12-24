@@ -146,7 +146,7 @@ void MTC4BTController::handleLCList()
                         // find the id of the locos, and set them in the itemlist!
                         std::vector<freeListItem *> itemList = remoteHub->getItemList();
                         for (int j = 0; j < itemList.size(); j++) {
-                            if (itemList[j]->addr < 0 && strcmp(itemList[j]->id,locs[i]->id) == 0) {
+                            if (itemList[j]->addr < 0 && strcmp(itemList[j]->id, locs[i]->id) == 0) {
                                 itemList[j]->addr = locs[i]->addr;
                             }
                             if (itemList[j]->addr > 0 && itemList[j]->addr == locs[i]->addr) {
@@ -251,18 +251,18 @@ void MTC4BTController::discoveryLoop(void *parm)
         }
 
         // Remotes
+        log4MC::vlogf(LOG_DEBUG, "disc loop remotes %d", controller->Remotes.size());
         for (BLERemote *remote : controller->Remotes) {
             // All loco hubs are already connected. Skip to the next loco.
             if (remote->AllHubsConnected()) {
                 continue;
             }
-
             for (BLEHub *hub : remote->Hubs) {
                 if (hub->IsConnected()) {
                     // Hub is already connected. Skip to the next Hub.
                     continue;
                 }
-
+                log4MC::vlogf(LOG_DEBUG, "Going for discovery");
                 if (hub->IsDiscovered()) {
                     // Hub discovered, try to connect now.
                     if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {
@@ -285,7 +285,7 @@ void MTC4BTController::discoveryLoop(void *parm)
             }
         }
 
-        if (undiscoveredHubs.size() > 0 || controller->Locomotives.size() == 0) {
+        if (undiscoveredHubs.size() > 0 || (controller->Locomotives.size() == 0 && controller->Remotes.size() == 0)) {
             // Start discovery for undiscovered hubs.
             controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
         }

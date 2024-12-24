@@ -60,7 +60,7 @@ typedef enum {
     Bred,
     Bmin,
     Green,
-    maxButton = Green // this should alway be the last item
+    maxButton // this should alway be the last item
 } PUbutton;
 
 struct PUbuttonMap : public std::map<std::string, PUbutton> {
