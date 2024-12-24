@@ -5,8 +5,10 @@
 #include "remoteList/remoteList.h"
 
 freeListItem::freeListItem(const char * newId, uint newAddr, RRdevice newRRtype, HubLedColor newledColour)
-    : id{newId}, addr{newAddr}, RRtype{newRRtype}, ledColour{newledColour}
+    : addr{newAddr}, RRtype{newRRtype}, ledColour{newledColour}
 {
+    id = (char *)malloc(strlen(newId) + 1);
+    strcpy(id, newId);
 }
 
 freeListItem::~freeListItem()

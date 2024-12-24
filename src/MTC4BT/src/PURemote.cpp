@@ -16,60 +16,33 @@ extern PubSubClient mqttSubscriberClient;
 PURemote::PURemote(BLEHubConfiguration *config)
     : PUHub(config)
 {
-    index = -1; // index in the list, indicates no data from rocrail
+    index = 0;
 
     // build loco list, because we need to update values (speed)
     // all other devices are just the id's
     // for the locos we need the short list to make it addressable by id and addr
     if (_config->mode == listMode) {
-        for (auto item : _config->list.freeListItems) {
-            if (item->RRtype == RRloco) {
-                // add loco the the list
-                lcs.push_back(new lc((char *)item->id, item->addr));
-            }
+        if (_config->list.freeListItems[index]->RRtype == RRloco) {
+            // The first item is a locomotive
+            currentLC = new lc((char *)_config->list.freeListItems[index]->id, _config->list.freeListItems[index]->addr, false, 0, 0, 0);
+        } else {
+            currentLC = new lc(NULL, 0, false, 0, 0, 0);
         }
+        SetHubLedColor(_config->list.freeListItems[index]->ledColour);
     }
     // just for testing, will be filled with the config later on!
 }
 
-lc *PURemote::getPortA(int address)
+lc *PURemote::getPort(int address)
 {
-    if (currentLCPortA->addr == address && address != 0) {
-        return currentLCPortA;
+    if (currentLC->addr == address && address != 0) {
+        return currentLC;
     }
     return nullptr;
 }
-lc *PURemote::getPortA()
+lc *PURemote::getPort()
 {
-    return currentLCPortA;
-}
-
-lc *PURemote::getPortB(int address)
-{
-    if (currentLCPortB->addr == address && address != 0) {
-        return currentLCPortB;
-    }
-    return nullptr;
-}
-lc *PURemote::getPortB()
-{
-    return currentLCPortB;
-}
-int PURemote::getLowIndex()
-{
-    // return lowIndex;
-    return 0;
-}
-
-void PURemote::setLowIndex(int index)
-{
-    // lowIndex = index;
-}
-
-int PURemote::getMinRange()
-{
-    // return minRange;
-    return 0;
+    return currentLC;
 }
 
 void PURemote::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
@@ -114,13 +87,6 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
         value = pData[4]; // is the green button pressed or released? 1 or 0
         if (value == 1) {
             buttonHandleAction(PUbutton::Green);
-            /* old code
-                        // log4MC::info("Green button pressed.");
-                        // setHubLedColor(hubColour);
-                        mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
-                        // force refresh locs list
-                        MTC4BTMQTTHandler::pubGetShortLcList();
-                        */
         }
         break;
 
@@ -137,6 +103,14 @@ void PURemote::setPortAColourAndLC()
     currentLCPortA->initiated = false;
     MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
     */
+}
+
+void PURemote::setColourAndLC(freeListItem *item)
+{
+    SetHubLedColor(item->ledColour);
+    currentLC->setIdandAddr(item->id, item->addr);
+    currentLC->initiated = false;
+    MTC4BTMQTTHandler::pubGetLcInfo(item->id);
 }
 
 void PURemote::incLocSpeed(lc *currentLC, int increment)
@@ -331,10 +305,80 @@ void PURemote::parsePortMessage(uint8_t *pData)
     }
 }
 
+remoteModes PURemote::getMode()
+{
+    return _config->mode;
+}
+std::vector<freeListItem *> PURemote::getItemList()
+{
+    return _config->list.freeListItems;
+}
+
 void PURemote::buttonHandleAction(PUbutton button)
 {
     if (_config->mode == listMode) {
         // get current selected device
+        RRdevice device = _config->list.freeListItems[index]->RRtype;
+        RRaction action = _config->list.buttons->getButton(device, button);
+        // make a nice switch statement here, maybe change it when implementing the freeMode ;-)
+        switch (action) {
+        case navUp:
+            index = (index + 1) % _config->list.freeListItems.size();
+            if (_config->list.freeListItems[index]->RRtype == RRloco) {
+                setColourAndLC(_config->list.freeListItems[index]);
+            } else {
+                SetHubLedColor(_config->list.freeListItems[index]->ledColour);
+            }
+            break;
+        case navDown:
+            index -= 1;
+            if (index < 0)
+                index = _config->list.freeListItems.size() - 1;
+            if (_config->list.freeListItems[index]->RRtype == RRloco) {
+                setColourAndLC(_config->list.freeListItems[index]);
+            } else {
+                SetHubLedColor(_config->list.freeListItems[index]->ledColour);
+            }
+            break;
+        case RRebrake:
+            MTC4BTMQTTHandler::pubEBrake();
+            break;
+        case RRgo:
+            MTC4BTMQTTHandler::pubGo();
+            break;
+        case RRinc:
+            incLocSpeed(currentLC, 10);
+            break;
+        case RRdec:
+            decLocSpeed(currentLC, 10);
+            break;
+        case RRstop:
+            setLocSpeed(currentLC, 0);
+            break;
+        case RRflip:
+            MTC4BTMQTTHandler::pubFlip(_config->list.freeListItems[index]->RRtype, _config->list.freeListItems[index]->id);
+            break;
+        case RRon:
+        case RRoff:
+            MTC4BTMQTTHandler::pubCo(action, _config->list.freeListItems[index]->id);
+            break;
+        case RRgreen:
+        case RRred:
+        case RRyellow:
+        case RRwhite:
+            MTC4BTMQTTHandler::pubSg(action, _config->list.freeListItems[index]->id);
+            break;
+        case RRleft:
+        case RRright:
+        case RRstraight:
+        case RRturnout:
+            MTC4BTMQTTHandler::pubSw(action, _config->list.freeListItems[index]->id);
+            break;
+        case RRnoop:
+        default:
+            break;
+        }
+
     } else {
         // TODO:we are in freeMode
     }

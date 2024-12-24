@@ -112,7 +112,20 @@ void setup()
 
 void loop()
 {
+    static unsigned long checkedForRocrail = millis() + 12000;  // force a loco lookup on startup
     controller->Loop();
     MattzoMQTTSubscriber::Loop();
     MattzoWifiClient::Loop();
+
+    // Next statement is to load the loco configs into the EPS, but only if we have configured remotes
+    // we test every 10 seconds for rocrail availability!
+    // side effect, if there is a plan without any it will also test every 10 seconds.
+    if (controllerConfig->RemoteConfigs.size() != 0) {
+        // we have configured remotes
+        if (locs.size() == 0  && (millis() - checkedForRocrail > 10000)) {
+            // no loco's 
+            MTC4BTMQTTHandler::pubGetShortLcList();
+            checkedForRocrail = millis();
+        }
+    }
 }

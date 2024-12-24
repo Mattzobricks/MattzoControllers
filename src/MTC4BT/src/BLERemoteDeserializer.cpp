@@ -58,8 +58,10 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
             JsonArray listConfigs = hubConfig["list"].as<JsonArray>();
             std::vector<freeListItem *> freeListItems;
             for (JsonObject listConfig : listConfigs) {
+                // TODO: test what happens when id is not set in the config!
                 const char *itemId = listConfig["id"];
-                const uint itemAddr = listConfig["addr"];
+                log4MC::vlogf(LOG_DEBUG,"remote id '%s' %d",itemId,itemId);
+                const uint itemAddr = listConfig["addr"] | -1;
                 const std::string itemTypeStr = listConfig["type"];
                 const std::string ledColourStr = listConfig["color"];
 

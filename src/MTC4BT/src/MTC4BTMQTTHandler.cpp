@@ -1,3 +1,8 @@
+/*
+ * MTC4BTMQTTHandler
+ * Handle all mqtt.
+ */
+
 #include "MTC4BTMQTTHandler.h"
 #include "MTC4BTController.h"
 #include "log4MC.h"
@@ -138,7 +143,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
             remotes[i]->initiated = true;
             remotes[i]->invdir = currentLC->invdir;
         }
-        delete( currentLC);
+        delete (currentLC);
         remotes.clear(); // DO NOT FREE, THEY ARE REFERENCED BY THE REMOTES!
     }
 }
@@ -209,7 +214,7 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
             remotes[i]->initiated = true;
             remotes[i]->invdir = currentLC->invdir;
         }
-        delete( currentLC );
+        delete (currentLC);
         remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
     }
 
@@ -352,6 +357,10 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
 }
 
+void MTC4BTMQTTHandler::pubEBrake()
+{
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");
+}
 void MTC4BTMQTTHandler::pubGo()
 {
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
@@ -377,4 +386,47 @@ void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
     snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr,
              dir ? "true" : "false", abs(locV));
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+}
+
+void MTC4BTMQTTHandler::pubFlip(RRdevice device, char *id)
+{
+    char request[200];
+    bool knownDevice = true;
+    switch (device) {
+    case RRsignal:
+        snprintf(request, 200, "<sg id=\"%s\"  cmd=\"flip\" manualcmd=\"true\"/>", id);
+        break;
+    case RRswitch:
+        snprintf(request, 200, "<sw id=\"%s\"  cmd=\"flip\" manualcmd=\"true\"/>", id);
+        break;
+    case RRoutput:
+        snprintf(request, 200, "<co id=\"%s\"  cmd=\"flip\" manualcmd=\"true\"/>", id);
+        break;
+    default:
+        knownDevice = false;
+        break;
+    }
+    if (knownDevice)
+        mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+}
+
+void MTC4BTMQTTHandler::pubCo(RRaction action, char *id)
+{
+    char request[200];
+    snprintf(request, 200, "<co id=\"%s\"  cmd=\"%s\"/>", id, action == RRon ? "on" : "off");
+    mqttSubscriberClient.publish("rocrail/service/client", request);
+}
+
+void MTC4BTMQTTHandler::pubSg(RRaction action, char *id)
+{
+    char request[200];
+    snprintf(request, 200, "<sg id=\"%s\"  cmd=\"%s\"/>", id, action == RRgreen ? "green" : (action == RRgreen ? "red" : (action == RRyellow ? "yellow" : "white")));
+    mqttSubscriberClient.publish("rocrail/service/client", request);
+}
+
+void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
+{
+    char request[200];
+    snprintf(request, 200, "<sw id=\"%s\"  cmd=\"%s\"/>", id, action == RRleft ? "left" : (action == RRright ? "right" : (action == RRstraight ? "straight" : "turnout")));
+    mqttSubscriberClient.publish("rocrail/service/client", request);
 }

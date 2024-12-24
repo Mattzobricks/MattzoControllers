@@ -9,6 +9,7 @@
  *  - ledColour : (from enum.h)
  *
  */
+#include <string.h>
 
 #include "PUremoteButtons/PUButtons.h"
 #include "enums.h"
@@ -21,7 +22,7 @@ class freeListItem
     ~freeListItem();
 
     RRdevice RRtype;
-    const char *id;
+    char *id;
     uint addr;
     HubLedColor ledColour;
 };
