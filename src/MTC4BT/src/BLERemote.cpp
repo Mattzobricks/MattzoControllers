@@ -35,5 +35,10 @@ void BLERemote::initHubs()
             hub = new PURemote(hubConfig);
             break;
         }
+        // Next is needed for connection scanning!
+        if (hub) {
+            //hub->SetConnectCallback([this](bool connected) -> void { handleConnectCallback(connected); });
+            Hubs.push_back(hub);
+        }
     }
 }

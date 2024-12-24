@@ -251,7 +251,6 @@ void MTC4BTController::discoveryLoop(void *parm)
         }
 
         // Remotes
-        log4MC::vlogf(LOG_DEBUG, "disc loop remotes %d", controller->Remotes.size());
         for (BLERemote *remote : controller->Remotes) {
             // All loco hubs are already connected. Skip to the next loco.
             if (remote->AllHubsConnected()) {
@@ -262,7 +261,6 @@ void MTC4BTController::discoveryLoop(void *parm)
                     // Hub is already connected. Skip to the next Hub.
                     continue;
                 }
-                log4MC::vlogf(LOG_DEBUG, "Going for discovery");
                 if (hub->IsDiscovered()) {
                     // Hub discovered, try to connect now.
                     if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {

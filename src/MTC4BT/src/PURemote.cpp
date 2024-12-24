@@ -323,7 +323,7 @@ void PURemote::buttonHandleAction(PUbutton button)
         RRdevice device = _config->list.freeListItems[index]->RRtype;
         RRaction action = _config->list.buttons->getButton(device, button);
 
-        log4MC::vlogf(LOG_DEBUG,"Got a key press device %s action %s",device,action);
+        log4MC::vlogf(LOG_DEBUG,"Got a key press device %d action %d",device,action);
         // make a nice switch statement here, maybe change it when implementing the freeMode ;-)
         switch (action) {
         case navUp:
