@@ -208,7 +208,6 @@ void MTC4BTController::HandleTrigger(int locoAddress, MCTriggerSource source, st
     }
 }
 
-// TODO: discoveryLoop should also handle remotes
 void MTC4BTController::discoveryLoop(void *parm)
 {
     MTC4BTController *controller = (MTC4BTController *)parm;
@@ -216,6 +215,7 @@ void MTC4BTController::discoveryLoop(void *parm)
     for (;;) {
         std::vector<BLEHub *> undiscoveredHubs;
 
+        // Locomotives
         for (BLELocomotive *loco : controller->Locomotives) {
             // All loco hubs are already connected. Skip to the next loco.
             if (loco->AllHubsConnected()) {
@@ -236,6 +236,41 @@ void MTC4BTController::discoveryLoop(void *parm)
 
                             // Blink lights for a while when connected.
                             loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
+                        }
+                    } else {
+                        // Connect attempt failed. Will retry in next loop.
+                        log4MC::warn("Loop: Connect failed. Will retry...");
+                    }
+                } else {
+                    // Hub not discovered yet, add to list of hubs to discover.
+                    undiscoveredHubs.push_back(hub);
+                }
+
+                delay(50 / portTICK_PERIOD_MS);
+            }
+        }
+
+        // Remotes
+        for (BLERemote *remote : controller->Remotes) {
+            // All loco hubs are already connected. Skip to the next loco.
+            if (remote->AllHubsConnected()) {
+                continue;
+            }
+
+            for (BLEHub *hub : remote->Hubs) {
+                if (hub->IsConnected()) {
+                    // Hub is already connected. Skip to the next Hub.
+                    continue;
+                }
+
+                if (hub->IsDiscovered()) {
+                    // Hub discovered, try to connect now.
+                    if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {
+                        if (remote->AllHubsConnected()) {
+                            log4MC::vlogf(LOG_INFO, "Loop: Connected to all remote hubs.");
+
+                            // Blink lights for a while when connected.
+                            remote->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
                         }
                     } else {
                         // Connect attempt failed. Will retry in next loop.
