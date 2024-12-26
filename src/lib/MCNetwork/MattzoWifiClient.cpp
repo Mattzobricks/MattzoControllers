@@ -32,6 +32,7 @@ void MattzoWifiClient::Loop()
         }
     }
 #endif
+   ArduinoOTA.handle();
 }
 
 void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
@@ -132,6 +133,9 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
     }
 
     Serial.println();
+
+    Serial.print("Wifi IP is: ");
+    Serial.println(WiFi.localIP());
 
     // Setup completed.
     _setupCompleted = true;

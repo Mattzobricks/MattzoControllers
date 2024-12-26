@@ -81,22 +81,22 @@ The json would look like:
 "buttons" : [
   {
     "button" : "Ared",
-    "type"   : "signal"
+    "type"   : "signal",
     "action" : "red"
   },
   {
     "button" : "A-",
-    "type"   : "signal"
+    "type"   : "signal",
     "action" : "flip"
   },
   {
     "button" : "Ared",
-    "type"   : "switch"
+    "type"   : "switch",
     "action" : "turnout"
   },
   {
     "button" : "A-",
-    "type"   : "switch"
+    "type"   : "switch",
     "action" : "flip"
   } 
 ]
@@ -109,7 +109,11 @@ List items
     type:    loco, switch, signal, output
     ledcolour: (names from enum.h)
 ```
-In list mode, the first item is default selected (after the data is collected from rocrail)
+In list mode, the first item is default selected (after the data is collected from Rocrail)
+
+In `Loop()` the ESP tries to get a list of locomotives of the current plan, if not it tries again every 10 seconds, until it gets one.
+
+In the `init` of the remote it sets the colour of the remote, and if it is a locomotive also `currentLC` and sets `initiated` to false, meaning this item has no locomotive info.
 
 
 ### Implementation hints for parsePortValueSingleMessage() port A and port B
@@ -128,12 +132,12 @@ In combination with the values from the PURemote 0x01, 0x7f and 0xff it will com
 
 # Free mode
 
- ## Implementation
+## Implementation
 
- Some kind of structure is needed to hold the configuration of the list buttons.
+Some kind of structure is needed to hold the configuration of the list buttons.
 
- Type definition
- ```
+Type definition
+```
    array of buttons
      buttonName: A+, Ared, A-, B+ Bred, B-, Green
        list of actions
