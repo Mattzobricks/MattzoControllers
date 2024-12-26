@@ -131,6 +131,23 @@ std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
     return remotes;
 }
 
+void MTC4BTController::initFirstItems()
+{
+    for (BLERemote *remote : Remotes) {
+        for (BLEHub *hub : remote->Hubs) {
+            if (hub->GetHubType() == BLEHubType::PUController) {
+                PURemote *remoteHub = (PURemote *)hub;
+
+                if (remoteHub->index == -1) {
+                    // we have an uninitilized hub
+                    remoteHub->setColourAndLC(remoteHub->getItemByIndex(0));
+                    remoteHub->index = 0;
+                }
+            }
+        }
+    }
+}
+
 void MTC4BTController::handleLCList()
 {
     /* for all controller 'locomotives' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
@@ -159,7 +176,7 @@ void MTC4BTController::handleLCList()
                         }
 
                         if (remoteLc->addr == locs[i]->addr) {
-                            remoteLc->setIdandAddr(locs[i]->id, locs[i]->addr);
+                            remoteLc->setIdandAddr(locs[i]->id, locs[i]->addr, false);
                             // get the loc info
                             log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
                             MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);

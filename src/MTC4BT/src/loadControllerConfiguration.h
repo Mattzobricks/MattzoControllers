@@ -19,7 +19,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
     }
 
     // Read JSON controller config file.
-    StaticJsonDocument<4096> doc = MCJsonConfig::ReadJsonFile(configFilePath);
+    DynamicJsonDocument doc = MCJsonConfig::ReadJsonFile(configFilePath);
 
     // Read controller name.
     const char *controllerName = doc["name"] | DEFAULT_CONTROLLER_NAME;

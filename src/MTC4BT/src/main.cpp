@@ -122,10 +122,15 @@ void loop()
     // side effect, if there is a plan without any it will also test every 10 seconds.
     if (controllerConfig->RemoteConfigs.size() != 0) {
         // we have configured remotes
-        if (locs.size() == 0 && (millis() - checkedForRocrail > 10000)) {
-            // no loco's
-            MTC4BTMQTTHandler::pubGetShortLcList();
-            checkedForRocrail = millis();
+        if (locs.size() == 0) {
+            if ((millis() - checkedForRocrail > 10000)) {
+                // no loco's
+                MTC4BTMQTTHandler::pubGetShortLcList();
+                checkedForRocrail = millis();
+            }
+        } else {
+            // we have a loco list, so there is a connection with Rocrail
+            controller->initFirstItems();
         }
     }
 }

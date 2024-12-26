@@ -44,6 +44,9 @@ class MTC4BTController : public MController
 
     // find all the remotes by address
     std::vector<lc *> findRemoteByAddr(int addr);
+    
+    // find all first items from the remotes, and do an init.
+    void initFirstItems();
 
   private:
     // Discovers new BLE devices.

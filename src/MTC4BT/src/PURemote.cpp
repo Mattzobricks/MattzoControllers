@@ -18,19 +18,21 @@ PURemote::PURemote(BLEHubConfiguration *config)
 {
     log4MC::debug("Init remote");
 
-    index = 0;
+    index = -1;
 
     // build loco list, because we need to update values (speed)
     // all other devices are just the id's
     // for the locos we need the short list to make it addressable by id and addr
     if (_config->mode == listMode) {
+        currentLC = new lc(NULL, 0, false, 0, 0, 0);
+        /*
         if (_config->list.freeListItems[index]->RRtype == RRloco) {
-            // The first item is a locomotive
-            currentLC = new lc((char *)_config->list.freeListItems[index]->id, _config->list.freeListItems[index]->addr, false, 0, 0, 0);
+            log4MC::vlogf(LOG_DEBUG,"Looking for a loco %d %d",_config->list.freeListItems[index]->addr,_config->list.freeListItems[index]->id);
+            setColourAndLC(_config->list.freeListItems[index]);
         } else {
-            currentLC = new lc(NULL, 0, false, 0, 0, 0);
+            SetHubLedColor(_config->list.freeListItems[index]->ledColour);
         }
-        SetHubLedColor(_config->list.freeListItems[index]->ledColour);
+        */
     }
     // just for testing, will be filled with the config later on!
 }
@@ -97,22 +99,42 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
     }
 }
 
-void PURemote::setPortAColourAndLC()
+bool PURemote::setColourAndLC(freeListItem *item)
 {
-    /*
-    SetHubLedColor((HubLedColor)(((index - lowIndex) % 10) + 1));
-    currentLCPortA->setIdandAddr(locs[index]->id, locs[index]->addr);
-    currentLCPortA->initiated = false;
-    MTC4BTMQTTHandler::pubGetLcInfo(locs[index]->id);
-    */
-}
+    //  find address or id from the loco list
+    if (locs.size() == 0) {
+        // locolist is empty, request a new list and return false (indicating: nothing happened)
+        MTC4BTMQTTHandler::pubGetShortLcList();
+        return false;
+    }
+    // look up the loco in the locs list.
+    if (item->addr == -1) {
+        // lookup by id
+        for (int i = 0; i < locs.size(); i++) {
+            if (strcmp(locs[i]->id, item->id) == 0) {
+                log4MC::vlogf(LOG_DEBUG, "Found loc by id %s '%d'", locs[i]->id, locs[i]->addr);
+                item->addr = locs[i]->addr;
+                break;
+            }
+        }
 
-void PURemote::setColourAndLC(freeListItem *item)
-{
+    } else if (item->id == NULL) {
+        // lookup by addr
+        for (int i = 0; i < locs.size(); i++) {
+            if (locs[i]->addr == item->addr) {
+                log4MC::vlogf(LOG_DEBUG, "Found loc by addr %s '%d'", locs[i]->id, locs[i]->addr);
+                item->setId(locs[i]->id);
+                break;
+            }
+        }
+    } else {
+        // This should not happen!
+        log4MC::error("Somehow this locomotive is misconfigured, find the error in the json file.");
+    }
     SetHubLedColor(item->ledColour);
-    currentLC->setIdandAddr(item->id, item->addr);
-    currentLC->initiated = false;
+    currentLC->setIdandAddr(item->id, item->addr, false);
     MTC4BTMQTTHandler::pubGetLcInfo(item->id);
+    return true;
 }
 
 void PURemote::incLocSpeed(lc *currentLC, int increment)
@@ -316,20 +338,33 @@ std::vector<freeListItem *> PURemote::getItemList()
     return _config->list.freeListItems;
 }
 
+freeListItem * PURemote::getItemByIndex(int index)
+{
+    return _config->list.freeListItems[index];
+}
+
 void PURemote::buttonHandleAction(PUbutton button)
 {
     if (_config->mode == listMode) {
+        if (index == -1) {
+            // ignore the buttons when index = -1
+            // this is the init mode of the remote
+            return;
+        }
+        int oldIndex = index;
         // get current selected device
         RRdevice device = _config->list.freeListItems[index]->RRtype;
         RRaction action = _config->list.buttons->getButton(device, button);
 
-        log4MC::vlogf(LOG_DEBUG,"Got a key press device %d action %d",device,action);
+        log4MC::vlogf(LOG_DEBUG, "Got a key press device %d action %d", device, action);
         // make a nice switch statement here, maybe change it when implementing the freeMode ;-)
         switch (action) {
         case navUp:
             index = (index + 1) % _config->list.freeListItems.size();
             if (_config->list.freeListItems[index]->RRtype == RRloco) {
-                setColourAndLC(_config->list.freeListItems[index]);
+                if (!setColourAndLC(_config->list.freeListItems[index])) {
+                    index = oldIndex; // no button is pressed, request to get loco list is send
+                }
             } else {
                 SetHubLedColor(_config->list.freeListItems[index]->ledColour);
             }
@@ -339,7 +374,9 @@ void PURemote::buttonHandleAction(PUbutton button)
             if (index < 0)
                 index = _config->list.freeListItems.size() - 1;
             if (_config->list.freeListItems[index]->RRtype == RRloco) {
-                setColourAndLC(_config->list.freeListItems[index]);
+                if (!setColourAndLC(_config->list.freeListItems[index])) {
+                    index = oldIndex; // no button is pressed, request to get loco list is send
+                }
             } else {
                 SetHubLedColor(_config->list.freeListItems[index]->ledColour);
             }

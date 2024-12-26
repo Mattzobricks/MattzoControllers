@@ -20,17 +20,18 @@ class PURemote : public PUHub
     void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 
     void buttonHandleAction(PUbutton button);
-    void setColourAndLC(freeListItem *item);
+    bool setColourAndLC(freeListItem *item);
 
     lc *getPort(int address);
     lc *getPort();
     remoteModes getMode();
     std::vector<freeListItem *> getItemList();
+    int index;
+    freeListItem * getItemByIndex(int index);
 
   protected:
     lc *currentLC; // used in list mode
-    int index;
-    //std::vector<lc *> lcs; // used in free mode
+    // std::vector<lc *> lcs; // used in free mode
 
     void parsePortValueSingleMessage(uint8_t *pData, size_t length);
     void parseHWNetworkCommandMessage(uint8_t *pData, size_t length);

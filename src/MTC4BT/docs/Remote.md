@@ -114,7 +114,77 @@ In list mode, the first item is default selected (after the data is collected fr
 In `Loop()` the ESP tries to get a list of locomotives of the current plan, if not it tries again every 10 seconds, until it gets one.
 
 In the `init` of the remote it sets the colour of the remote, and if it is a locomotive also `currentLC` and sets `initiated` to false, meaning this item has no locomotive info.
+The field `index` is set to -1 to indicate that the items are not  synchronised with Rocrail. The colour of the remote is still white and does not reflect the selection of the first colour in the list.
 
+## Example configuration
+
+**This is a part of the example**
+
+```
+    "remotes" : [
+        {
+            "address": 9999,
+            "name": "Lego remote",
+            "bleHubs": [
+                {
+                    "type": "PUController",
+                    "address": "e4:e1:*",
+                    "mode": "list",
+                    "list": [
+                        {
+                            "id": "V100",
+                            "type": "loco",
+                            "color": "yellow"
+                        },
+                        {
+                            "addr": 2,
+                            "type": "loco",
+                            "color": "red"
+                        },
+                        {
+                            "id": "sw21",
+                            "type": "switch",
+                            "color": "pink"
+                        },
+                        {
+                            "id": "sg24",
+                            "type": "signal",
+                            "color": "lightblue"
+                        },
+                        {
+                            "id": "sw26",
+                            "type": "switch",
+                            "color": "blue"
+                        }
+                    ],
+                    "buttons": [
+                        {
+                            "button": "Ared",
+                            "type": "signal",
+                            "action": "red"
+                        },
+                        {
+                            "button": "A-",
+                            "type": "signal",
+                            "action": "flip"
+                        },
+                        {
+                            "button": "Ared",
+                            "type": "switch",
+                            "action": "turnout"
+                        },
+                        {
+                            "button": "A-",
+                            "type": "switch",
+                            "action": "flip"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
+```
 
 ### Implementation hints for parsePortValueSingleMessage() port A and port B
 

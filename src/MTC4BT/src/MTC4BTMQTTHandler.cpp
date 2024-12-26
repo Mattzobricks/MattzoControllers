@@ -132,8 +132,10 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
     // find the remote that controlls this locomotive, this part is also
     // in the regular lc command, this is only to get the initial values
     // of the locomotive
+    log4MC::vlogf(LOG_DEBUG,"MQTTHandleInfoLc: Loooking for remote for addr %d.",addr);
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
+        log4MC::vlogf(LOG_DEBUG,"MQTTHandleInfoLc: Found remote for addr %d.",addr);
         lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->invdir);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {

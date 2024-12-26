@@ -30,8 +30,12 @@ lc::lc(char *newId, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
     newSpeed = 0;
     V = 0;
     initiated = false;
-    id = (char *)malloc(strlen(newId) + 1);
-    strcpy(id, newId);
+    if (newId) {
+        id = (char *)malloc(strlen(newId) + 1);
+        strcpy(id, newId);
+    } else {
+        id = NULL;
+    }
 }
 
 lc::lc()
@@ -70,15 +74,20 @@ lc::~lc()
         id = nullptr;
     }
 }
-void lc::setIdandAddr(const char *newId, const int newAddr)
+void lc::setIdandAddr(const char *newId, const int newAddr, bool newInitiated)
 {
-    if (id)
+    if (id) {
         free(id);
-
-    id = (char *)malloc(strlen(newId) + 1);
-    strcpy(id, newId);
+        id = NULL;
+    }
+    if (newId) {
+        id = (char *)malloc(strlen(newId) + 1);
+        strcpy(id, newId);
+    } else {
+        id = NULL;
+    }
     addr = newAddr;
-    initiated = true;
+    initiated = newInitiated;
 }
 
 void lc::clear()

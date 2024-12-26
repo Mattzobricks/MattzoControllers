@@ -10,7 +10,7 @@ DynamicJsonDocument MCJsonConfig::ReadJsonFile(const char *jsonFilePath)
     // - Mode: Deserialize
     // - Input type: Stream
     // Including some slack (1024) in case the strings change, and rounded to a power of two.
-    DynamicJsonDocument doc(4096);
+    DynamicJsonDocument doc(5120);
 
     // Check if file exists.
     File file = SPIFFS.open(jsonFilePath);

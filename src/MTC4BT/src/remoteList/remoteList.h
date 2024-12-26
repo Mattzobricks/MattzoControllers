@@ -18,12 +18,13 @@
 class freeListItem
 {
   public:
-    freeListItem(const char *newId, uint newAddr, RRdevice newRRtype, HubLedColor newledColour);
+    freeListItem(const char *newId, int newAddr, RRdevice newRRtype, HubLedColor newledColour);
     ~freeListItem();
 
+    void setId(const char *newId);
     RRdevice RRtype;
     char *id;
-    uint addr;
+    int addr;
     HubLedColor ledColour;
 };
 
