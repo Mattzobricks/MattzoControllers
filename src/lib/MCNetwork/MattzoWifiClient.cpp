@@ -218,8 +218,6 @@ void MattzoWifiClient::startOTA()
     ArduinoOTA.setHostname(_config->hostname.c_str());
     ArduinoOTA.setPassword(_config->otaPassword.c_str());
 
-    log4MC::vlogf(LOG_DEBUG,"OTA Passweord '%s'.",_config->otaPassword.c_str());
-
     ArduinoOTA.onStart([]() {
         String type;
         if (ArduinoOTA.getCommand() == U_FLASH) {
