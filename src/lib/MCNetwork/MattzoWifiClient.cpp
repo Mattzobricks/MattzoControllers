@@ -32,7 +32,7 @@ void MattzoWifiClient::Loop()
         }
     }
 #endif
-   ArduinoOTA.handle();
+    ArduinoOTA.handle();
 }
 
 void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
@@ -100,6 +100,7 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
         Serial.println(" OK");
         Serial.println();
 
+        // startOTA(); NO OTA FOR WIRED!!!!
         // Setup completed.
         _setupCompleted = true;
         useWifiStatus = false;
@@ -136,7 +137,7 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
 
     Serial.print("Wifi IP is: ");
     Serial.println(WiFi.localIP());
-
+    startOTA();
     // Setup completed.
     _setupCompleted = true;
 }
@@ -216,6 +217,8 @@ void MattzoWifiClient::startOTA()
 {
     ArduinoOTA.setHostname(_config->hostname.c_str());
     ArduinoOTA.setPassword(_config->otaPassword.c_str());
+
+    log4MC::vlogf(LOG_DEBUG,"OTA Passweord '%s'.",_config->otaPassword.c_str());
 
     ArduinoOTA.onStart([]() {
         String type;
