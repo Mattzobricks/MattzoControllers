@@ -3,6 +3,7 @@
  */
 
 #include "remoteList/remoteList.h"
+#include <cstdlib>
 
 freeListItem::freeListItem(const char *newId, int newAddr, RRdevice newRRtype, HubLedColor newledColour)
     : addr{newAddr}, RRtype{newRRtype}, ledColour{newledColour}
