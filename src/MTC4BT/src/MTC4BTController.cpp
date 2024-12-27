@@ -138,7 +138,7 @@ void MTC4BTController::initFirstItems()
             if (hub->GetHubType() == BLEHubType::PUController) {
                 PURemote *remoteHub = (PURemote *)hub;
 
-                if (remoteHub->index == -1) {
+                if (remoteHub->index == -1 && remoteHub->getMode() == listMode) {
                     // we have an uninitilized hub
                     remoteHub->setColourAndLC(remoteHub->getItemByIndex(0));
                     remoteHub->index = 0;
