@@ -22,9 +22,9 @@ class freeListItem
     ~freeListItem();
 
     void setId(const char *newId);
-    RRdevice RRtype;
     char *id;
     int addr;
+    RRdevice RRtype;
     HubLedColor ledColour;
 };
 
