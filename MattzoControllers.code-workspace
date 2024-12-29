@@ -15,10 +15,7 @@
 			"path": "src/lib"
 		},
 		{
-			"path": "src/mlc_include"
-		},
-		{
-			"path": "src/mlc_lib"
+			"path": "src/mc_lib"
 		}
 	],
 	"settings": {
