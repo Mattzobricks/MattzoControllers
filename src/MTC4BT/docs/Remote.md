@@ -121,69 +121,63 @@ The field `index` is set to -1 to indicate that the items are not  synchronised 
 **This is a part of the example**
 
 ```
-    "remotes" : [
+    "remotes": [
         {
-            "address": 9999,
             "name": "Lego remote",
-            "bleHubs": [
+            "type": "PUController",
+            "address": "e4:e1:12:9b:42:14",
+            "mode": "list",
+            "list": [
                 {
-                    "type": "PUController",
-                    "address": "e4:e1:*",
-                    "mode": "list",
-                    "list": [
-                        {
-                            "id": "V100",
-                            "type": "loco",
-                            "color": "yellow"
-                        },
-                        {
-                            "addr": 2,
-                            "type": "loco",
-                            "color": "red"
-                        },
-                        {
-                            "id": "sw21",
-                            "type": "switch",
-                            "color": "pink"
-                        },
-                        {
-                            "id": "sg24",
-                            "type": "signal",
-                            "color": "lightblue"
-                        },
-                        {
-                            "id": "sw26",
-                            "type": "switch",
-                            "color": "blue"
-                        }
-                    ],
-                    "buttons": [
-                        {
-                            "button": "Ared",
-                            "type": "signal",
-                            "action": "red"
-                        },
-                        {
-                            "button": "A-",
-                            "type": "signal",
-                            "action": "flip"
-                        },
-                        {
-                            "button": "Ared",
-                            "type": "switch",
-                            "action": "turnout"
-                        },
-                        {
-                            "button": "A-",
-                            "type": "switch",
-                            "action": "flip"
-                        }
-                    ]
+                    "id": "V100",
+                    "type": "loco",
+                    "color": "yellow"
+                },
+                {
+                    "addr": 2,
+                    "type": "loco",
+                    "color": "red"
+                },
+                {
+                    "id": "sw21",
+                    "type": "switch",
+                    "color": "pink"
+                },
+                {
+                    "id": "sg24",
+                    "type": "signal",
+                    "color": "lightblue"
+                },
+                {
+                    "id": "sw26",
+                    "type": "switch",
+                    "color": "blue"
+                }
+            ],
+            "buttons": [
+                {
+                    "button": "Ared",
+                    "type": "signal",
+                    "action": "red"
+                },
+                {
+                    "button": "A-",
+                    "type": "signal",
+                    "action": "flip"
+                },
+                {
+                    "button": "Ared",
+                    "type": "switch",
+                    "action": "turnout"
+                },
+                {
+                    "button": "A-",
+                    "type": "switch",
+                    "action": "flip"
                 }
             ]
         }
     ]
-
 ```
 
 ### Implementation hints for parsePortValueSingleMessage() port A and port B
@@ -216,7 +210,7 @@ Type definition
          action:     inc, dec, stop, flip, on, off, green, red, yellow, white, left, right, straight, turnout, go, ebrake
 ```
 
-Free items
+Free config items
 ```
   "free"
     button: A+, Ared, A-, B+ Bred, B-, Green
@@ -224,6 +218,72 @@ Free items
     id/addr:    address or identifier
     action:     inc, dec, stop, flip, on, off, green, red, yellow, white, left, right, straight, turnout, go, ebrake
 ```
+
+## Example configuration
+
+**This is a part of the example**
+
+
+```
+    "remotes" : [
+             {
+            "name": "Lego remote",
+            "type": "PUController",
+            "address": "e4:e1:12:9b:42:14",
+            "mode": "free",
+            "buttons": [
+                {
+                    "button": "A+",
+                    "type": "signal",
+                    "id": "vs23-",
+                    "action": "green"
+                },
+                {
+                    "button": "A+",
+                    "type": "switch",
+                    "id": "sw22",
+                    "action": "straight"
+                },
+                {
+                    "button": "A+",
+                    "type": "switch",
+                    "id": "sg02-",
+                    "action": "green"
+                },
+                {
+                    "button": "A-",
+                    "type": "switch",
+                    "id": "sw21",
+                    "action": "flip"
+                },
+                {
+                    "button": "Ared",
+                    "type": "switch",
+                    "id": "sw26",
+                    "action": "flip"
+                },
+                {
+                    "button": "B+",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "inc"
+                },
+                {
+                    "button": "Bred",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "stop"
+                },
+                {
+                    "button": "B-",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "dec"
+                }
+            ]
+        }
+    ]
+
 
 # Common function
 

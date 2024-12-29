@@ -28,6 +28,14 @@ PUbuttonByType::PUbuttonByType()
     buttonByType[RRswitch][Bmin] = navDown;
     buttonByType[RRswitch][Green] = RRgo;
 
+    buttonByType[RRtripleswitch][Aplus] = RRleft;
+    buttonByType[RRtripleswitch][Ared] = RRstraight;
+    buttonByType[RRtripleswitch][Amin] = RRright;
+    buttonByType[RRtripleswitch][Bplus] = navUp;
+    buttonByType[RRtripleswitch][Bred] = RRebrake;
+    buttonByType[RRtripleswitch][Bmin] = navDown;
+    buttonByType[RRtripleswitch][Green] = RRgo;
+
     buttonByType[RRsignal][Aplus] = RRgreen;
     buttonByType[RRsignal][Ared] = RRflip;
     buttonByType[RRsignal][Amin] = RRred;
@@ -57,4 +65,38 @@ void PUbuttonByType::setButton(RRdevice device, PUbutton button, RRaction action
 RRaction PUbuttonByType::getButton(RRdevice device, PUbutton button)
 {
     return buttonByType[device][button];
+}
+
+PUbuttonList::PUbuttonList()
+{
+}
+
+PUbuttonList::~PUbuttonList()
+{
+    for (auto item : buttons) {
+        for (auto button : item)
+            delete button;
+    }
+}
+
+void PUbuttonList::addButtonItem(PUbutton button, freeButtonItem *item)
+{
+    buttons[button].push_back(item);
+}
+
+/// @brief iterate over all buttons and find the loco type an push it in a vector, so we can
+/// keep track of them
+/// @return list of non initiated locomotives
+std::vector<lc *> PUbuttonList::getAllLocoItems()
+{
+    std::vector<lc *> locos;
+    for (auto item : buttons) {
+        for (auto button : item)
+            if (button->RRtype == RRloco) {
+                // just add an empty loco, will init in the main loop, just as
+                // listMode does
+                locos.push_back(new lc(NULL, 0, false, 0, 0, 0));
+            }
+    }
+    return locos;
 }

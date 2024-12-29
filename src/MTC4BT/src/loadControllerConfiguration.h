@@ -11,7 +11,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 {
     // New up a configation object, so we can set its properties.
     MTC4BTConfiguration *config = new MTC4BTConfiguration();
-
+    BLERemoteConfiguration *deserializedRemoteConfig;
     // Initialize file system.
     if (!SPIFFS.begin(true)) {
         Serial.println("Config: An error has occurred while mounting SPIFFS");
@@ -67,8 +67,9 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             // Skip if loco is not enabled.
             continue;
         }
-
-        config->RemoteConfigs.push_back(BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep));
+        deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep);
+        if (deserializedRemoteConfig)
+            config->RemoteConfigs.push_back(deserializedRemoteConfig);
     }
 
     // Read loco config files.
@@ -105,8 +106,9 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
             // Skip if loco is not enabled.
             continue;
         }
-
-        config->RemoteConfigs.push_back(BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep));
+        deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep);
+        if (deserializedRemoteConfig)
+            config->RemoteConfigs.push_back(deserializedRemoteConfig);
     }
 
     // Return MTC4BTConfiguration object.

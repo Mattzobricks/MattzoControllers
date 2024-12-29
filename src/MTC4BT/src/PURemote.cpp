@@ -25,14 +25,9 @@ PURemote::PURemote(BLEHubConfiguration *config)
     // for the locos we need the short list to make it addressable by id and addr
     if (_config->mode == listMode) {
         currentLC = new lc(NULL, 0, false, 0, 0, 0);
-        /*
-        if (_config->list.freeListItems[index]->RRtype == RRloco) {
-            log4MC::vlogf(LOG_DEBUG,"Looking for a loco %d %d",_config->list.freeListItems[index]->addr,_config->list.freeListItems[index]->id);
-            setColourAndLC(_config->list.freeListItems[index]);
-        } else {
-            SetHubLedColor(_config->list.freeListItems[index]->ledColour);
-        }
-        */
+    } else if (config->mode == freeMode) {
+        // create a vector of lc's on all the buttons
+        lcs = _config->buttons->getAllLocoItems();
     }
     // just for testing, will be filled with the config later on!
 }
@@ -97,6 +92,14 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
     default:
         break;
     }
+}
+
+/// @brief set all locomotives id and addresses and call rocrail for more info about the loco's
+/// @return false when the loco list is empty otherwise true
+
+bool PURemote::setLCs()
+{
+    return true;
 }
 
 bool PURemote::setColourAndLC(freeListItem *item)
@@ -338,7 +341,7 @@ std::vector<freeListItem *> PURemote::getItemList()
     return _config->list.freeListItems;
 }
 
-freeListItem * PURemote::getItemByIndex(int index)
+freeListItem *PURemote::getItemByIndex(int index)
 {
     return _config->list.freeListItems[index];
 }

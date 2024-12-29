@@ -56,7 +56,8 @@ class BLEHubConfiguration
 {
   public:
     BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel);
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonByType *newbuttons, std::vector<freeListItem *> newFreeListItems);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonByType *newButtons, std::vector<freeListItem *> newFreeListItems);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonList * freeButtons);
     // Type of Hub.
     BLEHubType HubType;
 
@@ -69,8 +70,8 @@ class BLEHubConfiguration
     // hub power level, only valid for BuWizz2, the rest is ignored
     uint8_t powerLevel;
 
-    // remoteAddress remote;
-    //  TODO: add remote stuff here for now, if we are going to support more remotes, reconsider
+    // add remote stuff here for now, if we are going to support more remotes, reconsider
     remoteModes mode;
     listModeType list;
+    PUbuttonList * buttons;  // is an vector of a fixed number of buttons
 };

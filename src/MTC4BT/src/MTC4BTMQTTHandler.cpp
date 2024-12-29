@@ -110,8 +110,20 @@ stoponfailgoto="false" directgoto="false" engineFxType="" engineFxNr="0" sbt_dec
 sbt_interval="0" bat_accelerate="0" bat_interval="0" arrivetime="1730146471"/>
 
 There could be fn's, but for the PU remote we are ignoring these.
-
 This command is needed to get info about the locomotive afer it is seleced by the remote
+
+The following swap cmd also can change the placing, this one is needed for the correct
+direction!
+
+<lc id="ICE" cmd="swap" controlcode="" slavecode="" actor="user" server="infw03B46894"
+iid="" shortid="" uid="0" sid="0" dir="true" addr="6051" secaddr="0" V="0" placing="true"
+blockenterside="true" blockenterid="" modeevent="false" mode="stop" modereason="" resumeauto="false"
+manual="false" shunting="false" standalone="false" blockid="bk04" destblockid="" fn="false"
+runtime="97436" mtime="0" rdate="1735382854" mint="0" throttleid="" active="true" waittime="0"
+scidx="-1" scheduleid="" tourid="" scheduleinithour="0" len="150" weight="0" train="" trainlen="150"
+trainweight="0" V_realkmh="0" fifotop="false" image="ice.png" imagenr="0" energypercentage="0"
+lookupschedule="false" pause="false" consist=""/>
+
 */
 void MTC4BTMQTTHandler::handleInfoLc(const char *message)
 {
@@ -121,10 +133,18 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
         return;
     }
-    char *prev_id = nullptr;
-    bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
+    char *prev_id = NULL;
+    bool has_previd = XmlParser::tryReadCharAttr(message, "placing", &prev_id);
     if (prev_id)
         free(prev_id);
+    char *cmd = NULL;
+    bool has_cmd = XmlParser::tryReadCharAttr(message, "cmd", &cmd);
+    bool is_swapcmd = false;
+    if (has_cmd && strcmp(cmd, "swap") == 0) {
+        // swap als changes the placing, so we need to "fake" has_previd
+        has_previd = true;
+        is_swapcmd = true; // this one has no Vmax, so do not update
+    }
     if (!has_previd)
         return;
     // ignore all other lc commands on the info channel!
@@ -132,16 +152,18 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
     // find the remote that controlls this locomotive, this part is also
     // in the regular lc command, this is only to get the initial values
     // of the locomotive
-    log4MC::vlogf(LOG_DEBUG,"MQTTHandleInfoLc: Loooking for remote for addr %d.",addr);
+    log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Loooking for remote for addr %d.", addr);
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        log4MC::vlogf(LOG_DEBUG,"MQTTHandleInfoLc: Found remote for addr %d.",addr);
+        log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Found remote for addr %d.", addr);
         lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->invdir);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
-            remotes[i]->vModePercent = currentLC->vModePercent;
             remotes[i]->V = currentLC->V;
-            remotes[i]->Vmax = currentLC->Vmax;
+            if (!is_swapcmd) {
+                remotes[i]->Vmax = currentLC->Vmax;
+                remotes[i]->vModePercent = currentLC->vModePercent;
+            }
             remotes[i]->initiated = true;
             remotes[i]->invdir = currentLC->invdir;
         }
@@ -422,7 +444,7 @@ void MTC4BTMQTTHandler::pubCo(RRaction action, char *id)
 void MTC4BTMQTTHandler::pubSg(RRaction action, char *id)
 {
     char request[200];
-    snprintf(request, 200, "<sg id=\"%s\"  cmd=\"%s\"/>", id, action == RRgreen ? "green" : (action == RRgreen ? "red" : (action == RRyellow ? "yellow" : "white")));
+    snprintf(request, 200, "<sg id=\"%s\"  cmd=\"%s\"/>", id, action == RRgreen ? "green" : (action == RRred ? "red" : (action == RRyellow ? "yellow" : "white")));
     mqttSubscriberClient.publish("rocrail/service/client", request);
 }
 

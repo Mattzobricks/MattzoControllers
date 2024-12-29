@@ -21,17 +21,18 @@ class PURemote : public PUHub
 
     void buttonHandleAction(PUbutton button);
     bool setColourAndLC(freeListItem *item);
+    bool setLCs();
 
     lc *getPort(int address);
     lc *getPort();
     remoteModes getMode();
     std::vector<freeListItem *> getItemList();
     int index;
-    freeListItem * getItemByIndex(int index);
+    freeListItem *getItemByIndex(int index);
 
   protected:
-    lc *currentLC; // used in list mode
-    // std::vector<lc *> lcs; // used in free mode
+    lc *currentLC;         // used in list mode
+    std::vector<lc *> lcs; // used in free mode
 
     void parsePortValueSingleMessage(uint8_t *pData, size_t length);
     void parseHWNetworkCommandMessage(uint8_t *pData, size_t length);
