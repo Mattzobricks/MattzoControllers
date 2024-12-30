@@ -163,7 +163,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             if (remotes[i]->invdir != currentLC->invdir) {
-                log4MC::vlogf(LOG_DEBUG,"Detected direction change, old %d, new %d, got a possible \"placing\" message %d.", remotes[i]->invdir,  currentLC->invdir, has_previd ||is_swapcmd);
+                log4MC::vlogf(LOG_DEBUG, "Detected direction change, old %d, new %d, got a possible \"placing\" message %d.", remotes[i]->invdir, currentLC->invdir, has_previd || is_swapcmd);
             }
             remotes[i]->V = currentLC->V;
             if (!is_swapcmd) {
@@ -201,7 +201,9 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, b
     if (has_previd) {
         bool placing, blockenterside;
         XmlParser::tryReadBoolAttr(message, "placing", &(placing));
-        // XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
+        XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
+        log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, placing %d, blockenterside %d (old invdir) %d",currentLc->V , currentLc->dir, placing, blockenterside, invdir);
+
         currentLc->invdir = !placing; // ignore stuff
     } else {
         currentLc->invdir = invdir;
