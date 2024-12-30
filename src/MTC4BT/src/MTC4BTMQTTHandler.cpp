@@ -137,12 +137,12 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
     bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
     if (prev_id)
         free(prev_id);
-    char *cmd = NULL;
-    bool has_cmd = XmlParser::tryReadCharAttr(message, "cmd", &cmd);
-    if (cmd)
-        free(cmd);
+    char *placing = NULL;
+    bool has_placing = XmlParser::tryReadCharAttr(message, "placing", &placing);
+    if (placing)
+        free(placing);
     bool is_swapcmd = false;
-    if (has_cmd && strcmp(cmd, "swap") == 0) {
+    if (has_placing && !has_previd) {
         // swap als changes the placing, so we need to "fake" has_previd
         has_previd = true;
         is_swapcmd = true; // this one has no Vmax, so do not update
