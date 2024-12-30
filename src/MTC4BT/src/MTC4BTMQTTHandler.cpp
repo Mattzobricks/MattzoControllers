@@ -204,7 +204,7 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, b
         XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
         log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, placing %d, blockenterside %d (old invdir) %d",currentLc->V , currentLc->dir, placing, blockenterside, invdir);
 
-        currentLc->invdir = !(placing ^ currentLc->dir);
+        currentLc->invdir = (placing ^ currentLc->dir);
     } else {
         currentLc->invdir = invdir;
     }
@@ -217,6 +217,7 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, b
     if (currentLc->invdir) {
         currentLc->V = -currentLc->V;
     }
+    log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, (old invdir) %d",currentLc->V , currentLc->dir, invdir);
     if (currentLc->newSpeed != currentLc->V) {
         // only change if we have a speed change, ignore 0 because that is our
         currentLc->newSpeed = currentLc->V;

@@ -109,16 +109,15 @@ bool PURemote::setLCs()
     for (auto item : lcs) {
         // we have a loco, lets find more info about them
 
-        /*
+/**
         for (auto button : item)
             if (button->RRtype == RRloco) {
                 // just add an empty loco, will init in the main loop, just as
                 // listMode does, but fill in the addr and/or id
                 locos.push_back(new lc(button->id, button->addr, false, 0, 0, 0));
             }
-        */    
+            */
     }
-
     return true;
 }
 
