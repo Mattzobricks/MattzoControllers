@@ -134,7 +134,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
         return;
     }
     char *prev_id = NULL;
-    bool has_previd = XmlParser::tryReadCharAttr(message, "placing", &prev_id);
+    bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
     if (prev_id)
         free(prev_id);
     char *cmd = NULL;
@@ -145,7 +145,8 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
         has_previd = true;
         is_swapcmd = true; // this one has no Vmax, so do not update
     }
-    if (!has_previd)
+    // continue when it is has_previd || is_swapcmd --> break when !(has_previd || is_swapcmd) = !has_previd && !is_swapcmd
+    if (!has_previd && !is_swapcmd)
         return;
     // ignore all other lc commands on the info channel!
 
