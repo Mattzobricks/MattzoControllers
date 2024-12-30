@@ -159,26 +159,23 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
         log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Found remote for addr %d.", addr);
-        lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->invdir);
+        lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->placing);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
-            if (remotes[i]->invdir != currentLC->invdir) {
-                log4MC::vlogf(LOG_DEBUG, "Detected direction change, old %d, new %d, got a possible \"placing\" message %d.", remotes[i]->invdir, currentLC->invdir, has_previd || is_swapcmd);
-            }
             remotes[i]->V = currentLC->V;
             if (!is_swapcmd) {
                 remotes[i]->Vmax = currentLC->Vmax;
                 remotes[i]->vModePercent = currentLC->vModePercent;
+                remotes[i]->placing = currentLC->placing;
             }
             remotes[i]->initiated = true;
-            remotes[i]->invdir = currentLC->invdir;
         }
         delete (currentLC);
         remotes.clear(); // DO NOT FREE, THEY ARE REFERENCED BY THE REMOTES!
     }
 }
 
-lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, bool invdir)
+lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, bool placing)
 {
     // there are remotes which handle this locomotive
     char *Vmode;
@@ -202,22 +199,19 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, b
         bool placing, blockenterside;
         XmlParser::tryReadBoolAttr(message, "placing", &(placing));
         XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
-        log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, placing %d, blockenterside %d (old invdir) %d",currentLc->V , currentLc->dir, placing, blockenterside, invdir);
+        log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, placing %d, blockenterside %d", currentLc->V, currentLc->dir, placing, blockenterside);
 
-        currentLc->invdir = (placing ^ currentLc->dir);
+        currentLc->placing = placing; //TODO: if working with placing works, all should be changed
     } else {
-        currentLc->invdir = invdir;
+        currentLc->placing = placing;
     }
 
-    if (!currentLc->dir) {
+    if ((currentLc->dir ^ currentLc->placing)) {
         currentLc->V = -currentLc->V;
-        currentLc->dir = true;
+        currentLc->dir = true; // so the current speed has a sign
     }
 
-    if (currentLc->invdir) {
-        currentLc->V = -currentLc->V;
-    }
-    log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, (old invdir) %d",currentLc->V , currentLc->dir, invdir);
+    log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, (old invdir) %d", currentLc->V, currentLc->dir);
     if (currentLc->newSpeed != currentLc->V) {
         // only change if we have a speed change, ignore 0 because that is our
         currentLc->newSpeed = currentLc->V;
@@ -238,14 +232,14 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
     // of the locomotive
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message, false, remotes[0]->invdir);
+        lc *currentLC = getCurrentLcSpeed(message, false, remotes[0]->placing);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             remotes[i]->vModePercent = currentLC->vModePercent;
             remotes[i]->V = currentLC->V;
             remotes[i]->Vmax = currentLC->Vmax;
             remotes[i]->initiated = true;
-            remotes[i]->invdir = currentLC->invdir;
+            remotes[i]->placing = currentLC->placing;
         }
         delete (currentLC);
         remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!

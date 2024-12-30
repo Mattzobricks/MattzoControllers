@@ -94,6 +94,30 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
     }
 }
 
+bool PURemote::lookupLcById(char *id, int *locIndex)
+{
+    for (int i = 0; i < locs.size(); i++) {
+        if (strcmp(locs[i]->id, id) == 0) {
+            log4MC::vlogf(LOG_DEBUG, "Found loc by id %s '%d'", locs[i]->id, locs[i]->addr);
+            *locIndex = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool PURemote::lookupLcByAddr(int addr, int *locIndex)
+{
+    for (int i = 0; i < locs.size(); i++) {
+        if (locs[i]->addr == addr) {
+            log4MC::vlogf(LOG_DEBUG, "Found loc by addr %s '%d'", locs[i]->id, locs[i]->addr);
+            *locIndex = i;
+            return true;
+        }
+    }
+    return false;
+}
+
 /// @brief set all locomotives id and addresses and call rocrail for more info about the loco's
 /// @return false when the loco list is empty otherwise true
 
@@ -105,24 +129,25 @@ bool PURemote::setLCs()
         return false;
     }
     //  find address or id from the loco list
-    
+
     for (auto item : lcs) {
         // we have a loco, lets find more info about them
 
-/**
-        for (auto button : item)
-            if (button->RRtype == RRloco) {
-                // just add an empty loco, will init in the main loop, just as
-                // listMode does, but fill in the addr and/or id
-                locos.push_back(new lc(button->id, button->addr, false, 0, 0, 0));
-            }
-            */
+        /**
+                for (auto button : item)
+                    if (button->RRtype == RRloco) {
+                        // just add an empty loco, will init in the main loop, just as
+                        // listMode does, but fill in the addr and/or id
+                        locos.push_back(new lc(button->id, button->addr, false, 0, 0, 0));
+                    }
+                    */
     }
     return true;
 }
 
 bool PURemote::setColourAndLC(freeListItem *item)
 {
+    int index;
     //  find address or id from the loco list
     if (locs.size() == 0) {
         // locolist is empty, request a new list and return false (indicating: nothing happened)
@@ -132,22 +157,13 @@ bool PURemote::setColourAndLC(freeListItem *item)
     // look up the loco in the locs list.
     if (item->addr == -1) {
         // lookup by id
-        for (int i = 0; i < locs.size(); i++) {
-            if (strcmp(locs[i]->id, item->id) == 0) {
-                log4MC::vlogf(LOG_DEBUG, "Found loc by id %s '%d'", locs[i]->id, locs[i]->addr);
-                item->addr = locs[i]->addr;
-                break;
-            }
+        if (lookupLcById(item->id, &index)) {
+            item->addr = locs[index]->addr;
         }
-
     } else if (item->id == NULL) {
         // lookup by addr
-        for (int i = 0; i < locs.size(); i++) {
-            if (locs[i]->addr == item->addr) {
-                log4MC::vlogf(LOG_DEBUG, "Found loc by addr %s '%d'", locs[i]->id, locs[i]->addr);
-                item->setId(locs[i]->id);
-                break;
-            }
+        if (lookupLcByAddr(item->addr, &index)) {
+            item->setId(locs[index]->id);
         }
     } else if (item->id == NULL && item->addr == -1) {
         // This should not happen!

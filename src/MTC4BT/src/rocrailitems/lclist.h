@@ -65,7 +65,7 @@ class lc
     bool initiated;
     int newSpeed;
     bool dir;
-    bool invdir;
+    bool placing;
     int Vmax;
     int VRmax;
     int VSmax;

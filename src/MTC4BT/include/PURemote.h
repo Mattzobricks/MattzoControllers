@@ -42,4 +42,7 @@ class PURemote : public PUHub
     void incLocSpeed(lc *currentLC, int increment);
     void setLocSpeed(lc *currentLC, int value);
     void decLocSpeed(lc *currentLC, int decrement);
+
+    bool lookupLcByAddr(int addr, int *locIndex);
+    bool lookupLcById(char *id, int *locIndex);
 };
