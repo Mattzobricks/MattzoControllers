@@ -204,7 +204,7 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, b
         XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
         log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, placing %d, blockenterside %d (old invdir) %d",currentLc->V , currentLc->dir, placing, blockenterside, invdir);
 
-        currentLc->invdir = !placing; // ignore stuff
+        currentLc->invdir = !(placing ^ currentLc->dir);
     } else {
         currentLc->invdir = invdir;
     }
