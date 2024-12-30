@@ -94,8 +94,8 @@ std::vector<lc *> PUbuttonList::getAllLocoItems()
         for (auto button : item)
             if (button->RRtype == RRloco) {
                 // just add an empty loco, will init in the main loop, just as
-                // listMode does
-                locos.push_back(new lc(NULL, 0, false, 0, 0, 0));
+                // listMode does, but fill in the addr and/or id
+                locos.push_back(new lc(button->id, button->addr, false, 0, 0, 0));
             }
     }
     return locos;

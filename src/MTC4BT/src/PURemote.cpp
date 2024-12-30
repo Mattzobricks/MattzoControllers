@@ -99,6 +99,13 @@ void PURemote::parseHWNetworkCommandMessage(uint8_t *pData, size_t length)
 
 bool PURemote::setLCs()
 {
+    //  Make sure we have a loco list
+    if (locs.size() == 0) {
+        MTC4BTMQTTHandler::pubGetShortLcList();
+        return false;
+    }
+    //  find address or id from the loco list
+
     return true;
 }
 
@@ -130,7 +137,7 @@ bool PURemote::setColourAndLC(freeListItem *item)
                 break;
             }
         }
-    } else {
+    } else if (item->id == NULL && item->addr == -1) {
         // This should not happen!
         log4MC::error("Somehow this locomotive is misconfigured, find the error in the json file.");
     }

@@ -139,6 +139,8 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
         free(prev_id);
     char *cmd = NULL;
     bool has_cmd = XmlParser::tryReadCharAttr(message, "cmd", &cmd);
+    if (cmd)
+        free(cmd);
     bool is_swapcmd = false;
     if (has_cmd && strcmp(cmd, "swap") == 0) {
         // swap als changes the placing, so we need to "fake" has_previd
@@ -160,6 +162,9 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
         lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->invdir);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
+            if (remotes[i]->invdir != currentLC->invdir) {
+                log4MC::vlogf(LOG_DEBUG,"Detected direction change, old %d, new %d, got a possible \"placing\" message %d.", remotes[i]->invdir,  currentLC->invdir, has_previd ||is_swapcmd);
+            }
             remotes[i]->V = currentLC->V;
             if (!is_swapcmd) {
                 remotes[i]->Vmax = currentLC->Vmax;
