@@ -175,6 +175,22 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
     }
 }
 
+/*
+The following table is the tranlation from rocrail lc command to the 
+
++-----+---------+-----------+-------------+--------------+--------------+------------+
+| dir | placing | direction | speed value | remote speed | lc dir value | lc V value |
++-----+---------+-----------+-------------+--------------+--------------+------------+
+|   0 |       0 |   <       |          60 |           60 |            1 |         60 |
+|   0 |       1 |   <       |          60 |          -60 |            0 |         60 |
+|   1 |       1 |   >       |          60 |           60 |            1 |         60 |
+|   1 |       0 |   >       |          60 |          -60 |            0 |         60 |
++-----+---------+-----------+-------------+--------------+--------------+------------+
+
+at the end dir should always be positive and the value should be the real speed (remote speed)
+
+TODO: test if the lc command on the command topic should take into account the placing value it got earlier
+*/
 lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, bool placing)
 {
     // there are remotes which handle this locomotive
