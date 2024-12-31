@@ -50,12 +50,13 @@ Supported hub types
  - `SBrick` SBrick
  - `BuWizz2` BuWizz (version 2.0 only)
 
- The BuWizz 2.0 hub has an additional configuration item `powerlevel` which can hold de following values (case sensitive!):
+The BuWizz 2.0 hub has an additional configuration item `powerlevel` which can hold de following values (case sensitive!):
   - `disabled` Power is disabled
   -  `slow`
   -  `normal` Default if not specified
   -  `fast`
   -  `ldcrs`
+Please be careful with powerlevels beyond "normal", as your appliances may be damaged due to overvoltage.
 
 The channel supports the `power` field, this must be between 1 and 100, with this field it is possible to mix different motor types to achieve the same wheel speed.
 ```
