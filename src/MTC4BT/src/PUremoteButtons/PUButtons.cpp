@@ -90,13 +90,49 @@ void PUbuttonList::addButtonItem(PUbutton button, freeButtonItem *item)
 std::vector<lc *> PUbuttonList::getAllLocoItems()
 {
     std::vector<lc *> locos;
+    lc *loc = NULL;
+    int foundIndex;
     for (auto item : buttons) {
         for (auto button : item)
             if (button->RRtype == RRloco) {
-                // just add an empty loco, will init in the main loop, just as
-                // listMode does, but fill in the addr and/or id
-                locos.push_back(new lc(button->id, button->addr, false, 0, 0, 0));
+                if (findLocoByIdOrAddr(locos, &foundIndex, button->id, button->addr)) {
+                    // found the loco, put the refecerence in the button
+                    button->loc = locos[foundIndex];
+                } else {
+                    loc = new lc(button->id, button->addr, false, 0, 0, 0);
+                    // store the pointer here, that will be easier for the button press
+                    button->loc = loc;
+                    // also here, for easier updateing, NOTE it is the same object!
+                    // updates are done through the locos list, only the speed update for the buttons
+                    // is done through the action
+                    locos.push_back(loc);
+                }
             }
     }
     return locos;
+}
+
+bool PUbuttonList::findLocoByIdOrAddr(std::vector<lc *> locos, int *foundIndex, char *id, int addr)
+{
+    for (int i = 0; i < locos.size(); i++) {
+        if ((id != NULL) &&
+            (locos[i]->id != NULL) &&
+            strcmp(locos[i]->id, id) == 0) {
+            // found by index
+            *foundIndex = i;
+            return true;
+        }
+        if ((addr != -1) &&
+            (locos[i]->addr != -1) &&
+            (addr == locos[i]->addr)) {
+            // found by addr
+            *foundIndex = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<freeButtonItem *> PUbuttonList::getItemsByButton(PUbutton button){
+    return buttons[button];
 }

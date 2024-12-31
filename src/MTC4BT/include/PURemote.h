@@ -22,6 +22,7 @@ class PURemote : public PUHub
     void buttonHandleAction(PUbutton button);
     bool setColourAndLC(freeListItem *item);
     bool setLCs();
+    std::vector<lc *> getLCs();
 
     lc *getPort(int address);
     lc *getPort();

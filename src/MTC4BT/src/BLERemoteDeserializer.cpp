@@ -88,7 +88,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                 std::string typeStr = buttonConfig["type"];
                 std::string actionStr = buttonConfig["action"];
 
-                // TODO: do some sanity checks, test with values that are not mapped!
+                // WONTDO: leave it as an undocumented feature: Some sanity checks, test with values that are not mapped!
                 PUbutton button = PUbuttonMap()[buttonStr];
                 RRdevice device = RRdeviceMap()[typeStr];
                 RRaction action = RRactionMap()[actionStr];

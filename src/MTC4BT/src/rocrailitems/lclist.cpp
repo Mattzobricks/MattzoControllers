@@ -90,6 +90,20 @@ void lc::setIdandAddr(const char *newId, const int newAddr, bool newInitiated)
     initiated = newInitiated;
 }
 
+void lc::setId(const char *newId)
+{
+    if (id) {
+        free((char *)id);
+        id = NULL;
+    }
+    if (newId) {
+        id = (char *)malloc(strlen(newId) + 1);
+        strcpy(id, newId);
+    } else {
+        id = NULL;
+    }
+}
+
 void lc::clear()
 {
     if (id) {

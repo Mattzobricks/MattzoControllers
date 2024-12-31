@@ -123,7 +123,10 @@ std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
                     if (locoLc)
                         remotes.push_back(locoLc);
                 } else {
-                    // TODO: free mode, check all items
+                    // just copy the loco pointers
+                    for (auto loco : remoteHub->getLCs())
+                        if (loco->addr == addr)
+                            remotes.push_back(loco);
                 }
             }
         }
@@ -144,7 +147,6 @@ void MTC4BTController::initFirstItems()
                         remoteHub->setColourAndLC(remoteHub->getItemByIndex(0));
                         remoteHub->index = 0;
                     } else if (remoteHub->getMode() == freeMode) {
-                        // TODO: do some init stuff
                         remoteHub->setLCs();
                         remoteHub->index = 0;
                     }
@@ -172,12 +174,12 @@ void MTC4BTController::handleLCList()
                             if (itemList[j]->addr < 0 && strcmp(itemList[j]->id, locs[i]->id) == 0) {
                                 itemList[j]->addr = locs[i]->addr;
                             }
-                            if (itemList[j]->addr > 0 && itemList[j]->addr == locs[i]->addr) {
+                            if (itemList[j]->addr >= 0 && itemList[j]->addr == locs[i]->addr) {
                                 if (itemList[j]->id) {
                                     free(itemList[j]->id);
-                                    itemList[j]->id = (char *)malloc(strlen(locs[i]->id) + 1);
-                                    strcpy(itemList[j]->id, locs[i]->id);
                                 }
+                                itemList[j]->id = (char *)malloc(strlen(locs[i]->id) + 1);
+                                strcpy(itemList[j]->id, locs[i]->id);
                             }
                         }
 
@@ -189,27 +191,25 @@ void MTC4BTController::handleLCList()
                         }
                     }
                 } else {
-                    // TODO: FreeMode
-                    /*
-                    lc *lcportA = remoteHub->getPortA();
-                    lc *lcportB = remoteHub->getPortB();
-                    // set lcportA and LCportB
+                    // find the id of the locos, and set them in the lcs list
+                    std::vector<lc *> lcList = remoteHub->getLCs();
                     for (int i = 0; i < locs.size(); i++) {
-                        // find the id of the locos.
-                        if (lcportA->addr == locs[i]->addr) {
-                            lcportA->setIdandAddr(locs[i]->id, locs[i]->addr);
-                            // get the loc info
+                        for (auto loc : lcList) {
+                            if (loc->addr < 0 && strcmp(locs[i]->id, loc->id) == 0) {
+                                loc->addr = locs[i]->addr;
+                            }
+                            if (loc->addr >= 0 && loc->addr == locs[i]->addr) {
+                                if (loc->id) {
+                                    free(loc->id);
+                                }
+                                loc->id = (char *)malloc(strlen(locs[i]->id) + 1);
+                                strcpy(loc->id, locs[i]->id);
+                            }
                             log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
                             MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
                         }
-                        if (lcportB->addr == locs[i]->addr) {
-                            lcportB->setIdandAddr(locs[i]->id, locs[i]->addr);
-                            // get the loc info
-                            log4MC::vlogf(LOG_DEBUG, "B id addr %s %d", locs[i]->id, locs[i]->addr);
-                            MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
-                        }
                     }
-                    */
+                    // set the remote to green to indicate the list is filled with id and addr
                     remoteHub->SetHubLedColor(GREEN);
                 }
             }

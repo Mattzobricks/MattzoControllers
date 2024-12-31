@@ -55,6 +55,7 @@ class lc
     bool operator==(const lc &rhs) const { return strcmp(this->id, rhs.id) == 0; }
 
     void setIdandAddr(const char *newId, const int newAddr, bool newInitiated);
+    void setId(const char *newId);
     void clear();
     bool isSelected() { return id != nullptr; }
 

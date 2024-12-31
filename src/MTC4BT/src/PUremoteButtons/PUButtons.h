@@ -28,7 +28,9 @@ class PUbuttonList
 
     void addButtonItem(PUbutton button, freeButtonItem *item);
     std::vector<lc *> getAllLocoItems();
+    std::vector<freeButtonItem *> getItemsByButton(PUbutton button);
 
   protected:
+    bool findLocoByIdOrAddr(std::vector<lc *> locos, int *foundIndex, char *id, int addr);
     std::vector<freeButtonItem *> buttons[maxButton];
 };

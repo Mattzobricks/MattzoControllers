@@ -132,17 +132,34 @@ bool PURemote::setLCs()
 
     for (auto item : lcs) {
         // we have a loco, lets find more info about them
-
-        /**
-                for (auto button : item)
-                    if (button->RRtype == RRloco) {
-                        // just add an empty loco, will init in the main loop, just as
-                        // listMode does, but fill in the addr and/or id
-                        locos.push_back(new lc(button->id, button->addr, false, 0, 0, 0));
-                    }
-                    */
+        if (item->addr == -1) {
+            // lookup by id
+            if (lookupLcById(item->id, &index)) {
+                item->addr = locs[index]->addr;
+            } else {
+                log4MC::vlogf(LOG_ERR, "Configuration error, locomotive id \"%s\" not found in the current plan, using \"-1\" as substitute, this error keeps ocuring.");
+                item->addr = -1;
+            }
+        } else if (item->id == NULL) {
+            // lookup by addr
+            if (lookupLcByAddr(item->addr, &index)) {
+                item->setId(locs[index]->id);
+            } else {
+                log4MC::vlogf(LOG_ERR, "Configuration error, locomotive address %d not found in the current plan, using \"DummyError\" as substitute");
+                item->setId("DummyError");
+            }
+        } else if (item->id == NULL && item->addr == -1) {
+            // This should not happen!
+            log4MC::error("Somehow this locomotive is misconfigured, find the error in the json file.");
+        }
+        MTC4BTMQTTHandler::pubGetLcInfo(item->id);
     }
     return true;
+}
+
+std::vector<lc *> PURemote::getLCs()
+{
+    return lcs;
 }
 
 bool PURemote::setColourAndLC(freeListItem *item)
@@ -154,14 +171,14 @@ bool PURemote::setColourAndLC(freeListItem *item)
         MTC4BTMQTTHandler::pubGetShortLcList();
         return false;
     }
-    log4MC::vlogf(LOG_DEBUG,"%s: addr: %d, id(as pointer): %d",__func__, item->addr, item->id);
+    log4MC::vlogf(LOG_DEBUG, "%s: addr: %d, id(as pointer): %d", __func__, item->addr, item->id);
     // look up the loco in the locs list.
     if (item->addr == -1) {
         // lookup by id
         if (lookupLcById(item->id, &index)) {
             item->addr = locs[index]->addr;
         } else {
-            log4MC::vlogf(LOG_ERR,"Configuration error, locomotive id \"%s\" not found in the current plan, using \"-1\" as substitute, this error keeps ocuring.");
+            log4MC::vlogf(LOG_ERR, "Configuration error, locomotive id \"%s\" not found in the current plan, using \"-1\" as substitute, this error keeps ocuring.");
             item->addr = -1;
         }
     } else if (item->id == NULL) {
@@ -169,7 +186,7 @@ bool PURemote::setColourAndLC(freeListItem *item)
         if (lookupLcByAddr(item->addr, &index)) {
             item->setId(locs[index]->id);
         } else {
-            log4MC::vlogf(LOG_ERR,"Configuration error, locomotive address %d not found in the current plan, using \"DummyError\" as substitute");
+            log4MC::vlogf(LOG_ERR, "Configuration error, locomotive address %d not found in the current plan, using \"DummyError\" as substitute");
             item->setId("DummyError");
         }
     } else if (item->id == NULL && item->addr == -1) {
@@ -231,89 +248,6 @@ void PURemote::parsePortValueSingleMessage(uint8_t *pData, size_t length)
         // plus  pressed = 0x01
         // red   pressed = 0x7f
         // minus pressed = 0xff
-        /* TODO: old code remove
-                switch (value) {
-                case 0x01: // plus  pressed = 0x01
-                    if (port == 1) {
-                        if (isRange) {
-                            if (locs.size() == 0) {
-                                MTC4BTMQTTHandler::pubGetShortLcList();
-                            } else {
-                                // find the next that is in the range, when at the last one, start at the first one again.
-                                int roundcount = 0;
-                                while (roundcount != 2) {
-                                    index++;
-                                    if (index >= locs.size()) {
-                                        index = 0;
-                                        roundcount++;
-                                    }
-                                    if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
-                                        // found a new index;
-                                        break;
-                                    }
-                                }
-                                // log4MC::vlogf(LOG_DEBUG, "round %d, index %d, addr %d", roundcount, index, locs[index]->addr);
-                                if (roundcount == 2) {
-                                    index = -1;
-                                } else {
-                                    setPortAColourAndLC();
-                                }
-                            }
-                        } else {
-                            incLocSpeed(currentLCPortB, 10);
-                        }
-                    } else {
-                        incLocSpeed(currentLCPortA, 10);
-                    }
-                    break;
-                case 0x7f: // red  pressed = 0x7f
-                    if (port == 1) {
-                        if (isRange) {
-                            mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");
-                        } else {
-                            setLocSpeed(currentLCPortB, 0);
-                        }
-                    } else {
-                        setLocSpeed(currentLCPortA, 0);
-                    }
-                    break;
-                case 0xff: // minus  pressed = 0x01
-                    if (port == 1) {
-                        if (isRange) {
-                            if (locs.size() == 0) {
-                                MTC4BTMQTTHandler::pubGetShortLcList();
-                            } else {
-                                // find the next that is in the range, when at the last one, start at the first one again.
-                                int roundcount = 0;
-                                while (roundcount != 2) {
-                                    index--;
-                                    if (index < 0) {
-                                        index = locs.size() - 1;
-                                        roundcount++;
-                                    }
-                                    if (locs[index]->addr >= minRange && locs[index]->addr <= maxRange) {
-                                        // found a new index;
-                                        break;
-                                    }
-                                }
-                                if (roundcount == 2) {
-                                    index = -1;
-                                } else {
-                                    setPortAColourAndLC();
-                                }
-                            }
-                        } else {
-                            decLocSpeed(currentLCPortB, 10);
-                        }
-                    } else {
-                        decLocSpeed(currentLCPortA, 10);
-                    }
-                    break;
-
-                default:
-                    break;
-                }
-                */
         PUbutton pressedButton;
         switch (value) {
         case 0x01: // plus
@@ -467,5 +401,56 @@ void PURemote::buttonHandleAction(PUbutton button)
 
     } else {
         // TODO:we are in freeMode
+        if (index == -1) {
+            // ignore the buttons when index = -1
+            // this is the init mode of the remote
+            return;
+        }
+        // get the list of items belonging to the pressed button
+        std::vector<freeButtonItem *> freeItems = _config->buttons->getItemsByButton(button);
+        for (auto freeItem : freeItems) {
+            // make a nice switch statement here, maybe change it when implementing the freeMode ;-) Nope, freeMode is a bit different
+            switch (freeItem->action) {
+            case RRebrake:
+                MTC4BTMQTTHandler::pubEBrake();
+                break;
+            case RRgo:
+                MTC4BTMQTTHandler::pubGo();
+                break;
+            case RRinc:
+                incLocSpeed(freeItem->loc, 10);
+                break;
+            case RRdec:
+                decLocSpeed(freeItem->loc, 10);
+                break;
+            case RRstop:
+                setLocSpeed(freeItem->loc, 0);
+                break;
+            case RRflip:
+                MTC4BTMQTTHandler::pubFlip(freeItem->RRtype, freeItem->id);
+                break;
+            case RRon:
+            case RRoff:
+                MTC4BTMQTTHandler::pubCo(freeItem->action, freeItem->id);
+                break;
+            case RRgreen:
+            case RRred:
+            case RRyellow:
+            case RRwhite:
+                MTC4BTMQTTHandler::pubSg(freeItem->action, freeItem->id);
+                break;
+            case RRleft:
+            case RRright:
+            case RRstraight:
+            case RRturnout:
+                MTC4BTMQTTHandler::pubSw(freeItem->action, freeItem->id);
+                break;
+            case navUp:
+            case navDown:
+            case RRnoop:
+            default:
+                break;
+            }
+        }
     }
 }
