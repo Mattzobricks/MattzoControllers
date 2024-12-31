@@ -154,16 +154,23 @@ bool PURemote::setColourAndLC(freeListItem *item)
         MTC4BTMQTTHandler::pubGetShortLcList();
         return false;
     }
+    log4MC::vlogf(LOG_DEBUG,"%s: addr: %d, id(as pointer): %d",__func__, item->addr, item->id);
     // look up the loco in the locs list.
     if (item->addr == -1) {
         // lookup by id
         if (lookupLcById(item->id, &index)) {
             item->addr = locs[index]->addr;
+        } else {
+            log4MC::vlogf(LOG_ERR,"Configuration error, locomotive id \"%s\" not found in the current plan, using \"-1\" as substitute, this error keeps ocuring.");
+            item->addr = -1;
         }
     } else if (item->id == NULL) {
         // lookup by addr
         if (lookupLcByAddr(item->addr, &index)) {
             item->setId(locs[index]->id);
+        } else {
+            log4MC::vlogf(LOG_ERR,"Configuration error, locomotive address %d not found in the current plan, using \"DummyError\" as substitute");
+            item->setId("DummyError");
         }
     } else if (item->id == NULL && item->addr == -1) {
         // This should not happen!

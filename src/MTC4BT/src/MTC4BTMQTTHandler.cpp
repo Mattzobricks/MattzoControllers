@@ -159,7 +159,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
         log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Found remote for addr %d.", addr);
-        lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->placing);
+        lc *currentLC = getCurrentLcSpeed(message);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             remotes[i]->V = currentLC->V;
@@ -178,6 +178,8 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
 /*
 The following table is the tranlation from rocrail lc command to the 
 
++---------------+----------------------------------------+---------------------------+
+|  info topic   |           rocrail values               |       command topic       | 
 +-----+---------+-----------+-------------+--------------+--------------+------------+
 | dir | placing | direction | speed value | remote speed | lc dir value | lc V value |
 +-----+---------+-----------+-------------+--------------+--------------+------------+
@@ -189,9 +191,12 @@ The following table is the tranlation from rocrail lc command to the
 
 at the end dir should always be positive and the value should be the real speed (remote speed)
 
-TODO: test if the lc command on the command topic should take into account the placing value it got earlier
+DONE: test if the lc command on the command topic should take into account the placing value it got earlier
+      - placing should only be used if it is in the lc command, no need for keeping it
+      - placing is not on the command topic
+      - when placing is in the command, !( dir ^ placing ) = dir (without placing)
 */
-lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, bool placing)
+lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
 {
     // there are remotes which handle this locomotive
     char *Vmode;
@@ -211,23 +216,24 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, b
     XmlParser::tryReadBoolAttr(message, "dir", &(currentLc->dir)); // current direction
     // placing="true" blockenterside="true"
     // are we in the info message?
-    if (has_previd) {
-        bool placing, blockenterside;
-        XmlParser::tryReadBoolAttr(message, "placing", &(placing));
-        XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
-        log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, placing %d, blockenterside %d", currentLc->V, currentLc->dir, placing, blockenterside);
-
-        currentLc->placing = placing; //TODO: if working with placing works, all should be changed
-    } else {
+    bool computedDir;
+    bool placing;
+    if (XmlParser::tryReadBoolAttr(message, "placing", &(placing))) {
+        //computedDir = !(currentLc->dir ^ placing);
+        computedDir = currentLc->dir;
         currentLc->placing = placing;
+        log4MC::vlogf(LOG_DEBUG,"%s: dir %d placing %d, computed dir %d",__func__,currentLc->dir,placing, computedDir);
+    } else {
+        computedDir = currentLc->dir;
+        log4MC::vlogf(LOG_DEBUG,"%s: dir %d",__func__,currentLc->dir);
     }
 
-    if ((currentLc->dir ^ currentLc->placing)) {
+    if (!computedDir) {
         currentLc->V = -currentLc->V;
         currentLc->dir = true; // so the current speed has a sign
     }
 
-    log4MC::vlogf(LOG_DEBUG, "Loco  having speed %d dir %d, (old invdir) %d", currentLc->V, currentLc->dir);
+    log4MC::vlogf(LOG_DEBUG, "%s: Loco  having speed %d dir %d, (computed dir: %d)",__func__, currentLc->V, currentLc->dir, computedDir);
     if (currentLc->newSpeed != currentLc->V) {
         // only change if we have a speed change, ignore 0 because that is our
         currentLc->newSpeed = currentLc->V;
@@ -248,7 +254,7 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
     // of the locomotive
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message, false, remotes[0]->placing);
+        lc *currentLC = getCurrentLcSpeed(message);
         // copy all found values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
             remotes[i]->vModePercent = currentLC->vModePercent;
