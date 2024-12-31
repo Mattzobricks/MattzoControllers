@@ -7,7 +7,7 @@
 class BLERemoteConfiguration
 {
   public:
-    BLERemoteConfiguration(std::vector<BLEHubConfiguration *> hubs);//, std::vector<MCLocoEvent *> events);
+    BLERemoteConfiguration(std::vector<BLEHubConfiguration *> hubs); //, std::vector<MCLocoEvent *> events);
 
     std::string _name;
     std::vector<BLEHubConfiguration *> _hubs;

@@ -37,7 +37,7 @@ void BLERemote::initHubs()
         }
         // Next is needed for connection scanning!
         if (hub) {
-            //hub->SetConnectCallback([this](bool connected) -> void { handleConnectCallback(connected); });
+            // hub->SetConnectCallback([this](bool connected) -> void { handleConnectCallback(connected); });
             Hubs.push_back(hub);
         }
     }

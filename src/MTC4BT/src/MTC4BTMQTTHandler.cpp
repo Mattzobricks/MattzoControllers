@@ -176,10 +176,10 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
 }
 
 /*
-The following table is the tranlation from rocrail lc command to the 
+The following table is the tranlation from rocrail lc command to the
 
 +---------------+----------------------------------------+---------------------------+
-|  info topic   |           rocrail values               |       command topic       | 
+|  info topic   |           rocrail values               |       command topic       |
 +-----+---------+-----------+-------------+--------------+--------------+------------+
 | dir | placing | direction | speed value | remote speed | lc dir value | lc V value |
 +-----+---------+-----------+-------------+--------------+--------------+------------+
@@ -220,13 +220,13 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
     bool computedDir;
     bool placing;
     if (XmlParser::tryReadBoolAttr(message, "placing", &(placing))) {
-        //computedDir = !(currentLc->dir ^ placing);
+        // computedDir = !(currentLc->dir ^ placing);
         computedDir = currentLc->dir;
         currentLc->placing = placing;
-        log4MC::vlogf(LOG_DEBUG,"%s: dir %d placing %d, computed dir %d",__func__,currentLc->dir,placing, computedDir);
+        log4MC::vlogf(LOG_DEBUG, "%s: dir %d placing %d, computed dir %d", __func__, currentLc->dir, placing, computedDir);
     } else {
         computedDir = currentLc->dir;
-        log4MC::vlogf(LOG_DEBUG,"%s: dir %d",__func__,currentLc->dir);
+        log4MC::vlogf(LOG_DEBUG, "%s: dir %d", __func__, currentLc->dir);
     }
 
     if (!computedDir) {
@@ -234,7 +234,7 @@ lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
         currentLc->dir = true; // so the current speed has a sign
     }
 
-    log4MC::vlogf(LOG_DEBUG, "%s: Loco  having speed %d dir %d, (computed dir: %d)",__func__, currentLc->V, currentLc->dir, computedDir);
+    log4MC::vlogf(LOG_DEBUG, "%s: Loco  having speed %d dir %d, (computed dir: %d)", __func__, currentLc->V, currentLc->dir, computedDir);
     if (currentLc->newSpeed != currentLc->V) {
         // only change if we have a speed change, ignore 0 because that is our
         currentLc->newSpeed = currentLc->V;

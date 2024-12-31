@@ -133,6 +133,7 @@ bool PUbuttonList::findLocoByIdOrAddr(std::vector<lc *> locos, int *foundIndex, 
     return false;
 }
 
-std::vector<freeButtonItem *> PUbuttonList::getItemsByButton(PUbutton button){
+std::vector<freeButtonItem *> PUbuttonList::getItemsByButton(PUbutton button)
+{
     return buttons[button];
 }

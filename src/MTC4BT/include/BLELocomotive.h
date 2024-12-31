@@ -2,12 +2,12 @@
 
 #include <Arduino.h>
 
-#include "BLEbaseDevice.h"
 #include "BLELocomotiveConfiguration.h"
+#include "BLEbaseDevice.h"
 #include "MCLedBase.h"
 #include "MController.h"
 
-class BLELocomotive: public BLEbaseDevice
+class BLELocomotive : public BLEbaseDevice
 {
   public:
     BLELocomotive(BLELocomotiveConfiguration *config, MController *controller);
@@ -45,7 +45,7 @@ class BLELocomotive: public BLEbaseDevice
     void setManualBrake(const bool enabled);
 
     // Returns a reference to a hub by its address.
-//    BLEHub *getHubByAddress(std::string address);
+    //    BLEHub *getHubByAddress(std::string address);
 
     // Returns a list of references to functions of the given type configured for this loco.
     // std::vector<MCFunctionBinding *> getFunctions(MCFunction f);

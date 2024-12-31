@@ -55,7 +55,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
     JsonArray listConfigs;
     std::vector<freeListItem *> freeListItems;
     PUbuttonByType *buttons = new PUbuttonByType();
-    PUbuttonList * buttonList = new PUbuttonList();
+    PUbuttonList *buttonList = new PUbuttonList();
 
     switch (mode) {
     case listMode:
@@ -130,7 +130,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
         hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttonList));
         break;
     }
-    
+
     log4MC::vlogf(LOG_DEBUG, "Config: number of remotes %d.", hubs.size());
     BLERemoteConfiguration *remote = new BLERemoteConfiguration(hubs);
 

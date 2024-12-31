@@ -445,9 +445,9 @@ void PURemote::buttonHandleAction(PUbutton button)
             case RRturnout:
                 MTC4BTMQTTHandler::pubSw(freeItem->action, freeItem->id);
                 break;
-            case navUp:
-            case navDown:
-            case RRnoop:
+            case navUp:   // not supported in freeMode
+            case navDown: // not supported in freeMode
+            case RRnoop:  // not supported in freeMode
             default:
                 break;
             }

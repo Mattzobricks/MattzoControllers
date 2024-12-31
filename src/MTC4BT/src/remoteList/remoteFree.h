@@ -1,8 +1,8 @@
 #pragma once
 
+#include "PUremoteButtons/PUButtonsMap.h"
 #include "enums.h"
 #include "rocrailitems/RRtypes.h"
-#include "PUremoteButtons/PUButtonsMap.h"
 #include "rocrailitems/lclist.h"
 
 class freeButtonItem
@@ -18,4 +18,3 @@ class freeButtonItem
     RRdevice RRtype;
     RRaction action;
 };
-
