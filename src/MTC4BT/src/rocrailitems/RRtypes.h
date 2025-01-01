@@ -58,7 +58,7 @@ struct RRactionMap : public std::map<std::string, RRaction> {
         this->operator[]("flip") = RRaction::RRflip;
         this->operator[]("on") = RRaction::RRon;
         this->operator[]("off") = RRaction::RRoff;
-        this->operator[]("gree") = RRaction::RRgreen;
+        this->operator[]("green") = RRaction::RRgreen;
         this->operator[]("red") = RRaction::RRred;
         this->operator[]("yellow") = RRaction::RRyellow;
         this->operator[]("white") = RRaction::RRwhite;

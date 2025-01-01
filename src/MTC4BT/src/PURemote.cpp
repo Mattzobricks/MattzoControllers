@@ -400,9 +400,10 @@ void PURemote::buttonHandleAction(PUbutton button)
         }
         // get the list of items belonging to the pressed button
         std::vector<freeButtonItem *> freeItems = _config->buttons->getItemsByButton(button);
-        for (auto freeItem : freeItems) {
+        log4MC::vlogf(LOG_DEBUG, "%s Number of actions %d.", __func__, freeItems.size());
+        for (int i = 0; i < freeItems.size(); i++) {
             // make a nice switch statement here, maybe change it when implementing the freeMode ;-) Nope, freeMode is a bit different
-            switch (freeItem->action) {
+            switch (freeItems[i]->action) {
             case RRebrake:
                 MTC4BTMQTTHandler::pubEBrake();
                 break;
@@ -410,32 +411,32 @@ void PURemote::buttonHandleAction(PUbutton button)
                 MTC4BTMQTTHandler::pubGo();
                 break;
             case RRinc:
-                incLocSpeed(freeItem->loc, 10);
+                incLocSpeed(freeItems[i]->loc, 10);
                 break;
             case RRdec:
-                incLocSpeed(freeItem->loc, -10);
+                incLocSpeed(freeItems[i]->loc, -10);
                 break;
             case RRstop:
-                setLocSpeed(freeItem->loc, 0);
+                setLocSpeed(freeItems[i]->loc, 0);
                 break;
             case RRflip:
-                MTC4BTMQTTHandler::pubFlip(freeItem->RRtype, freeItem->id);
+                MTC4BTMQTTHandler::pubFlip(freeItems[i]->RRtype, freeItems[i]->id);
                 break;
             case RRon:
             case RRoff:
-                MTC4BTMQTTHandler::pubCo(freeItem->action, freeItem->id);
+                MTC4BTMQTTHandler::pubCo(freeItems[i]->action, freeItems[i]->id);
                 break;
             case RRgreen:
             case RRred:
             case RRyellow:
             case RRwhite:
-                MTC4BTMQTTHandler::pubSg(freeItem->action, freeItem->id);
+                MTC4BTMQTTHandler::pubSg(freeItems[i]->action, freeItems[i]->id);
                 break;
             case RRleft:
             case RRright:
             case RRstraight:
             case RRturnout:
-                MTC4BTMQTTHandler::pubSw(freeItem->action, freeItem->id);
+                MTC4BTMQTTHandler::pubSw(freeItems[i]->action, freeItems[i]->id);
                 break;
             case navUp:   // not supported in freeMode
             case navDown: // not supported in freeMode

@@ -3,6 +3,7 @@
  */
 
 #include "remoteList/remoteFree.h"
+#include "log4MC.h"
 #include <cstdlib>
 #include <string.h>
 
@@ -15,6 +16,7 @@ freeButtonItem::freeButtonItem(const char *newId, int newAddr, RRdevice newRRtyp
     } else {
         id = NULL;
     }
+    log4MC::vlogf(LOG_DEBUG,"%s action %d device %d.",__func__, newAction, newRRtype);
 }
 
 freeButtonItem::~freeButtonItem()

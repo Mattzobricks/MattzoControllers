@@ -206,8 +206,11 @@ void MTC4BTController::handleLCList()
                                 loc->id = (char *)malloc(strlen(locs[i]->id) + 1);
                                 strcpy(loc->id, locs[i]->id);
                             }
-                            log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
-                            MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                            if (loc->addr == locs[i]->addr) {
+                                // only lookup the found locomotive(s)
+                                log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
+                                MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                            }
                         }
                     }
                     // set the remote to green to indicate the list is filled with id and addr
