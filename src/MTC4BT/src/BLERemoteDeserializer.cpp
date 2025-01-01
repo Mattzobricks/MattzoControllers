@@ -116,6 +116,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                 std::string buttonStr = freeConfig["button"];
                 std::string typeStr = freeConfig["type"];
                 std::string actionStr = freeConfig["action"];
+                std::string fnActionStr = freeConfig["fn-action"];
                 const char *itemId = freeConfig["id"];
                 const int itemAddr = freeConfig["addr"] | -1;
 
@@ -123,8 +124,14 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                 PUbutton button = PUbuttonMap()[buttonStr];
                 RRdevice device = RRdeviceMap()[typeStr];
                 RRaction action = RRactionMap()[actionStr];
+                RRfnAction fnAction;
+                if (freeConfig["fnaction"].is<std::string>()) {
+                    fnAction = RRfnActionMap()[fnActionStr];
+                } else {
+                    fnAction = RRfn_noop;
+                }
 
-                buttonList->addButtonItem(button, new freeButtonItem(itemId, itemAddr, device, action));
+                buttonList->addButtonItem(button, new freeButtonItem(itemId, itemAddr, device, action,fnAction));
             } else {
                 log4MC::vlogf(LOG_ERR, "RemoteConfig: No valid 'button' found, ignoring!");
             }

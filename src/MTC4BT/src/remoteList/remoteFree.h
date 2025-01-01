@@ -8,7 +8,7 @@
 class freeButtonItem
 {
   public:
-    freeButtonItem(const char *newId, int newAddr, RRdevice newRRtype, RRaction newAction);
+    freeButtonItem(const char *newId, int newAddr, RRdevice newRRtype, RRaction newAction, RRfnAction newFnAction);
     ~freeButtonItem();
 
     void setId(const char *newId);
@@ -17,4 +17,5 @@ class freeButtonItem
     lc *loc;
     RRdevice RRtype;
     RRaction action;
+    RRfnAction fnAction;
 };

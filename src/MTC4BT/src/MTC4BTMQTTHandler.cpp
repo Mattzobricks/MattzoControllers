@@ -91,7 +91,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
             if (XmlParser::tryReadIntAttr(message, "V", &v)) {
                 if (remotes[i]->V != v) {
                     remotes[i]->V = v;
-                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: v %d",__func__, addr, v);
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: v %d", __func__, addr, v);
                 }
             } else {
                 // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing v attribute. Attribute skipped.",__func__, addr);
@@ -102,7 +102,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
                 bool vModePercent = strstr(vMode, "percent") != nullptr;
                 if (remotes[i]->vModePercent != vModePercent) {
                     remotes[i]->vModePercent = vModePercent;
-                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmode %s",__func__, addr, vModePercent ? "percent" : "absolute");
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmode %s", __func__, addr, vModePercent ? "percent" : "absolute");
                 }
                 free(vMode);
             } else {
@@ -113,7 +113,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
             if (XmlParser::tryReadBoolAttr(message, "dir", &dir)) {
                 if (remotes[i]->dir != dir) {
                     remotes[i]->dir = dir;
-                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: dir %s",__func__, addr, dir ? "forward" : "backwards");
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: dir %s", __func__, addr, dir ? "forward" : "backwards");
                 }
             } else {
                 // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing dir attribute. Attribute skipped.",__func__, addr);
@@ -123,7 +123,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
             if (XmlParser::tryReadBoolAttr(message, "placing", &placing)) {
                 if (remotes[i]->placing != placing) {
                     remotes[i]->placing = placing;
-                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: placing %s",__func__, addr, placing ? "forward" : "reverse");
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: placing %s", __func__, addr, placing ? "forward" : "reverse");
                 }
             } else {
                 // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing placing attribute. Attribute skipped.",__func__, addr);
@@ -133,7 +133,7 @@ void MTC4BTMQTTHandler::handleInfoLc(const char *message)
             if (XmlParser::tryReadIntAttr(message, "V_max", &vMax)) {
                 if (remotes[i]->Vmax != vMax) {
                     remotes[i]->Vmax = vMax;
-                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmax %d",__func__, addr, vMax);
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmax %d", __func__, addr, vMax);
                 }
             } else {
                 // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_max attribute. Attribute skipped.",__func__, addr);
@@ -365,5 +365,15 @@ void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
 {
     char request[201];
     snprintf(request, 200, "<sw id=\"%s\"  cmd=\"%s\"/>", id, action == RRleft ? "left" : (action == RRright ? "right" : (action == RRstraight ? "straight" : "turnout")));
+    mqttSubscriberClient.publish("rocrail/service/client", request);
+}
+
+void MTC4BTMQTTHandler::pubLcFn(char *id, RRaction action, RRfnAction fnAction)
+{
+    char request[201];
+    int fnNumber = action - RRfn0;
+    if (fnAction == RRfn_on || fnAction == RRfn_off|| fnAction ==RRfn_flip) {
+        snprintf(request, 200, "<fn id=\"%s\" fnchanged=\"%d\" f%d=\"%s\" />", id, fnNumber, fnNumber, fnAction ==  RRfn_on ? "true" : (fnAction ==  RRfn_off ? "false" : "flip"));
+    }
     mqttSubscriberClient.publish("rocrail/service/client", request);
 }

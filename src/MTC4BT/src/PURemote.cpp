@@ -438,6 +438,50 @@ void PURemote::buttonHandleAction(PUbutton button)
             case RRturnout:
                 MTC4BTMQTTHandler::pubSw(freeItems[i]->action, freeItems[i]->id);
                 break;
+            case RRfn0:
+            case RRfn1:
+            case RRfn2:
+            case RRfn3:
+            case RRfn4:
+            case RRfn5:
+            case RRfn6:
+            case RRfn7:
+            case RRfn8:
+            case RRfn9:
+            case RRfn10:
+            case RRfn11:
+            case RRfn12:
+            case RRfn13:
+            case RRfn14:
+            case RRfn15:
+            case RRfn16:
+            case RRfn17:
+            case RRfn18:
+            case RRfn19:
+            case RRfn20:
+            case RRfn21:
+            case RRfn22:
+            case RRfn23:
+            case RRfn24:
+            case RRfn25:
+            case RRfn26:
+            case RRfn27:
+            case RRfn28:
+            case RRfn29:
+            case RRfn30:
+            case RRfn31:
+            case RRfn32:
+                // a bit dirty but it will work in the case statement ;-)
+                if (freeItems[i]->RRtype == RRloco) {
+                    if ((freeItems[i]->fnAction == RRfn_on || freeItems[i]->fnAction == RRfn_off || freeItems[i]->fnAction == RRfn_flip)) {
+                        // only fn actions for locomotives, all others are ignored
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, freeItems[i]->fnAction);
+                    } else if (freeItems[i]->fnAction == RRfn_push) {
+                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_on);
+                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_off);
+                    }
+                }
+                break;
             case navUp:   // not supported in freeMode
             case navDown: // not supported in freeMode
             case RRnoop:  // not supported in freeMode
