@@ -351,29 +351,29 @@ void MTC4BTMQTTHandler::pubCo(RRaction action, char *id)
 {
     char request[201];
     snprintf(request, 200, "<co id=\"%s\"  cmd=\"%s\"/>", id, action == RRon ? "on" : "off");
-    mqttSubscriberClient.publish("rocrail/service/client", request);
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubSg(RRaction action, char *id)
 {
     char request[201];
     snprintf(request, 200, "<sg id=\"%s\"  cmd=\"%s\"/>", id, action == RRgreen ? "green" : (action == RRred ? "red" : (action == RRyellow ? "yellow" : "white")));
-    mqttSubscriberClient.publish("rocrail/service/client", request);
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
 {
     char request[201];
     snprintf(request, 200, "<sw id=\"%s\"  cmd=\"%s\"/>", id, action == RRleft ? "left" : (action == RRright ? "right" : (action == RRstraight ? "straight" : "turnout")));
-    mqttSubscriberClient.publish("rocrail/service/client", request);
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubLcFn(char *id, RRaction action, RRfnAction fnAction)
 {
     char request[201];
     int fnNumber = action - RRfn0;
-    if (fnAction == RRfn_on || fnAction == RRfn_off|| fnAction ==RRfn_flip) {
-        snprintf(request, 200, "<fn id=\"%s\" fnchanged=\"%d\" f%d=\"%s\" />", id, fnNumber, fnNumber, fnAction ==  RRfn_on ? "true" : (fnAction ==  RRfn_off ? "false" : "flip"));
+    if (fnAction == RRfn_on || fnAction == RRfn_off || fnAction == RRfn_flip) {
+        snprintf(request, 200, "<fn id=\"%s\" fnchanged=\"%d\" f%d=\"%s\" />", id, fnNumber, fnNumber, fnAction == RRfn_on ? "true" : (fnAction == RRfn_off ? "false" : "flip"));
     }
-    mqttSubscriberClient.publish("rocrail/service/client", request);
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
