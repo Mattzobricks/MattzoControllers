@@ -152,7 +152,8 @@ bool PURemote::setLCs()
             // This should not happen!
             log4MC::error("Somehow this locomotive is misconfigured, find the error in the json file.");
         }
-        MTC4BTMQTTHandler::pubGetLcInfo(item->id);
+        if (!item->initiated)
+            MTC4BTMQTTHandler::pubGetLcInfo(item->id);
     }
     return true;
 }
