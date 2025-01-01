@@ -17,7 +17,7 @@ class MTC4BTMQTTHandler
 
     static void pubGetShortLcList();
     static void pubGetLcInfo(char *locid);
-    static void pubLcSpeed(char *locid, int addr, long locV);
+    static void pubLcSpeed(char *locid, long locV);
     static void pubGo();
     static void pubEBrake();
     static void pubFlip(RRdevice device, char *id);

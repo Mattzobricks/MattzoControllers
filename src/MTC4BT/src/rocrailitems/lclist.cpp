@@ -27,7 +27,6 @@ SOFTWARE.
 lc::lc(char *newId, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
     : addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
 {
-    newSpeed = 0;
     V = 0;
     initiated = false;
     if (newId) {
@@ -41,7 +40,6 @@ lc::lc(char *newId, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
 lc::lc()
 {
     id = nullptr;
-    newSpeed = 0;
     V = 0;
     initiated = false;
 }

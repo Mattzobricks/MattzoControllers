@@ -72,174 +72,79 @@ void MTC4BTMQTTHandler::handleSys(const char *message)
     if (cmd)
         free(cmd);
 }
-/*
-<lc id="V100" addr="1" prev_id="V100" shortid="" roadname="" owner="" color=""
-number="" home="Shadow Station" desc="" dectype="" decfile="nmra-rp922.xml"
-docu="" image="v100.png" imagenr="0" remark="" len="25" radius="0" weight="0"
-nraxis="0" nrcars="0" manuid="" catnr="" purchased="" value="" identifier=""
-show="true" active="true" useshortid="false" mint="0" throttlenr="0" manually="false"
-bus="0" uid="0" secaddr="0" iid="" informall="false" oid="" prot="P" protver="1"
-spcnt="255" secspcnt="255" fncnt="2" V_min="30" V_mid="50" V_cru="80" V_max="100" V_maxsec="14"
-KMH_min="0" KMH_mid="0" KMH_cru="0" KMH_max="0" KMH_Rmin="0" KMH_Rmid="0" KMH_Rcru="0" KMH_Rmax="0"
-KMH_Smin="0" KMH_Smid="0" KMH_Scru="0" KMH_Smax="0" V_Rmin="0" V_Rmid="0" V_Rcru="0" V_Rmax="0" V_Smin="0"
-V_Smid="0" V_Scru="0" V_Smax="0" V_step="0" mass="0" minstep="0" maxstep="0" pwm="0" pwmcorrdiv="10"
-Vmidpercent="30" Vmaxmin="20" Vmaxmax="255" Vmaxkmh="0" Vmidset="true" V_mode="kmh" invdir="false"
-polarisation="true" regulated="true" restorefx="false" restorefxalways="false" restorespeed="false"
-info4throttle="false" dirpause="0" adjustaccel="false" maxload="0" accelmin="0" accelmax="0" decelerate="0"
-accelcv="3" accelcvindex="0" vmaxcv="5" vmaxcvindex="0" vmidcv="6" vmidcvindex="0" camhost="" camport="8081"
-camtype="0" camfile="stream.mjpg" camskip="0" camoption="0" blockwaittime="10" maxwaittime="0" evttimer="0"
-minenergypercentage="0" swaptimer="0" ent2incorr="100" priority="10" usescheduletime="false"
-commuter="false" shortin="false" inatpre2in="false" usemanualroutes="false" useownwaittime="false"
-startupscid="" startuptourid="" check2in="true" usedepartdelay="true" freeblockonenter="true"
-reducespeedatenter="false" routespeedatenter="false" v0onswap="false" resetplacing="false"
-manual="false" lookupschedule="false" lookupschedulevirtual="false" generated="false"
-swapondir="false" screcord="false" decoupler="false" engine="diesel" cargo="none"
-secondnextblock="false" secondnextblock4wait="false" era="0" class="" consist_syncfunmap="0"
-standalone="false" consist_lightsoff="false" consist_syncfun="false" consist_synclights="false"
-consist="" usebbt="false" bbtsteps="10" bbtstartinterval="10" bbtmaxdiff="250" bbtcorrection="25"
-bbtkey="0" cvnrs="1,2,3,4,5,6,17,18,29" destblockid="" cmdDelay="0" pause="false" mode="stop"
-fifotop="false" energypercentage="0" V="0" fx="0" throttleid="" trainlen="25" trainweight="0"
-blockid="" blockenterid="sb01" resumeauto="false" modereason="" waittime="0" V_hint="cruise"
-rdate="1730325551" runtime="37907" fn="false" blockenterside="true" cmd="modify" signalaspect=""
-sid="0" dir="false" placing="true" modeevent="true" shunting="false" mtime="0" scidx="-1" scheduleid=""
-tourid="" scheduleinithour="14" train="" V_realkmh="0" V_maxkmh="0" controlcode="" slavecode=""
-server="infw075D54C4" gotoblockid="" homeside="0" wheeldiameter="13.000000" wheelbase="0"
-maxincline="0" sernr="" coupler="" pwmkickstart="0" forcepriority="false" commuterblocks=""
-commuterlevel="" waitallblocks="false" waitallblocksalt="false" departdelay="0" routestack="false"
-stoponfailgoto="false" directgoto="false" engineFxType="" engineFxNr="0" sbt_decelerate="0"
-sbt_interval="0" bat_accelerate="0" bat_interval="0" arrivetime="1730146471"/>
 
-There could be fn's, but for the PU remote we are ignoring these.
-This command is needed to get info about the locomotive afer it is seleced by the remote
-
-The following swap cmd also can change the placing, this one is needed for the correct
-direction!
-
-<lc id="ICE" cmd="swap" controlcode="" slavecode="" actor="user" server="infw03B46894"
-iid="" shortid="" uid="0" sid="0" dir="true" addr="6051" secaddr="0" V="0" placing="true"
-blockenterside="true" blockenterid="" modeevent="false" mode="stop" modereason="" resumeauto="false"
-manual="false" shunting="false" standalone="false" blockid="bk04" destblockid="" fn="false"
-runtime="97436" mtime="0" rdate="1735382854" mint="0" throttleid="" active="true" waittime="0"
-scidx="-1" scheduleid="" tourid="" scheduleinithour="0" len="150" weight="0" train="" trainlen="150"
-trainweight="0" V_realkmh="0" fifotop="false" image="ice.png" imagenr="0" energypercentage="0"
-lookupschedule="false" pause="false" consist=""/>
-
-*/
 void MTC4BTMQTTHandler::handleInfoLc(const char *message)
 {
-    int addr = 0;
+    int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr)) {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
+        log4MC::warn("Received MQTT 'lc' command with missing addr attribute. Message skipped.");
         return;
     }
-    char *prev_id = NULL;
-    bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
-    if (prev_id)
-        free(prev_id);
-    char *placing = NULL;
-    bool has_placing = XmlParser::tryReadCharAttr(message, "placing", &placing);
-    if (placing)
-        free(placing);
-    bool is_swapcmd = false;
-    if (has_placing && !has_previd) {
-        // swap als changes the placing, so we need to "fake" has_previd
-        has_previd = true;
-        is_swapcmd = true; // this one has no Vmax, so do not update
-    }
-    // continue when it is has_previd || is_swapcmd --> break when !(has_previd || is_swapcmd) = !has_previd && !is_swapcmd
-    if (!has_previd && !is_swapcmd)
-        return;
-    // ignore all other lc commands on the info channel!
 
-    // find the remote that controlls this locomotive, this part is also
-    // in the regular lc command, this is only to get the initial values
-    // of the locomotive
-    log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Loooking for remote for addr %d.", addr);
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Found remote for addr %d.", addr);
-        lc *currentLC = getCurrentLcSpeed(message);
-        // copy all found values to the remote(s)
+        // log4MC::vlogf(LOG_DEBUG, "%s: found remote for loco addr %d.",__func__, addr);
+        // copy loco values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
-            remotes[i]->V = currentLC->V;
-            if (!is_swapcmd) {
-                remotes[i]->Vmax = currentLC->Vmax;
-                remotes[i]->vModePercent = currentLC->vModePercent;
-                remotes[i]->placing = currentLC->placing;
+            int v;
+            if (XmlParser::tryReadIntAttr(message, "V", &v)) {
+                if (remotes[i]->V != v) {
+                    remotes[i]->V = v;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: v %d",__func__, addr, v);
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing v attribute. Attribute skipped.",__func__, addr);
             }
+
+            char *vMode;
+            if (XmlParser::tryReadCharAttr(message, "V_mode", &vMode)) {
+                bool vModePercent = strstr(vMode, "percent") != nullptr;
+                if (remotes[i]->vModePercent != vModePercent) {
+                    remotes[i]->vModePercent = vModePercent;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmode %s",__func__, addr, vModePercent ? "percent" : "absolute");
+                }
+                free(vMode);
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_mode attribute. Attribute skipped.",__func__, addr);
+            }
+
+            bool dir;
+            if (XmlParser::tryReadBoolAttr(message, "dir", &dir)) {
+                if (remotes[i]->dir != dir) {
+                    remotes[i]->dir = dir;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: dir %s",__func__, addr, dir ? "forward" : "backwards");
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing dir attribute. Attribute skipped.",__func__, addr);
+            }
+
+            bool placing;
+            if (XmlParser::tryReadBoolAttr(message, "placing", &placing)) {
+                if (remotes[i]->placing != placing) {
+                    remotes[i]->placing = placing;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: placing %s",__func__, addr, placing ? "forward" : "reverse");
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing placing attribute. Attribute skipped.",__func__, addr);
+            }
+
+            int vMax;
+            if (XmlParser::tryReadIntAttr(message, "V_max", &vMax)) {
+                if (remotes[i]->Vmax != vMax) {
+                    remotes[i]->Vmax = vMax;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmax %d",__func__, addr, vMax);
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_max attribute. Attribute skipped.",__func__, addr);
+            }
+
             remotes[i]->initiated = true;
+
+            // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d status: speed %d, vmax %d, vmode %s, dir %d, placing %s",__func__, addr, remotes[i]->V, remotes[i]->Vmax, remotes[i]->vModePercent ? "1" : "0", remotes[i]->dir, remotes[i]->placing ? "1" : "0");
         }
-        delete (currentLC);
         remotes.clear(); // DO NOT FREE, THEY ARE REFERENCED BY THE REMOTES!
     }
-}
-
-/*
-The following table is the tranlation from rocrail lc command to the
-
-+---------------+----------------------------------------+---------------------------+
-|  info topic   |           rocrail values               |       command topic       |
-+-----+---------+-----------+-------------+--------------+--------------+------------+
-| dir | placing | direction | speed value | remote speed | lc dir value | lc V value |
-+-----+---------+-----------+-------------+--------------+--------------+------------+
-|   0 |       0 |   <       |          60 |           60 |       1 -> 0 |         60 |
-|   0 |       1 |   <       |          60 |          -60 |            0 |         60 |
-|   1 |       1 |   >       |          60 |           60 |            1 |         60 |
-|   1 |       0 |   >       |          60 |          -60 |       0 -> 1 |         60 |
-+-----+---------+-----------+-------------+--------------+--------------+------------+
-The arrow indicates what it should it be instead of what we expected
-
-at the end dir should always be positive and the value should be the real speed (remote speed)
-
-DONE: test if the lc command on the command topic should take into account the placing value it got earlier
-      - placing should only be used if it is in the lc command, no need for keeping it
-      - placing is not on the command topic
-      - when placing is in the command, !( dir ^ placing ) = dir (without placing)
-*/
-lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
-{
-    // there are remotes which handle this locomotive
-    char *Vmode;
-    lc *currentLc = new lc();
-    XmlParser::tryReadIntAttr(message, "V_max", &(currentLc->Vmax));
-    // XMLParser::tryReadIntAttr(message, "V_Rmax", &(currentLoc->VRmax));
-    // XMLParser::tryReadIntAttr(message, "V_Smax", &(currentLoc->VSmax));
-    if (XmlParser::tryReadCharAttr(message, "V_mode", &Vmode)) {
-        if (strstr(Vmode, "kmh") != nullptr) {
-            currentLc->vModePercent = false;
-        } else {
-            currentLc->vModePercent = true;
-        }
-        free(Vmode);
-    }
-    XmlParser::tryReadIntAttr(message, "V", &(currentLc->V));      // current speed
-    XmlParser::tryReadBoolAttr(message, "dir", &(currentLc->dir)); // current direction
-    // placing="true" blockenterside="true"
-    // are we in the info message?
-    bool computedDir;
-    bool placing;
-    if (XmlParser::tryReadBoolAttr(message, "placing", &(placing))) {
-        // computedDir = !(currentLc->dir ^ placing);
-        computedDir = currentLc->dir;
-        currentLc->placing = placing;
-        log4MC::vlogf(LOG_DEBUG, "%s: dir %d placing %d, computed dir %d", __func__, currentLc->dir, placing, computedDir);
-    } else {
-        computedDir = currentLc->dir;
-        log4MC::vlogf(LOG_DEBUG, "%s: dir %d", __func__, currentLc->dir);
-    }
-
-    if (!computedDir) {
-        currentLc->V = -currentLc->V;
-        currentLc->dir = true; // so the current speed has a sign
-    }
-
-    log4MC::vlogf(LOG_DEBUG, "%s: Loco  having speed %d dir %d, (computed dir: %d)", __func__, currentLc->V, currentLc->dir, computedDir);
-    if (currentLc->newSpeed != currentLc->V) {
-        // only change if we have a speed change, ignore 0 because that is our
-        currentLc->newSpeed = currentLc->V;
-    }
-    return currentLc;
 }
 
 void MTC4BTMQTTHandler::handleLc(const char *message)
@@ -249,23 +154,6 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
         // Log error, ignore message.
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
         return;
-    }
-    // find the remote that controlls this locomotive, this part is also
-    // in the regular lc command, this is only to get the initial values
-    // of the locomotive
-    std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
-    if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message);
-        // copy all found values to the remote(s)
-        for (int i = 0; i < remotes.size(); i++) {
-            remotes[i]->vModePercent = currentLC->vModePercent;
-            remotes[i]->V = currentLC->V;
-            remotes[i]->Vmax = currentLC->Vmax;
-            remotes[i]->initiated = true;
-            remotes[i]->placing = currentLC->placing;
-        }
-        delete (currentLC);
-        remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
     }
 
     if (!controller->HasLocomotive(addr)) {
@@ -429,12 +317,11 @@ void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
-void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
+void MTC4BTMQTTHandler::pubLcSpeed(char *locid, long locV)
 {
     char request[201];
-    bool dir = locV > 0;
-    snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr,
-             dir ? "true" : "false", abs(locV));
+    bool dir = locV >= 0;
+    snprintf(request, 200, "<lc id=\"%s\" dir=\"%s\" V=\"%ld\"/>", locid, dir ? "true" : "false", abs(locV));
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 

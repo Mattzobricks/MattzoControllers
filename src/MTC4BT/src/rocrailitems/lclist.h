@@ -58,13 +58,13 @@ class lc
     void setId(const char *newId);
     void clear();
     bool isSelected() { return id != nullptr; }
+    bool motorDir() { return !dir ^ placing; }
 
     char *id;
     int addr;
-    bool vModePercent; // true percent, false kmh
+    bool vModePercent; // true, if V_mode is percent
     int V;
     bool initiated;
-    int newSpeed;
     bool dir;
     bool placing;
     int Vmax;
