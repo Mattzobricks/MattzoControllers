@@ -37,7 +37,6 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler
 
     // Construct subscriber name.
     strcpy(_subscriberName, _config->SubscriberName);
-    strcat(_subscriberName, "Subscriber");
 
     // Setup completed.
     _setupCompleted = true;

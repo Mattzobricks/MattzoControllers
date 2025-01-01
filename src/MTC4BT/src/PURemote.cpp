@@ -392,7 +392,6 @@ void PURemote::buttonHandleAction(PUbutton button)
         }
 
     } else {
-        // TODO:we are in freeMode
         if (index == -1) {
             // ignore the buttons when index = -1
             // this is the init mode of the remote
@@ -400,9 +399,10 @@ void PURemote::buttonHandleAction(PUbutton button)
         }
         // get the list of items belonging to the pressed button
         std::vector<freeButtonItem *> freeItems = _config->buttons->getItemsByButton(button);
-        log4MC::vlogf(LOG_DEBUG, "%s Number of actions %d.", __func__, freeItems.size());
+        log4MC::vlogf(LOG_DEBUG, "%s Number of actions %d button %d.", __func__, freeItems.size(), button);
         for (int i = 0; i < freeItems.size(); i++) {
             // make a nice switch statement here, maybe change it when implementing the freeMode ;-) Nope, freeMode is a bit different
+            log4MC::vlogf(LOG_DEBUG, "%s Number of action %d button %d.", __func__, freeItems[i]->action, button);
             switch (freeItems[i]->action) {
             case RRebrake:
                 MTC4BTMQTTHandler::pubEBrake();
@@ -488,6 +488,7 @@ void PURemote::buttonHandleAction(PUbutton button)
             default:
                 break;
             }
+            vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS);  // don't spam mqtt
         }
     }
 }

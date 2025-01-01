@@ -373,7 +373,7 @@ void MTC4BTMQTTHandler::pubLcFn(char *id, RRaction action, RRfnAction fnAction)
     char request[201];
     int fnNumber = action - RRfn0;
     if (fnAction == RRfn_on || fnAction == RRfn_off || fnAction == RRfn_flip) {
-        snprintf(request, 200, "<fn id=\"%s\" fnchanged=\"%d\" f%d=\"%s\" />", id, fnNumber, fnNumber, fnAction == RRfn_on ? "true" : (fnAction == RRfn_off ? "false" : "flip"));
+        snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fnNumber, fnAction == RRfn_on ? "true" : (fnAction == RRfn_off ? "false" : "flip"));
     }
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }

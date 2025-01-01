@@ -92,6 +92,10 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                 PUbutton button = PUbuttonMap()[buttonStr];
                 RRdevice device = RRdeviceMap()[typeStr];
                 RRaction action = RRactionMap()[actionStr];
+                if (action >= RRfn0 && action <= RRfn32) {
+                    // ignore the fn's in the list mode
+                    continue;
+                }
                 if (button != PUbutton::Bplus && button != PUbutton::Bmin && button != PUbutton::Bred && button != PUbutton::Green) {
                     // ignore B+ B-  Bred and Green in list mode
                     buttons->setButton(device, button, action);
@@ -125,7 +129,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                 RRdevice device = RRdeviceMap()[typeStr];
                 RRaction action = RRactionMap()[actionStr];
                 RRfnAction fnAction;
-                if (freeConfig["fnaction"].is<std::string>()) {
+                if (freeConfig["fn-action"].is<std::string>()) {
                     fnAction = RRfnActionMap()[fnActionStr];
                 } else {
                     fnAction = RRfn_noop;

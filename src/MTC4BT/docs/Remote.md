@@ -70,7 +70,7 @@ Some kind of structure is needed to hold the configuration of the list buttons.
 
 Remote switch structure, this list is leading, so from the item type in the list, the button and action is determined. 
 ```
-  array of types (loco, switch, signal, output)
+  array of types (loco, switch, switch3, signal, output)
     array of buttons ( A+, Ared, A-, B+ Bred, B-, Green )
       action:     inc, dec, stop, flip, on, off, green, red, yellow, white, left, right,  straight, turnout, go, ebrake, noop
       reserved actions: navUp, navDown
@@ -153,30 +153,7 @@ The field `index` is set to -1 to indicate that the items are not  synchronised 
                     "type": "switch",
                     "color": "blue"
                 }
-            ],
-            "buttons": [
-                {
-                    "button": "Ared",
-                    "type": "signal",
-                    "action": "red"
-                },
-                {
-                    "button": "A-",
-                    "type": "signal",
-                    "action": "flip"
-                },
-                {
-                    "button": "Ared",
-                    "type": "switch",
-                    "action": "turnout"
-                },
-                {
-                    "button": "A-",
-                    "type": "switch",
-                    "action": "flip"
-                }
-            ]
-        }
+            ]        }
     ]
 ```
 
@@ -205,7 +182,7 @@ Type definition
    array of buttons
      buttonName: A+, Ared, A-, B+ Bred, B-, Green
        list of actions
-         type:       loco, switch, signal, output
+         type:       loco, switch, switch3, signal, output
          id/addr:    address or identifier
          action:     inc, dec, stop, flip, on, off, green, red, yellow, white, left, right, straight, turnout, go, ebrake
 ```
@@ -214,7 +191,7 @@ Free config items
 ```
   "free"
     button: A+, Ared, A-, B+ Bred, B-, Green
-    type:   loco, switch, signal, output
+    type:   loco, switch, switch3, signal, output
     id/addr:    address or identifier
     action:     inc, dec, stop, flip, on, off, green, red, yellow, white, left, right, straight, turnout, go, ebrake
 ```
@@ -279,6 +256,13 @@ Free config items
                     "type": "loco",
                     "id": "V100",
                     "action": "dec"
+                },
+                {
+                    "button": "Green",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "fn4",
+		            "fn-action" : "on"
                 }
             ]
         }
