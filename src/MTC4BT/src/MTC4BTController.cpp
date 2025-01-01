@@ -150,6 +150,7 @@ void MTC4BTController::initFirstItems()
                         remoteHub->setLCs();
                         remoteHub->index = 0;
                     }
+                    log4MC::vlogf(LOG_DEBUG, "Done with a hub, index=%d", remoteHub->index);
                 }
             }
         }

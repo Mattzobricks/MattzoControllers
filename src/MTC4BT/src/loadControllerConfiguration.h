@@ -19,7 +19,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
     }
 
     // Read JSON controller config file.
-    DynamicJsonDocument doc = MCJsonConfig::ReadJsonFile(configFilePath);
+    JsonDocument doc = MCJsonConfig::ReadJsonFile(configFilePath);
 
     // Read controller name.
     const char *controllerName = doc["name"] | DEFAULT_CONTROLLER_NAME;
@@ -78,7 +78,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const std::string locoConfigFile = locoConfigFiles[i];
 
         // Read JSON controller config file.
-        DynamicJsonDocument locoConfigDoc = MCJsonConfig::ReadJsonFile(locoConfigFile.c_str());
+        JsonDocument locoConfigDoc = MCJsonConfig::ReadJsonFile(locoConfigFile.c_str());
         JsonObject locoConfig = locoConfigDoc.as<JsonObject>();
 
         // Read if loco is enabled.
@@ -97,7 +97,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
         const std::string remoteConfigFile = remoteConfigFiles[i];
 
         // Read JSON controller config file.
-        DynamicJsonDocument remoteConfigDoc = MCJsonConfig::ReadJsonFile(remoteConfigFile.c_str());
+        JsonDocument remoteConfigDoc = MCJsonConfig::ReadJsonFile(remoteConfigFile.c_str());
         JsonObject remoteConfig = remoteConfigDoc.as<JsonObject>();
 
         // Read if loco is enabled.

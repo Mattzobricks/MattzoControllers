@@ -7,5 +7,5 @@ class MCJsonConfig
 {
   public:
     // Reads a JSON document of max. 4k.
-    static DynamicJsonDocument ReadJsonFile(const char *jsonFilePath);
+    static JsonDocument ReadJsonFile(const char *jsonFilePath);
 };

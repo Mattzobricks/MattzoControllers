@@ -73,27 +73,17 @@ void MattzoMQTTSubscriber::sendMessage(char *topic, const char *message)
 /// </summary>
 void MattzoMQTTSubscriber::reconnect()
 {
+    char request[251];
+    snprintf(request, 250,"<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"%s\"/>",_config->SubscriberName);
     while (!mqttSubscriberClient.connected()) {
         // Wait for connection to Wifi (because we need it to connect to the broker).
         MattzoWifiClient::Assert();
 
         log4MC::info("MQTT: Subscriber configuring last will...");
 
-        String lastWillMessage;
-        // if (_config->EbrakeOnDisconnect)
-        {
-            lastWillMessage = "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"" + String(_config->SubscriberName) + "\"/>";
-        }
-        // else
-        // {
-        //   lastWillMessage = "<info msg=\"mc_disconnected\" source=\"lastwill\" mc=\"" + String(_config->SubscriberName) + "\"/>";
-        // }
-        char lastWillMessage_char[lastWillMessage.length() + 1];
-        lastWillMessage.toCharArray(lastWillMessage_char, lastWillMessage.length() + 1);
-
         log4MC::info("MQTT: Subscriber attempting to connect...");
 
-        if (mqttSubscriberClient.connect(_subscriberName, MQTT_COMMANDTOPIC, 0, false, lastWillMessage_char)) {
+        if (mqttSubscriberClient.connect(_subscriberName, MQTT_COMMANDTOPIC, 0, false, request)) {
             log4MC::info("MQTT: Subscriber connected");
             mqttSubscriberClient.subscribe(MQTT_COMMANDTOPIC);
             log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_COMMANDTOPIC);

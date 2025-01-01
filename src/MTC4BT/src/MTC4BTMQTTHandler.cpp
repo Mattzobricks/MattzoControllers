@@ -424,14 +424,14 @@ void MTC4BTMQTTHandler::pubGetShortLcList()
 void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
 {
     // get current info of the loc from rocrail and start following it!
-    char request[200];
+    char request[201];
     snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locid);
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
 {
-    char request[200];
+    char request[201];
     bool dir = locV > 0;
     snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr,
              dir ? "true" : "false", abs(locV));
@@ -440,7 +440,7 @@ void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
 
 void MTC4BTMQTTHandler::pubFlip(RRdevice device, char *id)
 {
-    char request[200];
+    char request[201];
     bool knownDevice = true;
     switch (device) {
     case RRsignal:
@@ -462,21 +462,21 @@ void MTC4BTMQTTHandler::pubFlip(RRdevice device, char *id)
 
 void MTC4BTMQTTHandler::pubCo(RRaction action, char *id)
 {
-    char request[200];
+    char request[201];
     snprintf(request, 200, "<co id=\"%s\"  cmd=\"%s\"/>", id, action == RRon ? "on" : "off");
     mqttSubscriberClient.publish("rocrail/service/client", request);
 }
 
 void MTC4BTMQTTHandler::pubSg(RRaction action, char *id)
 {
-    char request[200];
+    char request[201];
     snprintf(request, 200, "<sg id=\"%s\"  cmd=\"%s\"/>", id, action == RRgreen ? "green" : (action == RRred ? "red" : (action == RRyellow ? "yellow" : "white")));
     mqttSubscriberClient.publish("rocrail/service/client", request);
 }
 
 void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
 {
-    char request[200];
+    char request[201];
     snprintf(request, 200, "<sw id=\"%s\"  cmd=\"%s\"/>", id, action == RRleft ? "left" : (action == RRright ? "right" : (action == RRstraight ? "straight" : "turnout")));
     mqttSubscriberClient.publish("rocrail/service/client", request);
 }
