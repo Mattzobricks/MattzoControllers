@@ -214,7 +214,7 @@ void MTC4BTController::handleLCList()
                         }
                     }
                     // set the remote to green to indicate the list is filled with id and addr
-                    remoteHub->SetHubLedColor(GREEN);
+                    remoteHub->SetHubLedColor(remoteHub->getConfigLedColor());
                 }
             }
         }

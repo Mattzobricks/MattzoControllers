@@ -31,6 +31,8 @@ class PURemote : public PUHub
     int index;
     freeListItem *getItemByIndex(int index);
 
+    HubLedColor getConfigLedColor();
+
   protected:
     lc *currentLC;         // used in list mode
     std::vector<lc *> lcs; // used in free mode

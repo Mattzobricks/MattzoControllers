@@ -314,6 +314,11 @@ freeListItem *PURemote::getItemByIndex(int index)
     return _config->list.freeListItems[index];
 }
 
+HubLedColor PURemote::getConfigLedColor()
+{
+    return _config->remoteColor;
+}
+
 void PURemote::buttonHandleAction(PUbutton button)
 {
     if (_config->mode == listMode) {
@@ -477,8 +482,8 @@ void PURemote::buttonHandleAction(PUbutton button)
                         // only fn actions for locomotives, all others are ignored
                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, freeItems[i]->fnAction);
                     } else if (freeItems[i]->fnAction == RRfn_push) {
-                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_on);
-                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_off);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_on);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_off);
                     }
                 }
                 break;
@@ -488,7 +493,7 @@ void PURemote::buttonHandleAction(PUbutton button)
             default:
                 break;
             }
-            vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS);  // don't spam mqtt
+            vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS); // don't spam mqtt
         }
     }
 }

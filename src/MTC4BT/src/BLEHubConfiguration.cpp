@@ -19,11 +19,12 @@ BLEHubConfiguration::BLEHubConfiguration(BLEHubType hubType, std::string deviceA
     list.freeListItems = newFreeListItems;
 }
 
-BLEHubConfiguration::BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonList * freeButtons)
+BLEHubConfiguration::BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonList * freeButtons, HubLedColor newColor)
 {
     HubType = hubType;
     DeviceAddress = new NimBLEAddress(deviceAddress);
     Channels = channels;
     mode = freeMode;
     buttons = freeButtons;
+    remoteColor = newColor;
 }

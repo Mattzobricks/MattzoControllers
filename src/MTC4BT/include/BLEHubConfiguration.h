@@ -57,7 +57,7 @@ class BLEHubConfiguration
   public:
     BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel);
     BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonByType *newButtons, std::vector<freeListItem *> newFreeListItems);
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonList * freeButtons);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonList * freeButtons,HubLedColor newColor);
     // Type of Hub.
     BLEHubType HubType;
 
@@ -74,4 +74,5 @@ class BLEHubConfiguration
     remoteModes mode;
     listModeType list;
     PUbuttonList * buttons;  // is an vector of a fixed number of buttons
+    HubLedColor remoteColor;
 };

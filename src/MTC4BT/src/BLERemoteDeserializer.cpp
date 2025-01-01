@@ -33,6 +33,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
     const std::string hubType = remoteConfig["type"];
     const std::string address = remoteConfig["address"];
     const std::string modeString = remoteConfig["mode"];
+    const std::string remoteColor = remoteConfig["color"] | "green"; 
 
     if (remoteModeMap().count(modeString) == 0) {
         log4MC::vlogf(LOG_ERR, "RemoteConfig: unknown mode '%s'", modeString.c_str());
@@ -141,7 +142,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
             }
         }
         // store buttons and freeListItems in the remote hub config and set its type to `mode`
-        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttonList));
+        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttonList,hubLedColorMap()[remoteColor]));
         break;
     }
 
