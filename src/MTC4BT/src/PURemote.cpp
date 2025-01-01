@@ -413,7 +413,7 @@ void PURemote::buttonHandleAction(PUbutton button)
                 incLocSpeed(freeItem->loc, 10);
                 break;
             case RRdec:
-                decLocSpeed(freeItem->loc, 10);
+                incLocSpeed(freeItem->loc, -10);
                 break;
             case RRstop:
                 setLocSpeed(freeItem->loc, 0);
