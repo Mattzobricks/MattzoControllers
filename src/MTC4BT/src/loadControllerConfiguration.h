@@ -23,7 +23,9 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 
     // Read controller name.
     const char *controllerName = doc["name"] | DEFAULT_CONTROLLER_NAME;
-    config->ControllerName = controllerName;
+    config->ControllerName = (char * ) malloc(strlen(controllerName) + 2);
+    strncpy(config->ControllerName,controllerName, strlen(controllerName)+1);
+
     log4MC::vlogf(LOG_INFO, "Config: Read controller name: %s", config->ControllerName);
 
     int16_t pwrIncStep = doc["pwrIncStep"] | DEFAULT_PWR_INC_STEP;

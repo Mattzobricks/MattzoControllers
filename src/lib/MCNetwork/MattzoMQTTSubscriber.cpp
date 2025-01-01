@@ -90,7 +90,7 @@ void MattzoMQTTSubscriber::reconnect()
             mqttSubscriberClient.subscribe(MQTT_INFOTOPIC);
             log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_INFOTOPIC);
         } else {
-            log4MC::vlogf(LOG_WARNING, "MQTT: Subscriber connect failed, rc=%u. Try again in a few seconds...", mqttSubscriberClient.state());
+            log4MC::vlogf(LOG_WARNING, "MQTT: Subscriber connect failed, rc=%d. Try again in a few seconds...", mqttSubscriberClient.state());
 
             // Wait a litte while before retrying.
             vTaskDelay(ReconnectDelayInMilliseconds / portTICK_PERIOD_MS);

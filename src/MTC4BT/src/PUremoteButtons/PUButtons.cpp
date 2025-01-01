@@ -81,6 +81,7 @@ PUbuttonList::~PUbuttonList()
 
 void PUbuttonList::addButtonItem(PUbutton button, freeButtonItem *item)
 {
+    log4MC::vlogf(LOG_DEBUG,"%s: pushed an action to button %d.",__func__,button);
     buttons[button].push_back(item);
 }
 
