@@ -185,34 +185,26 @@ bool PURemote::setColourAndLC(freeListItem *item)
 void PURemote::incLocSpeed(lc *currentLC, int increment)
 {
     if (currentLC->initiated) {
-        currentLC->V += increment;
-        if (currentLC->V > currentLC->Vmax) {
-            currentLC->V = currentLC->Vmax;
+        int currentMotorSpeed = currentLC->motorDir() ? currentLC->V : -currentLC->V;
+        int targetMotorSpeed = currentMotorSpeed + increment;
+        if (targetMotorSpeed > currentLC->Vmax) {
+            targetMotorSpeed = currentLC->Vmax;
         }
-        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id,
-                                      currentLC->addr,
-                                      currentLC->V);
+        if (targetMotorSpeed < -currentLC->Vmax) {
+            targetMotorSpeed = -currentLC->Vmax;
+        }
+        int targetLocoSpeed = currentLC->placing ? targetMotorSpeed : -targetMotorSpeed;
+
+        log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: currentMotorSpeed %d, vmax %d, increment %d, targetMotorSpeed %d, targetLocoSpeed %d",__func__, currentLC->addr, currentMotorSpeed, currentLC->Vmax, increment, targetMotorSpeed, targetLocoSpeed);
+
+        setLocSpeed(currentLC, targetLocoSpeed);
     }
 }
-void PURemote::setLocSpeed(lc *currentLC, int value)
+
+void PURemote::setLocSpeed(lc *currentLC, int V)
 {
     if (currentLC->initiated) {
-        currentLC->V = value;
-        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id,
-                                      currentLC->addr,
-                                      currentLC->V);
-    }
-}
-void PURemote::decLocSpeed(lc *currentLC, int decrement)
-{
-    if (currentLC->initiated) {
-        currentLC->V -= decrement;
-        if (currentLC->V < -currentLC->Vmax) {
-            currentLC->V = -currentLC->Vmax;
-        }
-        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id,
-                                      currentLC->addr,
-                                      currentLC->V);
+        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id, V);
     }
 }
 /**
@@ -436,7 +428,7 @@ void PURemote::buttonHandleAction(PUbutton button)
             incLocSpeed(currentLC, 10);
             break;
         case RRdec:
-            decLocSpeed(currentLC, 10);
+            incLocSpeed(currentLC, -10);
             break;
         case RRstop:
             setLocSpeed(currentLC, 0);

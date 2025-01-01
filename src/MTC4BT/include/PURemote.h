@@ -40,8 +40,7 @@ class PURemote : public PUHub
     void parsePortMessage(uint8_t *pData);
     void setPortAColourAndLC();
     void incLocSpeed(lc *currentLC, int increment);
-    void setLocSpeed(lc *currentLC, int value);
-    void decLocSpeed(lc *currentLC, int decrement);
+    void setLocSpeed(lc *currentLC, int V);
 
     bool lookupLcByAddr(int addr, int *locIndex);
     bool lookupLcById(char *id, int *locIndex);
