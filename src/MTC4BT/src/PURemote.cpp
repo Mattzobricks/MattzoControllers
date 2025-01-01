@@ -484,6 +484,7 @@ void PURemote::buttonHandleAction(PUbutton button)
                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, freeItems[i]->fnAction);
                     } else if (freeItems[i]->fnAction == RRfn_push) {
                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_on);
+                        vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS); // don't spam mqtt
                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action, RRfn_off);
                     }
                 }
