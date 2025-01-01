@@ -75,80 +75,76 @@ void MTC4BTMQTTHandler::handleSys(const char *message)
 
 void MTC4BTMQTTHandler::handleInfoLc(const char *message)
 {
-    int addr = 0;
+    int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr)) {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
+        log4MC::warn("Received MQTT 'lc' command with missing addr attribute. Message skipped.");
         return;
     }
 
-    // find the remote that controls this locomotive, this part is also
-    // in the regular lc command, this is only to get the initial values
-    // of the locomotive
-    // log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Looking for remote for loco addr %d.", addr);
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        // log4MC::vlogf(LOG_DEBUG, "MQTTHandleInfoLc: Found remote for loco addr %d.", addr);
-        lc *currentLC = getCurrentLcSpeed(message);
-        if (currentLC) {
-            // copy loco values to the remote(s)
-            for (int i = 0; i < remotes.size(); i++) {
-                remotes[i]->V = currentLC->V;
-                remotes[i]->vModePercent = currentLC->vModePercent;
-                remotes[i]->dir = currentLC->dir;
-                remotes[i]->placing = currentLC->placing;
-                remotes[i]->initiated = true;
-                if (currentLC->Vmax)
-                    remotes[i]->Vmax = currentLC->Vmax;
+        // log4MC::vlogf(LOG_DEBUG, "%s: found remote for loco addr %d.",__func__, addr);
+        // copy loco values to the remote(s)
+        for (int i = 0; i < remotes.size(); i++) {
+            int v;
+            if (XmlParser::tryReadIntAttr(message, "V", &v)) {
+                if (remotes[i]->V != v) {
+                    remotes[i]->V = v;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: v %d",__func__, addr, v);
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing v attribute. Attribute skipped.",__func__, addr);
             }
-            delete (currentLC);
+
+            char *vMode;
+            if (XmlParser::tryReadCharAttr(message, "V_mode", &vMode)) {
+                bool vModePercent = strstr(vMode, "percent") != nullptr;
+                if (remotes[i]->vModePercent != vModePercent) {
+                    remotes[i]->vModePercent = vModePercent;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmode %s",__func__, addr, vModePercent ? "percent" : "absolute");
+                }
+                free(vMode);
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_mode attribute. Attribute skipped.",__func__, addr);
+            }
+
+            bool dir;
+            if (XmlParser::tryReadBoolAttr(message, "dir", &dir)) {
+                if (remotes[i]->dir != dir) {
+                    remotes[i]->dir = dir;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: dir %s",__func__, addr, dir ? "forward" : "backwards");
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing dir attribute. Attribute skipped.",__func__, addr);
+            }
+
+            bool placing;
+            if (XmlParser::tryReadBoolAttr(message, "placing", &placing)) {
+                if (remotes[i]->placing != placing) {
+                    remotes[i]->placing = placing;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: placing %s",__func__, addr, placing ? "forward" : "reverse");
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing placing attribute. Attribute skipped.",__func__, addr);
+            }
+
+            int vMax;
+            if (XmlParser::tryReadIntAttr(message, "V_max", &vMax)) {
+                if (remotes[i]->Vmax != vMax) {
+                    remotes[i]->Vmax = vMax;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmax %d",__func__, addr, vMax);
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_max attribute. Attribute skipped.",__func__, addr);
+            }
+
+            remotes[i]->initiated = true;
+
+            // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d status: speed %d, vmax %d, vmode %s, dir %d, placing %s",__func__, addr, remotes[i]->V, remotes[i]->Vmax, remotes[i]->vModePercent ? "1" : "0", remotes[i]->dir, remotes[i]->placing ? "1" : "0");
         }
         remotes.clear(); // DO NOT FREE, THEY ARE REFERENCED BY THE REMOTES!
     }
-}
-
-lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message)
-{
-    lc *currentLc = new lc();
-
-    // addr
-    if (!XmlParser::tryReadIntAttr(message, "addr", &(currentLc->addr))) {
-        log4MC::vlogf(LOG_DEBUG, "%s: missing addr attribute. Loco message skipped.",__func__);
-        free(currentLc);
-        return nullptr;
-    }
-
-    // v_max
-    // if not found, set to 0. This indicates that the value could not be parsed.
-    if (!XmlParser::tryReadIntAttr(message, "V_max", &(currentLc->Vmax))) {
-        log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_max attribute. Parsing loco message without V_max.",__func__, currentLc->addr);
-        currentLc->Vmax = 0;
-    }
-
-    // current v_mode (percent or absolute speed)
-    char *vMode;
-    if (XmlParser::tryReadCharAttr(message, "V_mode", &vMode)) {
-        currentLc->vModePercent = strstr(vMode, "percent") != nullptr;
-        free(vMode);
-    } else {
-        log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_mode attribute. Loco message skipped.",__func__, currentLc->addr);
-        free(currentLc);
-        return nullptr;
-    }
-
-    // current placing
-    if (!XmlParser::tryReadBoolAttr(message, "placing", &(currentLc->placing))) {
-        log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing placing attribute. Loco message skipped.",__func__, currentLc->addr);
-        free(currentLc);
-        return nullptr;
-    }
-
-    XmlParser::tryReadBoolAttr(message, "dir", &(currentLc->dir)); // current direction
-    XmlParser::tryReadIntAttr(message, "V", &(currentLc->V));      // current speed
-
-    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: speed %d, vmax %d, vmode %s, dir %d, placing %s, motor dir %s",__func__, currentLc->addr, currentLc->V, currentLc->Vmax, currentLc->vModePercent ? "1" : "0", currentLc->dir, currentLc->placing ? "1" : "0", currentLc->motorDir() ? "1" : "0");
-
-    return currentLc;
 }
 
 void MTC4BTMQTTHandler::handleLc(const char *message)

@@ -195,7 +195,7 @@ void PURemote::incLocSpeed(lc *currentLC, int increment)
         }
         int targetLocoSpeed = currentLC->placing ? targetMotorSpeed : -targetMotorSpeed;
 
-        log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: currentMotorSpeed %d, vmax %d, increment %d, targetMotorSpeed %d, targetLocoSpeed %d",__func__, currentLC->addr, currentMotorSpeed, currentLC->Vmax, increment, targetMotorSpeed, targetLocoSpeed);
+        // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: currentMotorSpeed %d, vmax %d, increment %d, targetMotorSpeed %d, targetLocoSpeed %d",__func__, currentLC->addr, currentMotorSpeed, currentLC->Vmax, increment, targetMotorSpeed, targetLocoSpeed);
 
         setLocSpeed(currentLC, targetLocoSpeed);
     }
