@@ -83,7 +83,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
 
         buttonConfigs = remoteConfig["buttons"].as<JsonArray>();
         for (JsonObject buttonConfig : buttonConfigs) {
-            if (buttonConfig.containsKey("button") && buttonConfig.containsKey("type") && buttonConfig.containsKey("action")) {
+            if (buttonConfig["button"].is<std::string>() && buttonConfig["type"].is<std::string>() && buttonConfig["action"].is<std::string>()) {
                 std::string buttonStr = buttonConfig["button"];
                 std::string typeStr = buttonConfig["type"];
                 std::string actionStr = buttonConfig["action"];
@@ -109,7 +109,10 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
     case freeMode:
         JsonArray freeConfigs = remoteConfig["buttons"].as<JsonArray>();
         for (JsonObject freeConfig : freeConfigs) {
-            if (freeConfig.containsKey("button") && freeConfig.containsKey("type") && freeConfig.containsKey("action") && (freeConfig.containsKey("id") || freeConfig.containsKey("addr"))) {
+            if (freeConfig["button"].is<std::string>() &&
+                freeConfig["type"].is<std::string>() &&
+                freeConfig["action"].is<std::string>() &&
+                (freeConfig["id"].is<const char *>() || freeConfig["addr"].is<int>())) {
                 std::string buttonStr = freeConfig["button"];
                 std::string typeStr = freeConfig["type"];
                 std::string actionStr = freeConfig["action"];

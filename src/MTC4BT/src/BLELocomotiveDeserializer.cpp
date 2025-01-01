@@ -118,7 +118,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
             case ChannelType::BleHubChannel: {
                 BLEHubConfiguration *foundHub = nullptr;
 
-                if (actionConfig.containsKey("address")) {
+                if (actionConfig["address"].is<std::string>()) {
                     // Specific hub address specified, so find it.
                     for (BLEHubConfiguration *hub : hubs) {
                         if (hub->DeviceAddress->toString().compare(address) == 0) {
