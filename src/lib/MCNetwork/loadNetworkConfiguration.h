@@ -19,12 +19,30 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
 
     // Read logging configuration.
     MCLoggingConfiguration *logging = new MCLoggingConfiguration();
+    /// Read Serial log configuration
+    logging->Serial = new MCLoggingSerialConfiguration();
 
     JsonObject loggingConfig = doc["logging"];
-    logging->MinLevel = loggingConfig["min_level"] | "info";
+    logging->MinLevel = loggingConfig["min_level"] | "info"; // keep it around for now
+    const char *minLevel = loggingConfig["min_level"] | "info";
+    if (minLevel) {
+        if (strcmp(minLevel, "debug") == 0) {
+            logging->mask = LOG_DEBUG;
+        } else if (strcmp(minLevel, "info") == 0) {
+            logging->mask = LOG_INFO;
+        } else if (strcmp(minLevel, "warning") == 0) {
+            logging->mask = LOG_WARNING;
+        } else if (strcmp(minLevel, "error") == 0) {
+            logging->mask = LOG_ERR;
+        } else if (strcmp(minLevel, "fatal") == 0) {
+            logging->mask = LOG_CRIT;
+        } else {
+            logging->mask = LOG_EMERG;
+        }
+        logging->Serial->min_level = logging->mask;
+        logging->mask = ((1 << ((logging->mask) + 1)) - 1);
+    }
 
-    // Read Serial log configuration
-    logging->Serial = new MCLoggingSerialConfiguration();
     logging->Serial->Enabled = loggingConfig["serial"]["enabled"] | true;
 
     // Read Syslog configuration.
@@ -36,24 +54,7 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
         logging->SysLog->ServerPort = syslogConfig["port"] | 514;
         logging->SysLog->AppName = syslogConfig["appname"].as<std::string>();
 
-        const char *minLevel = loggingConfig["min_level"];
-        if (minLevel) {
-            if (strcmp(minLevel, "debug") == 0) {
-                logging->SysLog->mask = LOG_DEBUG;
-            } else if (strcmp(minLevel, "info") == 0) {
-                logging->SysLog->mask = LOG_INFO;
-            } else if (strcmp(minLevel, "warning") == 0) {
-                logging->SysLog->mask = LOG_WARNING;
-            } else if (strcmp(minLevel, "error") == 0) {
-                logging->SysLog->mask = LOG_ERR;
-            } else if (strcmp(minLevel, "fatal") == 0) {
-                logging->SysLog->mask = LOG_CRIT;
-            } else {
-                logging->SysLog->mask = LOG_EMERG;
-            }
-        }
-
-        logging->SysLog->mask = ((1 << ((logging->SysLog->mask) + 1)) - 1);
+        logging->SysLog->mask = logging->SysLog->mask;
     }
 
     // Attach logging configuration.

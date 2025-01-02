@@ -37,6 +37,7 @@ class log4MC
     static void logMessage(uint8_t level, char *message);
     static void setLogMask(uint8_t priMask);
     static uint8_t getLogMask();
+    static const char *levelToText(int level);
 
     static MCLoggingConfiguration *_config;
     static bool _connected;

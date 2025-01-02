@@ -6,6 +6,7 @@
 struct MCLoggingConfiguration {
   public:
     std::string MinLevel;
+    int mask;
     MCLoggingSerialConfiguration *Serial;
     MCLoggingSyslogConfiguration *SysLog;
 };
