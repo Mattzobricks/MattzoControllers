@@ -71,6 +71,9 @@ class lc
     int VRmax;
     int VSmax;
     fn_t fn[32];
+
+  protected:
+    void setFn(bool value);
 };
 
 extern std::vector<lc *> locs;

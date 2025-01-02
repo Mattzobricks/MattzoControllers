@@ -42,6 +42,7 @@ lc::lc()
     id = nullptr;
     V = 0;
     initiated = false;
+    setFn(false);
 }
 
 lc::lc(char *newId)
@@ -49,6 +50,8 @@ lc::lc(char *newId)
     lc();
     id = (char *)malloc(strlen(newId) + 1);
     strcpy(id, newId);
+    setFn(false);
+
 }
 
 lc::lc(char *newId, int newAddr)
@@ -56,6 +59,7 @@ lc::lc(char *newId, int newAddr)
 {
     id = (char *)malloc(strlen(newId) + 1);
     strcpy(id, newId);
+    setFn(false);
 }
 
 lc::lc(int newAddr)
@@ -109,6 +113,14 @@ void lc::clear()
         id = nullptr;
     }
     initiated = false;
+}
+
+void lc::setFn(bool value)
+{
+    for (int i = 0; i < 33; i++) {
+        fn[i].fn = value;
+        fn[i].pushbutton = value;
+    }
 }
 
 std::vector<lc *> locs;

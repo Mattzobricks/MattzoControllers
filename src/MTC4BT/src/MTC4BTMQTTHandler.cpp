@@ -368,12 +368,9 @@ void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
-void MTC4BTMQTTHandler::pubLcFn(char *id, RRaction action, RRfnAction fnAction)
+void MTC4BTMQTTHandler::pubLcFn(char *id, int fn, bool value)
 {
     char request[201];
-    int fnNumber = action - RRfn0;
-    if (fnAction == RRfn_on || fnAction == RRfn_off || fnAction == RRfn_flip) {
-        snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fnNumber, fnAction == RRfn_on ? "true" : (fnAction == RRfn_off ? "false" : "flip"));
-    }
+        snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fn, value ? "true" : "false");
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
