@@ -371,6 +371,11 @@ void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
 void MTC4BTMQTTHandler::pubLcFn(char *id, int fn, bool value)
 {
     char request[201];
+    if (fn == 0) {
+        // fn ==0 is a special case
+        snprintf(request, 200, "<lc id=\"%s\" fn=\"%s\" />", id, value ? "true" : "false");
+    } else {
         snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fn, value ? "true" : "false");
+    }
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
