@@ -17,14 +17,14 @@ class MTC4BTMQTTHandler
 
     static void pubGetShortLcList();
     static void pubGetLcInfo(char *locid);
-    static void pubLcSpeed(char *locid, long locV);
+    static void pubLcSpeed(char *locid, int addr, long locV);
     static void pubGo();
     static void pubEBrake();
     static void pubFlip(RRdevice device, char *id);
     static void pubCo(RRaction action, char *id);
     static void pubSg(RRaction action, char *id);
     static void pubSw(RRaction action, char *id);
-    static void pubLcFn(char *id , int fn, bool value);
+    static void pubLcFn(char *id, int addr, int fn, bool value);
 
   private:
     static void handleSys(const char *message);

@@ -317,11 +317,11 @@ void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
-void MTC4BTMQTTHandler::pubLcSpeed(char *locid, long locV)
+void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
 {
     char request[201];
     bool dir = locV >= 0;
-    snprintf(request, 200, "<lc id=\"%s\" dir=\"%s\" V=\"%ld\"/>", locid, dir ? "true" : "false", abs(locV));
+    snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr, dir ? "true" : "false", abs(locV));
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
@@ -368,14 +368,14 @@ void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
-void MTC4BTMQTTHandler::pubLcFn(char *id, int fn, bool value)
+void MTC4BTMQTTHandler::pubLcFn(char *id, int addr, int fn, bool value)
 {
     char request[201];
     if (fn == 0) {
         // fn ==0 is a special case
-        snprintf(request, 200, "<lc id=\"%s\" fn=\"%s\" />", id, value ? "true" : "false");
+        snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" fn=\"%s\" />", id, addr, value ? "true" : "false");
     } else {
-        snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fn, value ? "true" : "false");
+        snprintf(request, 200, "<fn id=\"%s\" addr=\"%d\"  f%d=\"%s\" />", id, addr, fn, value ? "true" : "false");
     }
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
