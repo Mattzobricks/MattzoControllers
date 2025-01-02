@@ -408,7 +408,7 @@ void PURemote::buttonHandleAction(PUbutton button)
         log4MC::vlogf(LOG_DEBUG, "%s Number of actions %d button %d.", __func__, freeItems.size(), button);
         for (int i = 0; i < freeItems.size(); i++) {
             // make a nice switch statement here, maybe change it when implementing the freeMode ;-) Nope, freeMode is a bit different
-            log4MC::vlogf(LOG_DEBUG, "%s Action %d button %d.", __func__, freeItems[i]->action);
+            log4MC::vlogf(LOG_DEBUG, "%s Action %d.", __func__, freeItems[i]->action);
             switch (freeItems[i]->action) {
             case RRebrake:
                 MTC4BTMQTTHandler::pubEBrake();
