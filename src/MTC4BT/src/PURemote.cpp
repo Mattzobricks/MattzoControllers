@@ -137,7 +137,7 @@ bool PURemote::setLCs()
             if (lookupLcById(item->id, &index)) {
                 item->addr = locs[index]->addr;
             } else {
-                log4MC::vlogf(LOG_ERR, "Configuration error, locomotive id \"%s\" not found in the current plan, using \"-1\" as substitute, this error keeps ocuring.");
+                log4MC::vlogf(LOG_ERR, "Configuration error, locomotive id \"%s\" not found in the current plan, using \"-1\" as substitute, this error keeps ocuring.",item->id);
                 item->addr = -1;
             }
         } else if (item->id == NULL) {
@@ -145,7 +145,7 @@ bool PURemote::setLCs()
             if (lookupLcByAddr(item->addr, &index)) {
                 item->setId(locs[index]->id);
             } else {
-                log4MC::vlogf(LOG_ERR, "Configuration error, locomotive address %d not found in the current plan, using \"DummyError\" as substitute");
+                log4MC::vlogf(LOG_ERR, "Configuration error, locomotive address %d not found in the current plan, using \"DummyError\" as substitute",item->addr);
                 item->setId("DummyError");
             }
         } else if (item->id == NULL && item->addr == -1) {
@@ -482,11 +482,11 @@ void PURemote::buttonHandleAction(PUbutton button)
                     if ((freeItems[i]->fnAction == RRfn_on || freeItems[i]->fnAction == RRfn_off || freeItems[i]->fnAction == RRfn_flip)) {
                         // only fn actions for locomotives, all others are ignored
                         freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn = freeItems[i]->fnAction == RRfn_on ? true : (freeItems[i]->fnAction == RRfn_off? false : !freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action - RRfn0, freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->action - RRfn0, freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
                     } else if (freeItems[i]->fnAction == RRfn_push) {
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action - RRfn0, true);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->action - RRfn0, true);
                         vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS); // don't spam mqtt
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->id, freeItems[i]->action - RRfn0, false);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->action - RRfn0, false);
                         freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn = false;
                     }
                 }

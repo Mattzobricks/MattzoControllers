@@ -24,6 +24,7 @@ struct PUbuttonMap : public std::map<std::string, PUbutton> {
         this->operator[]("Bred") = PUbutton::Bred;
         this->operator[]("B-") = PUbutton::Bmin;
         this->operator[]("Green") = PUbutton::Green;
+        this->operator[]("green") = PUbutton::Green;
     };
     ~PUbuttonMap() {}
 };
