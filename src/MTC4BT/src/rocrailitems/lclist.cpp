@@ -42,7 +42,7 @@ lc::lc()
     id = nullptr;
     V = 0;
     initiated = false;
-    setFn(false);
+    initializeFn();
 }
 
 lc::lc(char *newId)
@@ -50,7 +50,7 @@ lc::lc(char *newId)
     lc();
     id = (char *)malloc(strlen(newId) + 1);
     strcpy(id, newId);
-    setFn(false);
+    initializeFn();
 
 }
 
@@ -59,7 +59,7 @@ lc::lc(char *newId, int newAddr)
 {
     id = (char *)malloc(strlen(newId) + 1);
     strcpy(id, newId);
-    setFn(false);
+    initializeFn();
 }
 
 lc::lc(int newAddr)
@@ -115,11 +115,12 @@ void lc::clear()
     initiated = false;
 }
 
-void lc::setFn(bool value)
+void lc::initializeFn()
 {
+    // TODO: exchange < 33 with <= SOME_WELL_DEFINED_CONSTANT
     for (int i = 0; i < 33; i++) {
-        fn[i].fn = value;
-        fn[i].pushbutton = value;
+        fn[i].fn = false;
+        fn[i].pushbutton = false;
     }
 }
 

@@ -73,7 +73,7 @@ class lc
     fn_t fn[32];
 
   protected:
-    void setFn(bool value);
+    void initializeFn();
 };
 
 extern std::vector<lc *> locs;
