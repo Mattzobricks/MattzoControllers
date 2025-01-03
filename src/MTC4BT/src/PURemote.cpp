@@ -222,7 +222,7 @@ void PURemote::incLocSpeed(lc *currentLC, int increment)
 void PURemote::setLocSpeed(lc *currentLC, int V)
 {
     if (currentLC->initiated) {
-        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id, currentLC->addr, V);
+        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id, V);
     }
 }
 /**
@@ -477,17 +477,22 @@ void PURemote::buttonHandleAction(PUbutton button)
             case RRfn30:
             case RRfn31:
             case RRfn32:
-                // a bit dirty but it will work in the case statement ;-)
+                // multiple fall-through
                 if (freeItems[i]->RRtype == RRloco) {
+                    int fn = freeItems[i]->action - RRfn0;
                     if ((freeItems[i]->fnAction == RRfn_on || freeItems[i]->fnAction == RRfn_off || freeItems[i]->fnAction == RRfn_flip)) {
-                        // only fn actions for locomotives, all others are ignored
-                        freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn = freeItems[i]->fnAction == RRfn_on ? true : (freeItems[i]->fnAction == RRfn_off ? false : !freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->loc->addr, freeItems[i]->action - RRfn0, freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
+                        bool fnCurrentState = freeItems[i]->loc->fn[fn];
+                        bool fnTargetState = freeItems[i]->fnAction == RRfn_on ? true : (freeItems[i]->fnAction == RRfn_off ? false : !(freeItems[i]->loc->fn[fn]));
+
+                        log4MC::vlogf(LOG_DEBUG, "%s loco id %s: fn %d, fn action: %d current state %d, target state %d", __func__, freeItems[i]->loc->id, fn, freeItems[i]->fnAction, fnCurrentState, fnTargetState);
+
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, fn, fnTargetState);
+                        freeItems[i]->loc->fn[fn] = fnTargetState;
                     } else if (freeItems[i]->fnAction == RRfn_push) {
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->loc->addr, freeItems[i]->action - RRfn0, true);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, fn, true);
                         vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS); // don't spam mqtt
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->loc->addr, freeItems[i]->action - RRfn0, false);
-                        freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn = false;
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, fn, false);
+                        freeItems[i]->loc->fn[fn] = false;
                     }
                 }
                 break;

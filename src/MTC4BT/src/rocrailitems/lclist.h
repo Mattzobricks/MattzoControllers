@@ -35,10 +35,8 @@ SOFTWARE.
     V
     dir
 */
-typedef struct {
-    bool fn;
-    bool pushbutton;
-} fn_t;
+
+#define NUM_LOCO_FUNCTIONS 33
 
 class lc
 {
@@ -70,10 +68,10 @@ class lc
     int Vmax;
     int VRmax;
     int VSmax;
-    fn_t fn[32];
+    bool fn[NUM_LOCO_FUNCTIONS];
 
   protected:
-    void setFn(bool value);
+    void initializeFn();
 };
 
 extern std::vector<lc *> locs;

@@ -7,7 +7,7 @@
 #include "MTC4BTController.h"
 #include "log4MC.h"
 
-// it is globaly devined in main.cpp
+// it is globaly defined in main.cpp
 extern MTC4BTController *controller;
 
 void MTC4BTMQTTHandler::Handle(const char *message)
@@ -275,21 +275,30 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     int fnchanged;
     if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged)) {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'fn' command' but couldn't read 'fnchanged' attribute.");
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but couldn't read 'fnchanged' attribute.", __func__, addr);
         return;
     }
+
+    // Assert that fn is between 0 and 32
+    if (fnchanged < 0 || fnchanged >= NUM_LOCO_FUNCTIONS) {
+        // Log error, ignore message.
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but fn is out of range (%d)",__func__, addr, fnchanged);
+        return;
+    }
+
+    // Convert function number to string (format: fX or fXX);
+    static char fnId[4];
+    snprintf(fnId, 3, "f%u", fnchanged);
 
     // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
     bool fnchangedstate;
-    if (!XmlParser::tryReadBoolAttr(message, fnchanged == 0 ? "fn" : "fnchangedstate", &fnchangedstate)) {
+    if (!XmlParser::tryReadBoolAttr(message, fnId, &fnchangedstate)) {
         // Log error, ignore message.
-        log4MC::vlogf(LOG_WARNING, "MQTT: Received 'fn' command' for 'f%u' but couldn't read '%s' attribute.", fnchanged, fnchanged == 0 ? "fn" : "fnchangedstate");
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but couldn't read '%s' attribute.", __func__, addr, fnId);
         return;
     }
 
-    // Convert function number to string (format: fX);
-    static char fnId[3];
-    sprintf(fnId, "f%u", fnchanged);
+    // log4MC::vlogf(LOG_DEBUG, "%s: Handling fn message for loco %d: fnchanged %d, fn %s, state %s",__func__, addr, fnchanged, fnId, fnchangedstate ? "1" : "0");
 
     // Ask controller to handle the function.
     controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
@@ -317,11 +326,11 @@ void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
-void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
+void MTC4BTMQTTHandler::pubLcSpeed(char *locid, long locV)
 {
     char request[201];
     bool dir = locV >= 0;
-    snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr, dir ? "true" : "false", abs(locV));
+    snprintf(request, 200, "<lc id=\"%s\" dir=\"%s\" V=\"%ld\"/>", locid, dir ? "true" : "false", abs(locV));
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
@@ -368,14 +377,14 @@ void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
-void MTC4BTMQTTHandler::pubLcFn(char *id, int addr, int fn, bool value)
+void MTC4BTMQTTHandler::pubLcFn(char *id, int fn, bool value)
 {
     char request[201];
     if (fn == 0) {
         // fn ==0 is a special case
-        snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" fn=\"%s\" />", id, addr, value ? "true" : "false");
+        snprintf(request, 200, "<lc id=\"%s\" fn=\"%s\" />", id, value ? "true" : "false");
     } else {
-        snprintf(request, 200, "<fn id=\"%s\" addr=\"%d\"  f%d=\"%s\" />", id, addr, fn, value ? "true" : "false");
+        snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fn, value ? "true" : "false");
     }
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }

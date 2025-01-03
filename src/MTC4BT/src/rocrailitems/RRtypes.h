@@ -28,7 +28,7 @@ struct RRdeviceMap : public std::map<std::string, RRdevice> {
 
 typedef enum {
     RRfn_noop = 0, // default if no fn-action is configured
-    RRfn_on =1,
+    RRfn_on,
     RRfn_off,
     RRfn_push,
     RRfn_flip
