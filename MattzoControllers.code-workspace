@@ -12,9 +12,6 @@
 			"path": "src/MTC4BT"
 		},
 		{
-			"path": "src/lib"
-		},
-		{
 			"path": "src/mc_lib"
 		}
 	],

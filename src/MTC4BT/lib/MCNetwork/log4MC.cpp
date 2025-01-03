@@ -86,7 +86,7 @@ void log4MC::log(uint8_t level, const char *message)
 {
     char *msg = NULL;
     unsigned int len = strlen(message);
-    msg = new char[len + 20];
+    msg = new char[len + 30];
 
 #ifdef ESP32
     sprintf(msg, "[%04d] [%d] [%s] %s", lineNo, xPortGetCoreID(), log4MC::levelToText(level), message);
