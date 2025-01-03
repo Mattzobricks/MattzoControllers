@@ -129,6 +129,11 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                 RRdevice device = RRdeviceMap()[typeStr];
                 RRaction action = RRactionMap()[actionStr];
                 RRfnAction fnAction;
+                if (device != RRsystem) {
+                    if (!freeConfig["id"].is<std::string>() && !freeConfig["addr"].is<int>()) {
+                        log4MC::vlogf(LOG_ERR, "this button %s %s needs an 'id' or 'addr'!",buttonStr.c_str(),actionStr.c_str());
+                    }
+                }
                 if (freeConfig["fn-action"].is<std::string>()) {
                     fnAction = RRfnActionMap()[fnActionStr];
                 } else {
