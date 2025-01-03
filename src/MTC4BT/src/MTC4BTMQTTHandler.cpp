@@ -279,6 +279,13 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
         return;
     }
 
+    // Assert that fn is between 0 and 32
+    if (fnchanged < 0 || fnchanged > 32) {
+        // Log error, ignore message.
+        log4MC::vlogf(LOG_WARNING, "%s: fn out of range (%d)",__func__, fnchanged);
+        return;
+    }
+
     // Convert function number to string (format: fX or fXX);
     static char fnId[4];
     sprintf(fnId, "f%u", fnchanged);
@@ -291,7 +298,7 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
         return;
     }
 
-    log4MC::vlogf(LOG_DEBUG, "%s: Handling fn message for loco %d: fnchanged %d, fn %s, state %s",__func__, addr, fnchanged, fnId, fnchangedstate ? "1" : "0");
+    // log4MC::vlogf(LOG_DEBUG, "%s: Handling fn message for loco %d: fnchanged %d, fn %s, state %s",__func__, addr, fnchanged, fnId, fnchangedstate ? "1" : "0");
 
     // Ask controller to handle the function.
     controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
