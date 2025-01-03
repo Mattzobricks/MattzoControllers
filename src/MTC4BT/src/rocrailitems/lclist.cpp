@@ -35,6 +35,7 @@ lc::lc(char *newId, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
     } else {
         id = NULL;
     }
+    initializeFn();
 }
 
 lc::lc()
