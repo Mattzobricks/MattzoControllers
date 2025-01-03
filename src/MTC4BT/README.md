@@ -27,6 +27,8 @@ An easy way to start is to open in VS-Code the `MattzoControllers.code-workspace
 
 To setup the environment, we have setup a [Getting Started guide](docs/README.md).
 
+To get more information about the PU-Remote [PU remote implementation and config](docs/Remote.md)
+
 ---
 ## General Configuration
 
