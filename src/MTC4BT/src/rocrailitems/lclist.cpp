@@ -119,8 +119,7 @@ void lc::initializeFn()
 {
     // TODO: exchange < 33 with <= SOME_WELL_DEFINED_CONSTANT
     for (int i = 0; i < 33; i++) {
-        fn[i].fn = false;
-        fn[i].pushbutton = false;
+        fn[i] = false;
     }
 }
 

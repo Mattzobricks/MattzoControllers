@@ -35,11 +35,6 @@ SOFTWARE.
     V
     dir
 */
-typedef struct {
-    bool fn;
-    bool pushbutton;
-} fn_t;
-
 class lc
 {
   public:
@@ -70,7 +65,7 @@ class lc
     int Vmax;
     int VRmax;
     int VSmax;
-    fn_t fn[32];
+    bool fn[32];
 
   protected:
     void initializeFn();
