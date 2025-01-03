@@ -153,7 +153,8 @@ The field `index` is set to -1 to indicate that the items are not  synchronised 
                     "type": "switch",
                     "color": "blue"
                 }
-            ]        }
+            ]
+        }
     ]
 ```
 
@@ -203,7 +204,7 @@ Free config items
 
 ```
     "remotes" : [
-             {
+        {
             "name": "Lego remote",
             "type": "PUController",
             "address": "e4:e1:12:9b:42:14",
