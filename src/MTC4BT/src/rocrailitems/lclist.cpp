@@ -117,8 +117,7 @@ void lc::clear()
 
 void lc::initializeFn()
 {
-    // TODO: exchange < 33 with <= SOME_WELL_DEFINED_CONSTANT
-    for (int i = 0; i < 33; i++) {
+    for (int i = 0; i < NUM_LOCO_FUNCTIONS; i++) {
         fn[i] = false;
     }
 }

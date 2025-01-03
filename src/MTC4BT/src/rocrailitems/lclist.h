@@ -35,6 +35,9 @@ SOFTWARE.
     V
     dir
 */
+
+#define NUM_LOCO_FUNCTIONS 33
+
 class lc
 {
   public:
@@ -65,7 +68,7 @@ class lc
     int Vmax;
     int VRmax;
     int VSmax;
-    bool fn[32];
+    bool fn[NUM_LOCO_FUNCTIONS];
 
   protected:
     void initializeFn();

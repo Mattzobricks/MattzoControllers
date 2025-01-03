@@ -280,7 +280,7 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     }
 
     // Assert that fn is between 0 and 32
-    if (fnchanged < 0 || fnchanged > 32) {
+    if (fnchanged < 0 || fnchanged >= NUM_LOCO_FUNCTIONS) {
         // Log error, ignore message.
         log4MC::vlogf(LOG_WARNING, "%s: fn out of range (%d)",__func__, fnchanged);
         return;
