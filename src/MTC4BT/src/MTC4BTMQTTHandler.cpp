@@ -275,14 +275,14 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     int fnchanged;
     if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged)) {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'fn' command' but couldn't read 'fnchanged' attribute.");
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but couldn't read 'fnchanged' attribute.", __func__, addr);
         return;
     }
 
     // Assert that fn is between 0 and 32
     if (fnchanged < 0 || fnchanged >= NUM_LOCO_FUNCTIONS) {
         // Log error, ignore message.
-        log4MC::vlogf(LOG_WARNING, "%s: fn out of range (%d)",__func__, fnchanged);
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but fn is out of range (%d)",__func__, addr, fnchanged);
         return;
     }
 
@@ -294,7 +294,7 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     bool fnchangedstate;
     if (!XmlParser::tryReadBoolAttr(message, fnId, &fnchangedstate)) {
         // Log error, ignore message.
-        log4MC::vlogf(LOG_WARNING, "MQTT: Received 'fn' command' for '%s' but couldn't read '%s' attribute.", fnchanged, fnId, fnId);
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but couldn't read '%s' attribute.", __func__, addr, fnId);
         return;
     }
 
