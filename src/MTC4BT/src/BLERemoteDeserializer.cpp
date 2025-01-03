@@ -116,8 +116,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
         for (JsonObject freeConfig : freeConfigs) {
             if (freeConfig["button"].is<std::string>() &&
                 freeConfig["type"].is<std::string>() &&
-                freeConfig["action"].is<std::string>() &&
-                (freeConfig["id"].is<const char *>() || freeConfig["addr"].is<int>())) {
+                freeConfig["action"].is<std::string>()) {
                 std::string buttonStr = freeConfig["button"];
                 std::string typeStr = freeConfig["type"];
                 std::string actionStr = freeConfig["action"];

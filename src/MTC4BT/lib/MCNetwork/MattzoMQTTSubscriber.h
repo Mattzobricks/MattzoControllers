@@ -117,7 +117,7 @@ class MattzoMQTTSubscriber
     /// Sends the given message to the MQTT broker.
     /// </summary>
     /// <param name="parm">Message to send.</param>
-    static void sendMessage(char *topic, const char *message);
+    static void sendMessage(const char *topic, char *message);
 
     /// <summary>
     /// Reconnects the MQTT client to the broker (blocking).

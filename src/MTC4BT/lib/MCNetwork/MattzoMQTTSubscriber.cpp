@@ -61,7 +61,7 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
 /// Sends the given message to the MQTT broker.
 /// </summary>
 /// <param name="parm">Message to send.</param>
-void MattzoMQTTSubscriber::sendMessage(char *topic, const char *message)
+void MattzoMQTTSubscriber::sendMessage(const char *topic, char *message)
 {
     log4MC::vlogf(LOG_DEBUG, "MQTT: Sending message [%s] %s", topic, message);
     mqttSubscriberClient.publish(topic, message);
@@ -107,7 +107,7 @@ void MattzoMQTTSubscriber::Loop()
         lastPing = millis();
 
         // Send a ping message.
-        sendMessage("roc2bricks/ping", _subscriberName);
+        sendMessage("roc2bricks/ping", _subscriberName);    
     }
 
     // Allow the MQTT client to process incoming messages and maintain its connection to the server.

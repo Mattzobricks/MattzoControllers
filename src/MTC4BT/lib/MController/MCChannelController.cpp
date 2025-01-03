@@ -68,6 +68,7 @@ int16_t MCChannelController::GetCurrentPwrPerc()
             // Force motor off (0%).
             return 0;
         }
+        case StatusLight:
         case Nothing: // do nothing
             break;
         }
