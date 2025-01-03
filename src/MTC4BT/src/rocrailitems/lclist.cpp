@@ -24,20 +24,51 @@ SOFTWARE.
 #include "lclist.h"
 #include "log4MC.h"
 
-lc::lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
-    : id(id), addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
+lc::lc(char *newId, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
+    : addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
 {
-    newSpeed = 0;
     V = 0;
     initiated = false;
+    if (newId) {
+        id = (char *)malloc(strlen(newId) + 1);
+        strcpy(id, newId);
+    } else {
+        id = NULL;
+    }
+    initializeFn();
 }
+
 lc::lc()
 {
     id = nullptr;
-    newSpeed = 0;
     V = 0;
     initiated = false;
+    initializeFn();
 }
+
+lc::lc(char *newId)
+{
+    lc();
+    id = (char *)malloc(strlen(newId) + 1);
+    strcpy(id, newId);
+    initializeFn();
+
+}
+
+lc::lc(char *newId, int newAddr)
+    : addr(newAddr)
+{
+    id = (char *)malloc(strlen(newId) + 1);
+    strcpy(id, newId);
+    initializeFn();
+}
+
+lc::lc(int newAddr)
+    : addr(newAddr)
+{
+    lc();
+}
+
 lc::~lc()
 {
     if (id) {
@@ -46,15 +77,34 @@ lc::~lc()
         id = nullptr;
     }
 }
-void lc::setIdandAddr(const char *newId, const int newAddr)
+void lc::setIdandAddr(const char *newId, const int newAddr, bool newInitiated)
 {
-    if (id)
+    if (id) {
         free(id);
-
-    id = (char *)malloc(strlen(newId) + 1);
-    strcpy(id, newId);
+        id = NULL;
+    }
+    if (newId) {
+        id = (char *)malloc(strlen(newId) + 1);
+        strcpy(id, newId);
+    } else {
+        id = NULL;
+    }
     addr = newAddr;
-    initiated = true;
+    initiated = newInitiated;
+}
+
+void lc::setId(const char *newId)
+{
+    if (id) {
+        free((char *)id);
+        id = NULL;
+    }
+    if (newId) {
+        id = (char *)malloc(strlen(newId) + 1);
+        strcpy(id, newId);
+    } else {
+        id = NULL;
+    }
 }
 
 void lc::clear()
@@ -64,6 +114,13 @@ void lc::clear()
         id = nullptr;
     }
     initiated = false;
+}
+
+void lc::initializeFn()
+{
+    for (int i = 0; i < NUM_LOCO_FUNCTIONS; i++) {
+        fn[i] = false;
+    }
 }
 
 std::vector<lc *> locs;

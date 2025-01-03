@@ -6,23 +6,11 @@
 #include "NimBLEAddress.h"
 #include <vector>
 
-typedef struct {
-    int min;
-    int max;
-} addrRange;
-typedef struct {
-    int portA;
-    int portB;
-} addrFixed;
-typedef union {
-    addrRange R;
-    addrFixed F;
-} addresses;
-
-typedef struct {
-    bool isRange;
-    addresses addr;
-} remoteAddress;
+#include "PUremoteButtons/PUButtons.h"
+#include "remoteList/remoteFree.h"
+#include "remoteList/remoteList.h"
+#include "remoteList/modetypes.h"
+#include "rocrailitems/RRtypes.h"
 
 enum BLEHubType {
     // Powered Up Hub (Lego).
@@ -67,8 +55,9 @@ struct buwizzPowerMap : public std::map<std::string, uint8_t> {
 class BLEHubConfiguration
 {
   public:
-    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel, remoteAddress address);
-
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, uint8_t powerlevel);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonByType *newButtons, std::vector<freeListItem *> newFreeListItems);
+    BLEHubConfiguration(BLEHubType hubType, std::string deviceAddress, std::vector<MCChannelConfig *> channels, PUbuttonList * freeButtons,HubLedColor newColor);
     // Type of Hub.
     BLEHubType HubType;
 
@@ -81,5 +70,9 @@ class BLEHubConfiguration
     // hub power level, only valid for BuWizz2, the rest is ignored
     uint8_t powerLevel;
 
-    remoteAddress remote;
+    // add remote stuff here for now, if we are going to support more remotes, reconsider
+    remoteModes mode;
+    listModeType list;
+    PUbuttonList * buttons;  // is an vector of a fixed number of buttons
+    HubLedColor remoteColor;
 };

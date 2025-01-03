@@ -2,15 +2,15 @@
 
 #include <Arduino.h>
 
-#include "BLELocomotiveConfiguration.h"
+#include "BLERemoteConfiguration.h"
 #include "BLEbaseDevice.h"
 #include "MCLedBase.h"
 #include "MController.h"
 
-class BLELocomotive : public BLEbaseDevice
+class BLERemote : public BLEbaseDevice
 {
   public:
-    BLELocomotive(BLELocomotiveConfiguration *config, MController *controller);
+    BLERemote(BLERemoteConfiguration *config, MController *controller);
 
     // Returns a boolean value indicating whether we are connected to all BLE hubs.
     bool AllHubsConnected();
@@ -54,5 +54,5 @@ class BLELocomotive : public BLEbaseDevice
     std::vector<MCLedBase *> _espLeds;
 
     // Reference to the configuration of this loco.
-    BLELocomotiveConfiguration *_config;
+    BLERemoteConfiguration *_config;
 };

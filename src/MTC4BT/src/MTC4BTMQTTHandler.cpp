@@ -1,8 +1,13 @@
+/*
+ * MTC4BTMQTTHandler
+ * Handle all mqtt.
+ */
+
 #include "MTC4BTMQTTHandler.h"
 #include "MTC4BTController.h"
 #include "log4MC.h"
 
-// it is globaly devined in main.cpp
+// it is globaly defined in main.cpp
 extern MTC4BTController *controller;
 
 void MTC4BTMQTTHandler::Handle(const char *message)
@@ -67,124 +72,79 @@ void MTC4BTMQTTHandler::handleSys(const char *message)
     if (cmd)
         free(cmd);
 }
-/*
-<lc id="V100" addr="1" prev_id="V100" shortid="" roadname="" owner="" color=""
-number="" home="Shadow Station" desc="" dectype="" decfile="nmra-rp922.xml"
-docu="" image="v100.png" imagenr="0" remark="" len="25" radius="0" weight="0"
-nraxis="0" nrcars="0" manuid="" catnr="" purchased="" value="" identifier=""
-show="true" active="true" useshortid="false" mint="0" throttlenr="0" manually="false"
-bus="0" uid="0" secaddr="0" iid="" informall="false" oid="" prot="P" protver="1"
-spcnt="255" secspcnt="255" fncnt="2" V_min="30" V_mid="50" V_cru="80" V_max="100" V_maxsec="14"
-KMH_min="0" KMH_mid="0" KMH_cru="0" KMH_max="0" KMH_Rmin="0" KMH_Rmid="0" KMH_Rcru="0" KMH_Rmax="0"
-KMH_Smin="0" KMH_Smid="0" KMH_Scru="0" KMH_Smax="0" V_Rmin="0" V_Rmid="0" V_Rcru="0" V_Rmax="0" V_Smin="0"
-V_Smid="0" V_Scru="0" V_Smax="0" V_step="0" mass="0" minstep="0" maxstep="0" pwm="0" pwmcorrdiv="10"
-Vmidpercent="30" Vmaxmin="20" Vmaxmax="255" Vmaxkmh="0" Vmidset="true" V_mode="kmh" invdir="false"
-polarisation="true" regulated="true" restorefx="false" restorefxalways="false" restorespeed="false"
-info4throttle="false" dirpause="0" adjustaccel="false" maxload="0" accelmin="0" accelmax="0" decelerate="0"
-accelcv="3" accelcvindex="0" vmaxcv="5" vmaxcvindex="0" vmidcv="6" vmidcvindex="0" camhost="" camport="8081"
-camtype="0" camfile="stream.mjpg" camskip="0" camoption="0" blockwaittime="10" maxwaittime="0" evttimer="0"
-minenergypercentage="0" swaptimer="0" ent2incorr="100" priority="10" usescheduletime="false"
-commuter="false" shortin="false" inatpre2in="false" usemanualroutes="false" useownwaittime="false"
-startupscid="" startuptourid="" check2in="true" usedepartdelay="true" freeblockonenter="true"
-reducespeedatenter="false" routespeedatenter="false" v0onswap="false" resetplacing="false"
-manual="false" lookupschedule="false" lookupschedulevirtual="false" generated="false"
-swapondir="false" screcord="false" decoupler="false" engine="diesel" cargo="none"
-secondnextblock="false" secondnextblock4wait="false" era="0" class="" consist_syncfunmap="0"
-standalone="false" consist_lightsoff="false" consist_syncfun="false" consist_synclights="false"
-consist="" usebbt="false" bbtsteps="10" bbtstartinterval="10" bbtmaxdiff="250" bbtcorrection="25"
-bbtkey="0" cvnrs="1,2,3,4,5,6,17,18,29" destblockid="" cmdDelay="0" pause="false" mode="stop"
-fifotop="false" energypercentage="0" V="0" fx="0" throttleid="" trainlen="25" trainweight="0"
-blockid="" blockenterid="sb01" resumeauto="false" modereason="" waittime="0" V_hint="cruise"
-rdate="1730325551" runtime="37907" fn="false" blockenterside="true" cmd="modify" signalaspect=""
-sid="0" dir="false" placing="true" modeevent="true" shunting="false" mtime="0" scidx="-1" scheduleid=""
-tourid="" scheduleinithour="14" train="" V_realkmh="0" V_maxkmh="0" controlcode="" slavecode=""
-server="infw075D54C4" gotoblockid="" homeside="0" wheeldiameter="13.000000" wheelbase="0"
-maxincline="0" sernr="" coupler="" pwmkickstart="0" forcepriority="false" commuterblocks=""
-commuterlevel="" waitallblocks="false" waitallblocksalt="false" departdelay="0" routestack="false"
-stoponfailgoto="false" directgoto="false" engineFxType="" engineFxNr="0" sbt_decelerate="0"
-sbt_interval="0" bat_accelerate="0" bat_interval="0" arrivetime="1730146471"/>
 
-There could be fn's, but for the PU remote we are ignoring these.
-
-This command is needed to get info about the locomotive afer it is seleced by the remote
-*/
 void MTC4BTMQTTHandler::handleInfoLc(const char *message)
 {
-    int addr = 0;
+    int addr;
     if (!XmlParser::tryReadIntAttr(message, "addr", &addr)) {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
+        log4MC::warn("Received MQTT 'lc' command with missing addr attribute. Message skipped.");
         return;
     }
-    char *prev_id = nullptr;
-    bool has_previd = XmlParser::tryReadCharAttr(message, "prev_id", &prev_id);
-    if (prev_id)
-        free(prev_id);
-    if (!has_previd)
-        return;
-    // ignore all other lc commands on the info channel!
 
-    // find the remote that controlls this locomotive, this part is also
-    // in the regular lc command, this is only to get the initial values
-    // of the locomotive
     std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
     if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message, has_previd, remotes[0]->invdir);
-        // copy all found values to the remote(s)
+        // log4MC::vlogf(LOG_DEBUG, "%s: found remote for loco addr %d.",__func__, addr);
+        // copy loco values to the remote(s)
         for (int i = 0; i < remotes.size(); i++) {
-            remotes[i]->vModePercent = currentLC->vModePercent;
-            remotes[i]->V = currentLC->V;
-            remotes[i]->Vmax = currentLC->Vmax;
+            int v;
+            if (XmlParser::tryReadIntAttr(message, "V", &v)) {
+                if (remotes[i]->V != v) {
+                    remotes[i]->V = v;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: v %d", __func__, addr, v);
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing v attribute. Attribute skipped.",__func__, addr);
+            }
+
+            char *vMode;
+            if (XmlParser::tryReadCharAttr(message, "V_mode", &vMode)) {
+                bool vModePercent = strstr(vMode, "percent") != nullptr;
+                if (remotes[i]->vModePercent != vModePercent) {
+                    remotes[i]->vModePercent = vModePercent;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmode %s", __func__, addr, vModePercent ? "percent" : "absolute");
+                }
+                free(vMode);
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_mode attribute. Attribute skipped.",__func__, addr);
+            }
+
+            bool dir;
+            if (XmlParser::tryReadBoolAttr(message, "dir", &dir)) {
+                if (remotes[i]->dir != dir) {
+                    remotes[i]->dir = dir;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: dir %s", __func__, addr, dir ? "forward" : "backwards");
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing dir attribute. Attribute skipped.",__func__, addr);
+            }
+
+            bool placing;
+            if (XmlParser::tryReadBoolAttr(message, "placing", &placing)) {
+                if (remotes[i]->placing != placing) {
+                    remotes[i]->placing = placing;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: placing %s", __func__, addr, placing ? "forward" : "reverse");
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing placing attribute. Attribute skipped.",__func__, addr);
+            }
+
+            int vMax;
+            if (XmlParser::tryReadIntAttr(message, "V_max", &vMax)) {
+                if (remotes[i]->Vmax != vMax) {
+                    remotes[i]->Vmax = vMax;
+                    log4MC::vlogf(LOG_DEBUG, "%s: Loco %d updated: vmax %d", __func__, addr, vMax);
+                }
+            } else {
+                // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d: missing V_max attribute. Attribute skipped.",__func__, addr);
+            }
+
             remotes[i]->initiated = true;
-            remotes[i]->invdir = currentLC->invdir;
+
+            // log4MC::vlogf(LOG_DEBUG, "%s: Loco %d status: speed %d, vmax %d, vmode %s, dir %d, placing %s",__func__, addr, remotes[i]->V, remotes[i]->Vmax, remotes[i]->vModePercent ? "1" : "0", remotes[i]->dir, remotes[i]->placing ? "1" : "0");
         }
-        delete( currentLC);
         remotes.clear(); // DO NOT FREE, THEY ARE REFERENCED BY THE REMOTES!
     }
-}
-
-lc *MTC4BTMQTTHandler::getCurrentLcSpeed(const char *message, bool has_previd, bool invdir)
-{
-    // there are remotes which handle this locomotive
-    char *Vmode;
-    lc *currentLc = new lc();
-    XmlParser::tryReadIntAttr(message, "V_max", &(currentLc->Vmax));
-    // XMLParser::tryReadIntAttr(message, "V_Rmax", &(currentLoc->VRmax));
-    // XMLParser::tryReadIntAttr(message, "V_Smax", &(currentLoc->VSmax));
-    if (XmlParser::tryReadCharAttr(message, "V_mode", &Vmode)) {
-        if (strstr(Vmode, "kmh") != nullptr) {
-            currentLc->vModePercent = false;
-        } else {
-            currentLc->vModePercent = true;
-        }
-        free(Vmode);
-    }
-    XmlParser::tryReadIntAttr(message, "V", &(currentLc->V));      // current speed
-    XmlParser::tryReadBoolAttr(message, "dir", &(currentLc->dir)); // current direction
-    // placing="true" blockenterside="true"
-    // are we in the info message?
-    if (has_previd) {
-        bool placing, blockenterside;
-        XmlParser::tryReadBoolAttr(message, "placing", &(placing));
-        // XmlParser::tryReadBoolAttr(message, "blockenterside", &(blockenterside));
-        currentLc->invdir = !placing; // ignore stuff
-    } else {
-        currentLc->invdir = invdir;
-    }
-
-    if (!currentLc->dir) {
-        currentLc->V = -currentLc->V;
-        currentLc->dir = true;
-    }
-
-    if (currentLc->invdir) {
-        currentLc->V = -currentLc->V;
-    }
-    if (currentLc->newSpeed != currentLc->V) {
-        // only change if we have a speed change, ignore 0 because that is our
-        currentLc->newSpeed = currentLc->V;
-    }
-    return currentLc;
 }
 
 void MTC4BTMQTTHandler::handleLc(const char *message)
@@ -194,23 +154,6 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
         // Log error, ignore message.
         log4MC::warn("MQTT: Received 'lc' command, but couldn't read 'addr' attribute.");
         return;
-    }
-    // find the remote that controlls this locomotive, this part is also
-    // in the regular lc command, this is only to get the initial values
-    // of the locomotive
-    std::vector<lc *> remotes = controller->findRemoteByAddr(addr);
-    if (remotes.size() != 0) {
-        lc *currentLC = getCurrentLcSpeed(message, false, remotes[0]->invdir);
-        // copy all found values to the remote(s)
-        for (int i = 0; i < remotes.size(); i++) {
-            remotes[i]->vModePercent = currentLC->vModePercent;
-            remotes[i]->V = currentLC->V;
-            remotes[i]->Vmax = currentLC->Vmax;
-            remotes[i]->initiated = true;
-            remotes[i]->invdir = currentLC->invdir;
-        }
-        delete( currentLC );
-        remotes.clear(); // DO NOT FREE, THEY ARE REFECED BY THE REMOTES!
     }
 
     if (!controller->HasLocomotive(addr)) {
@@ -332,24 +275,42 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     int fnchanged;
     if (!XmlParser::tryReadIntAttr(message, "fnchanged", &fnchanged)) {
         // Log error, ignore message.
-        log4MC::warn("MQTT: Received 'fn' command' but couldn't read 'fnchanged' attribute.");
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but couldn't read 'fnchanged' attribute.", __func__, addr);
         return;
     }
+
+    // Assert that fn is between 0 and 32
+    if (fnchanged < 0 || fnchanged >= NUM_LOCO_FUNCTIONS) {
+        // Log error, ignore message.
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but fn is out of range (%d)",__func__, addr, fnchanged);
+        return;
+    }
+
+    // Convert function number to string (format: fX or fXX);
+    static char fnId[4];
+    snprintf(fnId, 3, "f%u", fnchanged);
 
     // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
     bool fnchangedstate;
-    if (!XmlParser::tryReadBoolAttr(message, fnchanged == 0 ? "fn" : "fnchangedstate", &fnchangedstate)) {
+    if (!XmlParser::tryReadBoolAttr(message, fnId, &fnchangedstate)) {
         // Log error, ignore message.
-        log4MC::vlogf(LOG_WARNING, "MQTT: Received 'fn' command' for 'f%u' but couldn't read '%s' attribute.", fnchanged, fnchanged == 0 ? "fn" : "fnchangedstate");
+        log4MC::vlogf(LOG_WARNING, "%s received 'fn' command' for loco %d but couldn't read '%s' attribute.", __func__, addr, fnId);
         return;
     }
 
-    // Convert function number to string (format: fX);
-    static char fnId[3];
-    sprintf(fnId, "f%u", fnchanged);
+    // log4MC::vlogf(LOG_DEBUG, "%s: Handling fn message for loco %d: fnchanged %d, fn %s, state %s",__func__, addr, fnchanged, fnId, fnchangedstate ? "1" : "0");
 
     // Ask controller to handle the function.
     controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
+}
+
+void MTC4BTMQTTHandler::pubEBrake()
+{
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");
+}
+void MTC4BTMQTTHandler::pubGo()
+{
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
 }
 
 void MTC4BTMQTTHandler::pubGetShortLcList()
@@ -360,16 +321,70 @@ void MTC4BTMQTTHandler::pubGetShortLcList()
 void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
 {
     // get current info of the loc from rocrail and start following it!
-    char request[200];
+    char request[201];
     snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locid);
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }
 
-void MTC4BTMQTTHandler::pubLcSpeed(char *locid, int addr, long locV)
+void MTC4BTMQTTHandler::pubLcSpeed(char *locid, long locV)
 {
-    char request[200];
-    bool dir = locV > 0;
-    snprintf(request, 200, "<lc id=\"%s\" addr=\"%d\" dir=\"%s\" V=\"%ld\"/>", locid, addr,
-             dir ? "true" : "false", abs(locV));
+    char request[201];
+    bool dir = locV >= 0;
+    snprintf(request, 200, "<lc id=\"%s\" dir=\"%s\" V=\"%ld\"/>", locid, dir ? "true" : "false", abs(locV));
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+}
+
+void MTC4BTMQTTHandler::pubFlip(RRdevice device, char *id)
+{
+    char request[201];
+    bool knownDevice = true;
+    switch (device) {
+    case RRsignal:
+        snprintf(request, 200, "<sg id=\"%s\"  cmd=\"flip\" manualcmd=\"true\"/>", id);
+        break;
+    case RRswitch:
+        snprintf(request, 200, "<sw id=\"%s\"  cmd=\"flip\" manualcmd=\"true\"/>", id);
+        break;
+    case RRoutput:
+        snprintf(request, 200, "<co id=\"%s\"  cmd=\"flip\" manualcmd=\"true\"/>", id);
+        break;
+    default:
+        knownDevice = false;
+        break;
+    }
+    if (knownDevice)
+        mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+}
+
+void MTC4BTMQTTHandler::pubCo(RRaction action, char *id)
+{
+    char request[201];
+    snprintf(request, 200, "<co id=\"%s\"  cmd=\"%s\"/>", id, action == RRon ? "on" : "off");
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+}
+
+void MTC4BTMQTTHandler::pubSg(RRaction action, char *id)
+{
+    char request[201];
+    snprintf(request, 200, "<sg id=\"%s\"  cmd=\"%s\"/>", id, action == RRgreen ? "green" : (action == RRred ? "red" : (action == RRyellow ? "yellow" : "white")));
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+}
+
+void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
+{
+    char request[201];
+    snprintf(request, 200, "<sw id=\"%s\"  cmd=\"%s\"/>", id, action == RRleft ? "left" : (action == RRright ? "right" : (action == RRstraight ? "straight" : "turnout")));
+    mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+}
+
+void MTC4BTMQTTHandler::pubLcFn(char *id, int fn, bool value)
+{
+    char request[201];
+    if (fn == 0) {
+        // fn ==0 is a special case
+        snprintf(request, 200, "<lc id=\"%s\" fn=\"%s\" />", id, value ? "true" : "false");
+    } else {
+        snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fn, value ? "true" : "false");
+    }
     mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
 }

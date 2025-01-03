@@ -1,6 +1,6 @@
 #include "MCJsonConfig.h"
 
-DynamicJsonDocument MCJsonConfig::ReadJsonFile(const char *jsonFilePath)
+JsonDocument MCJsonConfig::ReadJsonFile(const char *jsonFilePath)
 {
     // Allocate a temporary JsonDocument.
     // Don't forget to change the capacity to match your requirements!
@@ -10,7 +10,7 @@ DynamicJsonDocument MCJsonConfig::ReadJsonFile(const char *jsonFilePath)
     // - Mode: Deserialize
     // - Input type: Stream
     // Including some slack (1024) in case the strings change, and rounded to a power of two.
-    DynamicJsonDocument doc(4096);
+    JsonDocument doc;
 
     // Check if file exists.
     File file = SPIFFS.open(jsonFilePath);

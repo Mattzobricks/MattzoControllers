@@ -98,7 +98,8 @@
 			"stop_token": "cpp",
 			"semaphore": "cpp",
 			"stdfloat": "cpp",
-			"text_encoding": "cpp"
+			"text_encoding": "cpp",
+			"strstream": "cpp"
 		},
 	}
 }

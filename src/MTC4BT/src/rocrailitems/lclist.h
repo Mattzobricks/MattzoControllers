@@ -35,37 +35,43 @@ SOFTWARE.
     V
     dir
 */
-typedef struct {
-  bool fn;
-  bool pushbutton;
-} fn_t;
+
+#define NUM_LOCO_FUNCTIONS 33
 
 class lc
 {
   public:
     lc();
-    lc(char *id,  int addr, bool vModePercent, int Vmax, int VRmax, int VSmax);
+    lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax);
+    lc(char *newId, int newAddr);
+    lc(char *newId);
+    lc(int newAddr);
     ~lc();
 
     // used for the std::find
+    // example: std::vector<lc *>::iterator itr = std::find(locs.begin(), locs.end(), currentLc);
     bool operator==(const lc &rhs) const { return strcmp(this->id, rhs.id) == 0; }
 
-    void setIdandAddr(const char *newId, const int ewAddr);
+    void setIdandAddr(const char *newId, const int newAddr, bool newInitiated);
+    void setId(const char *newId);
     void clear();
     bool isSelected() { return id != nullptr; }
+    bool motorDir() { return !dir ^ placing; }
 
     char *id;
     int addr;
-    bool vModePercent; // true percent, false kmh
+    bool vModePercent; // true, if V_mode is percent
     int V;
     bool initiated;
-    int newSpeed;
     bool dir;
-    bool invdir;
+    bool placing;
     int Vmax;
     int VRmax;
     int VSmax;
-    fn_t fn[32];
+    bool fn[NUM_LOCO_FUNCTIONS];
+
+  protected:
+    void initializeFn();
 };
 
 extern std::vector<lc *> locs;

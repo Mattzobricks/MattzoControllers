@@ -9,3 +9,7 @@ or some other value
 #ifndef DRIVERTASKDELAY
 #define DRIVERTASKDELAY 250
 #endif
+
+#ifndef PUFREELISTACTIONDELAY
+#define PUFREELISTACTIONDELAY 100
+#endif 

@@ -15,7 +15,7 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
     }
 
     // Read JSON network config file.
-    DynamicJsonDocument doc = MCJsonConfig::ReadJsonFile(configFilePath);
+    JsonDocument doc = MCJsonConfig::ReadJsonFile(configFilePath);
 
     // Read logging configuration.
     MCLoggingConfiguration *logging = new MCLoggingConfiguration();

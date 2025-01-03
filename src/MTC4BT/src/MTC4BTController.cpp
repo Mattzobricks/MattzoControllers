@@ -53,6 +53,7 @@ void MTC4BTController::Setup(MTC4BTConfiguration *config)
 
     // Setup MTC4BT specific controller configuration.
     initLocomotives(config->LocoConfigs);
+    initRemotes(config->RemoteConfigs);
 }
 
 void MTC4BTController::SetupScanner()
@@ -111,23 +112,21 @@ std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
 {
     std::vector<lc *> remotes;
     remotes.reserve(6);
-    for (BLELocomotive *loco : Locomotives) {
-        for (BLEHub *hub : loco->Hubs) {
+    for (BLERemote *remote : Remotes) {
+        for (BLEHub *hub : remote->Hubs) {
             if (hub->GetHubType() == BLEHubType::PUController) {
                 PURemote *remoteHub = (PURemote *)hub;
                 //  find the index where minRange is valid
                 lc *locoLc;
-                if (remoteHub->isRange) {
-                    locoLc = remoteHub->getPortA(addr);
+                if (remoteHub->getMode() == listMode) {
+                    locoLc = remoteHub->getPort(addr);
                     if (locoLc)
                         remotes.push_back(locoLc);
                 } else {
-                    locoLc = remoteHub->getPortA(addr);
-                    if (locoLc)
-                        remotes.push_back(locoLc);
-                    locoLc = remoteHub->getPortB(addr);
-                    if (locoLc)
-                        remotes.push_back(locoLc);
+                    // just copy the loco pointers
+                    for (auto loco : remoteHub->getLCs())
+                        if (loco->addr == addr)
+                            remotes.push_back(loco);
                 }
             }
         }
@@ -135,50 +134,87 @@ std::vector<lc *> MTC4BTController::findRemoteByAddr(int addr)
     return remotes;
 }
 
+void MTC4BTController::initFirstItems()
+{
+    for (BLERemote *remote : Remotes) {
+        for (BLEHub *hub : remote->Hubs) {
+            if (hub->GetHubType() == BLEHubType::PUController) {
+                PURemote *remoteHub = (PURemote *)hub;
+
+                if (remoteHub->index == -1) {
+                    // we have an uninitialized hub
+                    if (remoteHub->getMode() == listMode) {
+                        remoteHub->setColourAndLC(remoteHub->getItemByIndex(0));
+                        remoteHub->index = 0;
+                    } else if (remoteHub->getMode() == freeMode) {
+                        remoteHub->setLCs();
+                        remoteHub->index = 0;
+                    }
+                    log4MC::vlogf(LOG_DEBUG, "Done with a hub, index=%d", remoteHub->index);
+                }
+            }
+        }
+    }
+}
+
 void MTC4BTController::handleLCList()
 {
     /* for all controller 'locomotives' for all hubs, find the PURemotes (HubType = BLEHubType::PUController)
      */
-    for (BLELocomotive *loco : Locomotives) {
-        for (BLEHub *hub : loco->Hubs) {
+    for (BLERemote *remote : Remotes) {
+        for (BLEHub *hub : remote->Hubs) {
             if (hub->GetHubType() == BLEHubType::PUController) {
-                //   find the index where minRange is valid
-                PURemote *remoteHub = (PURemote *)hub;
-                if (remoteHub->isRange) {
-                    int index = 0;
-                    int minRange = remoteHub->getMinRange();
-                    int addr = 0;
-                    remoteHub->setLowIndex(0);
 
-                    while (index < locs.size() &&
-                           locs[index]->addr < minRange) {
-                        index++;
-                    }
-                    if (index != locs.size()) {
-                        remoteHub->setLowIndex(index);
-                    } else {
-                        remoteHub->setLowIndex(-1);
-                    }
-                } else {
-                    lc *lcportA = remoteHub->getPortA();
-                    lc *lcportB = remoteHub->getPortB();
-                    // set lcportA and LCportB
+                PURemote *remoteHub = (PURemote *)hub;
+                if (remoteHub->getMode() == listMode) {
+                    lc *remoteLc = remoteHub->getPort(); // get current selected locomotive
                     for (int i = 0; i < locs.size(); i++) {
-                        // find the id of the locos.
-                        if (lcportA->addr == locs[i]->addr) {
-                            lcportA->setIdandAddr(locs[i]->id, locs[i]->addr);
+                        // find the id of the locos, and set them in the itemlist!
+                        std::vector<freeListItem *> itemList = remoteHub->getItemList();
+                        for (int j = 0; j < itemList.size(); j++) {
+                            if (itemList[j]->addr < 0 && strcmp(itemList[j]->id, locs[i]->id) == 0) {
+                                itemList[j]->addr = locs[i]->addr;
+                            }
+                            if (itemList[j]->addr >= 0 && itemList[j]->addr == locs[i]->addr) {
+                                if (itemList[j]->id) {
+                                    free(itemList[j]->id);
+                                }
+                                itemList[j]->id = (char *)malloc(strlen(locs[i]->id) + 1);
+                                strcpy(itemList[j]->id, locs[i]->id);
+                            }
+                        }
+
+                        if (remoteLc->addr == locs[i]->addr) {
+                            remoteLc->setIdandAddr(locs[i]->id, locs[i]->addr, false);
                             // get the loc info
                             log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
                             MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
                         }
-                        if (lcportB->addr == locs[i]->addr) {
-                            lcportB->setIdandAddr(locs[i]->id, locs[i]->addr);
-                            // get the loc info
-                            log4MC::vlogf(LOG_DEBUG, "B id addr %s %d", locs[i]->id, locs[i]->addr);
-                            MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                    }
+                } else {
+                    // find the id of the locos, and set them in the lcs list
+                    std::vector<lc *> lcList = remoteHub->getLCs();
+                    for (int i = 0; i < locs.size(); i++) {
+                        for (auto loc : lcList) {
+                            if (loc->addr < 0 && strcmp(locs[i]->id, loc->id) == 0) {
+                                loc->addr = locs[i]->addr;
+                            }
+                            if (loc->addr >= 0 && loc->addr == locs[i]->addr) {
+                                if (loc->id) {
+                                    free(loc->id);
+                                }
+                                loc->id = (char *)malloc(strlen(locs[i]->id) + 1);
+                                strcpy(loc->id, locs[i]->id);
+                            }
+                            if (loc->addr == locs[i]->addr) {
+                                // only lookup the found locomotive(s)
+                                log4MC::vlogf(LOG_DEBUG, "A id addr %s %d", locs[i]->id, locs[i]->addr);
+                                MTC4BTMQTTHandler::pubGetLcInfo(locs[i]->id);
+                            }
                         }
                     }
-                    remoteHub->SetHubLedColor(GREEN);
+                    // set the remote to green to indicate the list is filled with id and addr
+                    remoteHub->SetHubLedColor(remoteHub->getConfigLedColor());
                 }
             }
         }
@@ -206,6 +242,7 @@ void MTC4BTController::discoveryLoop(void *parm)
     for (;;) {
         std::vector<BLEHub *> undiscoveredHubs;
 
+        // Locomotives
         for (BLELocomotive *loco : controller->Locomotives) {
             // All loco hubs are already connected. Skip to the next loco.
             if (loco->AllHubsConnected()) {
@@ -240,7 +277,40 @@ void MTC4BTController::discoveryLoop(void *parm)
             }
         }
 
-        if (undiscoveredHubs.size() > 0 || controller->Locomotives.size() == 0) {
+        // Remotes
+        for (BLERemote *remote : controller->Remotes) {
+            // All loco hubs are already connected. Skip to the next loco.
+            if (remote->AllHubsConnected()) {
+                continue;
+            }
+            for (BLEHub *hub : remote->Hubs) {
+                if (hub->IsConnected()) {
+                    // Hub is already connected. Skip to the next Hub.
+                    continue;
+                }
+                if (hub->IsDiscovered()) {
+                    // Hub discovered, try to connect now.
+                    if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {
+                        if (remote->AllHubsConnected()) {
+                            log4MC::vlogf(LOG_INFO, "Loop: Connected to all remote hubs.");
+
+                            // Blink lights for a while when connected.
+                            remote->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
+                        }
+                    } else {
+                        // Connect attempt failed. Will retry in next loop.
+                        log4MC::warn("Loop: Connect failed. Will retry...");
+                    }
+                } else {
+                    // Hub not discovered yet, add to list of hubs to discover.
+                    undiscoveredHubs.push_back(hub);
+                }
+
+                delay(50 / portTICK_PERIOD_MS);
+            }
+        }
+
+        if (undiscoveredHubs.size() > 0 || (controller->Locomotives.size() == 0 && controller->Remotes.size() == 0)) {
             // Start discovery for undiscovered hubs.
             controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
         }
@@ -255,6 +325,14 @@ void MTC4BTController::initLocomotives(std::vector<BLELocomotiveConfiguration *>
     for (BLELocomotiveConfiguration *locoConfig : locoConfigs) {
         // Keep an instance of the configured loco and pass it a reference to this controller.
         Locomotives.push_back(new BLELocomotive(locoConfig, this));
+    }
+}
+
+void MTC4BTController::initRemotes(std::vector<BLERemoteConfiguration *> remoteConfigs)
+{
+    for (BLERemoteConfiguration *remoteConfig : remoteConfigs) {
+        // Keep an instance of the configured loco and pass it a reference to this controller.
+        Remotes.push_back(new BLERemote(remoteConfig, this));
     }
 }
 

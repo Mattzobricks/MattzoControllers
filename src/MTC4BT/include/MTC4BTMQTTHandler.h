@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <XmlParser.h>
 
+#include "PUremoteButtons/PUButtons.h"
+#include "rocrailitems/RRtypes.h"
 #include "rocrailitems/lclist.h"
 
 // Class used to translate MQTT messages to BLE commands.
@@ -15,7 +17,14 @@ class MTC4BTMQTTHandler
 
     static void pubGetShortLcList();
     static void pubGetLcInfo(char *locid);
-    static void pubLcSpeed(char *locid, int addr, long locV);
+    static void pubLcSpeed(char *locid, long locV);
+    static void pubGo();
+    static void pubEBrake();
+    static void pubFlip(RRdevice device, char *id);
+    static void pubCo(RRaction action, char *id);
+    static void pubSg(RRaction action, char *id);
+    static void pubSw(RRaction action, char *id);
+    static void pubLcFn(char *id, int fn, bool value);
 
   private:
     static void handleSys(const char *message);
@@ -24,5 +33,5 @@ class MTC4BTMQTTHandler
     static void handleLCList(const char *message);
     static void handleInfoLc(const char *message);
 
-    static lc *getCurrentLcSpeed(const char *message, bool has_previd, bool invdir);
+    static lc *getCurrentLcSpeed(const char *message);
 };

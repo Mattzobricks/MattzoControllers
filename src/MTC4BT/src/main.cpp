@@ -85,18 +85,18 @@ void setup()
 
     // Setup MQTT subscriber (use controller name as part of the subscriber name).
     networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
-    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, MTC4BTMQTTHandler::Handle,MTC4BTMQTTHandler::infoHandle);
+    MattzoMQTTSubscriber::Setup(networkConfig->MQTT, MTC4BTMQTTHandler::Handle, MTC4BTMQTTHandler::infoHandle);
 
     // all network stuff is done, start the scanner
     controller->SetupScanner();
 
     log4MC::info("Setup: MattzoTrainController for BLE running.");
-    log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
 
-    if (controllerConfig->LocoConfigs.size() == 0) {
-        log4MC::vlogf(LOG_WARNING, "No locomotives found in the configuration, going into BLE scan mode.");
-    } else {
+    if (controllerConfig->LocoConfigs.size() != 0 || controllerConfig->RemoteConfigs.size() != 0) {
         log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
+        log4MC::vlogf(LOG_INFO, "Setup: Number of remotes to discover hubs for: %u", controllerConfig->RemoteConfigs.size());
+    } else {
+        log4MC::vlogf(LOG_WARNING, "No locomotives or remote found in the configuration, going into BLE scan mode.");
     }
 
     // stuff for the remote
@@ -112,7 +112,25 @@ void setup()
 
 void loop()
 {
+    static unsigned long checkedForRocrail = millis() + 12000; // force a loco lookup on startup
     controller->Loop();
     MattzoMQTTSubscriber::Loop();
     MattzoWifiClient::Loop();
+
+    // Next statement is to load the loco configs into the EPS, but only if we have configured remotes
+    // we test every 10 seconds for rocrail availability!
+    // side effect, if there is a plan without any it will also test every 10 seconds.
+    if (controllerConfig->RemoteConfigs.size() != 0) {
+        // we have configured remotes
+        if (locs.size() == 0) {
+            if ((millis() - checkedForRocrail > 10000)) {
+                // no loco's
+                MTC4BTMQTTHandler::pubGetShortLcList();
+                checkedForRocrail = millis();
+            }
+        } else {
+            // we have a loco list, so there is a connection with Rocrail
+            controller->initFirstItems();
+        }
+    }
 }

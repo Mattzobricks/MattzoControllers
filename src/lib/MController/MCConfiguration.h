@@ -8,7 +8,7 @@ struct MCConfiguration
 {
 public:
     // Controller name.
-    const char *ControllerName;
+    char *ControllerName;
 
     // ESP32 pins.
     std::vector<MCChannelConfig *> EspPins;
