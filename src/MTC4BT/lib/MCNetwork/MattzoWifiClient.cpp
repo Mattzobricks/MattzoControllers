@@ -73,7 +73,7 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
     delay(200);
 
     Serial.print("Ethernet IP is: ");
-    Serial.println(Ethernet.localIP());
+    Serial.print(Ethernet.localIP());
     /*
      * Sanity checks for W5500 and cable connection.
      */
@@ -136,7 +136,9 @@ void MattzoWifiClient::Setup(MCWiFiConfiguration *config)
     Serial.println();
 
     Serial.print("Wifi IP is: ");
-    Serial.println(WiFi.localIP());
+    Serial.print(WiFi.localIP());
+    Serial.printf(" MAC Address: %s\n", WiFi.macAddress().c_str());
+
     startOTA();
     // Setup completed.
     _setupCompleted = true;
