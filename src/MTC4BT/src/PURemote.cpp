@@ -222,7 +222,7 @@ void PURemote::incLocSpeed(lc *currentLC, int increment)
 void PURemote::setLocSpeed(lc *currentLC, int V)
 {
     if (currentLC->initiated) {
-        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id, currentLC->addr, V);
+        MTC4BTMQTTHandler::pubLcSpeed(currentLC->id, V);
     }
 }
 /**
@@ -482,11 +482,11 @@ void PURemote::buttonHandleAction(PUbutton button)
                     if ((freeItems[i]->fnAction == RRfn_on || freeItems[i]->fnAction == RRfn_off || freeItems[i]->fnAction == RRfn_flip)) {
                         // only fn actions for locomotives, all others are ignored
                         freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn = freeItems[i]->fnAction == RRfn_on ? true : (freeItems[i]->fnAction == RRfn_off ? false : !freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->loc->addr, freeItems[i]->action - RRfn0, freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->action - RRfn0, freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn);
                     } else if (freeItems[i]->fnAction == RRfn_push) {
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->loc->addr, freeItems[i]->action - RRfn0, true);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->action - RRfn0, true);
                         vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS); // don't spam mqtt
-                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->loc->addr, freeItems[i]->action - RRfn0, false);
+                        MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, freeItems[i]->action - RRfn0, false);
                         freeItems[i]->loc->fn[freeItems[i]->action - RRfn0].fn = false;
                     }
                 }
