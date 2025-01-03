@@ -89,6 +89,10 @@ void PUHub::DriveTaskLoop()
                         doMotorUpdate = true;
                     }
                     break;
+                case BLEHubChannel::C: // not available on the Lego PU hub
+                case BLEHubChannel::D: //not available on the Lego PU hub
+                case OnboardLED: // handled in the above if, and can never be a motor channel
+                    break;
                 }
                 // Construct drive command.
                 if (doMotorUpdate) {
@@ -157,7 +161,7 @@ void PUHub::parsePortAction(uint8_t *pData, size_t length)
     // empty function
 #ifdef DEBUGNOTIFYPU
     dumpPData(pData, length);
-#endif    
+#endif
 }
 
 /**

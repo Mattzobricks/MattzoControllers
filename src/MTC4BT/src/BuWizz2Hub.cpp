@@ -109,6 +109,8 @@ void BuWizz2Hub::DriveTaskLoop()
             case BLEHubChannel::D: // 4
                 channel4Pwr = getRawChannelPwrForController(controller);
                 break;
+            case OnboardLED: // not available on the BuWizz 2.0
+                break;
             }
         }
         if ((channel1Pwr != oldChannel1Pwr) ||

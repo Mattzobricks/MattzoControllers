@@ -52,8 +52,8 @@ int16_t MCChannelController::GetTargetPwrPerc()
 void MCChannelController::SetTargetPwrPerc(int16_t targetPwrPerc)
 {
     // force first multiplication then division!
-    
-    _targetPwrPerc = (normalizePwrPerc(_config->IsInverted() ? -targetPwrPerc : targetPwrPerc)*_config->GetPwr())/100;
+
+    _targetPwrPerc = (normalizePwrPerc(_config->IsInverted() ? -targetPwrPerc : targetPwrPerc) * _config->GetPwr()) / 100;
 }
 
 int16_t MCChannelController::GetCurrentPwrPerc()
@@ -68,6 +68,8 @@ int16_t MCChannelController::GetCurrentPwrPerc()
             // Force motor off (0%).
             return 0;
         }
+        case Nothing: // do nothing
+            break;
         }
     }
 
@@ -118,7 +120,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
         (_targetPwrPerc >= 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
         (_targetPwrPerc < 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
         (_targetPwrPerc >= 0 && newPwrPerc < _targetPwrPerc && newPwrPerc < _currentPwrPerc)) {
-        // do a normalize incase someone has some strange power steps.    
+        // do a normalize incase someone has some strange power steps.
         _currentPwrPerc = normalizePwrPerc(_targetPwrPerc);
         return true;
     }

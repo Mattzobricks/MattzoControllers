@@ -11,6 +11,7 @@ typedef enum {
     RRtripleswitch,
     RRsignal,
     RRoutput,
+    RRsystem,
     RRmaxdevice // This should be the last item
 } RRdevice;
 
@@ -22,6 +23,7 @@ struct RRdeviceMap : public std::map<std::string, RRdevice> {
         this->operator[]("switch3") = RRdevice::RRtripleswitch;
         this->operator[]("signal") = RRdevice::RRsignal;
         this->operator[]("output") = RRdevice::RRoutput;
+        this->operator[]("system") = RRdevice::RRsystem;
     };
     ~RRdeviceMap() {}
 };

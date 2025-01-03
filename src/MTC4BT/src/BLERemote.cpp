@@ -34,6 +34,10 @@ void BLERemote::initHubs()
         case BLEHubType::PUController:
             hub = new PURemote(hubConfig);
             break;
+        case PU:      // not a remote
+        case SBrick:  // not a remote
+        case BuWizz2: // not a remote
+            break;
         }
         // Next is needed for connection scanning!
         if (hub) {

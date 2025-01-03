@@ -86,6 +86,8 @@ void SBrickHub::DriveTaskLoop()
                 channelDForward = controller->IsDrivingForward();
                 channelDPwr = getRawChannelPwrForController(controller);
                 break;
+            case OnboardLED: // not on the sbrick
+                break;
             }
         }
 

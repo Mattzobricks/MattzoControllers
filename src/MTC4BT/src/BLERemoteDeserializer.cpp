@@ -33,7 +33,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
     const std::string hubType = remoteConfig["type"];
     const std::string address = remoteConfig["address"];
     const std::string modeString = remoteConfig["mode"];
-    const std::string remoteColor = remoteConfig["color"] | "green"; 
+    const std::string remoteColor = remoteConfig["color"] | "green";
 
     if (remoteModeMap().count(modeString) == 0) {
         log4MC::vlogf(LOG_ERR, "RemoteConfig: unknown mode '%s'", modeString.c_str());
@@ -111,7 +111,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
         hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttons, freeListItems));
         break;
 
-    case freeMode:
+    case freeMode: {
         JsonArray freeConfigs = remoteConfig["buttons"].as<JsonArray>();
         for (JsonObject freeConfig : freeConfigs) {
             if (freeConfig["button"].is<std::string>() &&
@@ -136,13 +136,15 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
                     fnAction = RRfn_noop;
                 }
 
-                buttonList->addButtonItem(button, new freeButtonItem(itemId, itemAddr, device, action,fnAction));
+                buttonList->addButtonItem(button, new freeButtonItem(itemId, itemAddr, device, action, fnAction));
             } else {
                 log4MC::vlogf(LOG_ERR, "RemoteConfig: No valid 'button' found, ignoring!");
             }
         }
         // store buttons and freeListItems in the remote hub config and set its type to `mode`
-        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttonList,hubLedColorMap()[remoteColor]));
+        hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttonList, hubLedColorMap()[remoteColor]));
+    } break;
+    case noMode: // do nohing
         break;
     }
 
