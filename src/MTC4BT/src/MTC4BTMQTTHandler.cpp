@@ -7,7 +7,7 @@
 #include "MTC4BTController.h"
 #include "log4MC.h"
 
-// it is globaly devined in main.cpp
+// it is globaly defined in main.cpp
 extern MTC4BTController *controller;
 
 void MTC4BTMQTTHandler::Handle(const char *message)
@@ -279,17 +279,19 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
         return;
     }
 
+    // Convert function number to string (format: fX or fXX);
+    static char fnId[4];
+    sprintf(fnId, "f%u", fnchanged);
+
     // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
     bool fnchangedstate;
-    if (!XmlParser::tryReadBoolAttr(message, fnchanged == 0 ? "fn" : "fnchangedstate", &fnchangedstate)) {
+    if (!XmlParser::tryReadBoolAttr(message, fnId, &fnchangedstate)) {
         // Log error, ignore message.
-        log4MC::vlogf(LOG_WARNING, "MQTT: Received 'fn' command' for 'f%u' but couldn't read '%s' attribute.", fnchanged, fnchanged == 0 ? "fn" : "fnchangedstate");
+        log4MC::vlogf(LOG_WARNING, "MQTT: Received 'fn' command' for '%s' but couldn't read '%s' attribute.", fnchanged, fnId, fnId);
         return;
     }
 
-    // Convert function number to string (format: fX);
-    static char fnId[3];
-    sprintf(fnId, "f%u", fnchanged);
+    log4MC::vlogf(LOG_DEBUG, "%s: Handling fn message for loco %d: fnchanged %d, fn %s, state %s",__func__, addr, fnchanged, fnId, fnchangedstate ? "1" : "0");
 
     // Ask controller to handle the function.
     controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
