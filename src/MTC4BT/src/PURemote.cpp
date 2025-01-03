@@ -482,9 +482,9 @@ void PURemote::buttonHandleAction(PUbutton button)
                     int fn = freeItems[i]->action - RRfn0;
                     if ((freeItems[i]->fnAction == RRfn_on || freeItems[i]->fnAction == RRfn_off || freeItems[i]->fnAction == RRfn_flip)) {
                         bool fnCurrentState = freeItems[i]->loc->fn[fn];
-                        bool fnTargetState = freeItems[i]->fnAction == RRfn_on ? true : (freeItems[i]->fnAction == RRfn_off ? false : !freeItems[i]->loc->fn[fn]);
+                        bool fnTargetState = freeItems[i]->fnAction == RRfn_on ? true : (freeItems[i]->fnAction == RRfn_off ? false : !(freeItems[i]->loc->fn[fn]));
 
-                        log4MC::vlogf(LOG_DEBUG, "%s loco id %s: fn %d, current state %s, target state %s", __func__, freeItems[i]->loc->id, fn, fnCurrentState ? "on" : "off", fnTargetState ? "on" : "off");
+                        log4MC::vlogf(LOG_DEBUG, "%s loco id %s: fn %d, fn action: %d current state %s, target state %s", __func__, freeItems[i]->loc->id, fn, freeItems[i]->fnAction, fnCurrentState ? "on" : "off", fnTargetState ? "on" : "off");
 
                         MTC4BTMQTTHandler::pubLcFn(freeItems[i]->loc->id, fn, fnTargetState);
                         freeItems[i]->loc->fn[fn] = fnTargetState;
