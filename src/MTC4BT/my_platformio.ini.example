@@ -19,13 +19,13 @@ data_dir = $PROJECT_DIR/data
 ;   changing this yourself without a hint of the developers may cause strange behaviors
 ;   and even crashes!
 additional_build_flags =
-;    -DWIRED
-;	 -DTICKER=1
-;    -DDEBUGNOTIFYBUWIZZ2
-;    -DDEBUGNOTIFYPU
-;    -DDEBUGNOTIFYPUREMOTE
-;    -DDRIVERTASKDELAY=250
-;    -DPUFREELISTACTIONDELAY=100
+;	-DWIRED
+;	-DTICKER=1
+;	-DDEBUGNOTIFYBUWIZZ2
+;	-DDEBUGNOTIFYPU
+;	-DDEBUGNOTIFYPUREMOTE
+;	-DDRIVERTASKDELAY=250
+;	-DPUFREELISTACTIONDELAY=100
 upload_com_port = COM3
 ; for macOS, just as example
 ;upload_com_port = /dev/tty.usb

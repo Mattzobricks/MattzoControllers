@@ -5,5 +5,5 @@
 class MCStatusLed : public MCLedBase
 {
   public:
-    MCStatusLed(int pwmChannel, int pin, bool inverted);
+	MCStatusLed(int pwmChannel, int pin, bool inverted);
 };

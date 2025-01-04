@@ -25,102 +25,101 @@ SOFTWARE.
 #include "log4MC.h"
 
 lc::lc(char *newId, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax)
-    : addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
+	: addr(addr), vModePercent(vModePercent), Vmax(VSmax), VRmax(VRmax), VSmax(VSmax)
 {
-    V = 0;
-    initiated = false;
-    if (newId) {
-        id = (char *)malloc(strlen(newId) + 1);
-        strcpy(id, newId);
-    } else {
-        id = NULL;
-    }
-    initializeFn();
+	V = 0;
+	initiated = false;
+	if (newId) {
+		id = (char *)malloc(strlen(newId) + 1);
+		strcpy(id, newId);
+	} else {
+		id = NULL;
+	}
+	initializeFn();
 }
 
 lc::lc()
 {
-    id = nullptr;
-    V = 0;
-    initiated = false;
-    initializeFn();
+	id = nullptr;
+	V = 0;
+	initiated = false;
+	initializeFn();
 }
 
 lc::lc(char *newId)
 {
-    lc();
-    id = (char *)malloc(strlen(newId) + 1);
-    strcpy(id, newId);
-    initializeFn();
-
+	lc();
+	id = (char *)malloc(strlen(newId) + 1);
+	strcpy(id, newId);
+	initializeFn();
 }
 
 lc::lc(char *newId, int newAddr)
-    : addr(newAddr)
+	: addr(newAddr)
 {
-    id = (char *)malloc(strlen(newId) + 1);
-    strcpy(id, newId);
-    initializeFn();
+	id = (char *)malloc(strlen(newId) + 1);
+	strcpy(id, newId);
+	initializeFn();
 }
 
 lc::lc(int newAddr)
-    : addr(newAddr)
+	: addr(newAddr)
 {
-    lc();
+	lc();
 }
 
 lc::~lc()
 {
-    if (id) {
-        log4MC::vlogf(LOG_DEBUG, "Delete %s", id);
-        free(id);
-        id = nullptr;
-    }
+	if (id) {
+		log4MC::vlogf(LOG_DEBUG, "Delete %s", id);
+		free(id);
+		id = nullptr;
+	}
 }
 void lc::setIdandAddr(const char *newId, const int newAddr, bool newInitiated)
 {
-    if (id) {
-        free(id);
-        id = NULL;
-    }
-    if (newId) {
-        id = (char *)malloc(strlen(newId) + 1);
-        strcpy(id, newId);
-    } else {
-        id = NULL;
-    }
-    addr = newAddr;
-    initiated = newInitiated;
+	if (id) {
+		free(id);
+		id = NULL;
+	}
+	if (newId) {
+		id = (char *)malloc(strlen(newId) + 1);
+		strcpy(id, newId);
+	} else {
+		id = NULL;
+	}
+	addr = newAddr;
+	initiated = newInitiated;
 }
 
 void lc::setId(const char *newId)
 {
-    if (id) {
-        free((char *)id);
-        id = NULL;
-    }
-    if (newId) {
-        id = (char *)malloc(strlen(newId) + 1);
-        strcpy(id, newId);
-    } else {
-        id = NULL;
-    }
+	if (id) {
+		free((char *)id);
+		id = NULL;
+	}
+	if (newId) {
+		id = (char *)malloc(strlen(newId) + 1);
+		strcpy(id, newId);
+	} else {
+		id = NULL;
+	}
 }
 
 void lc::clear()
 {
-    if (id) {
-        free(id);
-        id = nullptr;
-    }
-    initiated = false;
+	if (id) {
+		free(id);
+		id = nullptr;
+	}
+	initiated = false;
 }
 
 void lc::initializeFn()
 {
-    for (int i = 0; i < NUM_LOCO_FUNCTIONS; i++) {
-        fn[i] = false;
-    }
+	for (int i = 0; i < NUM_LOCO_FUNCTIONS; i++) {
+		fn[i] = false;
+	}
 }
 
 std::vector<lc *> locs;

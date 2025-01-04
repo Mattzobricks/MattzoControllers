@@ -4,7 +4,7 @@
 
 struct MCNetworkConfiguration {
   public:
-    MCLoggingConfiguration *Logging;
-    MCWiFiConfiguration *WiFi;
-    MCMQTTConfiguration *MQTT;
+	MCLoggingConfiguration *Logging;
+	MCWiFiConfiguration *WiFi;
+	MCMQTTConfiguration *MQTT;
 };

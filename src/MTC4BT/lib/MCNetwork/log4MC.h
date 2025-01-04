@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <Syslog.h>  // Syslog library.
+#include <Syslog.h>	 // Syslog library.
 #include <WiFiUdp.h> // UDP library required for Syslog.
 
 #include "MCLoggingConfiguration.h"
@@ -21,28 +21,28 @@
 class log4MC
 {
   public:
-    // Setup the logger.
-    static void Setup(const char *hostName, MCLoggingConfiguration *config);
-    static void wifiIsConnected(bool connected);
-    static void vlogf(uint8_t level, const char *fmt, ...);
-    static void log(uint8_t level, const char *message);
-    static void debug(const char *message);
-    static void info(const char *message);
-    static void info(String message);
-    static void warn(const char *message);
-    static void error(const char *message);
-    static void fatal(const char *message);
+	// Setup the logger.
+	static void Setup(const char *hostName, MCLoggingConfiguration *config);
+	static void wifiIsConnected(bool connected);
+	static void vlogf(uint8_t level, const char *fmt, ...);
+	static void log(uint8_t level, const char *message);
+	static void debug(const char *message);
+	static void info(const char *message);
+	static void info(String message);
+	static void warn(const char *message);
+	static void error(const char *message);
+	static void fatal(const char *message);
 
   private:
-    static void logMessage(uint8_t level, char *message);
-    static void setLogMask(uint8_t priMask);
-    static uint8_t getLogMask();
-    static const char *levelToText(int level);
+	static void logMessage(uint8_t level, char *message);
+	static void setLogMask(uint8_t priMask);
+	static uint8_t getLogMask();
+	static const char *levelToText(int level);
 
-    static MCLoggingConfiguration *_config;
-    static bool _connected;
-    static uint8_t _priMask;
-    static WiFiUDP _udpClient;
-    static Syslog syslog;
-    static unsigned int lineNo;
+	static MCLoggingConfiguration *_config;
+	static bool _connected;
+	static uint8_t _priMask;
+	static WiFiUDP _udpClient;
+	static Syslog syslog;
+	static unsigned int lineNo;
 };

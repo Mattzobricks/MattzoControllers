@@ -18,17 +18,17 @@
 class freeListItem
 {
   public:
-    freeListItem(const char *newId, int newAddr, RRdevice newRRtype, HubLedColor newledColour);
-    ~freeListItem();
+	freeListItem(const char *newId, int newAddr, RRdevice newRRtype, HubLedColor newledColour);
+	~freeListItem();
 
-    void setId(const char *newId);
-    char *id;
-    int addr;
-    RRdevice RRtype;
-    HubLedColor ledColour;
+	void setId(const char *newId);
+	char *id;
+	int addr;
+	RRdevice RRtype;
+	HubLedColor ledColour;
 };
 
 typedef struct {
-    PUbuttonByType *buttons;
-    std::vector<freeListItem *> freeListItems;
+	PUbuttonByType *buttons;
+	std::vector<freeListItem *> freeListItems;
 } listModeType;

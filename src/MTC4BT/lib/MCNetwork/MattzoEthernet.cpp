@@ -9,15 +9,15 @@ The W5000 code comes from https://github.com/PuceBaboon/ESP32_W5500_NTP_CLIENT/b
  */
 void WizReset()
 {
-    Serial.print("Resetting Wiz W5500 Ethernet Board...  ");
-    pinMode(RESET_P, OUTPUT);
-    digitalWrite(RESET_P, HIGH);
-    delay(250);
-    digitalWrite(RESET_P, LOW);
-    delay(50);
-    digitalWrite(RESET_P, HIGH);
-    delay(350);
-    Serial.println("Done.");
+	Serial.print("Resetting Wiz W5500 Ethernet Board...  ");
+	pinMode(RESET_P, OUTPUT);
+	digitalWrite(RESET_P, HIGH);
+	delay(250);
+	digitalWrite(RESET_P, LOW);
+	delay(50);
+	digitalWrite(RESET_P, HIGH);
+	delay(350);
+	Serial.println("Done.");
 }
 
 /*
@@ -45,22 +45,22 @@ void WizReset()
  */
 void prt_hwval(uint8_t refval)
 {
-    switch (refval) {
-    case 0:
-        Serial.println("No hardware detected.");
-        break;
-    case 1:
-        Serial.println("WizNet W5100 detected.");
-        break;
-    case 2:
-        Serial.println("WizNet W5200 detected.");
-        break;
-    case 3:
-        Serial.println("WizNet W5500 detected.");
-        break;
-    default:
-        Serial.println("UNKNOWN - Update espnow_gw.ino to match Ethernet.h");
-    }
+	switch (refval) {
+	case 0:
+		Serial.println("No hardware detected.");
+		break;
+	case 1:
+		Serial.println("WizNet W5100 detected.");
+		break;
+	case 2:
+		Serial.println("WizNet W5200 detected.");
+		break;
+	case 3:
+		Serial.println("WizNet W5500 detected.");
+		break;
+	default:
+		Serial.println("UNKNOWN - Update espnow_gw.ino to match Ethernet.h");
+	}
 }
 
 /*
@@ -77,17 +77,17 @@ void prt_hwval(uint8_t refval)
  */
 void prt_ethval(uint8_t refval)
 {
-    switch (refval) {
-    case 0:
-        Serial.println("Uknown status.");
-        break;
-    case 1:
-        Serial.println("Link flagged as UP.");
-        break;
-    case 2:
-        Serial.println("Link flagged as DOWN. Check cable connection.");
-        break;
-    default:
-        Serial.println("UNKNOWN - Update espnow_gw.ino to match Ethernet.h");
-    }
+	switch (refval) {
+	case 0:
+		Serial.println("Uknown status.");
+		break;
+	case 1:
+		Serial.println("Link flagged as UP.");
+		break;
+	case 2:
+		Serial.println("Link flagged as DOWN. Check cable connection.");
+		break;
+	default:
+		Serial.println("UNKNOWN - Update espnow_gw.ino to match Ethernet.h");
+	}
 }

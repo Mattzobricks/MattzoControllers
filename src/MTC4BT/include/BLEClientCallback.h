@@ -6,11 +6,11 @@
 class BLEClientCallback : public NimBLEClientCallbacks
 {
   public:
-    BLEClientCallback(BLEHub *hub);
+	BLEClientCallback(BLEHub *hub);
 
   private:
-    void onConnect(NimBLEClient *pclient);
-    void onDisconnect(NimBLEClient *pclient);
+	void onConnect(NimBLEClient *pclient);
+	void onDisconnect(NimBLEClient *pclient);
 
-    BLEHub *_hub;
+	BLEHub *_hub;
 };

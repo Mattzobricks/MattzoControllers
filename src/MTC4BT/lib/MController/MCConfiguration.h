@@ -4,12 +4,11 @@
 #include <Arduino.h>
 #include <vector>
 
-struct MCConfiguration
-{
-public:
-    // Controller name.
-    char *ControllerName;
+struct MCConfiguration {
+  public:
+	// Controller name.
+	char *ControllerName;
 
-    // ESP32 pins.
-    std::vector<MCChannelConfig *> EspPins;
+	// ESP32 pins.
+	std::vector<MCChannelConfig *> EspPins;
 };

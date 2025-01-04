@@ -2,6 +2,6 @@
 
 struct MCLoggingSerialConfiguration {
   public:
-    bool Enabled;
-    int min_level;
+	bool Enabled;
+	int min_level;
 };

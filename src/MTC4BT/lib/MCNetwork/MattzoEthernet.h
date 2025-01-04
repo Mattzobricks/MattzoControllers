@@ -11,7 +11,7 @@ The W5000 code comes from https://github.com/PuceBaboon/ESP32_W5500_NTP_CLIENT/b
 #define CS_P 5
 
 /*  In pins_arduino.h the following pins are defined, we are using MOSI, MISO and SCK
-    We are not using the INT pin on the WS500 module.
+	We are not using the INT pin on the WS500 module.
 static const uint8_t SS    = 5;
 static const uint8_t MOSI  = 23;
 static const uint8_t MISO  = 19;
@@ -62,4 +62,3 @@ void prt_hwval(uint8_t refval);
  *
  */
 void prt_ethval(uint8_t refval);
-

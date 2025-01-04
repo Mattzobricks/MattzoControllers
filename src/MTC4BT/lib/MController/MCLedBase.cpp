@@ -9,45 +9,45 @@ const int freq = 4000;
 const int resolution_bits = 8;
 
 MCLedBase::MCLedBase(int pwmChannel, int pin, bool inverted)
-    : _pwmChannel{pwmChannel}, _pin{pin}, _inverted{inverted}
+	: _pwmChannel{pwmChannel}, _pin{pin}, _inverted{inverted}
 {
-    init();
+	init();
 }
 
 // Returns the pin number the LED is attached to.
 int MCLedBase::GetPin()
 {
-    return _pin;
+	return _pin;
 }
 
 void MCLedBase::SetCurrentPwrPerc(int16_t pwrPerc)
 {
-    // Control pin polarity.
-    // int pinValue = digitalRead(_pin);
-    // if (pinValue != (_inverted ? HIGH : LOW))
-    // {
-    //     digitalWrite(_pin, _inverted ? HIGH : LOW);
-    // }
+	// Control pin polarity.
+	// int pinValue = digitalRead(_pin);
+	// if (pinValue != (_inverted ? HIGH : LOW))
+	// {
+	//     digitalWrite(_pin, _inverted ? HIGH : LOW);
+	// }
 
-    ledcWrite(_pwmChannel, mapPwrPercToRaw(pwrPerc));
+	ledcWrite(_pwmChannel, mapPwrPercToRaw(pwrPerc));
 }
 
 void MCLedBase::init()
 {
-    pinMode(_pin, OUTPUT);
+	pinMode(_pin, OUTPUT);
 
-    // Initialize channel.
-    ledcSetup(_pwmChannel, freq, resolution_bits);
+	// Initialize channel.
+	ledcSetup(_pwmChannel, freq, resolution_bits);
 
-    // Attach pin to channel.
-    ledcAttachPin(_pin, _pwmChannel);
+	// Attach pin to channel.
+	ledcAttachPin(_pin, _pwmChannel);
 
-    // Initialize the pin so it's off.
-    digitalWrite(_pin, _inverted ? HIGH : LOW);
+	// Initialize the pin so it's off.
+	digitalWrite(_pin, _inverted ? HIGH : LOW);
 }
 
 int16_t MCLedBase::mapPwrPercToRaw(int pwrPerc)
 {
-    // Map absolute perc (no matter the direction) to raw channel pwr.
-    return map(abs(pwrPerc), 0, 100, pwmMinPwr, pwmMaxPwr);
+	// Map absolute perc (no matter the direction) to raw channel pwr.
+	return map(abs(pwrPerc), 0, 100, pwmMinPwr, pwmMaxPwr);
 }

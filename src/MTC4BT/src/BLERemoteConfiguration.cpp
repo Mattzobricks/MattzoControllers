@@ -4,6 +4,6 @@
 #include "BLERemoteConfiguration.h"
 
 BLERemoteConfiguration::BLERemoteConfiguration(std::vector<BLEHubConfiguration *> hubs)
-    : _hubs{hubs}
+	: _hubs{hubs}
 {
 }

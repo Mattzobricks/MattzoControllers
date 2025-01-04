@@ -10,135 +10,135 @@ static BLEUUID remoteControlServiceUUID(PU_REMOTECONTROL_SERVICE_UUID);
 static BLEUUID remoteControlCharacteristicUUID(PU_REMOTECONTROL_CHARACTERISTIC_UUID);
 
 PUHub::PUHub(BLEHubConfiguration *config)
-    : BLEHub(config)
+	: BLEHub(config)
 {
-    _hubLedPort = 0;
+	_hubLedPort = 0;
 }
 
 bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-    _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
+	_watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
 
-    if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
-        log4MC::error("BLE : Unable to attach to remote control service.");
-        return false;
-    }
+	if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
+		log4MC::error("BLE : Unable to attach to remote control service.");
+		return false;
+	}
 
-    if (!_remoteControlCharacteristic->canWrite()) {
-        log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
-        return false;
-    }
+	if (!_remoteControlCharacteristic->canWrite()) {
+		log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
+		return false;
+	}
 
-    log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout not set for PU hubs");
+	log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout not set for PU hubs");
 
-    return true;
+	return true;
 }
 
 void PUHub::DriveTaskLoop()
 {
 
-    uint8_t channelAPwr = 0;
-    uint8_t channelBPwr = 0;
-    HubLedColor channelLedColor = BLACK;
+	uint8_t channelAPwr = 0;
+	uint8_t channelBPwr = 0;
+	HubLedColor channelLedColor = BLACK;
 
-    uint8_t oldChannelAPwr = 1;
-    uint8_t oldChannelBPwr = 1;
-    HubLedColor oldChannelLedColor = NONE;
+	uint8_t oldChannelAPwr = 1;
+	uint8_t oldChannelBPwr = 1;
+	HubLedColor oldChannelLedColor = NONE;
 
-    for (;;) {
-        for (BLEHubChannelController *controller : _channelControllers) {
-            // Determine current drive state.
-            BLEHubChannel currentChannel = controller->GetHubChannel();
-            if (currentChannel == BLEHubChannel::OnboardLED) {
-                // Update onboard LED channel state.
-                channelLedColor = getRawLedColorForController(controller);
-                if (channelLedColor != oldChannelLedColor) {
-                    setLedColor(channelLedColor);
-                    oldChannelLedColor = channelLedColor;
-                }
-            } else {
-                bool doMotorUpdate = false;
-                byte channelPwr;
-                // Update current channel pwr.
-                controller->UpdateCurrentPwrPerc();
+	for (;;) {
+		for (BLEHubChannelController *controller : _channelControllers) {
+			// Determine current drive state.
+			BLEHubChannel currentChannel = controller->GetHubChannel();
+			if (currentChannel == BLEHubChannel::OnboardLED) {
+				// Update onboard LED channel state.
+				channelLedColor = getRawLedColorForController(controller);
+				if (channelLedColor != oldChannelLedColor) {
+					setLedColor(channelLedColor);
+					oldChannelLedColor = channelLedColor;
+				}
+			} else {
+				bool doMotorUpdate = false;
+				byte channelPwr;
+				// Update current channel pwr.
+				controller->UpdateCurrentPwrPerc();
 
-                switch (currentChannel) {
-                case BLEHubChannel::A:
-                    channelAPwr = getRawChannelPwrForController(controller);
-                    if (channelAPwr != oldChannelAPwr) {
-                        channelPwr = channelAPwr;
-                        oldChannelAPwr = channelAPwr;
-                        doMotorUpdate = true;
-                    }
-                    break;
-                case BLEHubChannel::B:
-                    channelBPwr = getRawChannelPwrForController(controller);
-                    if (channelBPwr != oldChannelBPwr) {
-                        channelPwr = channelBPwr;
-                        oldChannelBPwr = channelBPwr;
-                        doMotorUpdate = true;
-                    }
-                    break;
-                case BLEHubChannel::C: // not available on the Lego PU hub
-                case BLEHubChannel::D: // not available on the Lego PU hub
-                case OnboardLED:       // handled in the above if, and can never be a motor channel
-                    break;
-                }
-                // Construct drive command.
-                if (doMotorUpdate) {
-                    // log4MC::debug("Send motor command");
-                    byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
-                    writeValue(setMotorCommand, 6);
-                }
-            }
-        }
+				switch (currentChannel) {
+				case BLEHubChannel::A:
+					channelAPwr = getRawChannelPwrForController(controller);
+					if (channelAPwr != oldChannelAPwr) {
+						channelPwr = channelAPwr;
+						oldChannelAPwr = channelAPwr;
+						doMotorUpdate = true;
+					}
+					break;
+				case BLEHubChannel::B:
+					channelBPwr = getRawChannelPwrForController(controller);
+					if (channelBPwr != oldChannelBPwr) {
+						channelPwr = channelBPwr;
+						oldChannelBPwr = channelBPwr;
+						doMotorUpdate = true;
+					}
+					break;
+				case BLEHubChannel::C: // not available on the Lego PU hub
+				case BLEHubChannel::D: // not available on the Lego PU hub
+				case OnboardLED:	   // handled in the above if, and can never be a motor channel
+					break;
+				}
+				// Construct drive command.
+				if (doMotorUpdate) {
+					// log4MC::debug("Send motor command");
+					byte setMotorCommand[6] = {0x81, (byte)controller->GetHubChannel(), 0x11, 0x51, 0x00, channelPwr};
+					writeValue(setMotorCommand, 6);
+				}
+			}
+		}
 
-        // Wait half the watchdog timeout (converted from s/10 to s/1000).
-        // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
+		// Wait half the watchdog timeout (converted from s/10 to s/1000).
+		// vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
-        // Wait 50 milliseconds.
-        vTaskDelay(DRIVERTASKDELAY / portTICK_PERIOD_MS);
-    }
+		// Wait 50 milliseconds.
+		vTaskDelay(DRIVERTASKDELAY / portTICK_PERIOD_MS);
+	}
 }
 
 int16_t PUHub::MapPwrPercToRaw(int pwrPerc)
 {
-    if (pwrPerc == 0) {
-        return 0; // 0 = float, 127 = stop motor
-    }
+	if (pwrPerc == 0) {
+		return 0; // 0 = float, 127 = stop motor
+	}
 
-    if (pwrPerc > 0) {
-        return map(pwrPerc, 0, 100, PU_MIN_SPEED_FORWARD, PU_MAX_SPEED_FORWARD);
-    }
+	if (pwrPerc > 0) {
+		return map(pwrPerc, 0, 100, PU_MIN_SPEED_FORWARD, PU_MAX_SPEED_FORWARD);
+	}
 
-    return map(abs(pwrPerc), 0, 100, PU_MIN_SPEED_REVERSE, PU_MAX_SPEED_REVERSE);
+	return map(abs(pwrPerc), 0, 100, PU_MIN_SPEED_REVERSE, PU_MAX_SPEED_REVERSE);
 }
 
 void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-    switch (pData[2]) {
-    // case (byte)MessageType::HUB_PROPERTIES:
-    // {
-    //     parseDeviceInfo(pData);
-    //     break;
-    // }
-    case (byte)PUMessageType::HUB_ATTACHED_IO:
-        parsePortMessage(pData);
-        break;
+	switch (pData[2]) {
+	// case (byte)MessageType::HUB_PROPERTIES:
+	// {
+	//     parseDeviceInfo(pData);
+	//     break;
+	// }
+	case (byte)PUMessageType::HUB_ATTACHED_IO:
+		parsePortMessage(pData);
+		break;
 
-        // case (byte)MessageType::PORT_VALUE_SINGLE:
-        // {
-        //     parseSensorMessage(pData);
-        //     break;
-        // }
-    case (byte)PUMessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
-        parsePortAction(pData, length);
-        break;
+		// case (byte)MessageType::PORT_VALUE_SINGLE:
+		// {
+		//     parseSensorMessage(pData);
+		//     break;
+		// }
+	case (byte)PUMessageType::PORT_OUTPUT_COMMAND_FEEDBACK:
+		parsePortAction(pData, length);
+		break;
 #ifdef DEBUGNOTIFYPU
-    default:
-        dumpPData(pData, length);
+	default:
+		dumpPData(pData, length);
 #endif
-    }
+	}
 }
 
 /**
@@ -148,9 +148,9 @@ void PUHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic,
  */
 void PUHub::parsePortAction(uint8_t *pData, size_t length)
 {
-    // empty function
+	// empty function
 #ifdef DEBUGNOTIFYPU
-    dumpPData(pData, length);
+	dumpPData(pData, length);
 #endif
 }
 
@@ -160,15 +160,15 @@ void PUHub::parsePortAction(uint8_t *pData, size_t length)
  */
 void PUHub::parsePortMessage(uint8_t *pData)
 {
-    byte port = pData[3];
-    bool isConnected = (pData[4] == 1 || pData[4] == 2) ? true : false;
-    if (isConnected) {
-        // log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
-        if (pData[5] == 0x0017) {
-            _hubLedPort = port;
-            log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB LED at port %x", port);
-        }
-    }
+	byte port = pData[3];
+	bool isConnected = (pData[4] == 1 || pData[4] == 2) ? true : false;
+	if (isConnected) {
+		// log4MC::vlogf(LOG_INFO, "port %x is connected with device %x", port, pData[5]);
+		if (pData[5] == 0x0017) {
+			_hubLedPort = port;
+			log4MC::vlogf(LOG_INFO, "PU  : Found integrated RGB LED at port %x", port);
+		}
+	}
 }
 
 /**
@@ -177,15 +177,15 @@ void PUHub::parsePortMessage(uint8_t *pData)
  */
 void PUHub::setLedColor(HubLedColor color)
 {
-    if (_hubLedPort == 0) {
-        return;
-    }
+	if (_hubLedPort == 0) {
+		return;
+	}
 
-    byte setColorMode[8] = {0x41, _hubLedPort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00};
-    writeValue(setColorMode, 8);
+	byte setColorMode[8] = {0x41, _hubLedPort, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00};
+	writeValue(setColorMode, 8);
 
-    byte setColor[6] = {0x81, _hubLedPort, 0x11, 0x51, 0x00, color};
-    writeValue(setColor, 6);
+	byte setColor[6] = {0x81, _hubLedPort, 0x11, 0x51, 0x00, color};
+	writeValue(setColor, 6);
 }
 
 /**
@@ -196,29 +196,29 @@ void PUHub::setLedColor(HubLedColor color)
  */
 void PUHub::setLedHSVColor(int hue, double saturation, double value)
 {
-    hue = hue % 360; // map hue to 0..360
-    double huePart = hue / 60.0;
-    double fract = huePart - floor(huePart);
+	hue = hue % 360; // map hue to 0..360
+	double huePart = hue / 60.0;
+	double fract = huePart - floor(huePart);
 
-    double p = value * (1. - saturation);
-    double q = value * (1. - saturation * fract);
-    double t = value * (1. - saturation * (1. - fract));
+	double p = value * (1. - saturation);
+	double q = value * (1. - saturation * fract);
+	double t = value * (1. - saturation * (1. - fract));
 
-    if (huePart >= 0.0 && huePart < 1.0) {
-        setLedRGBColor((char)(value * 255), (char)(t * 255), (char)(p * 255));
-    } else if (huePart >= 1.0 && huePart < 2.0) {
-        setLedRGBColor((char)(q * 255), (char)(value * 255), (char)(p * 255));
-    } else if (huePart >= 2.0 && huePart < 3.0) {
-        setLedRGBColor((char)(p * 255), (char)(value * 255), (char)(t * 255));
-    } else if (huePart >= 3.0 && huePart < 4.0) {
-        setLedRGBColor((char)(p * 255), (char)(q * 255), (char)(value * 255));
-    } else if (huePart >= 4.0 && huePart < 5.0) {
-        setLedRGBColor((char)(t * 255), (char)(p * 255), (char)(value * 255));
-    } else if (huePart >= 5.0 && huePart < 6.0) {
-        setLedRGBColor((char)(value * 255), (char)(p * 255), (char)(q * 255));
-    } else {
-        setLedRGBColor(0, 0, 0);
-    }
+	if (huePart >= 0.0 && huePart < 1.0) {
+		setLedRGBColor((char)(value * 255), (char)(t * 255), (char)(p * 255));
+	} else if (huePart >= 1.0 && huePart < 2.0) {
+		setLedRGBColor((char)(q * 255), (char)(value * 255), (char)(p * 255));
+	} else if (huePart >= 2.0 && huePart < 3.0) {
+		setLedRGBColor((char)(p * 255), (char)(value * 255), (char)(t * 255));
+	} else if (huePart >= 3.0 && huePart < 4.0) {
+		setLedRGBColor((char)(p * 255), (char)(q * 255), (char)(value * 255));
+	} else if (huePart >= 4.0 && huePart < 5.0) {
+		setLedRGBColor((char)(t * 255), (char)(p * 255), (char)(value * 255));
+	} else if (huePart >= 5.0 && huePart < 6.0) {
+		setLedRGBColor((char)(value * 255), (char)(p * 255), (char)(q * 255));
+	} else {
+		setLedRGBColor(0, 0, 0);
+	}
 }
 
 /**
@@ -229,20 +229,20 @@ void PUHub::setLedHSVColor(int hue, double saturation, double value)
  */
 void PUHub::setLedRGBColor(char red, char green, char blue)
 {
-    byte setRGBMode[8] = {0x41, _hubLedPort, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00};
-    writeValue(setRGBMode, 8);
+	byte setRGBMode[8] = {0x41, _hubLedPort, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00};
+	writeValue(setRGBMode, 8);
 
-    byte setRGBColor[8] = {0x81, _hubLedPort, 0x11, 0x51, 0x01, red, green, blue};
-    writeValue(setRGBColor, 8);
+	byte setRGBColor[8] = {0x81, _hubLedPort, 0x11, 0x51, 0x01, red, green, blue};
+	writeValue(setRGBColor, 8);
 }
 
 void PUHub::writeValue(byte command[], int size)
 {
-    byte byteCmd[size + 2] = {(byte)(size + 2), 0x00};
-    memcpy(byteCmd + 2, command, size);
+	byte byteCmd[size + 2] = {(byte)(size + 2), 0x00};
+	memcpy(byteCmd + 2, command, size);
 
-    // Send drive command.
-    if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
-        log4MC::vlogf(LOG_ERR, "BLE : Drive failed (%s). Unabled to write to PU characteristic.", GetAddress().toString().c_str());
-    }
+	// Send drive command.
+	if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
+		log4MC::vlogf(LOG_ERR, "BLE : Drive failed (%s). Unabled to write to PU characteristic.", GetAddress().toString().c_str());
+	}
 }

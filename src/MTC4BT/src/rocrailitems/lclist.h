@@ -26,14 +26,14 @@ SOFTWARE.
 #include <string.h>
 #include <vector>
 /*
-    id
-    V_max
-    V_Rmax
-    V_Smin
-    V_Smax
-    V_mode
-    V
-    dir
+	id
+	V_max
+	V_Rmax
+	V_Smin
+	V_Smax
+	V_mode
+	V
+	dir
 */
 
 #define NUM_LOCO_FUNCTIONS 33
@@ -41,37 +41,37 @@ SOFTWARE.
 class lc
 {
   public:
-    lc();
-    lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax);
-    lc(char *newId, int newAddr);
-    lc(char *newId);
-    lc(int newAddr);
-    ~lc();
+	lc();
+	lc(char *id, int addr, bool vModePercent, int Vmax, int VRmax, int VSmax);
+	lc(char *newId, int newAddr);
+	lc(char *newId);
+	lc(int newAddr);
+	~lc();
 
-    // used for the std::find
-    // example: std::vector<lc *>::iterator itr = std::find(locs.begin(), locs.end(), currentLc);
-    bool operator==(const lc &rhs) const { return strcmp(this->id, rhs.id) == 0; }
+	// used for the std::find
+	// example: std::vector<lc *>::iterator itr = std::find(locs.begin(), locs.end(), currentLc);
+	bool operator==(const lc &rhs) const { return strcmp(this->id, rhs.id) == 0; }
 
-    void setIdandAddr(const char *newId, const int newAddr, bool newInitiated);
-    void setId(const char *newId);
-    void clear();
-    bool isSelected() { return id != nullptr; }
-    bool motorDir() { return !dir ^ placing; }
+	void setIdandAddr(const char *newId, const int newAddr, bool newInitiated);
+	void setId(const char *newId);
+	void clear();
+	bool isSelected() { return id != nullptr; }
+	bool motorDir() { return !dir ^ placing; }
 
-    char *id;
-    int addr;
-    bool vModePercent; // true, if V_mode is percent
-    int V;
-    bool initiated;
-    bool dir;
-    bool placing;
-    int Vmax;
-    int VRmax;
-    int VSmax;
-    bool fn[NUM_LOCO_FUNCTIONS];
+	char *id;
+	int addr;
+	bool vModePercent; // true, if V_mode is percent
+	int V;
+	bool initiated;
+	bool dir;
+	bool placing;
+	int Vmax;
+	int VRmax;
+	int VSmax;
+	bool fn[NUM_LOCO_FUNCTIONS];
 
   protected:
-    void initializeFn();
+	void initializeFn();
 };
 
 extern std::vector<lc *> locs;

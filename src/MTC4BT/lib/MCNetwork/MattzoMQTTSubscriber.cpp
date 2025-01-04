@@ -13,48 +13,48 @@ void MattzoMQTTSubscriber::Setup(MCMQTTConfiguration *config, void (*MQTThandler
 #error "Error: this sketch is designed for ESP32 only."
 #endif
 
-    _config = config;
+	_config = config;
 
-    if (_setupCompleted) {
-        log4MC::warn("MQTT: Subscriber setup already completed!");
-        return;
-    }
+	if (_setupCompleted) {
+		log4MC::warn("MQTT: Subscriber setup already completed!");
+		return;
+	}
 
-    handler = MQTThandler;
-    infohandler = MQTTinfohandler;
+	handler = MQTThandler;
+	infohandler = MQTTinfohandler;
 
-    // Setup MQTT client.
-    log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
-    if (MattzoWifiClient::useWifiStatus) {
-        mqttSubscriberClient.setClient(wifiSubscriberClient);
-    } else {
-        mqttSubscriberClient.setClient(ethClient);
-    }
-    mqttSubscriberClient.setServer(_config->ServerAddress.c_str(), _config->ServerPort);
-    mqttSubscriberClient.setKeepAlive(_config->KeepAlive);
-    mqttSubscriberClient.setBufferSize(MaxBufferSize);
-    mqttSubscriberClient.setCallback(mqttCallback);
+	// Setup MQTT client.
+	log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", _config->ServerAddress.c_str(), _config->ServerPort);
+	if (MattzoWifiClient::useWifiStatus) {
+		mqttSubscriberClient.setClient(wifiSubscriberClient);
+	} else {
+		mqttSubscriberClient.setClient(ethClient);
+	}
+	mqttSubscriberClient.setServer(_config->ServerAddress.c_str(), _config->ServerPort);
+	mqttSubscriberClient.setKeepAlive(_config->KeepAlive);
+	mqttSubscriberClient.setBufferSize(MaxBufferSize);
+	mqttSubscriberClient.setCallback(mqttCallback);
 
-    // Construct subscriber name.
-    strcpy(_subscriberName, _config->SubscriberName);
+	// Construct subscriber name.
+	strcpy(_subscriberName, _config->SubscriberName);
 
-    // Setup completed.
-    _setupCompleted = true;
+	// Setup completed.
+	_setupCompleted = true;
 }
 
 int MattzoMQTTSubscriber::GetStatus()
 {
-    return _setupCompleted ? mqttSubscriberClient.state() : MQTT_UNINITIALIZED;
+	return _setupCompleted ? mqttSubscriberClient.state() : MQTT_UNINITIALIZED;
 }
 
 void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-    payload[length-1] = 0;
-    //log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. (%s)", topic, (char * )payload );
-    if (handler && strstr(topic, MQTT_COMMANDTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
-        (*handler)((char *)payload);
-    if (infohandler && strstr(topic, MQTT_INFOTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
-        (*infohandler)((char *)payload);
+	payload[length - 1] = 0;
+	// log4MC::vlogf(LOG_INFO, "MQTT: Received on '%s' command. (%s)", topic, (char * )payload );
+	if (handler && strstr(topic, MQTT_COMMANDTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
+		(*handler)((char *)payload);
+	if (infohandler && strstr(topic, MQTT_INFOTOPIC) != nullptr) // shouldn't be null, but in just in case it is do not crash!
+		(*infohandler)((char *)payload);
 }
 
 /// <summary>
@@ -63,8 +63,8 @@ void MattzoMQTTSubscriber::mqttCallback(char *topic, byte *payload, unsigned int
 /// <param name="parm">Message to send.</param>
 void MattzoMQTTSubscriber::sendMessage(const char *topic, char *message)
 {
-    log4MC::vlogf(LOG_DEBUG, "MQTT: Sending message [%s] %s", topic, message);
-    mqttSubscriberClient.publish(topic, message);
+	log4MC::vlogf(LOG_DEBUG, "MQTT: Sending message [%s] %s", topic, message);
+	mqttSubscriberClient.publish(topic, message);
 }
 
 /// <summary>
@@ -72,46 +72,46 @@ void MattzoMQTTSubscriber::sendMessage(const char *topic, char *message)
 /// </summary>
 void MattzoMQTTSubscriber::reconnect()
 {
-    char request[251];
-    snprintf(request, 250,"<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"%s\"/>",_config->SubscriberName);
-    while (!mqttSubscriberClient.connected()) {
-        // Wait for connection to Wifi (because we need it to connect to the broker).
-        MattzoWifiClient::Assert();
+	char request[251];
+	snprintf(request, 250, "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"%s\"/>", _config->SubscriberName);
+	while (!mqttSubscriberClient.connected()) {
+		// Wait for connection to Wifi (because we need it to connect to the broker).
+		MattzoWifiClient::Assert();
 
-        log4MC::info("MQTT: Subscriber configuring last will...");
+		log4MC::info("MQTT: Subscriber configuring last will...");
 
-        log4MC::info("MQTT: Subscriber attempting to connect...");
+		log4MC::info("MQTT: Subscriber attempting to connect...");
 
-        if (mqttSubscriberClient.connect(_subscriberName, MQTT_COMMANDTOPIC, 0, false, request)) {
-            log4MC::info("MQTT: Subscriber connected");
-            mqttSubscriberClient.subscribe(MQTT_COMMANDTOPIC);
-            log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_COMMANDTOPIC);
-            mqttSubscriberClient.subscribe(MQTT_INFOTOPIC);
-            log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_INFOTOPIC);
-        } else {
-            log4MC::vlogf(LOG_WARNING, "MQTT: Subscriber connect failed, rc=%d. Try again in a few seconds...", mqttSubscriberClient.state());
+		if (mqttSubscriberClient.connect(_subscriberName, MQTT_COMMANDTOPIC, 0, false, request)) {
+			log4MC::info("MQTT: Subscriber connected");
+			mqttSubscriberClient.subscribe(MQTT_COMMANDTOPIC);
+			log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_COMMANDTOPIC);
+			mqttSubscriberClient.subscribe(MQTT_INFOTOPIC);
+			log4MC::vlogf(LOG_INFO, "MQTT: Subscriber subscribed to topic '%s'", MQTT_INFOTOPIC);
+		} else {
+			log4MC::vlogf(LOG_WARNING, "MQTT: Subscriber connect failed, rc=%d. Try again in a few seconds...", mqttSubscriberClient.state());
 
-            // Wait a litte while before retrying.
-            vTaskDelay(ReconnectDelayInMilliseconds / portTICK_PERIOD_MS);
-        }
-    }
+			// Wait a litte while before retrying.
+			vTaskDelay(ReconnectDelayInMilliseconds / portTICK_PERIOD_MS);
+		}
+	}
 }
 void MattzoMQTTSubscriber::Loop()
 {
-    // Wait for connection to MQTT (because we need it to send messages to the broker).
-    if (!mqttSubscriberClient.connected()) {
-        reconnect();
-    }
+	// Wait for connection to MQTT (because we need it to send messages to the broker).
+	if (!mqttSubscriberClient.connected()) {
+		reconnect();
+	}
 
-    if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
-        lastPing = millis();
+	if (_config->Ping > 0 && millis() - lastPing >= _config->Ping * 1000) {
+		lastPing = millis();
 
-        // Send a ping message.
-        sendMessage("roc2bricks/ping", _subscriberName);    
-    }
+		// Send a ping message.
+		sendMessage("roc2bricks/ping", _subscriberName);
+	}
 
-    // Allow the MQTT client to process incoming messages and maintain its connection to the server.
-    mqttSubscriberClient.loop();
+	// Allow the MQTT client to process incoming messages and maintain its connection to the server.
+	mqttSubscriberClient.loop();
 }
 
 // Initialize static members.

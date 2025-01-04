@@ -28,103 +28,103 @@
 class BLEHub
 {
   public:
-    BLEHub(BLEHubConfiguration *config);
+	BLEHub(BLEHubConfiguration *config);
 
-    // Return the hubtype.
-    BLEHubType GetHubType();
+	// Return the hubtype.
+	BLEHubType GetHubType();
 
-    // hubLEDcolour, only used for PUhub and PUController
-    //HubLedColor hubColour;
+	// hubLEDcolour, only used for PUhub and PUController
+	// HubLedColor hubColour;
 
-    // Returns a boolean value indicating whether we have discovered the BLE hub.
-    bool IsDiscovered();
+	// Returns a boolean value indicating whether we have discovered the BLE hub.
+	bool IsDiscovered();
 
-    // Returns a boolean value indicating whether we are connected to the BLE hub.
-    bool IsConnected();
+	// Returns a boolean value indicating whether we are connected to the BLE hub.
+	bool IsConnected();
 
-    // Sets
-    void SetConnectCallback(std::function<void(bool)> callback);
+	// Sets
+	void SetConnectCallback(std::function<void(bool)> callback);
 
-    // Returns the hub's raw address.
-    std::string GetRawAddress();
+	// Returns the hub's raw address.
+	std::string GetRawAddress();
 
-    // Returns the hub's address.
-    NimBLEAddress GetAddress();
+	// Returns the hub's address.
+	NimBLEAddress GetAddress();
 
-    // Sets the given target power perc for all motor channels.
-    void Drive(const int16_t minPwrPerc, const int16_t pwrPerc);
+	// Sets the given target power perc for all motor channels.
+	void Drive(const int16_t minPwrPerc, const int16_t pwrPerc);
 
-    // Gets the current power perc for any motor channel.
-    int16_t GetCurrentDrivePwrPerc();
+	// Gets the current power perc for any motor channel.
+	int16_t GetCurrentDrivePwrPerc();
 
-    // Executes the given action.
-    void Execute(MCLocoAction *action);
+	// Executes the given action.
+	void Execute(MCLocoAction *action);
 
-    // Makes all channels with lights attached blink for the given duration.
-    void BlinkLights(int durationInMs);
+	// Makes all channels with lights attached blink for the given duration.
+	void BlinkLights(int durationInMs);
 
-    // Set the initial color of the Hub's onboard LED.
-    void SetHubLedColor(HubLedColor color);
+	// Set the initial color of the Hub's onboard LED.
+	void SetHubLedColor(HubLedColor color);
 
-    // If true, immediately sets the current speed for all channels to zero.
-    // If false, releases the manual brake.
-    void SetManualBrake(const bool enabled);
+	// If true, immediately sets the current speed for all channels to zero.
+	// If false, releases the manual brake.
+	void SetManualBrake(const bool enabled);
 
-    // If true, immediately sets the current speed for all channels to zero.
-    // If false, releases the emergency brake.
-    void SetEmergencyBrake(const bool enabled);
+	// If true, immediately sets the current speed for all channels to zero.
+	// If false, releases the emergency brake.
+	void SetEmergencyBrake(const bool enabled);
 
-    // Method used to connect to the BLE hub.
-    bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
+	// Method used to connect to the BLE hub.
+	bool Connect(const uint8_t watchdogTimeOutInTensOfSeconds);
 
-    // Abstract method used to set the watchdog timeout.
-    virtual bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds) = 0;
+	// Abstract method used to set the watchdog timeout.
+	virtual bool SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds) = 0;
 
-    // Abstract method used to periodically send drive commands to the BLE hub.
-    virtual void DriveTaskLoop() = 0;
+	// Abstract method used to periodically send drive commands to the BLE hub.
+	virtual void DriveTaskLoop() = 0;
 
-    // Abstract method used to map a speed percentile (-100% - 100%) to a raw speed value.
-    virtual int16_t MapPwrPercToRaw(int pwrPerc) = 0;
+	// Abstract method used to map a speed percentile (-100% - 100%) to a raw speed value.
+	virtual int16_t MapPwrPercToRaw(int pwrPerc) = 0;
 
-    // Abstract callback method used to handle hub notifications.
-    virtual void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) = 0;
+	// Abstract callback method used to handle hub notifications.
+	virtual void NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) = 0;
 
   protected:
-    void initChannelControllers();
-    void dumpPData(uint8_t *pData, size_t length);
-    void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
-    HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
-    uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
-    BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
+	void initChannelControllers();
+	void dumpPData(uint8_t *pData, size_t length);
+	void setTargetPwrPercByAttachedDevice(DeviceType device, int16_t minPwrPerc, int16_t pwrPerc);
+	HubLedColor getRawLedColorForController(BLEHubChannelController *controller);
+	uint8_t getRawChannelPwrForController(BLEHubChannelController *controller);
+	BLEHubChannelController *findControllerByChannel(BLEHubChannel channel);
 
-    bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
-    bool startDriveTask();
-    static void driveTaskImpl(void *);
-    void connected();
-    void disconnected();
+	bool attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID);
+	bool startDriveTask();
+	static void driveTaskImpl(void *);
+	void connected();
+	void disconnected();
 
-    std::function<void(bool)> _onConnectionChangedCallback;
+	std::function<void(bool)> _onConnectionChangedCallback;
 
-    BLEHubConfiguration *_config;
-    std::vector<BLEHubChannelController *> _channelControllers;
+	BLEHubConfiguration *_config;
+	std::vector<BLEHubChannelController *> _channelControllers;
 
-    TaskHandle_t _driveTaskHandle;
-    NimBLEAdvertisedDevice *_advertisedDevice;
-    NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
-    NimBLEClient *_hub;
-    NimBLEClientCallbacks *_clientCallback;
-    bool _mbrake;
-    bool _ebrake;
-    bool _blinkLights;
-    ulong _blinkUntil;
-    bool _isDiscovered;
-    bool _isConnected;
-    uint16_t _watchdogTimeOutInTensOfSeconds;
-    NimBLERemoteService *_remoteControlService;
-    NimBLERemoteCharacteristic *_remoteControlCharacteristic;
-    // NimBLERemoteCharacteristic *_genericAccessCharacteristic;
-    // NimBLERemoteCharacteristic *_deviceInformationCharacteristic;
-    // The following classes can access private members of BLEHub.
-    friend class BLEClientCallback;
-    friend class BLEDeviceCallbacks;
+	TaskHandle_t _driveTaskHandle;
+	NimBLEAdvertisedDevice *_advertisedDevice;
+	NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
+	NimBLEClient *_hub;
+	NimBLEClientCallbacks *_clientCallback;
+	bool _mbrake;
+	bool _ebrake;
+	bool _blinkLights;
+	ulong _blinkUntil;
+	bool _isDiscovered;
+	bool _isConnected;
+	uint16_t _watchdogTimeOutInTensOfSeconds;
+	NimBLERemoteService *_remoteControlService;
+	NimBLERemoteCharacteristic *_remoteControlCharacteristic;
+	// NimBLERemoteCharacteristic *_genericAccessCharacteristic;
+	// NimBLERemoteCharacteristic *_deviceInformationCharacteristic;
+	// The following classes can access private members of BLEHub.
+	friend class BLEClientCallback;
+	friend class BLEDeviceCallbacks;
 };
