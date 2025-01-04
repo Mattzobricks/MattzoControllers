@@ -47,14 +47,10 @@ void PUHub::DriveTaskLoop()
 
     for (;;) {
         bool motorFound = false;
-        int16_t currentSpeedPerc = 0;
-        int16_t targetSpeedPerc = 0;
 
         for (BLEHubChannelController *controller : _channelControllers) {
             // Determine current drive state.
             if (!motorFound && controller->GetAttachedDevice() == DeviceType::Motor) {
-                currentSpeedPerc = controller->GetCurrentPwrPerc();
-                targetSpeedPerc = controller->GetTargetPwrPerc();
                 motorFound = true;
             }
 
