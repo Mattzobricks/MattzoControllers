@@ -111,16 +111,16 @@ const uint8_t PCA9685_OE_PIN = D0;
 
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
 {
-    {
-        .pin = D0,
-        .pinType = 0,
-        .detachAfterUsage = true
-    },
-    {
-        .pin = D1,
-        .pinType = 0,
-        .detachAfterUsage = true
-    }
+	{
+		.pin = D0,
+		.pinType = 0,
+		.detachAfterUsage = true
+	},
+	{
+		.pin = D1,
+		.pinType = 0,
+		.detachAfterUsage = true
+	}
 };
 
 
