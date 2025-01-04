@@ -329,7 +329,7 @@ void BLEHub::dumpPData(uint8_t *pData, size_t length)
 {
     char buffer[17 * 3 + 25];
     char asciiBuffer[18];
-    char byteBuffer[5];
+    char byteBuffer[11];
     size_t index; // needed outside the loop!
     for (index = 0; index < length; index++) {
         if ((index % 16) == 0) {
@@ -337,7 +337,7 @@ void BLEHub::dumpPData(uint8_t *pData, size_t length)
                 log4MC::vlogf(LOG_DEBUG, "%s %s", buffer, asciiBuffer);
             }
             // Output the offset.
-            snprintf(buffer, 6, "%04x ", index);
+            snprintf(buffer, 10, "%04x ", index);
         }
         // Output the byte value.
         snprintf(byteBuffer, 4, "%02x ", pData[index]);

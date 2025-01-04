@@ -287,8 +287,8 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
     }
 
     // Convert function number to string (format: fX or fXX);
-    static char fnId[4];
-    snprintf(fnId, 3, "f%u", fnchanged);
+    static char fnId[5];
+    snprintf(fnId, 4, "f%u", fnchanged);
 
     // Query fnchangedstate attribute. This is the new state of the function (true=on, false=off).
     bool fnchangedstate;
