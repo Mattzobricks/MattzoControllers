@@ -40,13 +40,13 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "EME",
         .locoAddress = 10194,
         .accelerationInterval = 100,
         .accelerateStep = 20,
         .brakeStep = 20};
-    locoConf[1] = (MattzoLocoConfiguration){
+    locoConf[1] = {
         .locoName = "MAE",
         .locoAddress = 10219,
         .accelerationInterval = 100,
@@ -75,7 +75,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    msConf[0] = (MattzoMotorShieldConfiguration){
+    msConf[0] = {
         .locoAddress = 10194,
         .motorShieldType = MotorShieldType::LEGO_IR_8884,
         .minArduinoPower = MIN_ARDUINO_POWER,
@@ -83,7 +83,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .configMotorA = -1,
         .configMotorB = 0,
         .irChannel = 0};
-    msConf[1] = (MattzoMotorShieldConfiguration){
+    msConf[1] = {
         .locoAddress = 10219,
         .motorShieldType = MotorShieldType::LEGO_IR_8884,
         .minArduinoPower = MIN_ARDUINO_POWER,

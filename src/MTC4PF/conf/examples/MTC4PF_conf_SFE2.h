@@ -40,7 +40,7 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "SFE",
         .locoAddress = 10020,
         .accelerationInterval = 100,

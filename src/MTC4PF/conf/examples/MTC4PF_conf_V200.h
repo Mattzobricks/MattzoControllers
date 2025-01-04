@@ -40,7 +40,7 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "V200",
         .locoAddress = 200,
         .accelerationInterval = 100,
@@ -76,7 +76,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
     // Set to MotorShieldType::NONE if only virtual motor shields are used!
     const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
-    msConf[0] = (MattzoMotorShieldConfiguration){
+    msConf[0] = {
         .locoAddress = 200,
         .motorShieldType = MotorShieldType::L9110,
         .L298N_enA = D0,

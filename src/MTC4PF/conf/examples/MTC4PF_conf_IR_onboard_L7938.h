@@ -40,7 +40,7 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "L7938",
         .locoAddress = 7938,
         .accelerationInterval = 100,
@@ -71,7 +71,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    msConf[0] = (MattzoMotorShieldConfiguration){
+    msConf[0] = {
         .locoAddress = 7938,
         .motorShieldType = MotorShieldType::LEGO_IR_8884,
         .L298N_enA = 0,

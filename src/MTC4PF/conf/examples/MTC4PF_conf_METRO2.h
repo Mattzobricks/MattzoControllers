@@ -40,7 +40,7 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "METRO2",
         .locoAddress = 10001,
         .accelerationInterval = 100,
@@ -71,7 +71,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    msConf[0] = (MattzoMotorShieldConfiguration)
+    msConf[0] =
     {
         .locoAddress = 10001,
         .motorShieldType = MotorShieldType::L9110,
