@@ -46,14 +46,8 @@ void PUHub::DriveTaskLoop()
     HubLedColor oldChannelLedColor = NONE;
 
     for (;;) {
-        bool motorFound = false;
-
         for (BLEHubChannelController *controller : _channelControllers) {
             // Determine current drive state.
-            if (!motorFound && controller->GetAttachedDevice() == DeviceType::Motor) {
-                motorFound = true;
-            }
-
             BLEHubChannel currentChannel = controller->GetHubChannel();
             if (currentChannel == BLEHubChannel::OnboardLED) {
                 // Update onboard LED channel state.
@@ -86,8 +80,8 @@ void PUHub::DriveTaskLoop()
                     }
                     break;
                 case BLEHubChannel::C: // not available on the Lego PU hub
-                case BLEHubChannel::D: //not available on the Lego PU hub
-                case OnboardLED: // handled in the above if, and can never be a motor channel
+                case BLEHubChannel::D: // not available on the Lego PU hub
+                case OnboardLED:       // handled in the above if, and can never be a motor channel
                     break;
                 }
                 // Construct drive command.
