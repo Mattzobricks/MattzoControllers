@@ -9,16 +9,14 @@
 #ifndef MattzoController_Library_h
 #define MattzoController_Library_h
 
-
 // Must include here to make platformio happy in finding the includes
 #include <ArduinoOTA.h> // Over the air update library
 #include <EEPROM.h>
 #include <PubSubClient.h>
-#include <Syslog.h>  // Syslog library
+#include <Syslog.h>	 // Syslog library
 #include <WiFiUdp.h> // Library required for syslog
 #include <tinyxml2.h>
 using namespace tinyxml2;
-
 
 // ********************
 // Forward declarations
@@ -32,13 +30,12 @@ void checkWifi();
 void setupMattzoController(bool addMattzoControllerIdToHostname);
 void loopMattzoController();
 
-void mqttConnected();  // should be main.c
+void mqttConnected(); // should be main.c
 
 extern bool statusLEDState;
 extern int mattzoControllerId;
 extern WiFiClient wifiClient;
 extern PubSubClient mqttClient;
-
 
 // *********
 // Constants

@@ -19,24 +19,24 @@
 #define MAX_WAIT_FOR_LOW_MS 100
 
 struct MattzoServo {
-    Servo servo; // Servo object to control servos
-    boolean isAttached = false;
-    unsigned long lastSwitchingAction_ms = 0;
+	Servo servo; // Servo object to control servos
+	boolean isAttached = false;
+	unsigned long lastSwitchingAction_ms = 0;
 };
 
 // SWITCH CONSTANTS
 // Default values for TrixBrix switches (in case servo angles are not transmitted)
-#define SWITCHSERVO_MIN_ALLOWED 10  // minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
-#define SWITCHSERVO_MIN 75          // a good first guess for the minimum angle of TrixBrix servos is 70
-#define SWITCHSERVO_MAX 85          // a good first guess for the maximum angle of TrixBrix servos is 90
+#define SWITCHSERVO_MIN_ALLOWED 10	// minimum accepted servo angle from Rocrail. Anything below this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MIN.
+#define SWITCHSERVO_MIN 75			// a good first guess for the minimum angle of TrixBrix servos is 70
+#define SWITCHSERVO_MAX 85			// a good first guess for the maximum angle of TrixBrix servos is 90
 #define SWITCHSERVO_MAX_ALLOWED 150 // maximum accepted servo angle from Rocrail. Anything above this value is treated as misconfiguration and is neglected and reset to SWITCHSERVO_MAX.
 
 // SIGNAL CONSTANTS AND STRUCTS
-# define SIGNAL_OVERSHOOT_SENSOR_SLEEP_MS 10000 // defines the sleep time in ms after a signal is set to red after which the overshoot sensor becomes active
+#define SIGNAL_OVERSHOOT_SENSOR_SLEEP_MS 10000 // defines the sleep time in ms after a signal is set to red after which the overshoot sensor becomes active
 
 struct MattzoSignal {
-    int currentAspect; // present aspect of the signal
-    unsigned long aspectActiveSince_ms = 0; // time in ms since the current aspect is active
+	int currentAspect;						// present aspect of the signal
+	unsigned long aspectActiveSince_ms = 0; // time in ms since the current aspect is active
 };
 
 // SENSOR CONSTANTS
@@ -45,71 +45,71 @@ struct MattzoSignal {
 
 // LEVEL CROSSING STRUCTS
 enum struct LevelCrossingStatus {
-    OPEN = 0x1,
-    CLOSED = 0x2,
+	OPEN = 0x1,
+	CLOSED = 0x2,
 };
 
 struct LevelCrossing {
-    LevelCrossingStatus levelCrossingStatus = LevelCrossingStatus::OPEN;
-    unsigned long lastStatusChangeTime_ms = 0;
+	LevelCrossingStatus levelCrossingStatus = LevelCrossingStatus::OPEN;
+	unsigned long lastStatusChangeTime_ms = 0;
 
-    bool boomBarrierActionInProgress = true;
-    bool closeBoomsImmediately = false;
-    float servoAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-    float servoAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
-    float servoAngleIncrementPerSec = 0;
-    float servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-    float servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
-    unsigned long lastBoomBarrierTick_ms = 0;
+	bool boomBarrierActionInProgress = true;
+	bool closeBoomsImmediately = false;
+	float servoAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
+	float servoAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
+	float servoAngleIncrementPerSec = 0;
+	float servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
+	float servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
+	unsigned long lastBoomBarrierTick_ms = 0;
 
-    unsigned int sensorEventCounter[MAX_LC_NUM_TRACKS][2][2];
-    bool trackOccupied[MAX_LC_NUM_TRACKS];
-    unsigned long trackOccupiedTimeout_ms[MAX_LC_NUM_TRACKS];
+	unsigned int sensorEventCounter[MAX_LC_NUM_TRACKS][2][2];
+	bool trackOccupied[MAX_LC_NUM_TRACKS];
+	unsigned long trackOccupiedTimeout_ms[MAX_LC_NUM_TRACKS];
 };
 
 // BASCULE BRIDGE STRUCTS
 enum struct BridgeStatus {
-    CLOSED,
-    OPENING,
-    OPENED,
-    CLOSING,
-    UNDEFINED,
-    ERRoR,
-    UNCHANGED
+	CLOSED,
+	OPENING,
+	OPENED,
+	CLOSING,
+	UNDEFINED,
+	ERRoR,
+	UNCHANGED
 };
 
 enum struct BridgeLeafStatus {
-    CLOSED,
-    OPENING0,
-    OPENING1,
-    OPENING2,
-    OPENING3,
-    OPENED,
-    CLOSING0,
-    CLOSING1,
-    CLOSING2,
-    CLOSING3,
-    UNDEFINED,
-    ERRoR,
-    UNCHANGED
+	CLOSED,
+	OPENING0,
+	OPENING1,
+	OPENING2,
+	OPENING3,
+	OPENED,
+	CLOSING0,
+	CLOSING1,
+	CLOSING2,
+	CLOSING3,
+	UNDEFINED,
+	ERRoR,
+	UNCHANGED
 };
 
 enum struct BridgeCommand {
-    UP = 0,
-    DOWN = 1,
-    NONE = 2
+	UP = 0,
+	DOWN = 1,
+	NONE = 2
 };
 
 struct BridgeLeaf {
-    Servo bridgeLeafServo;
-    BridgeLeafStatus leafStatus = BridgeLeafStatus::UNDEFINED;
-    unsigned long leafTimer;
+	Servo bridgeLeafServo;
+	BridgeLeafStatus leafStatus = BridgeLeafStatus::UNDEFINED;
+	unsigned long leafTimer;
 };
 
 struct Bridge {
-    BridgeStatus bridgeStatus = BridgeStatus::UNDEFINED;
-    BridgeCommand bridgeCommand = BridgeCommand::NONE;
-    BridgeLeaf bridgeLeaf[MAX_NUM_BASCULE_BRIDGE_LEAFS];
+	BridgeStatus bridgeStatus = BridgeStatus::UNDEFINED;
+	BridgeCommand bridgeCommand = BridgeCommand::NONE;
+	BridgeLeaf bridgeLeaf[MAX_NUM_BASCULE_BRIDGE_LEAFS];
 };
 
 // SPEEDOMETER STRUCTS
@@ -117,23 +117,23 @@ struct Bridge {
 #define SM_MAX_VALUES 20
 
 struct Speedometer {
-    bool occupied = false;
+	bool occupied = false;
 
-    int startSensor;
-    int endSensor;
-    int wheelcounter[2] = {-1, -1};
+	int startSensor;
+	int endSensor;
+	int wheelcounter[2] = {-1, -1};
 
-    float startTime[SM_MAX_VALUES];
-    float endTime[SM_MAX_VALUES];
-    float trainSpeed[SM_MAX_VALUES];
-    float trainLength[SM_MAX_VALUES];
+	float startTime[SM_MAX_VALUES];
+	float endTime[SM_MAX_VALUES];
+	float trainSpeed[SM_MAX_VALUES];
+	float trainLength[SM_MAX_VALUES];
 
-    unsigned long lastMeasurementEvent = -99999;
-    unsigned long measurementDone = -99999;
-    unsigned long animationDelay = -99999;
+	unsigned long lastMeasurementEvent = -99999;
+	unsigned long measurementDone = -99999;
+	unsigned long animationDelay = -99999;
 
-    float actualTrainSpeed = 0;
-    float actualTrainLength = 0;
+	float actualTrainSpeed = 0;
+	float actualTrainLength = 0;
 };
 
 void mqttConnected();

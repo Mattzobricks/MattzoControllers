@@ -4,7 +4,7 @@
 
 #include <MattzoController_Library.h>
 /*
-    Variables that MUST be declared in MTC4PF_conf_<loco>.h, otherwise a link/compilation error will occurr
+	Variables that MUST be declared in MTC4PF_conf_<loco>.h, otherwise a link/compilation error will occurr
 */
 extern const char *WIFI_SSID;
 extern const char *WIFI_PASSWORD;

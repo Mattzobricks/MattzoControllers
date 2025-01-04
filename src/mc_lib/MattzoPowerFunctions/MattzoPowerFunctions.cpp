@@ -22,15 +22,15 @@
  */
 MattzoPowerFunctionsPwm MattzoPowerFunctions::speedToPwm(byte speed)
 {
-    uint8_t pwm;
-    if (speed == 0) {
-        pwm = 0x08;
-    } else if (speed <= 100) {
-        pwm = (speed >> 4) + 1;
-    } else {
-        pwm = speed >> 4;
-    }
-    return (MattzoPowerFunctionsPwm)pwm;
+	uint8_t pwm;
+	if (speed == 0) {
+		pwm = 0x08;
+	} else if (speed <= 100) {
+		pwm = (speed >> 4) + 1;
+	} else {
+		pwm = speed >> 4;
+	}
+	return (MattzoPowerFunctionsPwm)pwm;
 }
 
 /**
@@ -40,11 +40,11 @@ MattzoPowerFunctionsPwm MattzoPowerFunctions::speedToPwm(byte speed)
  */
 MattzoPowerFunctions::MattzoPowerFunctions(uint8_t pin, uint8_t channel)
 {
-    _channel = channel;
-    _toggle = 0;
-    _pin = pin;
-    pinMode(_pin, OUTPUT);
-    digitalWrite(_pin, LOW);
+	_channel = channel;
+	_toggle = 0;
+	_pin = pin;
+	pinMode(_pin, OUTPUT);
+	digitalWrite(_pin, LOW);
 }
 
 /**
@@ -53,11 +53,11 @@ MattzoPowerFunctions::MattzoPowerFunctions(uint8_t pin, uint8_t channel)
  */
 MattzoPowerFunctions::MattzoPowerFunctions(uint8_t pin)
 {
-    _channel = 0;
-    _toggle = 0;
-    _pin = pin;
-    pinMode(_pin, OUTPUT);
-    digitalWrite(_pin, LOW);
+	_channel = 0;
+	_toggle = 0;
+	_pin = pin;
+	pinMode(_pin, OUTPUT);
+	digitalWrite(_pin, LOW);
 }
 
 /**
@@ -67,7 +67,7 @@ MattzoPowerFunctions::MattzoPowerFunctions(uint8_t pin)
  */
 void MattzoPowerFunctions::single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm)
 {
-    single_pwm(port, pwm, _channel);
+	single_pwm(port, pwm, _channel);
 }
 
 /**
@@ -78,11 +78,11 @@ void MattzoPowerFunctions::single_pwm(MattzoPowerFunctionsPort port, MattzoPower
  */
 void MattzoPowerFunctions::single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm, uint8_t channel)
 {
-    _nib1 = _toggle | channel;
-    _nib2 = PF_SINGLE_OUTPUT | (uint8_t)port;
-    _nib3 = (uint8_t)pwm;
-    send(channel);
-    toggle();
+	_nib1 = _toggle | channel;
+	_nib2 = PF_SINGLE_OUTPUT | (uint8_t)port;
+	_nib3 = (uint8_t)pwm;
+	send(channel);
+	toggle();
 }
 
 /**
@@ -91,7 +91,7 @@ void MattzoPowerFunctions::single_pwm(MattzoPowerFunctionsPort port, MattzoPower
  */
 void MattzoPowerFunctions::single_increment(MattzoPowerFunctionsPort port)
 {
-    single_increment(port, _channel);
+	single_increment(port, _channel);
 }
 
 /**
@@ -101,11 +101,11 @@ void MattzoPowerFunctions::single_increment(MattzoPowerFunctionsPort port)
  */
 void MattzoPowerFunctions::single_increment(MattzoPowerFunctionsPort port, uint8_t channel)
 {
-    _nib1 = _toggle | channel;
-    _nib2 = PF_SINGLE_EXT | (uint8_t)port;
-    _nib3 = 0x4;
-    send(channel);
-    toggle();
+	_nib1 = _toggle | channel;
+	_nib2 = PF_SINGLE_EXT | (uint8_t)port;
+	_nib3 = 0x4;
+	send(channel);
+	toggle();
 }
 
 /**
@@ -114,7 +114,7 @@ void MattzoPowerFunctions::single_increment(MattzoPowerFunctionsPort port, uint8
  */
 void MattzoPowerFunctions::single_decrement(MattzoPowerFunctionsPort port)
 {
-    single_decrement(port, _channel);
+	single_decrement(port, _channel);
 }
 
 /**
@@ -124,11 +124,11 @@ void MattzoPowerFunctions::single_decrement(MattzoPowerFunctionsPort port)
  */
 void MattzoPowerFunctions::single_decrement(MattzoPowerFunctionsPort port, uint8_t channel)
 {
-    _nib1 = _toggle | channel;
-    _nib2 = PF_SINGLE_EXT | (uint8_t)port;
-    _nib3 = 0x5;
-    send(channel);
-    toggle();
+	_nib1 = _toggle | channel;
+	_nib2 = PF_SINGLE_EXT | (uint8_t)port;
+	_nib3 = 0x5;
+	send(channel);
+	toggle();
 }
 
 /**
@@ -138,7 +138,7 @@ void MattzoPowerFunctions::single_decrement(MattzoPowerFunctionsPort port, uint8
  */
 void MattzoPowerFunctions::combo_pwm(MattzoPowerFunctionsPwm bluePwm, MattzoPowerFunctionsPwm redPwm)
 {
-    combo_pwm(bluePwm, redPwm, _channel);
+	combo_pwm(bluePwm, redPwm, _channel);
 }
 
 /**
@@ -149,10 +149,10 @@ void MattzoPowerFunctions::combo_pwm(MattzoPowerFunctionsPwm bluePwm, MattzoPowe
  */
 void MattzoPowerFunctions::combo_pwm(MattzoPowerFunctionsPwm bluePwm, MattzoPowerFunctionsPwm redPwm, uint8_t channel)
 {
-    _nib1 = PF_ESCAPE | channel;
-    _nib2 = (uint8_t)bluePwm;
-    _nib3 = (uint8_t)redPwm;
-    send(channel);
+	_nib1 = PF_ESCAPE | channel;
+	_nib2 = (uint8_t)bluePwm;
+	_nib3 = (uint8_t)redPwm;
+	send(channel);
 }
 
 //
@@ -162,53 +162,53 @@ void MattzoPowerFunctions::combo_pwm(MattzoPowerFunctionsPwm bluePwm, MattzoPowe
 // Pause function see "Transmitting Messages" in Power Functions PDF
 void MattzoPowerFunctions::pause(uint8_t count, uint8_t channel)
 {
-    uint8_t pause = 0;
+	uint8_t pause = 0;
 
-    if (count == 0) {
-        pause = 4 - (channel + 1);
-    } else if (count < 3) { // 1, 2
-        pause = 5;
-    } else { // 3, 4, 5
-        pause = 5 + (channel + 1) * 2;
-    }
-    delayMicroseconds(pause * 77); // MAX_MESSAGE_LENGTH
+	if (count == 0) {
+		pause = 4 - (channel + 1);
+	} else if (count < 3) { // 1, 2
+		pause = 5;
+	} else { // 3, 4, 5
+		pause = 5 + (channel + 1) * 2;
+	}
+	delayMicroseconds(pause * 77); // MAX_MESSAGE_LENGTH
 }
 
 // Send the start/stop bit
 void MattzoPowerFunctions::start_stop_bit()
 {
-    send_bit();
-    delayMicroseconds(PF_START_STOP); // Extra pause for start_stop_bit
+	send_bit();
+	delayMicroseconds(PF_START_STOP); // Extra pause for start_stop_bit
 }
 
 // Send a bit
 void MattzoPowerFunctions::send_bit()
 {
-    for (uint8_t i = 0; i < 6; i++) {
-        digitalWrite(_pin, HIGH);
-        delayMicroseconds(PF_HALF_PERIOD);
-        digitalWrite(_pin, LOW);
-        delayMicroseconds(PF_HALF_PERIOD);
-    }
+	for (uint8_t i = 0; i < 6; i++) {
+		digitalWrite(_pin, HIGH);
+		delayMicroseconds(PF_HALF_PERIOD);
+		digitalWrite(_pin, LOW);
+		delayMicroseconds(PF_HALF_PERIOD);
+	}
 }
 
 void MattzoPowerFunctions::send(uint8_t channel)
 {
-    uint8_t i, j;
-    uint16_t message = _nib1 << 12 | _nib2 << 8 | _nib3 << 4 | PF_CHECKSUM();
-    // bool flipDebugLed = false;
-    for (i = 0; i < 6; i++) {
-        pause(i, channel);
-        start_stop_bit();
-        for (j = 0; j < 16; j++) {
-            send_bit();
-            delayMicroseconds((0x8000 & (message << j)) != 0 ? PF_HIGH_PAUSE : PF_LOW_PAUSE);
-        }
-        start_stop_bit();
-    } // for
+	uint8_t i, j;
+	uint16_t message = _nib1 << 12 | _nib2 << 8 | _nib3 << 4 | PF_CHECKSUM();
+	// bool flipDebugLed = false;
+	for (i = 0; i < 6; i++) {
+		pause(i, channel);
+		start_stop_bit();
+		for (j = 0; j < 16; j++) {
+			send_bit();
+			delayMicroseconds((0x8000 & (message << j)) != 0 ? PF_HIGH_PAUSE : PF_LOW_PAUSE);
+		}
+		start_stop_bit();
+	} // for
 }
 
 inline void MattzoPowerFunctions::toggle()
 {
-    _toggle ^= 0x8;
+	_toggle ^= 0x8;
 }

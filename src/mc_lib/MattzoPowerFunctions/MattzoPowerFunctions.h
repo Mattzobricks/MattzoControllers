@@ -37,56 +37,56 @@
 
 // PWM speed steps
 enum struct MattzoPowerFunctionsPwm {
-    FLOAT = 0x0,
-    FORWARD1 = 0x1,
-    FORWARD2 = 0x2,
-    FORWARD3 = 0x3,
-    FORWARD4 = 0x4,
-    FORWARD5 = 0x5,
-    FORWARD6 = 0x6,
-    FORWARD7 = 0x7,
-    BRAKE = 0x8,
-    REVERSE7 = 0x9,
-    REVERSE6 = 0xA,
-    REVERSE5 = 0xB,
-    REVERSE4 = 0xC,
-    REVERSE3 = 0xD,
-    REVERSE2 = 0xE,
-    REVERSE1 = 0xF
+	FLOAT = 0x0,
+	FORWARD1 = 0x1,
+	FORWARD2 = 0x2,
+	FORWARD3 = 0x3,
+	FORWARD4 = 0x4,
+	FORWARD5 = 0x5,
+	FORWARD6 = 0x6,
+	FORWARD7 = 0x7,
+	BRAKE = 0x8,
+	REVERSE7 = 0x9,
+	REVERSE6 = 0xA,
+	REVERSE5 = 0xB,
+	REVERSE4 = 0xC,
+	REVERSE3 = 0xD,
+	REVERSE2 = 0xE,
+	REVERSE1 = 0xF
 };
 
 enum struct MattzoPowerFunctionsPort {
-    RED = 0x0,
-    BLUE = 0x1
+	RED = 0x0,
+	BLUE = 0x1
 };
 
 class MattzoPowerFunctions
 {
   public:
-    MattzoPowerFunctions(uint8_t pin, uint8_t channel);
-    MattzoPowerFunctions(uint8_t pin);
-    void single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm);
-    void single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm, uint8_t channel);
-    void single_increment(MattzoPowerFunctionsPort port);
-    void single_increment(MattzoPowerFunctionsPort port, uint8_t channel);
-    void single_decrement(MattzoPowerFunctionsPort port);
-    void single_decrement(MattzoPowerFunctionsPort port, uint8_t channel);
-    void combo_pwm(MattzoPowerFunctionsPwm redPwm, MattzoPowerFunctionsPwm bluePwm);
-    void combo_pwm(MattzoPowerFunctionsPwm redPwm, MattzoPowerFunctionsPwm bluePwm, uint8_t channel);
-    MattzoPowerFunctionsPwm speedToPwm(byte speed);
+	MattzoPowerFunctions(uint8_t pin, uint8_t channel);
+	MattzoPowerFunctions(uint8_t pin);
+	void single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm);
+	void single_pwm(MattzoPowerFunctionsPort port, MattzoPowerFunctionsPwm pwm, uint8_t channel);
+	void single_increment(MattzoPowerFunctionsPort port);
+	void single_increment(MattzoPowerFunctionsPort port, uint8_t channel);
+	void single_decrement(MattzoPowerFunctionsPort port);
+	void single_decrement(MattzoPowerFunctionsPort port, uint8_t channel);
+	void combo_pwm(MattzoPowerFunctionsPwm redPwm, MattzoPowerFunctionsPwm bluePwm);
+	void combo_pwm(MattzoPowerFunctionsPwm redPwm, MattzoPowerFunctionsPwm bluePwm, uint8_t channel);
+	MattzoPowerFunctionsPwm speedToPwm(byte speed);
 
   private:
-    void pause(uint8_t count, uint8_t channel);
-    void send_bit();
-    void send(uint8_t channel);
-    void start_stop_bit();
+	void pause(uint8_t count, uint8_t channel);
+	void send_bit();
+	void send(uint8_t channel);
+	void start_stop_bit();
 
-    void toggle();
+	void toggle();
 
-    uint8_t _channel;
-    uint8_t _pin;
-    uint8_t _nib1, _nib2, _nib3;
-    uint8_t _toggle;
+	uint8_t _channel;
+	uint8_t _pin;
+	uint8_t _nib1, _nib2, _nib3;
+	uint8_t _toggle;
 };
 
 #endif
