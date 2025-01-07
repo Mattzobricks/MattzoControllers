@@ -361,6 +361,12 @@ void PURemote::buttonHandleAction(PUbutton button)
 		case RRebrake:
 			MTC4BTMQTTHandler::pubEBrake();
 			break;
+		case RRlayoutstop:
+			MTC4BTMQTTHandler::pubStop();
+			break;
+		case RRlayoutshutdown:
+			MTC4BTMQTTHandler::pubShutdown();
+			break;
 		case RRgo:
 			MTC4BTMQTTHandler::pubGo();
 			break;
@@ -416,6 +422,13 @@ void PURemote::buttonHandleAction(PUbutton button)
 			case RRgo:
 				MTC4BTMQTTHandler::pubGo();
 				break;
+			case RRlayoutstop:
+				MTC4BTMQTTHandler::pubStop();
+				break;
+			case RRlayoutshutdown:
+				MTC4BTMQTTHandler::pubShutdown();
+				break;
+
 			case RRinc:
 				incLocSpeed(freeItems[i]->loc, 10);
 				break;

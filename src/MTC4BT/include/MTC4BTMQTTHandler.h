@@ -25,6 +25,8 @@ class MTC4BTMQTTHandler
 	static void pubSg(RRaction action, char *id);
 	static void pubSw(RRaction action, char *id);
 	static void pubLcFn(char *id, int fn, bool value);
+	static void pubStop();
+	static void pubShutdown();
 
   private:
 	static void handleSys(const char *message);

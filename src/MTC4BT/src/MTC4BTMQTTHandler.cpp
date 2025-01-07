@@ -304,6 +304,14 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
 	controller->HandleTrigger(addr, MCTriggerSource::RocRail, "fnchanged", fnId, fnchangedstate ? "on" : "off");
 }
 
+void MTC4BTMQTTHandler::pubStop()
+{
+	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"stop\" informall=\"true\"/>");
+}
+void MTC4BTMQTTHandler::pubShutdown()
+{
+	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"shutdown\" informall=\"true\"/>");
+}
 void MTC4BTMQTTHandler::pubEBrake()
 {
 	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");

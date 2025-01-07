@@ -59,7 +59,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
 	PUbuttonList *buttonList = new PUbuttonList();
 
 	switch (mode) {
-	case listMode:
+	case listMode: {
 		listConfigs = remoteConfig["list"].as<JsonArray>();
 
 		for (JsonObject listConfig : listConfigs) {
@@ -110,6 +110,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
 		// store buttons and freeListItems in the remote hub config and set its type to `mode`
 		hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttons, freeListItems));
 		break;
+	}
 
 	case freeMode: {
 		JsonArray freeConfigs = remoteConfig["buttons"].as<JsonArray>();
@@ -147,7 +148,8 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
 		}
 		// store buttons and freeListItems in the remote hub config and set its type to `mode`
 		hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttonList, hubLedColorMap()[remoteColor]));
-	} break;
+		break;
+	}
 	case noMode: // do nohing
 		break;
 	}

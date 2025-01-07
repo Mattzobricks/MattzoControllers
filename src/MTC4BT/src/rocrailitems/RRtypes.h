@@ -97,7 +97,9 @@ typedef enum {
 	RRstraight,
 	RRturnout,
 	RRgo,
-	RRebrake, // everything after this is reserved
+	RRebrake,
+	RRlayoutstop,
+	RRlayoutshutdown, // everything after this is reserved
 	navUp,
 	navDown
 } RRaction;
@@ -155,6 +157,8 @@ struct RRactionMap : public std::map<std::string, RRaction> {
 		this->operator[]("fn30") = RRaction::RRfn30;
 		this->operator[]("fn31") = RRaction::RRfn31;
 		this->operator[]("fn32") = RRaction::RRfn32;
+		this->operator[]("stop") = RRaction::RRlayoutstop;
+		this->operator[]("shutdown") = RRaction::RRlayoutshutdown;
 	};
 	~RRactionMap() {}
 };
