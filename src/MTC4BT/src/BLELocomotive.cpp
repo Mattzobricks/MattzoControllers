@@ -118,6 +118,7 @@ void BLELocomotive::initHubs()
 			hub = new BuWizz2Hub(hubConfig);
 			break;
 		case BLEHubType::PUController:  // not a locomotive
+			hub = NULL;
 			break;
 		}
 
