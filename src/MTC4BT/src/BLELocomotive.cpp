@@ -105,7 +105,7 @@ uint BLELocomotive::GetLocoAddress()
 void BLELocomotive::initHubs()
 {
 	for (BLEHubConfiguration *hubConfig : _config->_hubs) {
-		BLEHub *hub;
+		BLEHub *hub = NULL;
 
 		switch (hubConfig->HubType) {
 		case BLEHubType::SBrick:
@@ -117,8 +117,7 @@ void BLELocomotive::initHubs()
 		case BLEHubType::BuWizz2:
 			hub = new BuWizz2Hub(hubConfig);
 			break;
-		case BLEHubType::PUController:  // not a locomotive
-			hub = NULL;
+		case BLEHubType::PUController: // not a locomotive
 			break;
 		}
 

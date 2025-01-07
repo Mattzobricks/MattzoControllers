@@ -28,7 +28,7 @@ bool BLERemote::AllHubsConnected()
 void BLERemote::initHubs()
 {
 	for (BLEHubConfiguration *hubConfig : _config->_hubs) {
-		BLEHub *hub;
+		BLEHub *hub = NULL;
 
 		switch (hubConfig->HubType) {
 		case BLEHubType::PUController:
@@ -37,7 +37,6 @@ void BLERemote::initHubs()
 		case PU:	  // not a remote
 		case SBrick:  // not a remote
 		case BuWizz2: // not a remote
-			hub = NULL;
 			break;
 		}
 		// Next is needed for connection scanning!
