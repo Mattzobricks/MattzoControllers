@@ -117,8 +117,7 @@ void BLELocomotive::initHubs()
 		case BLEHubType::BuWizz2:
 			hub = new BuWizz2Hub(hubConfig);
 			break;
-		case BLEHubType::PUController:
-			hub = new PURemote(hubConfig);
+		case BLEHubType::PUController:  // not a locomotive
 			break;
 		}
 

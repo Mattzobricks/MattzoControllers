@@ -20,7 +20,7 @@ void BLEbaseDevice::BlinkLights(int durationInMs)
 {
 	if (!AllHubsConnected()) {
 		// Ignore blink request.
-		// log4MC::vlogf(LOG_INFO, "Loco: %s ignored blink lights request because not all its hubs are connected (yet).", _config->_name.c_str());
+		log4MC::vlogf(LOG_DEBUG, "Hub: ignored blink lights request because not all its hubs are connected (yet).");  // base has no config, it is depending on the device
 		return;
 	}
 
@@ -34,7 +34,7 @@ void BLEbaseDevice::SetHubLedColor(HubLedColor color)
 {
 	if (!AllHubsConnected()) {
 		// Ignore led color request.
-		// log4MC::vlogf(LOG_INFO, "Loco: %s ignored led color request because not all its hubs are connected (yet).", _config->_name.c_str());
+		log4MC::vlogf(LOG_DEBUG, "Hub: ignored led color request because not all its hubs are connected (yet)."); // base has no config, it is depending on the device
 		return;
 	}
 
