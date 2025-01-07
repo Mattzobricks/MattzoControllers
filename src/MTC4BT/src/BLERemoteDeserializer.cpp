@@ -150,7 +150,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
 		hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buttonList, hubLedColorMap()[remoteColor]));
 		break;
 	}
-	case noMode: // do nohing
+	case noMode: // do nothing
 		break;
 	}
 
