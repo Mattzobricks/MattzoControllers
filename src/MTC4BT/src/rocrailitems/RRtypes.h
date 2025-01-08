@@ -157,8 +157,8 @@ struct RRactionMap : public std::map<std::string, RRaction> {
 		this->operator[]("fn30") = RRaction::RRfn30;
 		this->operator[]("fn31") = RRaction::RRfn31;
 		this->operator[]("fn32") = RRaction::RRfn32;
-		this->operator[]("stop") = RRaction::RRlayoutstop;
-		this->operator[]("shutdown") = RRaction::RRlayoutshutdown;
+		this->operator[]("layoutstop") = RRaction::RRlayoutstop;
+		this->operator[]("layoutshutdown") = RRaction::RRlayoutshutdown;
 	};
 	~RRactionMap() {}
 };
