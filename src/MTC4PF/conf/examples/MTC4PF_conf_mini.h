@@ -90,7 +90,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = 1,
         .configMotorB = 0,
-        .irChannel = -
+        .irChannel = -1
 	};
 
     return msConf;
