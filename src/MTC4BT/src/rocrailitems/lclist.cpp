@@ -47,8 +47,8 @@ lc::lc()
 }
 
 lc::lc(char *newId)
+	: lc()
 {
-	lc();
 	id = (char *)malloc(strlen(newId) + 1);
 	strcpy(id, newId);
 	initializeFn();
@@ -65,7 +65,10 @@ lc::lc(char *newId, int newAddr)
 lc::lc(int newAddr)
 	: addr(newAddr)
 {
-	lc();
+	id = nullptr;
+	V = 0;
+	initiated = false;
+	initializeFn();
 }
 
 lc::~lc()
