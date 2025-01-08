@@ -45,13 +45,15 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
         .locoAddress = 10194,
         .accelerationInterval = 100,
         .accelerateStep = 20,
-        .brakeStep = 20};
+        .brakeStep = 20
+	};
     locoConf[1] = {
         .locoName = "MAE",
         .locoAddress = 10219,
         .accelerationInterval = 100,
         .accelerateStep = 20,
-        .brakeStep = 20};
+        .brakeStep = 20
+	};
 
     return locoConf;
 }
@@ -82,7 +84,8 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = -1,
         .configMotorB = 0,
-        .irChannel = 0};
+        .irChannel = 0
+	};
     msConf[1] = {
         .locoAddress = 10219,
         .motorShieldType = MotorShieldType::LEGO_IR_8884,
@@ -90,7 +93,8 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = -1,
         .configMotorB = 0,
-        .irChannel = 1};
+        .irChannel = 1
+	};
 
     return msConf;
 }
@@ -104,16 +108,17 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
 // List of train lights including their configuration
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
-    {
-        {
-            // head lights for Emerald Express
-            .trainLightType = TrainLightType::LEGO_IR_8884,
-            .pin = D0,
-            .powerLevelOff = 0,
-            .powerLevelOn = 100,
-            .irChannel = 0,
-            .irPort = MattzoPowerFunctionsPort::BLUE,
-        }};
+{
+	{
+		// head lights for Emerald Express
+		.trainLightType = TrainLightType::LEGO_IR_8884,
+		.pin = D0,
+		.powerLevelOff = 0,
+		.powerLevelOn = 100,
+		.irChannel = 0,
+		.irPort = MattzoPowerFunctionsPort::BLUE,
+	}
+};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -126,27 +131,36 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 
 // List of function mappings
 TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
-    {
-        {.locoAddress = 10194,
-         .fnNo = 1,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::ON},
-        {.locoAddress = 10194,
-         .fnNo = 2,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {.locoAddress = 10194,
-         .fnNo = 3,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::FLASH},
-        {.locoAddress = 10194,
-         .fnNo = 4,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::BLINK}};
+{
+	{
+		.locoAddress = 10194,
+		.fnNo = 1,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		.locoAddress = 10194,
+		.fnNo = 2,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+	{
+		.locoAddress = 10194,
+		.fnNo = 3,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::FLASH
+	},
+	{
+		.locoAddress = 10194,
+		.fnNo = 4,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::BLINK
+	}
+};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -159,19 +173,25 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 
 // List of train light triggers
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
-    {
-        {.locoAddress = 10194,
-         .lightEventType = LightEventType::STOP,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {.locoAddress = 10194,
-         .lightEventType = LightEventType::FORWARD,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::ON},
-        {.locoAddress = 10194,
-         .lightEventType = LightEventType::REVERSE,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF},
+{
+	{
+		.locoAddress = 10194,
+		.lightEventType = LightEventType::STOP,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+	{
+		.locoAddress = 10194,
+		.lightEventType = LightEventType::FORWARD,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		.locoAddress = 10194,
+		.lightEventType = LightEventType::REVERSE,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
 };
 
 // ***************************

@@ -45,7 +45,8 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
         .locoAddress = 200,
         .accelerationInterval = 100,
         .accelerateStep = 5,
-        .brakeStep = 10};
+        .brakeStep = 10
+	};
 
     return locoConf;
 }
@@ -89,7 +90,8 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = 1,
         .configMotorB = -1,
-        .irChannel = -1};
+        .irChannel = -1
+	};
 
     return msConf;
 }

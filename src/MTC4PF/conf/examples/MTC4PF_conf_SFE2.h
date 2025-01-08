@@ -45,7 +45,8 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
         .locoAddress = 10020,
         .accelerationInterval = 100,
         .accelerateStep = 2,
-        .brakeStep = 10};
+        .brakeStep = 10
+	};
 
     return locoConf;
 }

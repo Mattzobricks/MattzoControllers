@@ -38,16 +38,17 @@ const int NUM_LOCOS = 1;
 // - brakeStep: : power decrement for each braking step
 MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
-    static MattzoLocoConfiguration locoConf[NUM_LOCOS];
+	static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = {
-        .locoName = "V100",
-        .locoAddress = 100,
-        .accelerationInterval = 100,
-        .accelerateStep = 5,
-        .brakeStep = 10};
+	locoConf[0] = {
+		.locoName = "V100",
+		.locoAddress = 100,
+		.accelerationInterval = 100,
+		.accelerateStep = 5,
+		.brakeStep = 10
+	};
 
-    return locoConf;
+	return locoConf;
 }
 
 // *************
@@ -69,29 +70,30 @@ const int NUM_MOTORSHIELDS = 1;
 // - irChannel: if a LEGO IR Receiver 8884 is used, the selected channel of the receiver. May be 0, 1, 2 or 3. If the loco uses multiple IR receivers on different channels, additional motor shields for the loco are required.
 MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
-    static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
+	static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    // Type of motor shield directly wired to the controller.
-    // (The different motor shield types are defined in MTC4PF.ino)
-    // Set to MotorShieldType::NONE if only virtual motor shields are used!
-    // const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
+	// Type of motor shield directly wired to the controller.
+	// (The different motor shield types are defined in MTC4PF.ino)
+	// Set to MotorShieldType::NONE if only virtual motor shields are used!
+	// const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
 
-    msConf[0] = {
-        .locoAddress = 100,
-        .motorShieldType = MotorShieldType::L9110,
-        .L298N_enA = D0,
-        .L298N_enB = D1,
-        .in1 = D3,
-        .in2 = D4,
-        .in3 = D5,
-        .in4 = D6,
-        .minArduinoPower = 100,
-        .maxArduinoPower = 255,
-        .configMotorA = -1,
-        .configMotorB = 0,
-        .irChannel = -1};
+	msConf[0] = {
+		.locoAddress = 100,
+		.motorShieldType = MotorShieldType::L9110,
+		.L298N_enA = D0,
+		.L298N_enB = D1,
+		.in1 = D3,
+		.in2 = D4,
+		.in3 = D5,
+		.in4 = D6,
+		.minArduinoPower = 100,
+		.maxArduinoPower = 255,
+		.configMotorA = -1,
+		.configMotorB = 0,
+		.irChannel = -1
+	};
 
-    return msConf;
+	return msConf;
 }
 
 // *************************
@@ -103,15 +105,15 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 {
-    {
-        // head lights (3 LEDs in series, connected to motor shield)
-        .trainLightType = TrainLightType::POWER_FUNCTIONS,
-        .pin = D0,
-        .motorShieldIndex = 0,
-        .motorPortIndex = 1,
-        .powerLevelOff = 0,
-        .powerLevelOn = MAX_ARDUINO_POWER
-    }
+	{
+		// head lights (3 LEDs in series, connected to motor shield)
+		.trainLightType = TrainLightType::POWER_FUNCTIONS,
+		.pin = D0,
+		.motorShieldIndex = 0,
+		.motorPortIndex = 1,
+		.powerLevelOff = 0,
+		.powerLevelOn = MAX_ARDUINO_POWER
+	}
 };
 
 // ******************************
@@ -125,20 +127,20 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 
 TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
 {
-    {
-        .locoAddress = 100,
-        .fnNo = 1,
-        .fnOnOff = true,
-        .trainLightIndex = 0,
-        .trainLightStatus = TrainLightStatus::ON
-    },
-    {
-        .locoAddress = 100,
-        .fnNo = 1,
-        .fnOnOff = false,
-        .trainLightIndex = 0,
-        .trainLightStatus = TrainLightStatus::OFF
-    }
+	{
+		.locoAddress = 100,
+		.fnNo = 1,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		.locoAddress = 100,
+		.fnNo = 1,
+		.fnOnOff = false,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	}
 };
 
 // *********************************
@@ -152,18 +154,18 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
 {
-    {
-        .locoAddress = 100,
-        .lightEventType = LightEventType::FORWARD,
-        .trainLightIndex = 0,
-        .trainLightStatus = TrainLightStatus::ON
-    },
-    {
-        .locoAddress = 100,
-        .lightEventType = LightEventType::REVERSE,
-        .trainLightIndex = 0,
-        .trainLightStatus = TrainLightStatus::OFF
-    },
+	{
+		.locoAddress = 100,
+		.lightEventType = LightEventType::FORWARD,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		.locoAddress = 100,
+		.lightEventType = LightEventType::REVERSE,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
 };
 
 // ************************
@@ -185,18 +187,18 @@ const bool STATUS_LED_REVERSE = false;
 const int STATUS_LED_POWER = 300;
 
 // Report battery level
-#define REPORT_BATTERYLEVEL false        // set to true or false to allow or omit battery level reports
+#define REPORT_BATTERYLEVEL false		 // set to true or false to allow or omit battery level reports
 #define SEND_BATTERYLEVEL_INTERVAL 60000 // interval for sending battery level in milliseconds
 #define BATTERY_PIN A0
 const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1; // Rbottom = 5 kOhm; Rtop = 20 kOhm; => voltage split factor
-#define MAX_AI_VOLTAGE 5100                      // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
+#define MAX_AI_VOLTAGE 5100						 // maximum analog input voltage on pin A0. Usually 5000 = 5V = 5000mV. Can be slightly adapted to correct small deviations
 
 // ****************
 // NETWORK SETTINGS
 // ****************
 
 // Trigger emergency brake upon disconnect
-//#define TRIGGER_EBREAK_UPON_DISCONNECT true
+// #define TRIGGER_EBREAK_UPON_DISCONNECT true
 const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname

@@ -45,7 +45,8 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
         .locoAddress = 10001,
         .accelerationInterval = 100,
         .accelerateStep = 2,
-        .brakeStep = 5};
+        .brakeStep = 5
+	};
 
     return locoConf;
 }
@@ -85,7 +86,8 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .maxArduinoPower = 255,
         .configMotorA = 1,
         .configMotorB = 0,
-        .irChannel = -1};
+        .irChannel = -1
+	};
 
     return msConf;
 }
@@ -113,25 +115,25 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
 // List of train lights including their configuration
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
-    {
-        {
-            // 0: attached to common anode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D0,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 800,
-        },
-        {
-            // 1: attached to red cathode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D2,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 800,
-        },
+{
+	{
+		// 0: attached to common anode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D0,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = 800,
+	},
+	{
+		// 1: attached to red cathode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D2,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = 800,
+	},
 };
 
 // ******************************

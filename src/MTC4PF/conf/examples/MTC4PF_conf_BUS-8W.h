@@ -106,43 +106,43 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
 // List of train lights including their configuration
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
-    {
-        {
-            // 0: head lights / cathode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D2,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = MAX_ARDUINO_POWER,
-        },
-        {
-            // 1: head lights / anode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D0,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = MAX_ARDUINO_POWER,
-        },
-        {
-            // 2: rear lights / cathode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D7,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = MAX_ARDUINO_POWER,
-        },
-        {
-            // 3: rear lights / anode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D1,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = MAX_ARDUINO_POWER,
-        },
+{
+	{
+		// 0: head lights / cathode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D2,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = MAX_ARDUINO_POWER,
+	},
+	{
+		// 1: head lights / anode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D0,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = MAX_ARDUINO_POWER,
+	},
+	{
+		// 2: rear lights / cathode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D7,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = MAX_ARDUINO_POWER,
+	},
+	{
+		// 3: rear lights / anode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D1,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = MAX_ARDUINO_POWER,
+	},
 };
 
 // ******************************
