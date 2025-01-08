@@ -99,10 +99,10 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 // The metroliner uses one bipolar red/white LED with a common anode
 // The MTC4PF has two controllable pins and a GND port
 // That means that the two components of the LED can not be separately controlled
-// Fortunately, the LED shows "red", even if both the white and red component are activated.
+// Fortunately, the LED shows "red", even if both the white and red component are activated
 // The LED is wired to the MTC4PF mini as follows:
 //   Pin 1: Red cathode to D2 (red wire). The red cathode is a bit LONGER than the white one
-//   Pin 2: White cathode to GND (white wire). The white cathode is a bit SHORTER than the white one
+//   Pin 2: White cathode to GND (white wire). The white cathode is a bit SHORTER than the red one
 //   Pin 3*: Common anode to D0 (blue wire). This is the middle pin of the LED (the longest one)
 //   *Pin 3 points towards the middle of the controller
 // The LED is controlled as follows:
