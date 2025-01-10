@@ -1,6 +1,11 @@
 {
 	"name": "MTC4BT",
-	"espPins": [],
+	"espPins": [
+		{
+			"pin": 2, // built-in LED for Wemos D1 mini ESP-32: GPIO2
+			"attachedDevice": "status"
+		}
+	],
 	"locos": [],
 	"locoConfigs": [
 		"/loco_simple.json"
