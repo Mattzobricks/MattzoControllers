@@ -82,8 +82,8 @@ MattzoMotorShieldConfiguration* getMattzoMotorShieldConfiguration() {
       .in2 = D3,
       .in3 = D6,
       .in4 = D7,
-      .minArduinoPower = MIN_ARDUINO_POWER,
-      .maxArduinoPower = MAX_ARDUINO_POWER,
+      .minArduinoPower = 128,
+      .maxArduinoPower = 256,
       .configMotorA = -1,
       .configMotorB = 1,
       .irChannel = -1
