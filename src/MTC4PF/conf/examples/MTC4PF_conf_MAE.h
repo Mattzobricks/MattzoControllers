@@ -14,12 +14,14 @@
 
 
 
-// ************************************************
-// Example file for a simple train with MTC4PF mini
+// *********************************************************
+// Example file for a simple train with MTC4PF with battery
 // The loco has two motors and no lights
-// Two functions and pins are pre-configured
+// This MTC4PF with battery has two PF connectors for motors
+// and two additional Dupont connectors for light (D0, D8).
+// The pins are not connected, but pre-configured
 // in case they are used for train lights later
-// ************************************************
+// *********************************************************
 
 
 // *****
