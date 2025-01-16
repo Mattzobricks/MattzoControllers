@@ -198,11 +198,6 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 // CONTROLLER WIRING SPECIFICS
 // ***************************
 
-// Type of motor shield directly wired to the controller.
-// (The different motor shield types are defined in MTC4PF.ino)
-// Set to MotorShieldType::NONE if only virtual motor shields are used!
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::LEGO_IR_8884;
-
 // Constants for motor shield type L298N
 #define enA D0 // PWM signal pin for motor A. Relevant for L298N only.
 #define enB D1 // PWM signal pin for motor B. Relevant for L298N only.

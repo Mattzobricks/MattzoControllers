@@ -72,11 +72,6 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    // Type of motor shield directly wired to the controller.
-    // (The different motor shield types are defined in MTC4PF.ino)
-    // Set to MotorShieldType::NONE if only virtual motor shields are used!
-    const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
-
     msConf[0] =
     {
         .locoAddress = 1,
