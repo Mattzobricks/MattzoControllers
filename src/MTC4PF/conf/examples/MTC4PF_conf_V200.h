@@ -18,9 +18,9 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-// *****************************************
-// Example file for a train with MTC4PF mini
-// *****************************************
+// *************************************************
+// Example file for a simple train with MTC4PF mini
+// *************************************************
 
 // *****
 // LOCOS

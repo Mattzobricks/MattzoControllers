@@ -19,7 +19,8 @@
 // 2. Go through the settings below and update the settings as required.
 
 // **********************************************************************************
-// Example file for configuring the MTC4PF to control a loco with lights but no motor
+// Example file for configuring the MTC4PF to control a loco with a multi-color LED
+// that is used a head light, but no motor
 // **********************************************************************************
 
 // *****

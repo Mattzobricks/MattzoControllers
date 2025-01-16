@@ -19,7 +19,8 @@
 // 2. Go through the settings below and update the settings as required.
 
 // *********************************************************************************************
-// Example file for configuring the MTC4PF to control a train with L9110 motor shield and lights
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield and 
+// a multi-color LED to provide bi-directional (red/white) lights
 // *********************************************************************************************
 
 // *****

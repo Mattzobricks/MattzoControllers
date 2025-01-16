@@ -18,9 +18,10 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-// *********************************************************************************************
-// Example file for configuring the MTC4PF to control a train with L9110 motor shield and lights
-// *********************************************************************************************
+// ***************************************************************************************
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield
+// and an multi-color LED as head-light
+// ***************************************************************************************
 
 // *****
 // LOCOS
