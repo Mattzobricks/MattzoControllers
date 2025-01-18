@@ -307,7 +307,7 @@ void mcLog2(String msg, int severity)
 	if (SYSLOG_ENABLED && severity <= LOGLEVEL_SYSLOG) {
 		syslog.log(severity, msg);
 		delay(1);
-		// delay a microsecond as udp packets get dropped on an esp8266 if they happen too close together
+		// delay a millisecond as udp packets get dropped on an esp8266 if they happen too close together
 	}
 }
 

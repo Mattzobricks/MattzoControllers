@@ -41,7 +41,7 @@ void setup()
 	setupMattzoController(false);
 
 	// initialize train light output pins
-	mcLog("initializing train light pins");
+	mcLog2("initializing train light pins", LOG_DEBUG);
 	for (int tl = 0; tl < NUM_TRAIN_LIGHTS; tl++) {
 		if (trainLightConfiguration[tl].trainLightType == TrainLightType::ESP_OUTPUT_PIN) {
 			pinMode(trainLightConfiguration[tl].pin, OUTPUT);
@@ -49,14 +49,14 @@ void setup()
 	}
 
 	// load loco configuration
-	mcLog("loading loco configuration");
+	mcLog2("loading loco configuration", LOG_DEBUG);
 	MattzoLocoConfiguration *locoConf = getMattzoLocoConfiguration();
 	for (int i = 0; i < NUM_LOCOS; i++) {
 		myLocos[i].initMattzoLoco(*(locoConf + i));
 	}
 
 	// load motor shield configuration
-	mcLog("loading motor shield configuration");
+	mcLog2("loading motor shield configuration", LOG_DEBUG);
 	MattzoMotorShieldConfiguration *msConf = getMattzoMotorShieldConfiguration();
 	for (int i = 0; i < NUM_MOTORSHIELDS; i++) {
 		myMattzoMotorShields[i].initMattzoMotorShield(*(msConf + i));
@@ -91,7 +91,6 @@ void setup()
 
 int getMattzoLocoIndexByLocoAddress(int locoAddress)
 {
-	// mcLog("getMattzoLocoIndexByLocoAddress is checking if this controller handles loco " + String(locoAddress) + "...");
 	for (int l = 0; l < NUM_LOCOS; l++) {
 		if (myLocos[l]._locoAddress == locoAddress) {
 			return l;
@@ -110,7 +109,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 	}
 	msg[length] = '\0';
 
-	// mcLog("Received MQTT message [" + String(topic) + "]: " + String(msg));
+	mcLog2("Received MQTT message [" + String(topic) + "]: " + String(msg), LOG_DEBUG);
 
 	XMLDocument xmlDocument;
 	if (xmlDocument.Parse(msg) != XML_SUCCESS) {
@@ -118,7 +117,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 		return;
 	}
 
-	// mcLog("Parsing XML successful");
+	mcLog2("Parsing XML successful", LOG_DEBUG);
 
 	const char *rr_id = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
 	int rr_addr = 0;
@@ -128,7 +127,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 	// check for lc message
 	element = xmlDocument.FirstChildElement("lc");
 	if (element != NULL) {
-		mcLog("<lc> node found. Processing loco message...");
+		mcLog2("<lc> node found. Processing loco message...", LOG_DEBUG);
 
 		// -> process lc (loco) message
 
@@ -136,67 +135,67 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 		// The id is a mandatory field. If not found, the message is discarded.
 		// Nevertheless, the id has no effect on the controller behaviour. Only the "addr" attribute is relevant for checking if the message is for this controller - see below.
 		if (element->QueryStringAttribute("id", &rr_id) != XML_SUCCESS) {
-			mcLog("id attribute not found or wrong type.");
+			mcLog2("id attribute not found or wrong type.", LOG_WARNING);
 			return;
 		}
-		mcLog("loco id: " + String(rr_id));
+		mcLog2("loco id: " + String(rr_id), LOG_DEBUG);
 
 		// query addr attribute. This is the address of the loco as specified in Rocrail.
 		// Must match the locoAddress of the train object.
 		if (element->QueryIntAttribute("addr", &rr_addr) != XML_SUCCESS) {
-			mcLog("addr attribute not found or wrong type. Message disregarded.");
+			mcLog2("addr attribute not found or wrong type. Message disregarded.", LOG_WARNING);
 			return;
 		}
-		mcLog("addr: " + String(rr_addr));
+		mcLog2("addr: " + String(rr_addr), LOG_DEBUG);
 
 		int locoIndex = getMattzoLocoIndexByLocoAddress(rr_addr);
 		if (locoIndex < 0) {
-			mcLog("Message disregarded, as this controller does not handle train " + String(rr_addr));
+			mcLog2("Message disregarded, as this controller does not handle train " + String(rr_addr), LOG_DEBUG);
 			return;
 		}
 		MattzoLoco &loco = myLocos[locoIndex];
-		mcLog("Consuming message for train " + loco.getNiceName());
+		mcLog2("Consuming message for train " + loco.getNiceName(), LOG_DEBUG);
 
 		// query dir attribute. This is the direction information for the loco (forward, reverse)
 		const char *rr_dir = "xxxxxx"; // expected values are "true" or "false"
 		int dir;
 		if (element->QueryStringAttribute("dir", &rr_dir) != XML_SUCCESS) {
-			mcLog("dir attribute not found or wrong type.");
+			mcLog2("dir attribute not found or wrong type.", LOG_WARNING);
 			return;
 		}
-		mcLog("dir (raw): " + String(rr_dir));
+		mcLog2("dir (raw): " + String(rr_dir), LOG_DEBUG);
 		if (strcmp(rr_dir, "true") == 0) {
-			mcLog("direction: forward");
+			mcLog2("direction: forward", LOG_DEBUG);
 			dir = 1;
 		} else if (strcmp(rr_dir, "false") == 0) {
-			mcLog("direction: backward");
+			mcLog2("direction: backward", LOG_DEBUG);
 			dir = -1;
 		} else {
-			mcLog("unknown dir value - disregarding message.");
+			mcLog2("unknown dir value - disregarding message.", LOG_WARNING);
 			return;
 		}
 
 		// query V attribute. This is the speed information for the loco and ranges from 0 to V_max (see below).
 		int rr_v = 0;
 		if (element->QueryIntAttribute("V", &rr_v) != XML_SUCCESS) {
-			mcLog("V attribute not found or wrong type. Message disregarded.");
+			mcLog2("V attribute not found or wrong type. Message disregarded.", LOG_WARNING);
 			return;
 		}
-		mcLog("V: " + String(rr_v));
+		mcLog2("V: " + String(rr_v), LOG_DEBUG);
 
 		// query V_max attribute. This is maximum speed of the loco. It must be set in the loco settings in Rocrail as percentage value.
 		// The V_max attribute is required to map to loco speed from rocrail to a power setting in the MattzoController.
 		int rr_vmax = 0;
 		if (element->QueryIntAttribute("V_max", &rr_vmax) != XML_SUCCESS) {
-			mcLog("V_max attribute not found or wrong type. Message disregarded.");
+			mcLog2("V_max attribute not found or wrong type. Message disregarded.", LOG_WARNING);
 			return;
 		}
-		mcLog("V_max: " + String(rr_vmax));
+		mcLog2("V_max: " + String(rr_vmax), LOG_DEBUG);
 
 		// set target train speed
 		loco.setTargetTrainSpeed(rr_v * dir);
 		loco._maxTrainSpeed = rr_vmax;
-		mcLog("Message parsing complete, target speed set to " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")");
+		mcLog("Received message for loco " + String(rr_addr) + ", target speed: " + String(loco._targetTrainSpeed) + " (current: " + String(loco._currentTrainSpeed) + ", max: " + String(loco._maxTrainSpeed) + ")");
 
 		return;
 	}
@@ -252,7 +251,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 			return;
 		}
 
-		mcLog2("Received fn message: loco address " + String(rr_addr) + ", fn" + String(rr_functionNo) + ", state=" + String(rr_state), LOG_DEBUG);
+		mcLog2("Received fn message for loco " + String(rr_addr) + ", fn" + String(rr_functionNo) + ", state=" + String(rr_state), LOG_DEBUG);
 		handleRocrailFunction(rr_addr, rr_functionNo, rr_state);
 
 		return;
@@ -261,18 +260,18 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 	// Check for sys message
 	element = xmlDocument.FirstChildElement("sys");
 	if (element != NULL) {
-		mcLog("<sys> node found. Processing sys message...");
+		mcLog2("<sys> node found. Processing sys message...", LOG_DEBUG);
 
 		const char *rr_cmd = "-unknown--unknown--unknown--unknown--unknown--unknown--unknown-";
 
 		// query cmd attribute. This is the system message type.
 		if (element->QueryStringAttribute("cmd", &rr_cmd) != XML_SUCCESS) {
-			mcLog("cmd attribute not found or wrong type.");
+			mcLog2("cmd attribute not found or wrong type.", LOG_WARNING);
 			return;
 		}
 
 		String rr_cmd_s = String(rr_cmd);
-		mcLog("rocrail system command: " + String(rr_cmd_s));
+		mcLog2("rocrail system command received: " + String(rr_cmd_s), LOG_DEBUG);
 
 		// Upon receiving "stop", "ebreak" or "shutdown" system command from Rocrail, the global emergency break flag is set. Train will stop immediately.
 		// Upon receiving "go" command, the emergency break flag is be released (i.e. pressing the light bulb in Rocview).
@@ -288,8 +287,6 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 		}
 		return;
 	}
-
-	// mcLog("Unknown message, disregarded.");
 }
 
 // set all motors of a train to a desired power level
@@ -596,7 +593,7 @@ String getTrainLightStatusString(TrainLightStatus trainLightStatus)
 void setTrainLightState(int trainLightIndex, TrainLightStatus trainLightStatus)
 {
 	if (trainLightIndex < 0 || trainLightIndex >= NUM_TRAIN_LIGHTS) {
-		mcLog("ERROR in setTrainLightState(): trainLightIndex out of bounds (" + String(trainLightIndex) + ")");
+		mcLog2("ERROR in setTrainLightState(): trainLightIndex out of bounds (" + String(trainLightIndex) + ")", LOG_WARNING);
 		return;
 	}
 
