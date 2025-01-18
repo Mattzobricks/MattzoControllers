@@ -41,8 +41,8 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
     locoConf[0] = {
-        .locoName = "OE-PF",
-        .locoAddress = 3442,
+        .locoName = "BR52",
+        .locoAddress = 52,
         .accelerationInterval = 100,
         .accelerateStep = 5,
         .brakeStep = 10
@@ -74,7 +74,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
     msConf[0] =
     {
-        .locoAddress = 3442,
+        .locoAddress = 52,
         .motorShieldType = MotorShieldType::L9110,
         .L298N_enA = 0,
         .L298N_enB = 0,
@@ -83,7 +83,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .in3 = D5,
         .in4 = D6,
         .minArduinoPower = 0,
-        .maxArduinoPower = 1023,
+        .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = -1,
         .configMotorB = 1,
         .irChannel = -1
@@ -160,7 +160,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char *MC_HOSTNAME = "MTC4PF-OE-PF";
+const char *MC_HOSTNAME = "MTC4PF-BR52";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MTC4PF-OE-PF";
+const char *SYSLOG_APP_NAME = "MTC4PF-BR52";
