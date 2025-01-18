@@ -24,7 +24,7 @@
 
 // This configuration is a special configuration for the MLC mini.
 // It serves 7 sensors (D1 to D7). The status light is on D8.
-// Please note that it is possible to connect an 8th sensor to D0 with a pull-up resistor.
+// Please note that it is possible to connect an 8th sensor to D0 with a pull-up resistor (e.g. 100 kOhm).
 
 
 
