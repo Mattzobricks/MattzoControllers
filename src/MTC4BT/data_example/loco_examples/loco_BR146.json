@@ -1,7 +1,7 @@
 {
 	"address": 146,
 	"name": "BR146",
-	"pwrIncStep": 5,
+	"pwrIncStep": 10,
 	"pwrDecStep": 10,
 	"bleHubs": [
 		{
