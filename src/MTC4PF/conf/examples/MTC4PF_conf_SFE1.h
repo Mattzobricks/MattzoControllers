@@ -20,7 +20,7 @@
 
 // ***************************************************************************************
 // Example file for configuring the MTC4PF to control a train with L9110 motor shield
-// and an multi-color LED as head-light
+// and an multi-color LED as head-light (Sante Fe, front unit)
 // ***************************************************************************************
 
 // *****
