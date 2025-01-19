@@ -235,6 +235,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 
 	// this section may be commented out to prevent the head and rear lights from being switched off upon stop
 	// stop: head lights off
+/*
 	{
 		// head lights white off
 		.locoAddress = 10233,
@@ -249,6 +250,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 		.trainLightIndex = 1,
 		.trainLightStatus = TrainLightStatus::OFF
 	},
+*/
 };
 
 // ************************
