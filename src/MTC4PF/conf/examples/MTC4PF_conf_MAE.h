@@ -182,15 +182,15 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 // ************************
 
 // Configuration for motorshield type Lego IR Receiver 8884
-const uint8_t IR_LED_PIN=D5;      // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
+const uint8_t IR_LED_PIN = D5;      // pin on which the IR LED is installed that controls all attached Lego IR Receiver 8884s.
 
 // Digital output pin to monitor controller operation (typically a LED)
 // Set to false if no status LED is installed
-const bool STATUS_LED_PIN_INSTALLED = false;
+const bool STATUS_LED_PIN_INSTALLED = true;
 // If installed, the pin controlling the status LED
 const uint8_t STATUS_LED_PIN = D4;
 // If installed, set to true to flip high/low state of the status led pin
-const bool STATUS_LED_REVERSE = false;
+const bool STATUS_LED_REVERSE = true;
 // Power level of the status LED (0..1023)
 // Recommended max. power levels: white: 800, blue: 600, green: 500, yellow: 350, red: 300
 const int STATUS_LED_POWER = 300;
@@ -208,7 +208,7 @@ const int VOLTAGE_MULTIPLIER = 20000 / 5000 - 1;  // Rbottom = 5 kOhm; Rtop = 20
 // ****************
 
 // Trigger emergency brake upon disconnect
-const bool  TRIGGER_EBREAK_UPON_DISCONNECT=true;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
