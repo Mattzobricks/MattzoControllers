@@ -45,7 +45,7 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
         .locoName = "TGV2",
         .locoAddress = 10233,
         .accelerationInterval = 100,
-        .accelerateStep = 2,
+        .accelerateStep = 5,
         .brakeStep = 10
 	};
 
