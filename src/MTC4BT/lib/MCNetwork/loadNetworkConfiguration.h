@@ -76,8 +76,16 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
 	JsonObject wifiConfig = doc["wifi"];
 	wifi->SSID = wifiConfig["SSID"].as<std::string>();
 	wifi->password = wifiConfig["password"].as<std::string>();
-	wifi->hostname = wifiConfig["hostname"].as<std::string>();
-	wifi->otaPassword = wifiConfig["otaPassword"].as<std::string>();
+	if (wifiConfig["hostname"].is<std::string>()) {
+		wifi->hostname = wifiConfig["hostname"].as<std::string>();
+	} else {
+		wifi->hostname = "";
+	}
+	if (wifiConfig["otaPassword"].is<std::string>()) {
+		wifi->otaPassword = wifiConfig["otaPassword"].as<std::string>();
+	} else {
+		wifi->otaPassword = "";
+	}
 
 	// Attach WiFi configuration.
 	config->WiFi = wifi;

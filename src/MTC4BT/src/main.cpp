@@ -229,8 +229,18 @@ void setup()
 	Serial.println("[" + String(xPortGetCoreID()) + "] Setup: Loading network configuration...");
 	networkConfig = loadNetworkConfiguration(NETWORK_CONFIG_FILE);
 
+	// DEPRICATION WARNING, hostname and otaPassword are gone in the one of the next releases and needs to be in the network part
+	if (networkConfig->WiFi->hostname != "") {
+		Serial.println("Config: DEPRECATION WARNING, found the \"hostname\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
+		networkConfig->hostname = networkConfig->WiFi->hostname;
+	}
+	if (networkConfig->WiFi->otaPassword != "") {
+		Serial.println("Config: DEPRECATION WARNING, found the \"otaPassword\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
+		networkConfig->otaPassword = networkConfig->WiFi->otaPassword;
+	}
+
 	// Setup logging (from now on we can use log4MC).
-	log4MC::Setup(networkConfig->WiFi->hostname.c_str(), networkConfig->Logging);
+	log4MC::Setup(networkConfig->hostname.c_str(), networkConfig->Logging);
 
 	// Load the controller configuration.
 	log4MC::info("Setup: Loading controller configuration...");
@@ -238,6 +248,7 @@ void setup()
 	controller = new MTC4BTController();
 	controller->Setup(controllerConfig);
 	networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
+
 	log4MC::info("Setup: Controller configuration completed.");
 
 	controller->setStatusLedInSetup(100); // led on
@@ -266,7 +277,7 @@ void setup()
 
 	WiFi.disconnect(true);
 	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
-	WiFi.setHostname(networkConfig->WiFi->hostname.c_str());
+	WiFi.setHostname(networkConfig->hostname.c_str());
 	if (networkConfig->networkType == "wireless") {
 		log4MC::vlogf(LOG_INFO, "Wifi: Connecting to %s.", networkConfig->WiFi->SSID.c_str());
 		WiFi.begin(networkConfig->WiFi->SSID.c_str(), networkConfig->WiFi->password.c_str());
@@ -302,17 +313,7 @@ void setup()
 	}
 	log4MC::info("Wait for WiFi/ETH... ");
 
-	// DEPRICATION WARNING, hostname and otaPassword are gone in the one of the next releases and needs to be in the network part
-	if (networkConfig->WiFi->hostname != "") {
-		log4MC::warn("Config: DEPRECATION WARNING, found the \"hostname\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
-		networkConfig->hostname = networkConfig->WiFi->hostname;
-	}
-	if (networkConfig->WiFi->otaPassword != "") {
-		log4MC::warn("Config: DEPRECATION WARNING, found the \"otaPassword\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
-		networkConfig->otaPassword = networkConfig->WiFi->otaPassword;
-	}
-
-
+	
 	ArduinoOTA.setHostname(networkConfig->hostname.c_str());
 	ArduinoOTA.setPassword(networkConfig->otaPassword.c_str());
 
