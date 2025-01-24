@@ -37,13 +37,13 @@ bool XmlParser::tryReadCharAttr(const char *xmlMessage, const char *attr, char *
 				}
 				start++;
 			}
-			// found a first and last position of a double quoate
+			// found a first and last position of a double quote
 			if (last && first) {
 				value = new char[last - first + 1];
 				strncpy(value, pos + first + 1, last - first - 1);
 				value[last - first - 1] = '\0';
 				// pos+=last-1; // if you want to loop on
-				break; // from the while loop, we expect to find only one attibute named 'attrName'
+				break; // from the while loop, we expect to find only one attribute named 'attrName'
 			}
 		}
 		pos++; // can do because we found cmd, start next search from "md"

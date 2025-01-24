@@ -5,8 +5,6 @@
 #include "MCConfiguration.h"
 #include "MCLedBase.h"
 #include "MCLocoAction.h"
-#include "MattzoMQTTSubscriber.h"
-#include "MattzoWifiClient.h"
 
 enum MCConnectionStatus {
 	uninitialized = 0,

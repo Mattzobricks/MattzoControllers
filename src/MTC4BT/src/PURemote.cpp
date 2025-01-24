@@ -2,16 +2,16 @@
 
 #include "DriverTaskDelay.h"
 #include "MTC4BTMQTTHandler.h"
-#include "MattzoMQTTSubscriber.h"
 #include "PURemote.h"
 #include "log4MC.h"
+#include "MCmqtt.h"
 #include <PubSubClient.h>
 
 #include "remoteList/modetypes.h"
 
 #define MAX_PUHUB_CHANNEL_COUNT 2
 
-extern PubSubClient mqttSubscriberClient;
+extern PubSubClient client;
 
 PURemote::PURemote(BLEHubConfiguration *config)
 	: PUHub(config)

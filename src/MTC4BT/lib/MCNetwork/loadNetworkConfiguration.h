@@ -16,6 +16,16 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
 
 	// Read JSON network config file.
 	JsonDocument doc = MCJsonConfig::ReadJsonFile(configFilePath);
+	JsonObject networkConfig = doc["network"];
+	config->otaPassword = networkConfig["otaPassword"].as<std::string>();
+	config->networkType = networkConfig["type"].as<std::string>();
+
+	if (config->networkType == "") {
+		config->networkType = "wireless";
+	} else if (config->networkType != "wired" || config->networkType != "wireless" || config->networkType != "waveshare-ESP32-S3-ETH") {
+		log4MC::vlogf(LOG_ERR, "Config: UNKOWN NETWORK TYPE: %s, falling back to wireless!",config->networkType.c_str());
+		config->networkType = "wireless";
+	}
 
 	// Read logging configuration.
 	MCLoggingConfiguration *logging = new MCLoggingConfiguration();
