@@ -1,6 +1,7 @@
 #pragma once
 
 #include "enums.h"
+#include <string>
 
 // Controller channel
 class MCChannel
