@@ -6,8 +6,7 @@
 // The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef MattzoController_Library_h
-#define MattzoController_Library_h
+#pragma once
 
 // Must include here to make platformio happy in finding the includes
 #include <ArduinoOTA.h> // Over the air update library
@@ -44,5 +43,3 @@ extern PubSubClient mqttClient;
 // If the mattzoControllerId can not be retrieved from EEPROM, a new mattzoControllerId between MIN_CONTROLLER_ID and MAX_CONTROLLER_ID is generated and stored in EEPROM.
 #define MIN_CONTROLLER_ID 10000
 #define MAX_CONTROLLER_ID 65000
-
-#endif
