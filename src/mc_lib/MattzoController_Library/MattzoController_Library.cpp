@@ -143,7 +143,8 @@ void updateStatusLED()
 // Wifi functions
 // **************
 
-char hostname_char[50];
+#define HOSTNAME_MAX_LENGTH 63
+char hostname_char[HOSTNAME_MAX_LENGTH + 1];
 
 // Status of the Wifi connection (true == "connected")
 bool lastKnownWifiConnectedStatus = false;
@@ -153,42 +154,22 @@ void setupWifi(bool addMattzoControllerIdToHostname)
 {
 	String hostname_String;
 
-	delay(10);
+	WiFi.mode(WIFI_STA);
+
 	if (addMattzoControllerIdToHostname) {
 		hostname_String = String(MC_HOSTNAME) + "-" + String(mattzoControllerId);
 	} else {
 		hostname_String = String(MC_HOSTNAME);
 	}
-	hostname_String.toCharArray(hostname_char, hostname_String.length() + 1);
+	hostname_String.toCharArray(hostname_char, min(hostname_String.length() + 1, (unsigned int)HOSTNAME_MAX_LENGTH));
+
+	if (!WiFi.setHostname(hostname_char)) {
+		Serial.println("Error setting hostname!");
+		hostname_String = "ESP-xxxxxx";
+	}
 
 	Serial.println("Connecting as " + hostname_String + " to Wifi " + String(WIFI_SSID));
-#if defined(ESP8266)
-	WiFi.hostname(hostname_char);
-#elif defined(ESP32)
-	// The following code SHOULD work without the disconnect and config lines,
-	// but it doesn't do its job for some ESP32s.
-	// see https://github.com/espressif/arduino-esp32/issues/2537
-	WiFi.disconnect(true);
-	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
-	WiFi.setHostname(hostname_char);
-#else
-#error "Error: this sketch is designed for ESP8266 or ESP32 only."
-#endif
-
-	reconnectWiFi();
-}
-
-unsigned long lastWiFiBegin_ms = 0;
-const unsigned long WAIT_BETWEEN_WIFI_CONNECTS_MS = 500;
-
-// (re)connect to WiFi. Called by checkWifi().
-void reconnectWiFi()
-{
-	if ((millis() > lastWiFiBegin_ms + WAIT_BETWEEN_WIFI_CONNECTS_MS) || !lastWiFiBegin_ms) {
-		WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-		Serial.println(".");
-		lastWiFiBegin_ms = millis();
-	}
+	WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 }
 
 // Check and monitor wifi connection status changes
