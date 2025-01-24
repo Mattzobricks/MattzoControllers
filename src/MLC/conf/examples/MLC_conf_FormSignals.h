@@ -373,7 +373,8 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = false;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
-const char *MC_HOSTNAME = "MLC-SEMAPHORES";
+// Recommended max. length: 8 characters
+const char *MC_HOSTNAME = "MLC-SEMA";
 
 // Syslog application name
 const char *SYSLOG_APP_NAME = "MLC-SEMAPHORES";
