@@ -231,11 +231,11 @@ void setup()
 
 	// DEPRICATION WARNING, hostname and otaPassword are gone in the one of the next releases and needs to be in the network part
 	if (networkConfig->WiFi->hostname != "") {
-		Serial.println("Config: DEPRECATION WARNING, found the \"hostname\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
+		Serial.println("Config: DEPRECATION WARNING, found the \"hostname\" field in the \"wifi\" part of the config, this needs to be moved to the \"network\" part if the config");
 		networkConfig->hostname = networkConfig->WiFi->hostname;
 	}
 	if (networkConfig->WiFi->otaPassword != "") {
-		Serial.println("Config: DEPRECATION WARNING, found the \"otaPassword\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
+		Serial.println("Config: DEPRECATION WARNING, found the \"otaPassword\" field in the \"wifi\" part of the config, this needs to be moved to the \"network\" part if the config");
 		networkConfig->otaPassword = networkConfig->WiFi->otaPassword;
 	}
 
@@ -294,7 +294,7 @@ void setup()
 					   SPI3_HOST,
 					   18, 19, 23)) {
 			// wired connection failed
-			log4MC::error(" wired hardware fault, or cable problem... cannot continue.");
+			log4MC::error(" \"wired\" hardware fault, or cable problem... cannot continue.");
 		}
 	} else if (networkConfig->networkType == "waveshare-ESP32-S3-ETH") {
 		/* WIRED_RESET_P 9
@@ -308,7 +308,7 @@ void setup()
 					   SPI3_HOST,
 					   13, 12, 11)) {
 			// wired connection failed
-			log4MC::error(" waveshare-ESP32-S3-ETH hardware fault, or cable problem... cannot continue.");
+			log4MC::error(" \"waveshare-ESP32-S3-ETH\" hardware fault, or cable problem... cannot continue.");
 		}
 	}
 	log4MC::info("Wait for WiFi/ETH... ");
