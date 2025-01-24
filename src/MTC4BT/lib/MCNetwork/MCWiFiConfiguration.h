@@ -6,5 +6,4 @@ struct MCWiFiConfiguration {
 	std::string password;
 	std::string otaPassword;
 	std::string hostname;
-	uint32_t DailyBetweenConnectAttempsInMs;
 };

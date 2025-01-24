@@ -19,11 +19,12 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
 	JsonObject networkConfig = doc["network"];
 	config->otaPassword = networkConfig["otaPassword"].as<std::string>();
 	config->networkType = networkConfig["type"].as<std::string>();
+	config->hostname = networkConfig["hostname"].as<std::string>();
 
 	if (config->networkType == "") {
 		config->networkType = "wireless";
-	} else if (config->networkType != "wired" || config->networkType != "wireless" || config->networkType != "waveshare-ESP32-S3-ETH") {
-		log4MC::vlogf(LOG_ERR, "Config: UNKOWN NETWORK TYPE: %s, falling back to wireless!",config->networkType.c_str());
+	} else if (config->networkType != "wired" && config->networkType != "wireless" && config->networkType != "waveshare-ESP32-S3-ETH") {
+		Serial.printf("Config: UNKOWN NETWORK TYPE: %s, falling back to wireless!\n", config->networkType.c_str());
 		config->networkType = "wireless";
 	}
 
@@ -77,7 +78,6 @@ MCNetworkConfiguration *loadNetworkConfiguration(const char *configFilePath)
 	wifi->password = wifiConfig["password"].as<std::string>();
 	wifi->hostname = wifiConfig["hostname"].as<std::string>();
 	wifi->otaPassword = wifiConfig["otaPassword"].as<std::string>();
-	wifi->DailyBetweenConnectAttempsInMs = wifiConfig["wait"] | 1000;
 
 	// Attach WiFi configuration.
 	config->WiFi = wifi;

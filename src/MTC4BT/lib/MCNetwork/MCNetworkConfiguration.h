@@ -15,6 +15,7 @@ struct MCNetworkConfiguration {
   public:
 	std::string otaPassword;
 	std::string networkType;
+  std::string hostname;
 	MCLoggingConfiguration *Logging;
 	MCWiFiConfiguration *WiFi;
 	MCMQTTConfiguration *MQTT;

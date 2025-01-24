@@ -47,7 +47,7 @@ boolean reconnect()
 	char request[251];
 	snprintf(request, 250, "<sys cmd=\"ebreak\" source=\"lastwill\" mc=\"%s\"/>", networkConfig->MQTT->SubscriberName);
 	if (client.connect(networkConfig->MQTT->SubscriberName, MQTT_COMMANDTOPIC, 0, false, request)) {
-		log4MC::vlogf(LOG_INFO, "MQTT: Connected %s",networkConfig->MQTT->SubscriberName);
+		log4MC::vlogf(LOG_INFO, "MQTT: Connected %s", networkConfig->MQTT->SubscriberName);
 		client.subscribe(MQTT_COMMANDTOPIC);
 		client.subscribe(MQTT_INFOTOPIC);
 	} else {
@@ -262,14 +262,13 @@ void setup()
 		},
 		WiFiEvent_t::ARDUINO_EVENT_ETH_DISCONNECTED);
 	// Remove WiFi event
-	Serial.print("WiFi Event ID: ");
-	Serial.println(eventID);
+	log4MC::vlogf(LOG_INFO, "setup: WiFi Event ID: %d", eventID);
 
 	WiFi.disconnect(true);
 	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 	WiFi.setHostname(networkConfig->WiFi->hostname.c_str());
 	if (networkConfig->networkType == "wireless") {
-		Serial.print("[" + String(xPortGetCoreID()) + "] Wifi: Connecting to " + networkConfig->WiFi->SSID.c_str() + ".");
+		log4MC::vlogf(LOG_INFO, "Wifi: Connecting to %s.", networkConfig->WiFi->SSID.c_str());
 		WiFi.begin(networkConfig->WiFi->SSID.c_str(), networkConfig->WiFi->password.c_str());
 	} else if (networkConfig->networkType == "wired") {
 		// the old wired interface, using those pin numbers
@@ -284,7 +283,7 @@ void setup()
 					   SPI3_HOST,
 					   18, 19, 23)) {
 			// wired connection failed
-			Serial.println(" wired hardware fault, or cable problem... cannot continue.");
+			log4MC::error(" wired hardware fault, or cable problem... cannot continue.");
 		}
 	} else if (networkConfig->networkType == "waveshare-ESP32-S3-ETH") {
 		/* WIRED_RESET_P 9
@@ -298,12 +297,24 @@ void setup()
 					   SPI3_HOST,
 					   13, 12, 11)) {
 			// wired connection failed
-			Serial.println(" waveshare-ESP32-S3-ETH hardware fault, or cable problem... cannot continue.");
+			log4MC::error(" waveshare-ESP32-S3-ETH hardware fault, or cable problem... cannot continue.");
 		}
 	}
-	Serial.println();
-	Serial.println();
-	Serial.println("Wait for WiFi/ETH... ");
+	log4MC::info("Wait for WiFi/ETH... ");
+
+	// DEPRICATION WARNING, hostname and otaPassword are gone in the one of the next releases and needs to be in the network part
+	if (networkConfig->WiFi->hostname != "") {
+		log4MC::warn("Config: DEPRECATION WARNING, found the \"hostname\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
+		networkConfig->hostname = networkConfig->WiFi->hostname;
+	}
+	if (networkConfig->WiFi->otaPassword != "") {
+		log4MC::warn("Config: DEPRECATION WARNING, found the \"otaPassword\" field in the \"wifi\" part of the config, this needs to be moved to the \"networf\" part if the config");
+		networkConfig->otaPassword = networkConfig->WiFi->otaPassword;
+	}
+
+
+	ArduinoOTA.setHostname(networkConfig->hostname.c_str());
+	ArduinoOTA.setPassword(networkConfig->otaPassword.c_str());
 
 	ArduinoOTA
 		.onStart([]() {
@@ -377,7 +388,7 @@ void loop()
 	static unsigned long checkedForRocrail = millis() + 12000; // force a loco lookup on startup
 	static long connectionStartTime = millis();
 	if (millis() - connectionStartTime > 30000 && !gotConnection) {
-		Serial.println("No connection... ");
+		log4MC::info("No connection... ");
 		connectionStartTime = millis();
 		// WiFi.disconnect(true);
 		// WiFi.begin(ssid, password);
@@ -389,10 +400,10 @@ void loop()
 		if (now - lastReconnectAttempt > 5000) {
 			lastReconnectAttempt = now;
 			// Attempt to reconnect
-			Serial.println("Try mqtt reconnect... ");
+			log4MC::info("Try mqtt reconnect... ");
 			if (reconnect()) {
 				lastReconnectAttempt = 0;
-				Serial.println("Reconnected!");
+				log4MC::info("Reconnected!");
 				gotMQTTConnection = true;
 				controller->setStatusLedInSetup(0); // led off
 			}
