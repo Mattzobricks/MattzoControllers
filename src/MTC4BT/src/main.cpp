@@ -278,6 +278,7 @@ void setup()
 	WiFi.disconnect(true);
 	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 	WiFi.setHostname(networkConfig->hostname.c_str());
+#ifdef WIRED
 	if (networkConfig->networkType == "wireless") {
 		log4MC::vlogf(LOG_INFO, "Wifi: Connecting to %s.", networkConfig->WiFi->SSID.c_str());
 		WiFi.begin(networkConfig->WiFi->SSID.c_str(), networkConfig->WiFi->password.c_str());
@@ -304,16 +305,20 @@ void setup()
 		   WIRED_MISO 12
 		   WIRED_SCK 13
 		   */
-		if (!ETH.begin(ETH_PHY_W5500, 1, 14, 10, 9,
-					   SPI3_HOST,
-					   13, 12, 11)) {
+		if (!ETH2.begin(ETH_PHY_W5500, 1, 14, 10, 9,
+						SPI3_HOST,
+						13, 12, 11)) {
 			// wired connection failed
 			log4MC::error(" \"waveshare-ESP32-S3-ETH\" hardware fault, or cable problem... cannot continue.");
 		}
 	}
+#else
+	log4MC::vlogf(LOG_INFO, "Wifi: Connecting to %s.", networkConfig->WiFi->SSID.c_str());
+	WiFi.begin(networkConfig->WiFi->SSID.c_str(), networkConfig->WiFi->password.c_str());
+#endif
+
 	log4MC::info("Wait for WiFi/ETH... ");
 
-	
 	ArduinoOTA.setHostname(networkConfig->hostname.c_str());
 	ArduinoOTA.setPassword(networkConfig->otaPassword.c_str());
 
