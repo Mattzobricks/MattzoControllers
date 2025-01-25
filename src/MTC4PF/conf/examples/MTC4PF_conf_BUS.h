@@ -43,7 +43,7 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
     locoConf[0] = {
-        .locoName = "BUS8W",
+        .locoName = "BUS",
         .locoAddress = 988,
         .accelerationInterval = 100,
         .accelerateStep = 3,
@@ -395,7 +395,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char *MC_HOSTNAME = "MTC4PF-BUS8W";
+const char *MC_HOSTNAME = "MTC4PF-BUS";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MTC4PF-BUS8W";
+const char *SYSLOG_APP_NAME = "MTC4PF-BUS";
