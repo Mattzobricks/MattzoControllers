@@ -18,11 +18,9 @@
 // 1. Create a copy of this file if required (see above).
 // 2. Go through the settings below and update the settings as required.
 
-// ************************************************************
-// Example file for a train with MTC4PF mini
-// The MTC4PF mini drives the motor, and also provides
-// control for bidirectional (red/white) front and tail lights
-// ************************************************************
+// ************************************************
+// Example file for a simple train with MTC4PF mini
+// ************************************************
 
 // *****
 // LOCOS
@@ -43,8 +41,8 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
     locoConf[0] = {
-        .locoName = "BUS",
-        .locoAddress = 988,
+        .locoName = "BUS8W",
+        .locoAddress = 98,
         .accelerationInterval = 100,
         .accelerateStep = 3,
         .brakeStep = 3
@@ -74,9 +72,14 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
+    // Type of motor shield directly wired to the controller.
+    // (The different motor shield types are defined in MTC4PF.ino)
+    // Set to MotorShieldType::NONE if only virtual motor shields are used!
+    const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
+
     msConf[0] =
     {
-        .locoAddress = 988,
+        .locoAddress = 98,
         .motorShieldType = MotorShieldType::L9110,
         .L298N_enA = 0,
         .L298N_enB = 0,
@@ -157,7 +160,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     // fn1: forward mode. head lights white, rear lights red
     {
         // head lights cathode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 1,
         .fnOnOff = true,
         .trainLightIndex = 0,
@@ -165,7 +168,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // head lights anode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 1,
         .fnOnOff = true,
         .trainLightIndex = 1,
@@ -173,7 +176,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // rear lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 1,
         .fnOnOff = true,
         .trainLightIndex = 2,
@@ -181,7 +184,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // rear lights anode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 1,
         .fnOnOff = true,
         .trainLightIndex = 3,
@@ -191,7 +194,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     // fn2: backwards mode. head lights red
     {
         // head lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 2,
         .fnOnOff = true,
         .trainLightIndex = 0,
@@ -199,7 +202,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // head lights anode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 2,
         .fnOnOff = true,
         .trainLightIndex = 1,
@@ -207,7 +210,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // rear lights cathode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 2,
         .fnOnOff = true,
         .trainLightIndex = 2,
@@ -215,7 +218,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // rear lights anode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 2,
         .fnOnOff = true,
         .trainLightIndex = 3,
@@ -225,7 +228,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     // fn3: head lights off
     {
         // head lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 3,
         .fnOnOff = true,
         .trainLightIndex = 0,
@@ -233,7 +236,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // head lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 3,
         .fnOnOff = true,
         .trainLightIndex = 1,
@@ -241,7 +244,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // rear lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 3,
         .fnOnOff = true,
         .trainLightIndex = 2,
@@ -249,7 +252,7 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
     },
     {
         // rear lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .fnNo = 3,
         .fnOnOff = true,
         .trainLightIndex = 3,
@@ -272,28 +275,28 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
     // forward mode. head lights white, rear lights red
     {
         // head lights cathode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::FORWARD,
         .trainLightIndex = 0,
         .trainLightStatus = TrainLightStatus::ON
     },
     {
         // head lights anode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::FORWARD,
         .trainLightIndex = 1,
         .trainLightStatus = TrainLightStatus::OFF
     },
     {
         // rear lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::FORWARD,
         .trainLightIndex = 2,
         .trainLightStatus = TrainLightStatus::OFF
     },
     {
         // rear lights anode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::FORWARD,
         .trainLightIndex = 3,
         .trainLightStatus = TrainLightStatus::ON
@@ -302,28 +305,28 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
     // backward mode. head lights red, rear lights white
     {
         // head lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::REVERSE,
         .trainLightIndex = 0,
         .trainLightStatus = TrainLightStatus::OFF
     },
     {
         // head lights anode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::REVERSE,
         .trainLightIndex = 1,
         .trainLightStatus = TrainLightStatus::ON
     },
     {
         // rear lights cathode -> +3.3V
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::REVERSE,
         .trainLightIndex = 2,
         .trainLightStatus = TrainLightStatus::ON
     },
     {
         // rear lights anode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::REVERSE,
         .trainLightIndex = 3,
         .trainLightStatus = TrainLightStatus::OFF
@@ -333,28 +336,28 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
     // stop: head lights off, read lights off
 /*     {
         // head lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::STOP,
         .trainLightIndex = 0,
         .trainLightStatus = TrainLightStatus::OFF
     },
     {
         // head lights anode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::STOP,
         .trainLightIndex = 1,
         .trainLightStatus = TrainLightStatus::OFF
     },
     {
         // rear lights cathode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::STOP,
         .trainLightIndex = 2,
         .trainLightStatus = TrainLightStatus::OFF
     },
     {
         // rear lights anode -> GND
-        .locoAddress = 988,
+        .locoAddress = 98,
         .lightEventType = LightEventType::STOP,
         .trainLightIndex = 3,
         .trainLightStatus = TrainLightStatus::OFF
@@ -395,7 +398,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
-const char *MC_HOSTNAME = "MTC4PF-BUS";
+const char *MC_HOSTNAME = "MTC4PF-BUS8W";
 
 // Syslog application name
-const char *SYSLOG_APP_NAME = "MTC4PF-BUS";
+const char *SYSLOG_APP_NAME = "MTC4PF-BUS8W";
