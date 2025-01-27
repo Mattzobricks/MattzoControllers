@@ -23,7 +23,7 @@
 // General documentation: https://www.mattzobricks.com
 // Parameter documentation: MLC/include/MLC_types.h
 
-// This configuration serves a level crossing with 4 boom barriers and 4 lights
+// This configuration is for a MLC mini that serves as a controller for a level crossing with 4 boom barriers and 2 lights (4 LEDs)
 
 
 
