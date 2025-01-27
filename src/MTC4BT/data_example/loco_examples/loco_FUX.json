@@ -1,8 +1,8 @@
 {
     "address": 6337,
     "name": "FUX",
-    "pwrIncStep": 5,
-    "pwrDecStep": 10,
+    "pwrIncStep": 2,
+    "pwrDecStep": 3,
     "bleHubs": [
         {
             "type": "PU",
