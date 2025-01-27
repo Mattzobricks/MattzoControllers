@@ -279,7 +279,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Special forms are remote and virtual sensors (see below)
 
 // Number of sensors connected or connectable to the controller
-#define NUM_SENSORS 16
+#define NUM_SENSORS 48
 
 // A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
@@ -290,10 +290,12 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 
 TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 {
+	// Physical sensors
     {
         .pin = 0,
         .pinType = MCP23017_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = -1},
+        .remoteMattzoControllerId = -1
+	},
     {
         .pin = 1,
         .pinType = MCP23017_SENSOR_PIN_TYPE,
@@ -368,7 +370,170 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
         .pin = 15,
         .pinType = MCP23017_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
-    }
+    },
+
+	// Virtual sensors
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 16, rocrail port 17
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 17, rocrail port 18
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 18, rocrail port 19
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 19, rocrail port 20
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 20, rocrail port 21
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 21, rocrail port 22
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 22, rocrail port 23
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 23, rocrail port 24
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 24, rocrail port 25
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 25, rocrail port 26
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 26, rocrail port 27
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 27, rocrail port 28
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 28, rocrail port 29
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 29, rocrail port 30
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 30, rocrail port 31
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 31, rocrail port 32
+        .remoteMattzoControllerId = -1
+    },
+
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
+    },
+    {
+        .pin = -1,
+        .pinType = VIRTUAL_SENSOR_PIN_TYPE, // index 47, rocrail port 48
+        .remoteMattzoControllerId = -1
+    },
 };
 
 
@@ -405,128 +570,128 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
         .servoIndex = 0,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {16, 17}
     },
     {
         .rocRailPort = 2,
         .servoIndex = 1,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {18, 19}
     },
     {
         .rocRailPort = 3,
         .servoIndex = 2,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {20, 21}
     },
     {
         .rocRailPort = 4,
         .servoIndex = 3,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {22, 23}
     },
     {
         .rocRailPort = 5,
         .servoIndex = 4,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {24, 25}
     },
     {
         .rocRailPort = 6,
         .servoIndex = 5,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {26, 27}
     },
     {
         .rocRailPort = 7,
         .servoIndex = 6,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {28, 29}
     },
     {
         .rocRailPort = 8,
         .servoIndex = 7,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {30, 31}
     },
     {
         .rocRailPort = 9,
         .servoIndex = 8,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {32, 33}
     },
     {
         .rocRailPort = 10,
         .servoIndex = 9,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {34, 35}
     },
     {
         .rocRailPort = 11,
         .servoIndex = 10,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {36, 37}
     },
     {
         .rocRailPort = 12,
         .servoIndex = 11,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {38, 39}
     },
     {
         .rocRailPort = 13,
         .servoIndex = 12,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {40, 41}
     },
     {
         .rocRailPort = 14,
         .servoIndex = 13,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {42, 43}
     },
     {
         .rocRailPort = 15,
         .servoIndex = 14,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {44, 45}
     },
     {
         .rocRailPort = 16,
         .servoIndex = 15,
         .servo2Index = -1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {46, 47}
     },
 
     // Double slip switches
@@ -535,64 +700,64 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
         .servoIndex = 0,
         .servo2Index = 1,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {16, 17}
     },
     {
         .rocRailPort = 1002,
         .servoIndex = 2,
         .servo2Index = 3,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {20, 21}
     },
     {
         .rocRailPort = 1003,
         .servoIndex = 4,
         .servo2Index = 5,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {24, 25}
     },
     {
         .rocRailPort = 1004,
         .servoIndex = 6,
         .servo2Index = 7,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {28, 29}
     },
     {
         .rocRailPort = 1005,
         .servoIndex = 8,
         .servo2Index = 9,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {32, 33}
     },
     {
         .rocRailPort = 1006,
         .servoIndex = 10,
         .servo2Index = 11,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {36, 37}
     },
     {
         .rocRailPort = 1007,
         .servoIndex = 12,
         .servo2Index = 13,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {40, 41}
     },
     {
         .rocRailPort = 1008,
         .servoIndex = 14,
         .servo2Index = 15,
         .servo2Reverse = false,
-        .triggerSensors = false,
-        .sensorIndex = {-1, -1}
+        .triggerSensors = true,
+        .sensorIndex = {44, 45}
     },
 };
 
