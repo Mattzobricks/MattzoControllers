@@ -96,7 +96,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 		// Update of current pwr required (directly to zero), if we're e-braking.
 		if (_ebrake)
 			_currentPwrPerc = 0;
-			// log4MC::vlogf(LOG_DEBUG, "Current power: , ebrake");
+		// log4MC::vlogf(LOG_DEBUG, "Current power: , ebrake");
 
 		return true;
 	}
@@ -119,7 +119,12 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 	}
 
 	// Adjust pwr with one step.
-	int16_t newPwrPerc = _currentPwrPerc + pwrStep;
+	int16_t correctedStp = (pwrStep * DRIVERTASKDELAY) / 250;
+	if (correctedStp == 0) {
+		// make sure we alway step!!!
+		correctedStp = dirMultiplier;
+	}
+	int16_t newPwrPerc = _currentPwrPerc + correctedStp;
 
 	// We are not allowed to go beyond the set target pwr. Enforce target pwr, if we would.
 	if ((_targetPwrPerc < 0 && newPwrPerc < _targetPwrPerc && newPwrPerc < _currentPwrPerc) ||
