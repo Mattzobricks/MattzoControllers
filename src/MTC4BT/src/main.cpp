@@ -64,29 +64,29 @@ boolean reconnect()
 // WARNING: This function is called from a separate FreeRTOS task (thread)!
 void WiFiEvent(WiFiEvent_t event)
 {
-	Serial.printf("[WiFi-event] event: %d\n", event);
+	log4MC::vlogf(LOG_DEBUG,"[WiFi-event] event: %d\n", event);
 
 	switch (event) {
 	case ARDUINO_EVENT_WIFI_READY:
-		Serial.println("WiFi interface ready");
+		log4MC::debug("WiFi interface ready");
 		break;
 	case ARDUINO_EVENT_WIFI_SCAN_DONE:
-		Serial.println("Completed scan for access points");
+		log4MC::debug("Completed scan for access points");
 		break;
 	case ARDUINO_EVENT_WIFI_STA_START:
-		Serial.println("WiFi client started");
+		log4MC::debug("WiFi client started");
 		break;
 	case ARDUINO_EVENT_WIFI_STA_STOP:
-		Serial.println("WiFi clients stopped");
+		log4MC::debug("WiFi clients stopped");
 		break;
 	case ARDUINO_EVENT_WIFI_STA_CONNECTED:
-		Serial.println("Connected to access point");
+		log4MC::debug("Connected to access point");
 		break;
 	case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-		Serial.println("Disconnected from WiFi access point");
+		log4MC::debug("Disconnected from WiFi access point");
 		break;
 	case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:
-		Serial.println("Authentication mode of access point has changed");
+		log4MC::debug("Authentication mode of access point has changed");
 		break;
 	case ARDUINO_EVENT_WIFI_STA_GOT_IP:
 		Serial.print("Obtained WiFi IP address: ");
@@ -94,59 +94,58 @@ void WiFiEvent(WiFiEvent_t event)
 		gotConnection = true;
 		break;
 	case ARDUINO_EVENT_WIFI_STA_LOST_IP:
-		Serial.println("Lost IP address and IP address is reset to 0");
+		log4MC::debug("Lost IP address and IP address is reset to 0");
 		break;
 	case ARDUINO_EVENT_WPS_ER_SUCCESS:
-		Serial.println("WiFi Protected Setup (WPS): succeeded in enrollee mode");
+		log4MC::debug("WiFi Protected Setup (WPS): succeeded in enrollee mode");
 		break;
 	case ARDUINO_EVENT_WPS_ER_FAILED:
-		Serial.println("WiFi Protected Setup (WPS): failed in enrollee mode");
+		log4MC::debug("WiFi Protected Setup (WPS): failed in enrollee mode");
 		break;
 	case ARDUINO_EVENT_WPS_ER_TIMEOUT:
-		Serial.println("WiFi Protected Setup (WPS): timeout in enrollee mode");
+		log4MC::debug("WiFi Protected Setup (WPS): timeout in enrollee mode");
 		break;
 	case ARDUINO_EVENT_WPS_ER_PIN:
-		Serial.println("WiFi Protected Setup (WPS): pin code in enrollee mode");
+		log4MC::debug("WiFi Protected Setup (WPS): pin code in enrollee mode");
 		break;
 	case ARDUINO_EVENT_WIFI_AP_START:
-		Serial.println("WiFi access point started");
+		log4MC::debug("WiFi access point started");
 		break;
 	case ARDUINO_EVENT_WIFI_AP_STOP:
-		Serial.println("WiFi access point  stopped");
+		log4MC::debug("WiFi access point  stopped");
 		break;
 	case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
-		Serial.println("Client connected");
+		log4MC::debug("Client connected");
 		break;
 	case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
-		Serial.println("Client disconnected");
+		log4MC::debug("Client disconnected");
 		break;
 	case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:
-		Serial.println("Assigned IP address to client");
+		log4MC::debug("Assigned IP address to client");
 		break;
 	case ARDUINO_EVENT_WIFI_AP_PROBEREQRECVED:
-		Serial.println("Received probe request");
+		log4MC::debug("Received probe request");
 		break;
 	case ARDUINO_EVENT_WIFI_AP_GOT_IP6:
-		Serial.println("AP IPv6 is preferred");
+		log4MC::debug("AP IPv6 is preferred");
 		break;
 	case ARDUINO_EVENT_WIFI_STA_GOT_IP6:
-		Serial.println("STA IPv6 is preferred");
+		log4MC::debug("STA IPv6 is preferred");
 		break;
 	case ARDUINO_EVENT_ETH_GOT_IP6:
-		Serial.println("Ethernet IPv6 is preferred");
+		log4MC::debug("Ethernet IPv6 is preferred");
 		break;
 	case ARDUINO_EVENT_ETH_START:
-		Serial.println("Ethernet started");
-		ETH.setHostname("esp32-ethernet");
+		log4MC::debug("Ethernet started");
 		break;
 	case ARDUINO_EVENT_ETH_STOP:
-		Serial.println("Ethernet stopped");
+		log4MC::debug("Ethernet stopped");
 		break;
 	case ARDUINO_EVENT_ETH_CONNECTED:
-		Serial.println("Ethernet connected");
+		log4MC::debug("Ethernet connected");
 		break;
 	case ARDUINO_EVENT_ETH_DISCONNECTED:
-		Serial.println("Ethernet disconnected");
+		log4MC::debug("Ethernet disconnected");
 		gotConnection = false;
 		break;
 	case ARDUINO_EVENT_ETH_GOT_IP:
@@ -155,7 +154,7 @@ void WiFiEvent(WiFiEvent_t event)
 		gotConnection = true;
 		break;
 	default:
-		Serial.println("Unknown event");
+		log4MC::debug("Unknown event");
 		break;
 	}
 }
@@ -278,11 +277,12 @@ void setup()
 	WiFi.disconnect(true);
 	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 	WiFi.setHostname(networkConfig->hostname.c_str());
-#ifdef WIRED
 	if (networkConfig->networkType == "wireless") {
 		log4MC::vlogf(LOG_INFO, "Wifi: Connecting to %s.", networkConfig->WiFi->SSID.c_str());
 		WiFi.begin(networkConfig->WiFi->SSID.c_str(), networkConfig->WiFi->password.c_str());
-	} else if (networkConfig->networkType == "wired") {
+	}
+#ifdef WIRED
+	else if (networkConfig->networkType == "wired") {
 		// the old wired interface, using those pin numbers
 		/* 	WIRED_RESET_P 26
 			WIRED_CS_P 5
@@ -291,152 +291,153 @@ void setup()
 			WIRED_MISO 19
 			WIRED_SCK 18
 		*/
+		ETH2.setHostname(networkConfig->hostname.c_str());
 		if (!ETH.begin(ETH_PHY_W5500, 1, 5, 25, 26,
 					   SPI3_HOST,
 					   18, 19, 23)) {
 			// wired connection failed
 			log4MC::error(" \"wired\" hardware fault, or cable problem... cannot continue.");
 		}
-	} else if (networkConfig->networkType == "waveshare-ESP32-S3-ETH") {
-		/* WIRED_RESET_P 9
-		   WIRED_CS_P 14
-		   WIRED_INT 10
-		   WIRED_MOSI 11
-		   WIRED_MISO 12
-		   WIRED_SCK 13
-		   */
-		if (!ETH2.begin(ETH_PHY_W5500, 1, 14, 10, 9,
-						SPI3_HOST,
-						13, 12, 11)) {
-			// wired connection failed
-			log4MC::error(" \"waveshare-ESP32-S3-ETH\" hardware fault, or cable problem... cannot continue.");
+#endif
+#ifdef WAVESHARE_ETH
+	else if (networkConfig->networkType == "wired") {
+			/* WIRED_RESET_P 9
+			   WIRED_CS_P 14
+			   WIRED_INT 10
+			   WIRED_MOSI 11
+			   WIRED_MISO 12
+			   WIRED_SCK 13
+			   */
+			ETH2.setHostname(networkConfig->hostname.c_str());  
+			if (!ETH2.begin(ETH_PHY_W5500, 1, 14, 10, 9,
+							SPI3_HOST,
+							13, 12, 11)) {
+				// wired connection failed
+				log4MC::error(" \"WAVESHARE-ESP32-S3-ETH\" hardware fault, or cable problem... cannot continue.");
+			}
 		}
-	}
-#else
-	log4MC::vlogf(LOG_INFO, "Wifi: Connecting to %s.", networkConfig->WiFi->SSID.c_str());
-	WiFi.begin(networkConfig->WiFi->SSID.c_str(), networkConfig->WiFi->password.c_str());
 #endif
 
-	log4MC::info("Wait for WiFi/ETH... ");
+		log4MC::info("Wait for WiFi/ETH... ");
 
-	ArduinoOTA.setHostname(networkConfig->hostname.c_str());
-	ArduinoOTA.setPassword(networkConfig->otaPassword.c_str());
+		ArduinoOTA.setHostname(networkConfig->hostname.c_str());
+		ArduinoOTA.setPassword(networkConfig->otaPassword.c_str());
 
-	ArduinoOTA
-		.onStart([]() {
-			String type;
-			if (ArduinoOTA.getCommand() == U_FLASH)
-				type = "sketch";
-			else // U_SPIFFS
-				type = "filesystem";
+		ArduinoOTA
+			.onStart([]() {
+				String type;
+				if (ArduinoOTA.getCommand() == U_FLASH)
+					type = "sketch";
+				else // U_SPIFFS
+					type = "filesystem";
 
-			// NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-			Serial.println("Start updating " + type);
-		})
-		.onEnd([]() {
-			Serial.println("\nEnd");
-		})
-		.onProgress([](unsigned int progress, unsigned int total) {
-			Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-		})
-		.onError([](ota_error_t error) {
-			Serial.printf("Error[%u]: ", error);
-			if (error == OTA_AUTH_ERROR)
-				Serial.println("Auth Failed");
-			else if (error == OTA_BEGIN_ERROR)
-				Serial.println("Begin Failed");
-			else if (error == OTA_CONNECT_ERROR)
-				Serial.println("Connect Failed");
-			else if (error == OTA_RECEIVE_ERROR)
-				Serial.println("Receive Failed");
-			else if (error == OTA_END_ERROR)
-				Serial.println("End Failed");
-		});
+				// NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+				Serial.println("Start updating " + type);
+			})
+			.onEnd([]() {
+				Serial.println("\nEnd");
+			})
+			.onProgress([](unsigned int progress, unsigned int total) {
+				Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+			})
+			.onError([](ota_error_t error) {
+				Serial.printf("Error[%u]: ", error);
+				if (error == OTA_AUTH_ERROR)
+					Serial.println("Auth Failed");
+				else if (error == OTA_BEGIN_ERROR)
+					Serial.println("Begin Failed");
+				else if (error == OTA_CONNECT_ERROR)
+					Serial.println("Connect Failed");
+				else if (error == OTA_RECEIVE_ERROR)
+					Serial.println("Receive Failed");
+				else if (error == OTA_END_ERROR)
+					Serial.println("End Failed");
+			});
 
-	ArduinoOTA.begin();
+		ArduinoOTA.begin();
 
-	log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
+		log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
 
-	client.setServer(networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
-	client.setKeepAlive(networkConfig->MQTT->KeepAlive);
-	client.setBufferSize(MAXBUFFERSIZE);
-	client.setCallback(mqttCallback);
+		client.setServer(networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
+		client.setKeepAlive(networkConfig->MQTT->KeepAlive);
+		client.setBufferSize(MAXBUFFERSIZE);
+		client.setCallback(mqttCallback);
 
-	delay(1500);
-	lastReconnectAttempt = 0;
-	// controller->setStatusLedInSetup(0); // led off
+		delay(1500);
+		lastReconnectAttempt = 0;
+		// controller->setStatusLedInSetup(0); // led off
 
-	// all network stuff is done, start the scanner
-	controller->SetupScanner();
+		// all network stuff is done, start the scanner
+		controller->SetupScanner();
 
-	log4MC::info("Setup: MattzoTrainController for BLE running.");
+		log4MC::info("Setup: MattzoTrainController for BLE running.");
 
-	if (controllerConfig->LocoConfigs.size() != 0 || controllerConfig->RemoteConfigs.size() != 0) {
-		log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
-		log4MC::vlogf(LOG_INFO, "Setup: Number of remotes to discover hubs for: %u", controllerConfig->RemoteConfigs.size());
-	} else {
-		log4MC::vlogf(LOG_WARNING, "No locomotives or remote found in the configuration, going into BLE scan mode.");
-	}
+		if (controllerConfig->LocoConfigs.size() != 0 || controllerConfig->RemoteConfigs.size() != 0) {
+			log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
+			log4MC::vlogf(LOG_INFO, "Setup: Number of remotes to discover hubs for: %u", controllerConfig->RemoteConfigs.size());
+		} else {
+			log4MC::vlogf(LOG_WARNING, "No locomotives or remote found in the configuration, going into BLE scan mode.");
+		}
 
-	// stuff for the remote
-	locs.reserve(10);
+		// stuff for the remote
+		locs.reserve(10);
 
 #ifdef ESP32
 #ifdef SETUPTICKER
-	setupTicker();
-	log4MC::info("Ticker started");
+		setupTicker();
+		log4MC::info("Ticker started");
 #endif
 #endif
-}
-
-void loop()
-{
-	static unsigned long checkedForRocrail = millis() + 12000; // force a loco lookup on startup
-	static long connectionStartTime = millis();
-	if (millis() - connectionStartTime > 30000 && !gotConnection) {
-		log4MC::info("No connection... ");
-		connectionStartTime = millis();
-		// WiFi.disconnect(true);
-		// WiFi.begin(ssid, password);
 	}
 
-	if (!client.connected()) {
-		long now = millis();
-		gotMQTTConnection = false;
-		if (now - lastReconnectAttempt > 5000) {
-			lastReconnectAttempt = now;
-			// Attempt to reconnect
-			log4MC::info("Try mqtt reconnect... ");
-			if (reconnect()) {
-				lastReconnectAttempt = 0;
-				log4MC::info("Reconnected!");
-				gotMQTTConnection = true;
-				controller->setStatusLedInSetup(0); // led off
-			}
+	void loop()
+	{
+		static unsigned long checkedForRocrail = millis() + 12000; // force a loco lookup on startup
+		static long connectionStartTime = millis();
+		if (millis() - connectionStartTime > 30000 && !gotConnection) {
+			log4MC::info("No connection... ");
+			connectionStartTime = millis();
+			// WiFi.disconnect(true);
+			// WiFi.begin(ssid, password);
 		}
-	} else {
-		// Client connected
 
-		client.loop();
-	}
-
-	controller->Loop();
-	ArduinoOTA.handle();
-
-	// Next statement is to load the loco configs into the EPS, but only if we have configured remotes
-	// we test every 10 seconds for rocrail availability!
-	// side effect, if there is a plan without any it will also test every 10 seconds.
-	if (controllerConfig->RemoteConfigs.size() != 0) {
-		// we have configured remotes
-		if (locs.size() == 0) {
-			if ((millis() - checkedForRocrail > 10000)) {
-				// no loco's
-				MTC4BTMQTTHandler::pubGetShortLcList();
-				checkedForRocrail = millis();
+		if (!client.connected()) {
+			long now = millis();
+			gotMQTTConnection = false;
+			if (now - lastReconnectAttempt > 5000) {
+				lastReconnectAttempt = now;
+				// Attempt to reconnect
+				log4MC::info("Try mqtt reconnect... ");
+				if (reconnect()) {
+					lastReconnectAttempt = 0;
+					log4MC::info("Reconnected!");
+					gotMQTTConnection = true;
+					controller->setStatusLedInSetup(0); // led off
+				}
 			}
 		} else {
-			// we have a loco list, so there is a connection with Rocrail
-			controller->initFirstItems();
+			// Client connected
+
+			client.loop();
+		}
+
+		controller->Loop();
+		ArduinoOTA.handle();
+
+		// Next statement is to load the loco configs into the EPS, but only if we have configured remotes
+		// we test every 10 seconds for rocrail availability!
+		// side effect, if there is a plan without any it will also test every 10 seconds.
+		if (controllerConfig->RemoteConfigs.size() != 0) {
+			// we have configured remotes
+			if (locs.size() == 0) {
+				if ((millis() - checkedForRocrail > 10000)) {
+					// no loco's
+					MTC4BTMQTTHandler::pubGetShortLcList();
+					checkedForRocrail = millis();
+				}
+			} else {
+				// we have a loco list, so there is a connection with Rocrail
+				controller->initFirstItems();
+			}
 		}
 	}
-}
