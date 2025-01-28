@@ -5,6 +5,7 @@
 
 #include "MTC4BTMQTTHandler.h"
 #include "MTC4BTController.h"
+#include "MCmqtt.h"
 #include "log4MC.h"
 
 // it is globaly defined in main.cpp
@@ -245,6 +246,10 @@ void MTC4BTMQTTHandler::handleLCList(const char *message)
 			// just ignore for now
 		}
 		loc = new lc(id, addr, NULL, 0, 0, 0);
+		if (id) {
+			delete id;
+			id = NULL;
+		}
 		locs.push_back(loc);
 		pos++;
 	}
@@ -306,24 +311,24 @@ void MTC4BTMQTTHandler::handleFn(const char *message)
 
 void MTC4BTMQTTHandler::pubStop()
 {
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"stop\" informall=\"true\"/>");
+	client.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"stop\" informall=\"true\"/>");
 }
 void MTC4BTMQTTHandler::pubShutdown()
 {
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"shutdown\" informall=\"true\"/>");
+	client.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"shutdown\" informall=\"true\"/>");
 }
 void MTC4BTMQTTHandler::pubEBrake()
 {
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");
+	client.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"ebreak\" informall=\"true\"/>");
 }
 void MTC4BTMQTTHandler::pubGo()
 {
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
+	client.publish(MQTT_CLIENTTOPIC, "<sys cmd=\"go\" informall=\"true\"/>");
 }
 
 void MTC4BTMQTTHandler::pubGetShortLcList()
 {
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, "<model cmd=\"lclist\" val=\"short\"/>");
+	client.publish(MQTT_CLIENTTOPIC, "<model cmd=\"lclist\" val=\"short\"/>");
 }
 
 void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
@@ -331,7 +336,7 @@ void MTC4BTMQTTHandler::pubGetLcInfo(char *locid)
 	// get current info of the loc from rocrail and start following it!
 	char request[201];
 	snprintf(request, 200, "<model cmd=\"lcprops\" val=\"%s\"/>", locid);
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+	client.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubLcSpeed(char *locid, long locV)
@@ -339,7 +344,7 @@ void MTC4BTMQTTHandler::pubLcSpeed(char *locid, long locV)
 	char request[201];
 	bool dir = locV >= 0;
 	snprintf(request, 200, "<lc id=\"%s\" dir=\"%s\" V=\"%ld\"/>", locid, dir ? "true" : "false", abs(locV));
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+	client.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubFlip(RRdevice device, char *id)
@@ -361,28 +366,28 @@ void MTC4BTMQTTHandler::pubFlip(RRdevice device, char *id)
 		break;
 	}
 	if (knownDevice)
-		mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+		client.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubCo(RRaction action, char *id)
 {
 	char request[201];
 	snprintf(request, 200, "<co id=\"%s\"  cmd=\"%s\"/>", id, action == RRon ? "on" : "off");
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+	client.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubSg(RRaction action, char *id)
 {
 	char request[201];
 	snprintf(request, 200, "<sg id=\"%s\"  cmd=\"%s\"/>", id, action == RRgreen ? "green" : (action == RRred ? "red" : (action == RRyellow ? "yellow" : "white")));
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+	client.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubSw(RRaction action, char *id)
 {
 	char request[201];
 	snprintf(request, 200, "<sw id=\"%s\"  cmd=\"%s\"/>", id, action == RRleft ? "left" : (action == RRright ? "right" : (action == RRstraight ? "straight" : "turnout")));
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+	client.publish(MQTT_CLIENTTOPIC, request);
 }
 
 void MTC4BTMQTTHandler::pubLcFn(char *id, int fn, bool value)
@@ -394,5 +399,5 @@ void MTC4BTMQTTHandler::pubLcFn(char *id, int fn, bool value)
 	} else {
 		snprintf(request, 200, "<fn id=\"%s\" f%d=\"%s\" />", id, fn, value ? "true" : "false");
 	}
-	mqttSubscriberClient.publish(MQTT_CLIENTTOPIC, request);
+	client.publish(MQTT_CLIENTTOPIC, request);
 }

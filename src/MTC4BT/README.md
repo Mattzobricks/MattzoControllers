@@ -71,14 +71,38 @@ The channel supports the `power` field, this must be between 1 and 100, with thi
           ]
 ```
 
-### Using the W5500 ethernet module
+### Wired Ethernet
 
-It is now possible to make a wired network connection using the W5500 module. To enable it in the code, add -DWIRED in `my_platformio.ini`.
+We support only the W5500 module, one a separate module, **any other module or wiring is not supported.**
 
-For now the pins should be connected as follows:
+To select wired or wireless mode a new section in `network_config.json` is introduced and some fields in the `wifi` section are deprecated.
+
+Added is `network`:
+```
+"network" : {
+		"hostname": "<some fancy hostname>",
+		"otaPassword": "<some fancy password>",
+		"type" : "wired"
+}
+```
+The field `type` may have the following two values:
+- `wireless` go in wireless mode (default if the `type` field is not specified;
+- `wired` fo in wired mode.
+
+If there is no wire connected or there is no wireless network, with the configure `wifi` settings, then there will be **NO** network connection!
+
+The deprecated field is the `wifi` section are:
+ - `"hostname"`
+ - `"otaPassword"`
+At the moment, if they are present, these values take precedence over the `network` section values, for backwards compatibility. There will be warnings in the log that you are using deprecated fields!
+
+#### Using the W5500 ethernet module
+
+The pins should be connected as follows:
 
 | W5500 pin  | ESP32 pin |
 |---|---|
+| INT   | GPIO 25 |
 | RESET | GPIO 26 |
 | CS/SS | GPIO 5  |
 | MOSI  | GPIO 23 |
@@ -87,11 +111,6 @@ For now the pins should be connected as follows:
 
 GND and 3V3 are also connected, the other pins are not connected.
 
-If the code is compiled with the -DWIRED, it will try and connect to the network using the W5500 module. If there is no network cable connected, it will fall back to wifi. This is only done at the **STARTUP** of the module, it will **NOT FALLBACK to WiFI** if you disconnect the cable during normal operation, you have to restart the ESP!
-
-OTA will not work when the network connection is over the cable, disconnect the cable and restart the module so it starts in WiFi mode. This limitation is caused by the ArduinoOTA library being hard wired (pun intended) to Wifi.h (at the time of writing). 
-
-The IP address is different for Wifi and cable because an other MAC address is used.
 
 If a status LED is configured, it will turn on solid in network discovery. This will get the other statuses when out of setup and in the regular operation mode.
 

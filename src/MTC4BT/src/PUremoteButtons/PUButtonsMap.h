@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 
 typedef enum {
 	Bnone = 0,

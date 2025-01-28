@@ -69,11 +69,11 @@ void log4MC::vlogf(uint8_t level, const char *fmt, ...)
 
 	initialLen = strlen(fmt);
 
-	message = new char[initialLen + 11];
+	message = new char[initialLen + 20];
 	len = vsnprintf(message, initialLen + 1, fmt, args);
 	if (len > initialLen) {
 		delete[] message;
-		message = new char[len + 11];
+		message = new char[len + 20];
 		vsnprintf(message, len + 1, fmt, args);
 	}
 	va_end(args);
@@ -86,11 +86,11 @@ void log4MC::log(uint8_t level, const char *message)
 {
 	char *msg = NULL;
 	unsigned int len = strlen(message);
-	msg = new char[len + 30];
+	msg = new char[len + 50];
 
 #ifdef ESP32
 	sprintf(msg, "[%04d] [%d] [%s] %s", lineNo, xPortGetCoreID(), log4MC::levelToText(level), message);
-	msg[strlen(msg)] = '\0'; // should be paded by zeros, HAVE TO TEST
+	msg[strlen(msg)] = '\0'; // should be padded by zeros, HAVE TO TEST
 #else
 	sprintf(msg, "[%04d] [%s] %s", lineNo, log4MC::levelToText(level), message);
 	msg[len] = '\0';

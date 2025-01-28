@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 
 enum BLEHubChannel {
 	A = 0,

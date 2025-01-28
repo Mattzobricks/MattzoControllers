@@ -5,6 +5,7 @@
 #include "MCLocoAction.h"
 #include "MCStatusLed.h"
 #include "log4MC.h"
+#include "MCmqtt.h"
 
 MController::MController()
 {
@@ -12,20 +13,20 @@ MController::MController()
 
 MCConnectionStatus MController::GetConnectionStatus()
 {
+	/* leave as old code, but both states uninitialized and initializing have no wifi
 	if (MattzoWifiClient::GetStatus() == WL_UNINITIALIZED) {
 		return MCConnectionStatus::uninitialized;
 	}
-
-	if (MattzoWifiClient::GetStatus() == WL_INITIALIZING) {
+	
+	if (!gotConnection) {
 		return MCConnectionStatus::initializing;
 	}
-
-	if (MattzoWifiClient::GetStatus() != WL_CONNECTED &&
-		MattzoWifiClient::GetStatus() == LinkOFF) {
+	*/
+	if (!gotConnection) {
 		return MCConnectionStatus::connecting_wifi;
 	}
 
-	if (MattzoMQTTSubscriber::GetStatus() != MQTT_CONNECTED) {
+	if (gotConnection && !gotMQTTConnection) {
 		return MCConnectionStatus::connecting_mqtt;
 	}
 
