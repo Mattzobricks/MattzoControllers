@@ -2,6 +2,7 @@
 
 #include "MCChannelController.h"
 #include "MCLightController.h"
+#include "log4MC.h"
 
 #define MIN_PWR_PERC -100
 #define MAX_PWR_PERC 100
@@ -93,6 +94,10 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 
 	if (_ebrake || _mbrake) {
 		// Update of current pwr required (directly to zero), if we're e-braking.
+		if (_ebrake)
+			_currentPwrPerc = 0;
+			// log4MC::vlogf(LOG_DEBUG, "Current power: , ebrake");
+
 		return true;
 	}
 
@@ -135,6 +140,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 
 	// We haven't reached the target pwr yet.
 	_currentPwrPerc = normalizePwrPerc(newPwrPerc);
+	log4MC::vlogf(LOG_DEBUG, "Current power: %d", _currentPwrPerc);
 	return true;
 }
 
