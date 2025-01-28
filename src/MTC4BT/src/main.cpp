@@ -64,7 +64,7 @@ boolean reconnect()
 // WARNING: This function is called from a separate FreeRTOS task (thread)!
 void WiFiEvent(WiFiEvent_t event)
 {
-	log4MC::vlogf(LOG_DEBUG,"[WiFi-event] event: %d\n", event);
+	log4MC::vlogf(LOG_DEBUG, "[WiFi-event] event: %d\n", event);
 
 	switch (event) {
 	case ARDUINO_EVENT_WIFI_READY:
@@ -298,146 +298,128 @@ void setup()
 			// wired connection failed
 			log4MC::error(" \"wired\" hardware fault, or cable problem... cannot continue.");
 		}
-#endif
-#ifdef WAVESHARE_ETH
-	else if (networkConfig->networkType == "wired") {
-			/* WIRED_RESET_P 9
-			   WIRED_CS_P 14
-			   WIRED_INT 10
-			   WIRED_MOSI 11
-			   WIRED_MISO 12
-			   WIRED_SCK 13
-			   */
-			ETH2.setHostname(networkConfig->hostname.c_str());  
-			if (!ETH2.begin(ETH_PHY_W5500, 1, 14, 10, 9,
-							SPI3_HOST,
-							13, 12, 11)) {
-				// wired connection failed
-				log4MC::error(" \"WAVESHARE-ESP32-S3-ETH\" hardware fault, or cable problem... cannot continue.");
-			}
-		}
+	}
 #endif
 
-		log4MC::info("Wait for WiFi/ETH... ");
+	log4MC::info("Wait for WiFi/ETH... ");
 
-		ArduinoOTA.setHostname(networkConfig->hostname.c_str());
-		ArduinoOTA.setPassword(networkConfig->otaPassword.c_str());
+	ArduinoOTA.setHostname(networkConfig->hostname.c_str());
+	ArduinoOTA.setPassword(networkConfig->otaPassword.c_str());
 
-		ArduinoOTA
-			.onStart([]() {
-				String type;
-				if (ArduinoOTA.getCommand() == U_FLASH)
-					type = "sketch";
-				else // U_SPIFFS
-					type = "filesystem";
+	ArduinoOTA
+		.onStart([]() {
+			String type;
+			if (ArduinoOTA.getCommand() == U_FLASH)
+				type = "sketch";
+			else // U_SPIFFS
+				type = "filesystem";
 
-				// NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-				Serial.println("Start updating " + type);
-			})
-			.onEnd([]() {
-				Serial.println("\nEnd");
-			})
-			.onProgress([](unsigned int progress, unsigned int total) {
-				Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-			})
-			.onError([](ota_error_t error) {
-				Serial.printf("Error[%u]: ", error);
-				if (error == OTA_AUTH_ERROR)
-					Serial.println("Auth Failed");
-				else if (error == OTA_BEGIN_ERROR)
-					Serial.println("Begin Failed");
-				else if (error == OTA_CONNECT_ERROR)
-					Serial.println("Connect Failed");
-				else if (error == OTA_RECEIVE_ERROR)
-					Serial.println("Receive Failed");
-				else if (error == OTA_END_ERROR)
-					Serial.println("End Failed");
-			});
+			// NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+			Serial.println("Start updating " + type);
+		})
+		.onEnd([]() {
+			Serial.println("\nEnd");
+		})
+		.onProgress([](unsigned int progress, unsigned int total) {
+			Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+		})
+		.onError([](ota_error_t error) {
+			Serial.printf("Error[%u]: ", error);
+			if (error == OTA_AUTH_ERROR)
+				Serial.println("Auth Failed");
+			else if (error == OTA_BEGIN_ERROR)
+				Serial.println("Begin Failed");
+			else if (error == OTA_CONNECT_ERROR)
+				Serial.println("Connect Failed");
+			else if (error == OTA_RECEIVE_ERROR)
+				Serial.println("Receive Failed");
+			else if (error == OTA_END_ERROR)
+				Serial.println("End Failed");
+		});
 
-		ArduinoOTA.begin();
+	ArduinoOTA.begin();
 
-		log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
+	log4MC::vlogf(LOG_INFO, "MQTT: Connecting to %s:%u...", networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
 
-		client.setServer(networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
-		client.setKeepAlive(networkConfig->MQTT->KeepAlive);
-		client.setBufferSize(MAXBUFFERSIZE);
-		client.setCallback(mqttCallback);
+	client.setServer(networkConfig->MQTT->ServerAddress.c_str(), networkConfig->MQTT->ServerPort);
+	client.setKeepAlive(networkConfig->MQTT->KeepAlive);
+	client.setBufferSize(MAXBUFFERSIZE);
+	client.setCallback(mqttCallback);
 
-		delay(1500);
-		lastReconnectAttempt = 0;
-		// controller->setStatusLedInSetup(0); // led off
+	delay(1500);
+	lastReconnectAttempt = 0;
+	// controller->setStatusLedInSetup(0); // led off
 
-		// all network stuff is done, start the scanner
-		controller->SetupScanner();
+	// all network stuff is done, start the scanner
+	controller->SetupScanner();
 
-		log4MC::info("Setup: MattzoTrainController for BLE running.");
+	log4MC::info("Setup: MattzoTrainController for BLE running.");
 
-		if (controllerConfig->LocoConfigs.size() != 0 || controllerConfig->RemoteConfigs.size() != 0) {
-			log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
-			log4MC::vlogf(LOG_INFO, "Setup: Number of remotes to discover hubs for: %u", controllerConfig->RemoteConfigs.size());
-		} else {
-			log4MC::vlogf(LOG_WARNING, "No locomotives or remote found in the configuration, going into BLE scan mode.");
-		}
+	if (controllerConfig->LocoConfigs.size() != 0 || controllerConfig->RemoteConfigs.size() != 0) {
+		log4MC::vlogf(LOG_INFO, "Setup: Number of locos to discover hubs for: %u", controllerConfig->LocoConfigs.size());
+		log4MC::vlogf(LOG_INFO, "Setup: Number of remotes to discover hubs for: %u", controllerConfig->RemoteConfigs.size());
+	} else {
+		log4MC::vlogf(LOG_WARNING, "No locomotives or remote found in the configuration, going into BLE scan mode.");
+	}
 
-		// stuff for the remote
-		locs.reserve(10);
+	// stuff for the remote
+	locs.reserve(10);
 
 #ifdef ESP32
 #ifdef SETUPTICKER
-		setupTicker();
-		log4MC::info("Ticker started");
+	setupTicker();
+	log4MC::info("Ticker started");
 #endif
 #endif
+}
+
+void loop()
+{
+	static unsigned long checkedForRocrail = millis() + 12000; // force a loco lookup on startup
+	static long connectionStartTime = millis();
+	if (millis() - connectionStartTime > 30000 && !gotConnection) {
+		log4MC::info("No connection... ");
+		connectionStartTime = millis();
 	}
 
-	void loop()
-	{
-		static unsigned long checkedForRocrail = millis() + 12000; // force a loco lookup on startup
-		static long connectionStartTime = millis();
-		if (millis() - connectionStartTime > 30000 && !gotConnection) {
-			log4MC::info("No connection... ");
-			connectionStartTime = millis();
-			// WiFi.disconnect(true);
-			// WiFi.begin(ssid, password);
+	// only try to connect to mqtt if we have a network connection
+	if (!client.connected() && gotConnection) {
+		long now = millis();
+		gotMQTTConnection = false;
+		if (now - lastReconnectAttempt > 5000) {
+			lastReconnectAttempt = now;
+			// Attempt to reconnect
+			log4MC::info("Try mqtt reconnect... ");
+			if (reconnect()) {
+				lastReconnectAttempt = 0;
+				log4MC::info("Reconnected!");
+				gotMQTTConnection = true;
+				controller->setStatusLedInSetup(0); // led off
+			}
 		}
+	} else {
+		// Client connected
 
-		if (!client.connected()) {
-			long now = millis();
-			gotMQTTConnection = false;
-			if (now - lastReconnectAttempt > 5000) {
-				lastReconnectAttempt = now;
-				// Attempt to reconnect
-				log4MC::info("Try mqtt reconnect... ");
-				if (reconnect()) {
-					lastReconnectAttempt = 0;
-					log4MC::info("Reconnected!");
-					gotMQTTConnection = true;
-					controller->setStatusLedInSetup(0); // led off
-				}
+		client.loop();
+	}
+
+	controller->Loop();
+	ArduinoOTA.handle();
+
+	// Next statement is to load the loco configs into the EPS, but only if we have configured remotes
+	// we test every 10 seconds for rocrail availability!
+	// side effect, if there is a plan without any it will also test every 10 seconds.
+	if (controllerConfig->RemoteConfigs.size() != 0) {
+		// we have configured remotes
+		if (locs.size() == 0) {
+			if ((millis() - checkedForRocrail > 10000)) {
+				// no loco's
+				MTC4BTMQTTHandler::pubGetShortLcList();
+				checkedForRocrail = millis();
 			}
 		} else {
-			// Client connected
-
-			client.loop();
-		}
-
-		controller->Loop();
-		ArduinoOTA.handle();
-
-		// Next statement is to load the loco configs into the EPS, but only if we have configured remotes
-		// we test every 10 seconds for rocrail availability!
-		// side effect, if there is a plan without any it will also test every 10 seconds.
-		if (controllerConfig->RemoteConfigs.size() != 0) {
-			// we have configured remotes
-			if (locs.size() == 0) {
-				if ((millis() - checkedForRocrail > 10000)) {
-					// no loco's
-					MTC4BTMQTTHandler::pubGetShortLcList();
-					checkedForRocrail = millis();
-				}
-			} else {
-				// we have a loco list, so there is a connection with Rocrail
-				controller->initFirstItems();
-			}
+			// we have a loco list, so there is a connection with Rocrail
+			controller->initFirstItems();
 		}
 	}
+}

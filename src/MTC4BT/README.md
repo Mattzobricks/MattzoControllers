@@ -73,7 +73,7 @@ The channel supports the `power` field, this must be between 1 and 100, with thi
 
 ### Wired Ethernet
 
-We support only the W5500 module, one a separate module and one integrated, the waveshare-esp32s3-eth, **any other module or wiring is not supported.**
+We support only the W5500 module, one a separate module, **any other module or wiring is not supported.**
 
 To select wired or wireless mode a new section in `network_config.json` is introduced and some fields in the `wifi` section are deprecated.
 
@@ -113,10 +113,6 @@ GND and 3V3 are also connected, the other pins are not connected.
 
 
 If a status LED is configured, it will turn on solid in network discovery. This will get the other statuses when out of setup and in the regular operation mode.
-
-#### Waveshare ESP32-S3 ETH
-
-This board comes standard with a W5500 module, select this board in platformio and it will be correctly configured.
 
 ### Configuring the PURemote
 
