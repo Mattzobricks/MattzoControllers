@@ -92,8 +92,8 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 {
 	unsigned long timeStamp = millis();
 
-	if (_ebrake || _mbrake) {
-		// Update of current pwr required (directly to zero), if we're e-braking.
+	if (_ebrake || _mbrake || _targetPwrPerc == 0) {
+		// Update of current pwr required (directly to zero), if we're e-braking, power is off, or the train shall stop.
 		_currentPwrPerc = 0;
 		return true;
 	}
@@ -133,13 +133,14 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 		return true;
 	}
 
+/*
 	if (abs(newPwrPerc) < _minPwrPerc) {
 		// New pwr is slower than min pwr, force to min pwr or stop immediately (dependent on wether we're accelerating or decelerating).
 		dirMultiplier = newPwrPerc >= 0 ? 1 : -1;
 		_currentPwrPerc = isAccelarating() ? _minPwrPerc * dirMultiplier : 0;
 		return true;
 	}
-
+*/
 	// We haven't reached the target pwr yet.
 	_currentPwrPerc = normalizePwrPerc(newPwrPerc);
 	log4MC::vlogf(LOG_DEBUG, "Current power: %d", _currentPwrPerc);

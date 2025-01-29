@@ -179,11 +179,13 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
 		return;
 	}
 
+/*
 	if (speed != 0 && speed < minSpeed) {
 		// Requested speed is too low, we should ignore this command.
 		log4MC::vlogf(LOG_DEBUG, "MQTT: Received and ignored 'lc' command, because speed (%u) was below V_min (%u).", speed, minSpeed);
 		return;
 	}
+*/
 
 	// Get max speed.
 	int maxSpeed;
