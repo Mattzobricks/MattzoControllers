@@ -406,7 +406,7 @@ void loop()
 	controller->Loop();
 	ArduinoOTA.handle();
 
-	// Next statement is to load the loco configs into the EPS, but only if we have configured remotes
+	// Next statement is to load the loco configs into the ESP, but only if we have configured remotes
 	// we test every 10 seconds for rocrail availability!
 	// side effect, if there is a plan without any it will also test every 10 seconds.
 	if (controllerConfig->RemoteConfigs.size() != 0) {

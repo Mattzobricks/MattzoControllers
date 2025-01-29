@@ -94,10 +94,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 
 	if (_ebrake || _mbrake) {
 		// Update of current pwr required (directly to zero), if we're e-braking.
-		if (_ebrake)
-			_currentPwrPerc = 0;
-		// log4MC::vlogf(LOG_DEBUG, "Current power: , ebrake");
-
+		_currentPwrPerc = 0;
 		return true;
 	}
 

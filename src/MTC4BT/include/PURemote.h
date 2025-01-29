@@ -33,6 +33,8 @@ class PURemote : public PUHub
 
 	HubLedColor getConfigLedColor();
 
+	void stopAllLocs();
+
   protected:
 	lc *currentLC;		   // used in list mode
 	std::vector<lc *> lcs; // used in free mode

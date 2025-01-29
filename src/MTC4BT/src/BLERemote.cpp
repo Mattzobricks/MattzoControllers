@@ -41,8 +41,24 @@ void BLERemote::initHubs()
 		}
 		// Next is needed for connection scanning!
 		if (hub) {
-			// hub->SetConnectCallback([this](bool connected) -> void { handleConnectCallback(connected); });
+			hub->SetConnectCallback([this](bool connected) -> void { handleConnectCallback(connected); });
 			Hubs.push_back(hub);
 		}
+	}
+}
+
+void BLERemote::handleConnectCallback(bool connected)
+{
+	if (!connected) {
+		// stop all locomotives
+		this->stopAllLocs();
+	}
+}
+
+void BLERemote::stopAllLocs()
+{
+	for (BLEHub *hub : Hubs) {
+		PURemote *remote = (PURemote *) hub;
+		remote->stopAllLocs();
 	}
 }

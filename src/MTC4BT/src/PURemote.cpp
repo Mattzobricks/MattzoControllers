@@ -1,10 +1,10 @@
 #include <Arduino.h>
 
 #include "DriverTaskDelay.h"
+#include "MCmqtt.h"
 #include "MTC4BTMQTTHandler.h"
 #include "PURemote.h"
 #include "log4MC.h"
-#include "MCmqtt.h"
 #include <PubSubClient.h>
 
 #include "remoteList/modetypes.h"
@@ -25,6 +25,7 @@ PURemote::PURemote(BLEHubConfiguration *config)
 	// for the locos we need the short list to make it addressable by id and addr
 	if (_config->mode == listMode) {
 		currentLC = new lc(NULL, 0, false, 0, 0, 0);
+		lcs.push_back(currentLC);
 	} else if (config->mode == freeMode) {
 		// create a vector of lc's on all the buttons
 		lcs = _config->buttons->getAllLocoItems();
@@ -195,6 +196,19 @@ bool PURemote::setColourAndLC(freeListItem *item)
 		log4MC::error("Somehow this locomotive is misconfigured, find the error in the json file.");
 	}
 	SetHubLedColor(item->ledColour);
+	lc *foundLoco = NULL;
+	for (lc *loco : lcs) {
+		if (loco->addr == item->addr || loco->id == item->id || (loco->addr == 0 && loco->id == NULL)) {
+			foundLoco = loco;
+			break;
+		}
+	}
+	if (foundLoco) {
+		currentLC = foundLoco;
+	} else {
+		currentLC = new lc(NULL, 0, false, 0, 0, 0);
+		lcs.push_back(currentLC);
+	}
 	currentLC->setIdandAddr(item->id, item->addr, false);
 	MTC4BTMQTTHandler::pubGetLcInfo(item->id);
 	return true;
@@ -517,5 +531,12 @@ void PURemote::buttonHandleAction(PUbutton button)
 			}
 			vTaskDelay(PUFREELISTACTIONDELAY / portTICK_PERIOD_MS); // don't spam mqtt
 		}
+	}
+}
+
+void PURemote::stopAllLocs()
+{
+	for (lc *loco : lcs) {
+		setLocSpeed(loco, 0);
 	}
 }

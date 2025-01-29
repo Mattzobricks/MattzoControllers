@@ -44,11 +44,7 @@ class BLERemote : public BLEbaseDevice
 	// If false, releases the manual brake, returning the loco to normal operations.
 	void setManualBrake(const bool enabled);
 
-	// Returns a reference to a hub by its address.
-	//    BLEHub *getHubByAddress(std::string address);
-
-	// Returns a list of references to functions of the given type configured for this loco.
-	// std::vector<MCFunctionBinding *> getFunctions(MCFunction f);
+	void stopAllLocs();
 
 	// Returns a list of references to leds inside this loco.
 	std::vector<MCLedBase *> _espLeds;
