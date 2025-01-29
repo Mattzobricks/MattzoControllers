@@ -420,7 +420,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
 
     // this section may be commented out to prevent the head and rear lights from being switched off upon stop
     // stop: all exterior lights off. front and rear lights off
-    {
+/*  {
         // head lights red off
         .locoAddress = 7938,
         .lightEventType = LightEventType::STOP,
@@ -455,6 +455,7 @@ TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_T
         .trainLightIndex = 6,
         .trainLightStatus = TrainLightStatus::OFF
 	},
+*/
 };
 
 // ***************************
