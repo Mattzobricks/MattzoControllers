@@ -1,0 +1,38 @@
+{
+	"type": "PUController",
+	"name": "My PUC in list mode",
+	"address": "e4:e1:12:6b:c2:ad",
+	"mode": "list",
+	"list": [
+		{
+			"addr": 200,
+			"type": "loco",
+			"color": "red"
+		},
+		{
+			"id": "sw3",
+			"type": "switch",
+			"color": "pink"
+		},
+		{
+			"id": "sw5",
+			"type": "switch",
+			"color": "white"
+		},
+		{
+			"id": "sw14",
+			"type": "switch3",
+			"color": "purple"
+		},
+		{
+			"id": "sg10+",
+			"type": "signal",
+			"color": "lightblue"
+		},
+		{
+			"id": "sg_sb2exit",
+			"type": "signal",
+			"color": "green"
+		}
+	]
+}
