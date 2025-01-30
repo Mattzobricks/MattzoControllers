@@ -126,11 +126,6 @@ void BLEHub::SetManualBrake(const bool enabled)
 // If false, releases the emergency brake.
 void BLEHub::SetEmergencyBrake(const bool enabled)
 {
-	if (enabled == _ebrake) {
-		// Status hasn't changed. Ignore.
-		return;
-	}
-
 	// Set hub e-brake status.
 	_ebrake = enabled;
 
