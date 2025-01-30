@@ -4,33 +4,30 @@
 #include "MCLightController.h"
 #include "MCLocoAction.h"
 #include "MCStatusLed.h"
-#include "log4MC.h"
 #include "MCmqtt.h"
+#include "log4MC.h"
 
 MController::MController()
 {
+	_ebrake = false;
 }
 
 MCConnectionStatus MController::GetConnectionStatus()
 {
-	/* leave as old code, but both states uninitialized and initializing have no wifi
-	if (MattzoWifiClient::GetStatus() == WL_UNINITIALIZED) {
-		return MCConnectionStatus::uninitialized;
-	}
-	
-	if (!gotConnection) {
-		return MCConnectionStatus::initializing;
-	}
-	*/
 	if (!gotConnection) {
 		return MCConnectionStatus::connecting_wifi;
+	} else {
+		// gotConnection = true
+		if (!gotMQTTConnection) {
+			return MCConnectionStatus::connecting_mqtt;
+		} else {
+			// gotConnection = true
+			// gotMQTTConnection = true
+			return MCConnectionStatus::connected;
+		}
 	}
-
-	if (gotConnection && !gotMQTTConnection) {
-		return MCConnectionStatus::connecting_mqtt;
-	}
-
-	return MCConnectionStatus::connected;
+	// should not happen
+	return MCConnectionStatus::uninitialized;
 }
 
 void MController::Setup(MCConfiguration *config)
