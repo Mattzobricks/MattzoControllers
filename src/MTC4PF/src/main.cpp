@@ -15,6 +15,14 @@
 #include "../conf/my/controller_config.h"
 #include "../conf/my/network_config.h"
 
+// STOP_IMMEDIATELY can be optionally defined in controller_config.h to avoid an immediate stop of the loco when the loco is commanded to stop.
+// This can be useful for lcoos without standard LEGO or 3rd party train motors, because LEGO PF XL motors or LEGO PU L motors have a tendency to stop a trian brutally
+// In these cases it may be better to add a line '#define STOP_IMMEDIATELY false' in controller_config.h to avoid abrupt stops.
+// This is only relevant for normal braking action; all trains stop immediately upon e-brake or power-off conditions independently of their target speed.
+#ifndef STOP_IMMEDIATELY
+#define STOP_IMMEDIATELY true
+#endif
+
 // Array of loco classes
 class MattzoLoco myLocos[NUM_LOCOS];
 // Array of motor shield classes
@@ -487,7 +495,6 @@ String redBlueStringByIRPort(MattzoPowerFunctionsPort port)
 // gently adapt train speed (increase/decrease slowly)
 void accelerateTrainSpeed()
 {
-#define STOP_IMMEDIATELY true
 	boolean accelerateFlag;
 	int step;
 	int nextSpeed;
