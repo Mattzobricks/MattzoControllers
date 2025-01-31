@@ -1,0 +1,13 @@
+{
+	"name": "MTC4BT-E03-8W",
+	"espPins": [],
+	"fn": [],
+	"locos": [],
+	"remotes": [],
+	"locoConfigs": [
+		"/loco_E03-8W.json"
+	],
+	"remoteConfigs": [
+		"/remote_E03-8W.json"
+	]
+}

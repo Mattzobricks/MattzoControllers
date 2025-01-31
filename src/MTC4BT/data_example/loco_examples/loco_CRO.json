@@ -1,8 +1,9 @@
 {
 	"address": 10277,
 	"name": "CRO",
-	"pwrIncStep": 2,
-	"pwrDecStep": 3,
+	"pwrIncStep": 10,
+	"pwrDecStep": 10,
+	"stopImmediately": false,
 	"bleHubs": [
 		{
 			"type": "PU",

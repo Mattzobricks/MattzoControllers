@@ -1,8 +1,9 @@
 {
 	"address": 3441,
 	"name": "OE-PU",
-	"pwrIncStep": 2,
-	"pwrDecStep": 3,
+	"pwrIncStep": 10,
+	"pwrDecStep": 10,
+	"stopImmediately": false,
 	"bleHubs": [
 		{
 			"type": "PU",

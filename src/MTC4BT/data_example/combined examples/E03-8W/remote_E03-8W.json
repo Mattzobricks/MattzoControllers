@@ -1,0 +1,55 @@
+{
+	"type": "PUController",
+	"name": "PU remote for E03-8W",
+	"address": "fc:a8:9b:57:83:90",
+	"mode": "free",
+	"color": "yellow",
+	"buttons": [
+		{
+			"button": "A+",
+			"type": "loco",
+			"addr": 1038,
+			"action": "inc"
+		},
+		{
+			"button": "A-",
+			"type": "loco",
+			"addr": 1038,
+			"action": "dec"
+		},
+		{
+			"button": "Ared",
+			"type": "loco",
+			"addr": 1038,
+			"action": "stop"
+		},
+
+		{
+			"button": "B+",
+			"type": "loco",
+			"addr": 1038,
+			"action": "fn1",
+			"fn-action": "push"
+		},
+		{
+			"button": "B-",
+			"type": "loco",
+			"addr": 1038,
+			"action": "fn2",
+			"fn-action": "push"
+		},
+		{
+			"button": "Bred",
+			"type": "loco",
+			"addr": 1038,
+			"action": "fn3",
+			"fn-action": "push"
+		},
+
+		{
+			"button": "green",
+			"type": "system",
+			"action": "go"
+		}
+	]
+}

@@ -1,8 +1,8 @@
 {
     "address": 6197,
     "name": "EST",
-    "pwrIncStep": 2,
-    "pwrDecStep": 3,
+    "pwrIncStep": 5,
+    "pwrDecStep": 5,
     "bleHubs": [
         {
             "type": "PU",

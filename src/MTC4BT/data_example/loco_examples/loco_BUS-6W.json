@@ -1,8 +1,8 @@
 {
 	"address": 986,
 	"name": "BUS6W",
-	"pwrIncStep": 2,
-	"pwrDecStep": 3,
+	"pwrIncStep": 5,
+	"pwrDecStep": 5,
 	"bleHubs": [
 		{
 			"type": "PU",

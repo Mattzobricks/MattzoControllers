@@ -1,8 +1,8 @@
 {
     "address": 6051,
     "name": "ICE",
-    "pwrIncStep": 2,
-    "pwrDecStep": 3,
+    "pwrIncStep": 5,
+    "pwrDecStep": 5,
     "bleHubs": [
         {
             "type": "SBrick",

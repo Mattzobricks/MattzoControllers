@@ -1,8 +1,9 @@
 {
     "address": 1809,
     "name": "BR52-1809",
-    "speedStep": 2,
-    "brakeStep": 3,
+    "speedStep": 5,
+    "brakeStep": 5,
+	"stopImmediately": false,
     "bleHubs": [
         {
             "type": "SBrick",
