@@ -56,7 +56,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 				attachedDevice = "light";
 			}
 
-			channels.push_back(new MCChannelConfig(hubChannel, locoStopImmediately,chnlPwrIncStep, chnlPwrDecStep, isInverted, chnlPwr, deviceTypeMap()[attachedDevice]));
+			channels.push_back(new MCChannelConfig(hubChannel, locoStopImmediately, chnlPwrIncStep, chnlPwrDecStep, isInverted, chnlPwr, deviceTypeMap()[attachedDevice]));
 		}
 
 		hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buwizzPowerMap()[powerlevel]));
@@ -122,6 +122,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 				if (actionConfig["address"].is<std::string>()) {
 					// Specific hub address specified, so find it.
 					for (BLEHubConfiguration *hub : hubs) {
+						log4MC::vlogf(LOG_DEBUG, "hub address: \"%s\", config address: \"%s\"", hub->DeviceAddress->toString().c_str(), address.c_str());
 						if (hub->DeviceAddress->toString().compare(address) == 0) {
 							foundHub = hub;
 							break;
@@ -133,28 +134,29 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 				}
 
 				if (foundHub == nullptr) {
-					log4MC::vlogf(LOG_ERR, "Config: Hub '%s' not configured in this loco's 'bleHubs' section.", address);
-				}
+					log4MC::vlogf(LOG_ERR, "Config: Hub '%s' not configured in this loco's 'bleHubs' section.", address.c_str());
+				} else {
 
-				// Check if the specified channel is defined in the hub config.
-				for (MCChannelConfig *channelConfig : foundHub->Channels) {
-					if (channelConfig->GetChannel()->GetAddress().compare(channel) == 0) {
-						foundChannel = channelConfig;
-						break;
+					// Check if the specified channel is defined in the hub config.
+					for (MCChannelConfig *channelConfig : foundHub->Channels) {
+						if (channelConfig->GetChannel()->GetAddress().compare(channel) == 0) {
+							foundChannel = channelConfig;
+							break;
+						}
 					}
-				}
 
-				if (foundChannel == nullptr) {
-					log4MC::vlogf(LOG_ERR, "Config: Hub channel %s not configured in this loco's 'bleHubs' section.", channel);
+					if (foundChannel == nullptr) {
+						log4MC::vlogf(LOG_ERR, "Config: Hub channel %s not configured in this loco's 'bleHubs' section.", channel.c_str());
+					}
 				}
 
 				break;
 			}
 			}
-
-			actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc, hubLedColorMap()[color]));
+			if (foundChannel)
+				actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc, hubLedColorMap()[color]));
 		}
-
+		// TODO: do sanity check
 		events.push_back(new MCLocoEvent(triggers, actions));
 	}
 
