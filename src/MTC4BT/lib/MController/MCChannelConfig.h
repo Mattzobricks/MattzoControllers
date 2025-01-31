@@ -7,7 +7,7 @@
 class MCChannelConfig
 {
   public:
-	MCChannelConfig(MCChannel *channel, int pwrIncStep, int pwrDecStep, bool isInverted, int pinPwr, DeviceType deviceType);
+	MCChannelConfig(MCChannel *channel, bool locoStopImmediately, int pwrIncStep, int pwrDecStep, bool isInverted, int pinPwr, DeviceType deviceType);
 
 	// Returns the channel.
 	MCChannel *GetChannel();
@@ -27,6 +27,8 @@ class MCChannelConfig
 	// Returns the type of device attached to the channel.
 	DeviceType GetAttachedDeviceType();
 
+	bool getLocoStopImmediately();
+
   private:
 	// Type of port.
 	MCChannel *_channel;
@@ -40,6 +42,7 @@ class MCChannelConfig
 	// Boolean value indicating whether the attached device' polarity is inverted.
 	bool _isInverted;
 
+	bool _locoStopImmediately;
 	// Power percentage 0-100.
 	int _pwr;
 

@@ -49,7 +49,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
 	MCChannel *hubChannel = new MCChannel(ChannelType::BleHubChannel, "LED");
 	hubChannel->SetParentAddress(address);
 	std::string attachedDevice = "light";
-	channels.push_back(new MCChannelConfig(hubChannel, hubPwrIncStep, hubPwrDecStep, false, 100, deviceTypeMap()[attachedDevice]));
+	channels.push_back(new MCChannelConfig(hubChannel, false, hubPwrIncStep, hubPwrDecStep, false, 100, deviceTypeMap()[attachedDevice]));
 
 	JsonArray freeConfigs;
 	JsonArray buttonConfigs;
