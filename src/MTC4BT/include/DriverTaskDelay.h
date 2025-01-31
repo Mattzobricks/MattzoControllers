@@ -11,5 +11,5 @@ or some other value
 #endif
 
 #ifndef PUFREELISTACTIONDELAY
-#define PUFREELISTACTIONDELAY 100
+#define PUFREELISTACTIONDELAY 250
 #endif
