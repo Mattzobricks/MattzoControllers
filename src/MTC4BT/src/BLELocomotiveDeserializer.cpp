@@ -9,6 +9,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 	const std::string name = locoConfig["name"]; // | "loco_" + locoConfig["address"];
 	int16_t locoPwrIncStep = locoConfig["pwrIncStep"] | defaultPwrIncStep;
 	int16_t locoPwrDecStep = locoConfig["pwrDecStep"] | defaultPwrDecStep;
+	bool locoStopImmediately = locoConfig["stopImmediately"] | true;
 
 	// Iterate over hub configs and copy values from the JsonDocument to BLEHubConfiguration objects.
 	std::vector<BLEHubConfiguration *> hubs;
@@ -55,7 +56,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 				attachedDevice = "light";
 			}
 
-			channels.push_back(new MCChannelConfig(hubChannel, chnlPwrIncStep, chnlPwrDecStep, isInverted, chnlPwr, deviceTypeMap()[attachedDevice]));
+			channels.push_back(new MCChannelConfig(hubChannel, locoStopImmediately,chnlPwrIncStep, chnlPwrDecStep, isInverted, chnlPwr, deviceTypeMap()[attachedDevice]));
 		}
 
 		hubs.push_back(new BLEHubConfiguration(bleHubTypeMap()[hubType], address, channels, buwizzPowerMap()[powerlevel]));

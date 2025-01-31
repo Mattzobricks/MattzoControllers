@@ -3,8 +3,8 @@
 #include "MCChannelConfig.h"
 
 MCChannelConfig::MCChannelConfig(
-	MCChannel *channel, int pwrIncStep, int pwrDecStep, bool isInverted, int pwr, DeviceType deviceType)
-	: _channel{channel}, _pwrIncStep{pwrIncStep}, _pwrDecStep{pwrDecStep}, _isInverted{isInverted}, _pwr{pwr}, _deviceType{deviceType}
+	MCChannel *channel, bool locoStopImmediately, int pwrIncStep, int pwrDecStep, bool isInverted, int pwr, DeviceType deviceType)
+	: _channel{channel}, _locoStopImmediately{locoStopImmediately}, _pwrIncStep{pwrIncStep}, _pwrDecStep{pwrDecStep}, _isInverted{isInverted}, _pwr{pwr}, _deviceType{deviceType}
 {
 }
 
@@ -35,4 +35,9 @@ int MCChannelConfig::GetPwr()
 DeviceType MCChannelConfig::GetAttachedDeviceType()
 {
 	return _deviceType;
+}
+
+bool MCChannelConfig::getLocoStopImmediately()
+{
+	return _locoStopImmediately;
 }
