@@ -831,6 +831,7 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState)
 	}
 }
 
+
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle)
 {
@@ -838,10 +839,12 @@ void setServoAngle(int servoIndex, int servoAngle)
 	if (servoIndex >= 0 && servoIndex < NUM_SERVOS) {
 		if (servoConfiguration[servoIndex].pinType == 0) {
 			if (!mattzoServo[servoIndex].isAttached) {
-				mcLog2("Attaching servo index " + String(servoIndex), LOG_DEBUG);
-				mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin);
+				mcLog2("Attaching servo index " + String(servoIndex) + " and turning to angle " + String(servoAngle), LOG_DEBUG);
+				mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin, DEFAULT_MIN_PULSE_WIDTH, DEFAULT_MAX_PULSE_WIDTH, servoAngle);
+			} else {
+				mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+				mattzoServo[servoIndex].servo.write(servoAngle);
 			}
-			mattzoServo[servoIndex].servo.write(servoAngle);
 		}
 #if USE_PCA9685
 		else if (servoConfiguration[servoIndex].pinType >= 0x40) {
@@ -852,7 +855,7 @@ void setServoAngle(int servoIndex, int servoAngle)
 #endif
 		else {
 			// this should not happen
-			mcLog2("WARNING: servo index " + String(servoIndex) + " unknown pinType " + String(servoConfiguration[servoIndex].pinType), LOG_ALERT);
+			mcLog2("WARNING in setServoAngle(): servo index " + String(servoIndex) + " unknown pinType " + String(servoConfiguration[servoIndex].pinType), LOG_ALERT);
 		}
 
 		// Set values required for later servo detaching (power off)
@@ -860,7 +863,7 @@ void setServoAngle(int servoIndex, int servoAngle)
 		mattzoServo[servoIndex].isAttached = true;
 	} else {
 		// this should not happen
-		mcLog2("WARNING: servo index " + String(servoIndex) + " out of range!", LOG_ALERT);
+		mcLog2("WARNING in setServoAngle(): servo index " + String(servoIndex) + " out of range!", LOG_ALERT);
 	}
 }
 
