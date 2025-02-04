@@ -157,9 +157,10 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 				actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc, hubLedColorMap()[color]));
 		}
 		// TODO: do sanity check
+		log4MC::vlogf(LOG_DEBUG,"Number of triggers (%d) and actions (%d) loaded for this event.",triggers.size(), actions.size());
 		events.push_back(new MCLocoEvent(triggers, actions));
 	}
-
+	log4MC::vlogf(LOG_DEBUG,"Number of events loaded: %d.",events.size());
 	BLELocomotiveConfiguration *loco = new BLELocomotiveConfiguration(address, name, hubs, events);
 
 	return loco;
