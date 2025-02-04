@@ -137,6 +137,7 @@ void WiFiEvent(WiFiEvent_t event)
 		break;
 	case ARDUINO_EVENT_ETH_START:
 		log4MC::debug("Ethernet started");
+		ETH2.setHostname(networkConfig->hostname.c_str());
 		break;
 	case ARDUINO_EVENT_ETH_STOP:
 		log4MC::debug("Ethernet stopped");
@@ -175,7 +176,7 @@ void ETHGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 	Serial.println("ETH connected");
 	Serial.println("IP address: ");
 	Serial.println(IPAddress(info.got_ip.ip_info.ip.addr));
-	Serial.printf(" MAC Address: %s\n", WiFi.macAddress().c_str());
+	Serial.printf(" MAC Address: %s\n", ETH.macAddress().c_str());
 
 	gotConnection = true;
 }
@@ -291,7 +292,6 @@ void setup()
 			WIRED_MISO 19
 			WIRED_SCK 18
 		*/
-		ETH2.setHostname(networkConfig->hostname.c_str());
 		if (!ETH.begin(ETH_PHY_W5500, 1, 5, 25, 26,
 					   SPI3_HOST,
 					   18, 19, 23)) {
