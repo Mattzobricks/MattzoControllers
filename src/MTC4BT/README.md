@@ -118,56 +118,142 @@ If a status LED is configured, it will turn on solid in network discovery. This 
 
 #### Configuring the `controller_config.json`
 
-The configuration has two modes, a range mode and a fixed mode.
+The configuration has two modes, a list mode and a free mode.
 
-##### Range mode
+##### List mode
 
-In the range mode, the configuration looks something like this:
+In the list mode, the configuration looks something like this:
 
-```
-   {
-      "address": 99999,
-      "name": "Lego",
-      "bleHubs": [
+``
+    "remotes": [
         {
-          "type": "PUController",
-          "address": "e4:.....",
-          "range": {
-            "min": 1,
-            "max": 10
-          }
+            "name": "Lego remote",
+            "type": "PUController",
+            "address": "e4:e1:12:9b:42:14",
+            "mode": "list",
+            "list": [
+                {
+                    "id": "V100",
+                    "type": "loco",
+                    "color": "yellow"
+                },
+                {
+                    "addr": 2,
+                    "type": "loco",
+                    "color": "red"
+                },
+                {
+                    "id": "sw21",
+                    "type": "switch",
+                    "color": "pink"
+                },
+                {
+                    "id": "sg24",
+                    "type": "signal",
+                    "color": "lightblue"
+                },
+                {
+                    "id": "sw26",
+                    "type": "switch",
+                    "color": "blue"
+                }
+            ]
         }
-      ]
-    },
+    ]
 ```
 
-The fields `address` and `name` are not used, but there should be a unique value in it to prevent strange behaviour and it should not be in the addresses and names that Rocrail uses!
+When allowed types are:
+ - "loco"
+ - "switch"
+ - "switch3"
+ - "signal"
+ - "output"
+ - "system"
 
-`min` and `max` indicate the locomotive address range in which you can select a locomotive.
+**Only** with the "loco" type you may use "id" or "addr", all other types **only** allow for "id".
 
-##### Fixed mode
+##### Free mode
 
-In the fixed mode, the configuration looks something like this:
+In the free mode, the configuration looks something like this:
 
 ```
-    {
-      "address": 99999,
-      "name": "Lego",
-      "bleHubs": [
+    "remotes" : [
         {
-          "type": "PUController",
-          "address": "e4:......",
-          "range": {
-            "portA": 1,
-            "portB": 2
-          }
+            "name": "Lego remote",
+            "type": "PUController",
+            "address": "e4:e1:12:9b:42:14",
+            "mode": "free",
+            "buttons": [
+                {
+                    "button": "A+",
+                    "type": "signal",
+                    "id": "vs23-",
+                    "action": "green"
+                },
+                {
+                    "button": "A+",
+                    "type": "switch",
+                    "id": "sw22",
+                    "action": "straight"
+                },
+                {
+                    "button": "A+",
+                    "type": "switch",
+                    "id": "sg02-",
+                    "action": "green"
+                },
+                {
+                    "button": "A-",
+                    "type": "switch",
+                    "id": "sw21",
+                    "action": "flip"
+                },
+                {
+                    "button": "Ared",
+                    "type": "switch",
+                    "id": "sw26",
+                    "action": "flip"
+                },
+                {
+                    "button": "B+",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "inc"
+                },
+                {
+                    "button": "Bred",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "stop"
+                },
+                {
+                    "button": "B-",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "dec"
+                },
+                {
+                    "button": "Green",
+                    "type": "loco",
+                    "id": "V100",
+                    "action": "fn4",
+		                "fn-action" : "on"
+                }
+            ]
         }
-      ]
-    },
-```    
-he fields `address` and `name` are not used, but there should be a unique value in it to prevent strange behaviour and it should not be in the addresses and names that Rocrail uses!
+    ]
+```
+    
+Same types as the list mode, the allowed values for buttons are:
+ - "A-"
+ - "A+"
+ - "Ared"
+ - "B-"
+ - "B+"
+ - "Bred"
+ - "Green"
 
-`portA` and `portB` holds the address of the locomotive you want to control.
+For more information on how to used it see [mattzobricks](https://mattzobricks.com/automation/train-automation/mtc4bt/mtc4bt-with-remote-controls)
 
 #### Working with a PURemote
 
