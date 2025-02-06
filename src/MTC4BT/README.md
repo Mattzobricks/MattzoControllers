@@ -291,10 +291,10 @@ Buttons on port A for locomotives:
  - 'red' button, set the speed to 0.
 
 For the other devices:
- - For switches:*
-  - A+: straight (triple switch: left)
-  - Ared: flip (triple switch: straight)
-  - A-: turnout (triple switch: right)
+ - For switches:
+   - A+: straight (triple switch: left)
+   - Ared: flip (triple switch: straight)
+   - A-: turnout (triple switch: right)
  - For outputs:
    - A+: on
    - Ared: flip
