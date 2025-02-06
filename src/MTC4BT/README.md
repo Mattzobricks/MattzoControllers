@@ -263,14 +263,14 @@ Both modes use the keys in different ways, the PU remote has two ports, port A o
  - 100% on: the remote is discoverd and bound to the MTC4BT and the layout is switched on.
  **All button actions work only in the latter two modes!**
 
-##### Range mode
+##### List mode
 
-In the range mode, port B lets you select a locomotive in the configured range. At first, there are no locomotives loaded, pressing the 'green' button will turn on the layout, but also force a load of the locomotive list to MTC4BT. Pressing the '-' or '+' button on port B will also load the locomotives, no locomotive is selected, you need to press the '+' or '-' button a second time to select a locomotive.
+In the list mode, port B lets you select an item from the configured list. Pressing the '-' or '+' button on port B will also load the device.
 Buttons on port B:
- - '+' button, get the next locomotive in the range, the controller led will change colour.
- - '-' button, get the previous locomotive in the range, the controller led will change colour.
+ - '+' button, get the next device from the list, the controller led will change colour.
+ - '-' button, get the previous device from the list, the controller led will change colour.
  - 'red' button, the e-brake or emergency brake is pressed and send to Rocrail, the led wil be flashing on and off.
-When the last locomotive in the range is selected, it will circle back to the first or last in the list depending on the button.
+When the last device in the list is selected, it will circle back to the first or last in the list depending on the button.
 The colours the led can have are:
  - off, not used, the controller is not discoverd and off;
  - pink, number 1;
@@ -282,28 +282,44 @@ The colours the led can have are:
  - yellow, number 7,
  - orange, number 8,
  - red, number 9,
- - white no locomotive selected.
+ - white no device selected.
 
-Buttons on port A:
+Buttons on port A for locomotives:
+ 
  - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
  - '-' button, decrement the speed with 10, this could be  '%' or 'kmh' until the min speed is reached;
  - 'red' button, set the speed to 0.
 
+For the other devices:
+ - For switches:*
+  - A+: straight (triple switch: left)
+  - Ared: flip (triple switch: straight)
+  - A-: turnout (triple switch: right)
+ - For outputs:
+   - A+: on
+   - Ared: flip
+   - A-: off
+- For signals:
+   - A+: green
+   - Ared: flip
+   - A-: red
 
-##### Fixed mode
+##### Free mode
 
-In the fixed mode, at first, there are no locomotives loaded, pressing the 'green' button will turn on the layout, but also force a load of the locomotive list to MTC4BT.
-The controller LED will turn green when a valid locomotive list is received from RocRail.
-The address of the locomotives for port A and port B are the ones in the configuration.
+In this configuration mode, each of the seven buttons of a PU remote can be assigned to a specific functionality without restrictions.
 
-Buttons on port A:
- - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
- - '-' button, decrement the speed with 10, this could be  '%' or 'kmh' until the min speed is reached;
- - 'red' button, set the speed to 0.
-Buttons on port B:
- - '+' button, increment the speed with 10, this could be '%' or 'kmh' until the max speed is reached;
- - '-' button, decrement the speed with 10, this could be  '%' or 'kmh' until the min speed is reached;
- - 'red' button, set the speed to 0.
+Examples:
+
+ - Increase (“inc”) or decrease (“dec”) the speed of a specific loco.
+ - Stop (“stop”) a specific loco.
+ - Set a specific loco function to on (“on”) or off (“off”), flip (“flip”) its state or activate it like pressing a push (“push”) buttons.
+ - Flip a specific accessory or bring it into a distinct state (allowed commands see above).
+ - Send system commands like pulling the emergency brake (“ebrake”) or switching the power back on (“go”).
+ 
+There is just one thing that you can not do in free mode: navigate through a list of components that you want to control! Each button is assigned to a specific action on a specific component.
+
+You can assign any number of control actions to a single button. This means that a single button can control multiple switches, signals etc. at the same time. For example, you could set a complex route over the layout that covers multiple switches through a railyard, and sets the entry signal to “green”, and all of that with a single press of a button.
+
 
 ---
 For more information visit https://mattzobricks.com/controllers/mtc4bt
