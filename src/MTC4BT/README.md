@@ -124,7 +124,7 @@ The configuration has two modes, a list mode and a free mode.
 
 In the list mode, the configuration looks something like this:
 
-``
+```
     "remotes": [
         {
             "name": "Lego remote",
