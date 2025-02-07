@@ -164,12 +164,13 @@ typedef struct {
 	unsigned int bbOpeningPeriod_ms;
 	// Servo angles for "up" and "down" positions
 	// Approximate up (down) angles for TrixBrix boom barrier servos to start with:
-	// - If servo is connected directly to the ESP8266:
-	// -- Primary booms: Right hand traffic: 0 (90), left hand traffic: 180 (90)
-	// -- Secondary booms: Right hand traffic: 180 (90), left hand traffic: 0 (90)
-	// - If servo is connected to PCA9685:
-	// -- Primary booms: Right hand traffic: 30 (87), left hand traffic: 143 (87)
-	// -- Secondary booms: Right hand traffic: 143 (87), left hand traffic: 30 (87)
+	// - If servo is connected directly to the ESP8266 (e.g. MLC mini):
+	// -- Primary booms: 0 (90)
+	// -- Secondary booms: 180 (90)
+	// - If servo is connected to PCA9685 (e.g. MLC mega):
+	// -- Primary booms: 31 (89)
+	// -- Secondary booms: 145 (89)
+	// - Angles are for right-hand traffic. For left-hand traffic, use the angles of the primary booms for the sceondary booms and vice versa.
 	unsigned int bbAnglePrimaryUp;
 	unsigned int bbAnglePrimaryDown;
 	unsigned int bbAngleSecondaryUp;
