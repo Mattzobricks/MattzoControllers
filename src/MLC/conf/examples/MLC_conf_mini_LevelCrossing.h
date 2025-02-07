@@ -112,11 +112,6 @@ const uint8_t PCA9685_OE_PIN = D0;
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
 {
     {
-        .pin = D0,
-        .pinType = 0,
-        .detachAfterUsage = true
-    },
-    {
         .pin = D1,
         .pinType = 0,
         .detachAfterUsage = true
@@ -128,6 +123,11 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
     },
     {
         .pin = D3,
+        .pinType = 0,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = D4,
         .pinType = 0,
         .detachAfterUsage = true
     }
@@ -146,7 +146,7 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
 TLEDConfiguration ledConfiguration[NUM_LEDS] =
 {
     {
-        .pin = D4,
+        .pin = D0,
         .pinType = 0
     },
     {
@@ -198,22 +198,22 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
     {
         .pin = 1,
         .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 24754
+        .remoteMattzoControllerId = 12345
     },
     {
         .pin = 2,
         .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 24754
+        .remoteMattzoControllerId = 12345
     },
     {
         .pin = 3,
         .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 24754
+        .remoteMattzoControllerId = 12345
     },
     {
         .pin = 4,
         .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 24754
+        .remoteMattzoControllerId = 12345
     },
 };
 
@@ -289,9 +289,9 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
     .bbClosingDelaySecondary_ms = 4000,
     .bbOpeningPeriod_ms = 3000,
     .bbAnglePrimaryUp = 0,
-    .bbAnglePrimaryDown = 87,
-    .bbAngleSecondaryUp = 180,
-    .bbAngleSecondaryDown = 90,
+    .bbAnglePrimaryDown = 85,
+    .bbAngleSecondaryUp = 179,
+    .bbAngleSecondaryDown = 89,
     .ledIndex = {0, 1, 2, 3},
     .ledFlashingPeriod_ms = 1500,
     .ledsFading = true,

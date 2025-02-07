@@ -371,12 +371,12 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
     },
 
     // 2 virtual sensors that indicate "level crossing open / closed"
-    { // index 16
+    { // index 16 / rocrail port 17
         .pin = -1,
         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
     },
-    { // index 17
+    { // index 17 / rocrail port 18
         .pin = -1,
         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
@@ -765,10 +765,10 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
     .bbClosingDelayPrimary_ms = 2000,
     .bbClosingDelaySecondary_ms = 4000,
     .bbOpeningPeriod_ms = 3000,
-	.bbAnglePrimaryUp = 30,
-    .bbAnglePrimaryDown = 87,
-    .bbAngleSecondaryUp = 143,
-    .bbAngleSecondaryDown = 87,
+	.bbAnglePrimaryUp = 31,
+    .bbAnglePrimaryDown = 89,
+    .bbAngleSecondaryUp = 146,
+    .bbAngleSecondaryDown = 89,
     .ledIndex = {0, 1, 2, 3, 4, 5, 6, 7},
     .ledFlashingPeriod_ms = 1500,
     .ledsFading = true,
