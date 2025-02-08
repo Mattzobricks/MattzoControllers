@@ -119,7 +119,6 @@ class BLEHub
 	ulong _blinkUntil;
 	bool _isDiscovered;
 	bool _isConnected;
-	uint16_t _watchdogTimeOutInTensOfSeconds;
 	NimBLERemoteService *_remoteControlService;
 	NimBLERemoteCharacteristic *_remoteControlCharacteristic;
 	// NimBLERemoteCharacteristic *_genericAccessCharacteristic;

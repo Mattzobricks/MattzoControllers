@@ -21,10 +21,9 @@ BLEHubScanner::BLEHubScanner()
 
 	//_scanner->setActiveScan(false);
 	_scanner->setDuplicateFilter(true);
-	
 }
 
-void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t scanDurationInSeconds)
+void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t scanDurationInMS)
 {
 	if (_isDiscovering) {
 		return;
@@ -44,13 +43,13 @@ void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t s
 	if (_advertisedDeviceCallback == nullptr) {
 		_advertisedDeviceCallback = new BLEDeviceCallbacks(hubs);
 		_scanner->setScanCallbacks(_advertisedDeviceCallback, false);
-	}		
+	}
 	if (BLEDevice::getWhiteListCount() != 0) {
 		_scanner->setFilterPolicy(BLE_HCI_SCAN_FILT_USE_WL);
 	} else {
 		_scanner->setFilterPolicy(BLE_HCI_SCAN_FILT_NO_WL);
 	}
-	_scanner->start(scanDurationInSeconds, false);
+	_scanner->start(scanDurationInMS, false);
 
 	log4MC::vlogf(LOG_INFO, "BLE : Scanning for %u hub(s) aborted.", hubs.size());
 
