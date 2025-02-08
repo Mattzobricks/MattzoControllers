@@ -22,7 +22,7 @@
 #define BLE_StackDepth 2048
 
 // The number of seconds to wait for a Hub to connect.
-#define ConnectDelayInSeconds 5
+#define ConnectDelayInMS 5000
 
 // Abstract Bluetooth Low Energy (BLE) hub base class.
 class BLEHub

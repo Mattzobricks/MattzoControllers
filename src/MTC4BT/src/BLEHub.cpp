@@ -187,7 +187,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 		_hub->setClientCallbacks( _clientCallback, false);
 
 		/** Set how long we are willing to wait for the connection to complete (seconds) */
-		_hub->setConnectTimeout(ConnectDelayInSeconds);
+		_hub->setConnectTimeout(ConnectDelayInMS);
 
 		// Connect to the remote BLE Server.
 		if (!_hub->connect(_advertisedDevice)) {
