@@ -22,7 +22,7 @@ struct remoteModeMap : public std::map<std::string, remoteModes> {
 	~remoteModeMap() {}
 };
 
-BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConfig, int16_t defaultPwrIncStep, int16_t defaultPwrDecStep)
+BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConfig, int16_t defaultPwrIncStep, int16_t defaultPwrDecStep, processAddress * processor)
 {
 	log4MC::debug("Starting reading remotes json");
 
@@ -31,7 +31,7 @@ BLERemoteConfiguration *BLERemoteDeserializer::Deserialize(JsonObject remoteConf
 
 	//  Read hub specific properties.
 	const std::string hubType = remoteConfig["type"];
-	const std::string address = remoteConfig["address"];
+	const std::string address = processor->process(remoteConfig["address"]);
 	const std::string modeString = remoteConfig["mode"];
 	const std::string remoteColor = remoteConfig["color"] | "green";
 

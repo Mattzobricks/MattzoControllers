@@ -6,6 +6,8 @@
 #include "MTC4BTMQTTHandler.h"
 #include "log4MC.h"
 
+#include "processAddress.h"
+
 #include "loadControllerConfiguration.h"
 #include "loadNetworkConfiguration.h"
 
@@ -18,6 +20,7 @@ MTC4BTConfiguration *controllerConfig;
 
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
+#define LOOKUPTABLE_CONFIG_FILE "/lookuptabel_config.json"
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -242,9 +245,12 @@ void setup()
 	// Setup logging (from now on we can use log4MC).
 	log4MC::Setup(networkConfig->hostname.c_str(), networkConfig->Logging);
 
+	// Load optional lookuptable
+	processAddress * processor = new processAddress(LOOKUPTABLE_CONFIG_FILE);
+
 	// Load the controller configuration.
 	log4MC::info("Setup: Loading controller configuration...");
-	controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE);
+	controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE , processor);
 	controller = new MTC4BTController();
 	controller->Setup(controllerConfig);
 	networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;

@@ -2,12 +2,13 @@
 
 #include "BLELocomotiveDeserializer.h"
 #include "BLERemoteDeserializer.h"
+#include "processAddress.h"
 
 #define DEFAULT_CONTROLLER_NAME "MTC4BT"
 #define DEFAULT_PWR_INC_STEP 10
 #define DEFAULT_PWR_DEC_STEP 10
 
-MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
+MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath, processAddress * processor)
 {
 	// New up a configation object, so we can set its properties.
 	MTC4BTConfiguration *config = new MTC4BTConfiguration();
@@ -57,7 +58,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 			continue;
 		}
 
-		config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
+		config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep, processor));
 	}
 
 	// Iterate over remote configs and copy values from the JsonDocument to BLERemoteConfiguration objects.
@@ -69,7 +70,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 			// Skip if loco is not enabled.
 			continue;
 		}
-		deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep);
+		deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep, processor);
 		if (deserializedRemoteConfig)
 			config->RemoteConfigs.push_back(deserializedRemoteConfig);
 	}
@@ -90,7 +91,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 			continue;
 		}
 
-		config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep));
+		config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep, processor));
 	}
 
 	// Read remote config files.
@@ -108,7 +109,7 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath)
 			// Skip if loco is not enabled.
 			continue;
 		}
-		deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep);
+		deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep, processor);
 		if (deserializedRemoteConfig)
 			config->RemoteConfigs.push_back(deserializedRemoteConfig);
 	}
