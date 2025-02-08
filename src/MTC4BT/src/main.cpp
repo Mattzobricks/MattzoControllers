@@ -20,7 +20,7 @@ MTC4BTConfiguration *controllerConfig;
 
 #define NETWORK_CONFIG_FILE "/network_config.json"
 #define CONTROLLER_CONFIG_FILE "/controller_config.json"
-#define LOOKUPTABLE_CONFIG_FILE "/lookuptabel_config.json"
+#define LOOKUPTABLE_CONFIG_FILE "/lookuptable_config.json"
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
