@@ -3,7 +3,7 @@
 #include "BLEHub.h"
 #include "NimBLEDevice.h"
 
-class BLEDeviceCallbacks : public NimBLEAdvertisedDeviceCallbacks
+class BLEDeviceCallbacks : public NimBLEScanCallbacks
 {
   public:
 	BLEDeviceCallbacks(std::vector<BLEHub *> hubs);

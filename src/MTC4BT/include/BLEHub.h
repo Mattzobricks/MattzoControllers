@@ -110,7 +110,7 @@ class BLEHub
 
 	TaskHandle_t _driveTaskHandle;
 	NimBLEAdvertisedDevice *_advertisedDevice;
-	NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
+	NimBLEScanCallbacks *_advertisedDeviceCallback;
 	NimBLEClient *_hub;
 	NimBLEClientCallbacks *_clientCallback;
 	bool _mbrake;

@@ -21,7 +21,7 @@ class BLEHubScanner
 	NimBLEScan *_scanner;
 
 	// Reference to the device callback.
-	NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
+	NimBLEScanCallbacks *_advertisedDeviceCallback;
 
 	// Boolean value indicating whether scanner is active.
 	bool _isDiscovering;

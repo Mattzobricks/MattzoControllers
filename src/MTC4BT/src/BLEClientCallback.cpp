@@ -1,8 +1,9 @@
 #include "BLEClientCallback.h"
 #include "log4MC.h"
 
-BLEClientCallback::BLEClientCallback(BLEHub *hub) : NimBLEClientCallbacks()
+BLEClientCallback::BLEClientCallback(BLEHub *hub)
 {
+	NimBLEClientCallbacks();
 	_hub = hub;
 }
 

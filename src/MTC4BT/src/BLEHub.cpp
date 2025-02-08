@@ -125,7 +125,7 @@ void BLEHub::SetManualBrake(const bool enabled)
 // If true, immediately sets the current speed for all channels to zero.
 // If false, releases the emergency brake.
 void BLEHub::SetEmergencyBrake(const bool enabled)
-{	
+{
 	if (enabled == _ebrake) {
 		// Status hasn't changed. Ignore.
 		return;
@@ -146,7 +146,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 	log4MC::vlogf(LOG_INFO, "BLE : Connecting to hub '%s'...", _config->DeviceAddress->toString().c_str());
 
 	/** Check if we have a client we should reuse first **/
-	if (NimBLEDevice::getClientListSize()) {
+	if (NimBLEDevice::getCreatedClientCount()) {
 		/** Special case when we already know this device, we send false as the
 		 *  second argument in connect() to prevent refreshing the service database.
 		 *  This saves considerable time and power.
@@ -172,7 +172,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 
 	/** No client to reuse? Create a new one. */
 	if (!_hub) {
-		if (NimBLEDevice::getClientListSize() >= NIMBLE_MAX_CONNECTIONS) {
+		if (NimBLEDevice::getCreatedClientCount() >= NIMBLE_MAX_CONNECTIONS) {
 			log4MC::warn("BLE : Max clients reached - no more connections available.");
 			_isDiscovered = false;
 			return false;
@@ -183,7 +183,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 		if (_clientCallback == nullptr) {
 			_clientCallback = new BLEClientCallback(this);
 		}
-		_hub->setClientCallbacks(_clientCallback, false);
+		_hub->setClientCallbacks( _clientCallback, false);
 
 		/** Set how long we are willing to wait for the connection to complete (seconds) */
 		_hub->setConnectTimeout(ConnectDelayInSeconds);

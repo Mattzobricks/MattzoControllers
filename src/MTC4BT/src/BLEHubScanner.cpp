@@ -32,17 +32,20 @@ void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t s
 	log4MC::vlogf(LOG_INFO, "BLE : Scanning for %u hub(s)...", hubs.size());
 
 	// TODO: We could start using the whitelist, but then we'd have to manage it too.
-	// for (BLEHub *hub : hubs)
-	// {
-	//     BLEDevice::whiteListAdd(hub->GetAddress());
-	// }
+	for (BLEHub *hub : hubs) {
+		BLEDevice::whiteListAdd(hub->GetAddress());
+	}
 
 	// Set the callback we want to use to be informed when we have detected a new device.
 	if (_advertisedDeviceCallback == nullptr) {
 		_advertisedDeviceCallback = new BLEDeviceCallbacks(hubs);
-		_scanner->setAdvertisedDeviceCallbacks(_advertisedDeviceCallback, false);
+		_scanner->setScanCallbacks(_advertisedDeviceCallback, false);
 	}
-
+	if (BLEDevice::getWhiteListCount() != 0) {
+		_scanner->setFilterPolicy(BLE_HCI_SCAN_FILT_USE_WL);
+	} else {
+		_scanner->setFilterPolicy(BLE_HCI_SCAN_FILT_NO_WL);
+	}
 	_scanner->start(scanDurationInSeconds, false);
 
 	log4MC::vlogf(LOG_INFO, "BLE : Scanning for %u hub(s) aborted.", hubs.size());
