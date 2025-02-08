@@ -109,7 +109,7 @@ class BLEHub
 	std::vector<BLEHubChannelController *> _channelControllers;
 
 	TaskHandle_t _driveTaskHandle;
-	NimBLEAdvertisedDevice *_advertisedDevice;
+	const NimBLEAdvertisedDevice *_advertisedDevice;
 	NimBLEScanCallbacks *_advertisedDeviceCallback;
 	NimBLEClient *_hub;
 	NimBLEClientCallbacks *_clientCallback;

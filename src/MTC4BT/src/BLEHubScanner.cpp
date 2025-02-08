@@ -17,7 +17,11 @@ BLEHubScanner::BLEHubScanner()
 	// _scanner->setInterval(97);       // How often the scan occurs / switches channels; in milliseconds.
 	// _scanner->setWindow(37);         // How long to scan during the interval; in milliseconds.
 	// _scanner->setMaxResults(20);     // The number of results to limit storage to (0 = do not store the scan results, use callback only).
-	_scanner->setDuplicateFilter(true); // Set that the BLE controller should only report results from devices it has not already seen.
+	//_scanner->setDuplicateFilter(true); // Set that the BLE controller should only report results from devices it has not already seen.
+
+	//_scanner->setActiveScan(false);
+	_scanner->setDuplicateFilter(true);
+	
 }
 
 void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t scanDurationInSeconds)
@@ -40,7 +44,7 @@ void BLEHubScanner::StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t s
 	if (_advertisedDeviceCallback == nullptr) {
 		_advertisedDeviceCallback = new BLEDeviceCallbacks(hubs);
 		_scanner->setScanCallbacks(_advertisedDeviceCallback, false);
-	}
+	}		
 	if (BLEDevice::getWhiteListCount() != 0) {
 		_scanner->setFilterPolicy(BLE_HCI_SCAN_FILT_USE_WL);
 	} else {

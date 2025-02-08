@@ -9,7 +9,7 @@ class BLEDeviceCallbacks : public NimBLEScanCallbacks
 	BLEDeviceCallbacks(std::vector<BLEHub *> hubs);
 
   private:
-	void onResult(NimBLEAdvertisedDevice *advertisedDevice);
+	void onResult(const NimBLEAdvertisedDevice *advertisedDevice);
 
 	std::vector<BLEHub *> _hubs;
 };

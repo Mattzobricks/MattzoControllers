@@ -179,6 +179,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 		}
 
 		_hub = NimBLEDevice::createClient();
+		log4MC::vlogf(LOG_DEBUG,"hub created: %d",_hub);
 
 		if (_clientCallback == nullptr) {
 			_clientCallback = new BLEClientCallback(this);
@@ -205,7 +206,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 			return false;
 		}
 	}
-
+	
 	// Try to obtain a reference to the remote control characteristic in the remote control service of the BLE server.
 	// If we can set the watchdog timeout, we consider our connection attempt a success.
 	if (!SetWatchdogTimeout(watchdogTimeOutInTensOfSeconds)) {
@@ -275,7 +276,7 @@ BLEHubChannelController *BLEHub::findControllerByChannel(BLEHubChannel channel)
 	return nullptr;
 }
 
-bool BLEHub::attachCharacteristic(NimBLEUUID serviceUUID, NimBLEUUID characteristicUUID)
+bool BLEHub::attachCharacteristic(const NimBLEUUID serviceUUID, const NimBLEUUID characteristicUUID)
 {
 	if (_remoteControlCharacteristic != nullptr) {
 		return true;
