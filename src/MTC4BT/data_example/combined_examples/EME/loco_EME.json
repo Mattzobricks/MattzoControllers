@@ -1,29 +1,24 @@
 {
-    "address": 1038,
-    "name": "E03-8W",
+    "address": 10194,
+    "name": "EME",
     "pwrIncStep": 10,
     "pwrDecStep": 10,
     "bleHubs": [
         {
             "type": "BuWizz2",
-            "address": "50:fa:ab:3d:86:90",
+            "address": "50:fa:ab:42:15:25",
             "powerlevel": "fast",
             "channels": [
                 {
                     "channel": "1",
-                    "attachedDevice": "motor"
-                },
-                {
-                    "channel": "2",
-                    "attachedDevice": "motor",
-                    "direction": "reverse"
-                },
-                {
-                    "channel": "3",
                     "attachedDevice": "light",
                     "pwrIncStep": 50,
                     "pwrDecStep": 50
-                }
+                },
+				{
+					"channel": "2",
+					"attachedDevice": "motor"
+				}
             ]
         }
     ],
@@ -44,9 +39,9 @@
             ],
             "actions": [
                 {
-                    "address": "50:fa:ab:3d:86:90",
-                    "channel": "3",
-                    "pwrPerc": 50
+                    "address": "50:fa:ab:42:15:25",
+                    "channel": "1",
+                    "pwrPerc": 75
                 }
             ]
         },
@@ -55,8 +50,8 @@
                 {
                     "source": "rr",
                     "eventType": "fnchanged",
-                    "identifier": "f2",
-                    "value": "on"
+                    "identifier": "f1",
+                    "value": "off"
                 },
                 {
                     "source": "loco",
@@ -66,25 +61,8 @@
             ],
             "actions": [
                 {
-                    "address": "50:fa:ab:3d:86:90",
-                    "channel": "3",
-                    "pwrPerc": -50
-                }
-            ]
-        },
-        {
-            "triggers": [
-                {
-                    "source": "rr",
-                    "eventType": "fnchanged",
-                    "identifier": "f3",
-                    "value": "on"
-                }
-            ],
-            "actions": [
-                {
-                    "address": "50:fa:ab:3d:86:90",
-                    "channel": "3",
+                    "address": "50:fa:ab:42:15:25",
+                    "channel": "1",
                     "pwrPerc": 0
                 }
             ]
