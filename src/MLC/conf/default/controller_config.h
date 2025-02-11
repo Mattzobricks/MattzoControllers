@@ -1,3 +1,5 @@
+#include "MLC_types.h"
+
 // *********************
 // COPYRIGHT AND LICENSE
 // *********************
@@ -109,16 +111,16 @@ const uint8_t PCA9685_OE_PIN = D0;
 
 TServoConfiguration servoConfiguration[NUM_SERVOS] =
 {
-    {
-        .pin = D0,
-        .pinType = 0,
-        .detachAfterUsage = true
-    },
-    {
-        .pin = D1,
-        .pinType = 0,
-        .detachAfterUsage = true
-    }
+	{
+		.pin = D0,
+		.pinType = 0,
+		.detachAfterUsage = true
+	},
+	{
+		.pin = D1,
+		.pinType = 0,
+		.detachAfterUsage = true
+	}
 };
 
 
@@ -321,6 +323,7 @@ const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Allowed characters: a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used.
+// Recommended max. length: 8 characters
 const char *MC_HOSTNAME = "MLC";
 
 // Syslog application name

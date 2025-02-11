@@ -1,3 +1,5 @@
+#include "MTC4PF.h"
+
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
 // License:
@@ -17,7 +19,8 @@
 // 2. Go through the settings below and update the settings as required.
 
 // *********************************************************************************************
-// Example file for configuring the MTC4PF to control a train with L9110 motor shield and lights
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield and 
+// a multi-color LED to provide bi-directional (red/white) lights
 // *********************************************************************************************
 
 // *****
@@ -38,12 +41,13 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "METRO1",
         .locoAddress = 10001,
         .accelerationInterval = 100,
         .accelerateStep = 2,
-        .brakeStep = 5};
+        .brakeStep = 5
+	};
 
     return locoConf;
 }
@@ -69,7 +73,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    msConf[0] = (MattzoMotorShieldConfiguration)
+    msConf[0] =
     {
         .locoAddress = 10001,
         .motorShieldType = MotorShieldType::L9110,
@@ -83,7 +87,8 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .maxArduinoPower = 255,
         .configMotorA = -1,
         .configMotorB = 0,
-        .irChannel = -1};
+        .irChannel = -1
+	};
 
     return msConf;
 }
@@ -95,10 +100,10 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 // The metroliner uses one bipolar red/white LED with a common anode
 // The MTC4PF has two controllable pins and a GND port
 // That means that the two components of the LED can not be separately controlled
-// Fortunately, the LED shows "red", even if both the white and red component are activated.
+// Fortunately, the LED shows "red", even if both the white and red component are activated
 // The LED is wired to the MTC4PF mini as follows:
 //   Pin 1: Red cathode to D2 (red wire). The red cathode is a bit LONGER than the white one
-//   Pin 2: White cathode to GND (white wire). The white cathode is a bit SHORTER than the white one
+//   Pin 2: White cathode to GND (white wire). The white cathode is a bit SHORTER than the red one
 //   Pin 3*: Common anode to D0 (blue wire). This is the middle pin of the LED (the longest one)
 //   *Pin 3 points towards the middle of the controller
 // The LED is controlled as follows:
@@ -111,25 +116,25 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
 // List of train lights including their configuration
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
-    {
-        {
-            // 0: attached to common anode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D0,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 800,
-        },
-        {
-            // 1: attached to red cathode
-            .trainLightType = TrainLightType::ESP_OUTPUT_PIN,
-            .pin = D2,
-            .motorShieldIndex = 0,
-            .motorPortIndex = -1,
-            .powerLevelOff = 0,
-            .powerLevelOn = 800,
-        },
+{
+	{
+		// 0: attached to common anode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D0,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = 800,
+	},
+	{
+		// 1: attached to red cathode
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D2,
+		.motorShieldIndex = 0,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = 800,
+	},
 };
 
 // ******************************

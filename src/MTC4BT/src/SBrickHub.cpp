@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "DriverTaskDelay.h"
 #include "SBrickHub.h"
 #include "log4MC.h"
 
@@ -16,114 +17,116 @@ const int16_t SBRICK_MAX_CHANNEL_SPEED = 254;
 const int16_t SBRICK_MIN_CHANNEL_SPEED = -254;
 
 SBrickHub::SBrickHub(BLEHubConfiguration *config)
-    : BLEHub(config)
+	: BLEHub(config)
 {
 }
 
 bool SBrickHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-    _watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
+	_watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
 
-    if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
-        log4MC::error("BLE : Unable to attach to remote control service.");
-        return false;
-    }
+	if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
+		log4MC::error("BLE : Unable to attach to remote control service.");
+		return false;
+	}
 
-    if (!_remoteControlCharacteristic->canWrite()) {
-        log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
-        return false;
-    }
+	if (!_remoteControlCharacteristic->canWrite()) {
+		log4MC::error("BLE : Remote control characteristic doesn't allow writing.");
+		return false;
+	}
 
-    uint8_t byteWrite[2] = {CMD_SET_WATCHDOG_TIMEOUT, watchdogTimeOutInTensOfSeconds};
-    if (!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false)) {
-        log4MC::error("BLE : Writing remote control characteristic CMD_SET_WATCHDOG_TIMEOUT failed.");
-        return false;
-    }
+	uint8_t byteWrite[2] = {CMD_SET_WATCHDOG_TIMEOUT, watchdogTimeOutInTensOfSeconds};
+	if (!_remoteControlCharacteristic->writeValue(byteWrite, sizeof(byteWrite), false)) {
+		log4MC::error("BLE : Writing remote control characteristic CMD_SET_WATCHDOG_TIMEOUT failed.");
+		return false;
+	}
 
-    log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout successfully set to s/10: %u", _remoteControlCharacteristic->readValue<uint8_t>());
+	log4MC::vlogf(LOG_INFO, "BLE : Watchdog timeout successfully set to s/10: %u", _remoteControlCharacteristic->readValue<uint8_t>());
 
-    uint8_t byteRead[1] = {CMD_GET_WATCHDOG_TIMEOUT};
-    if (!_remoteControlCharacteristic->writeValue(byteRead, sizeof(byteRead), false)) {
-        log4MC::error("BLE : Writing remote control characteristic CMD_GET_WATCHDOG_TIMEOUT failed.");
-        return false;
-    }
+	uint8_t byteRead[1] = {CMD_GET_WATCHDOG_TIMEOUT};
+	if (!_remoteControlCharacteristic->writeValue(byteRead, sizeof(byteRead), false)) {
+		log4MC::error("BLE : Writing remote control characteristic CMD_GET_WATCHDOG_TIMEOUT failed.");
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 void SBrickHub::DriveTaskLoop()
 {
-    bool channelAForward = false;
-    bool channelBForward = false;
-    bool channelCForward = false;
-    bool channelDForward = false;
+	bool channelAForward = false;
+	bool channelBForward = false;
+	bool channelCForward = false;
+	bool channelDForward = false;
 
-    uint8_t channelAPwr = 0;
-    uint8_t channelBPwr = 0;
-    uint8_t channelCPwr = 0;
-    uint8_t channelDPwr = 0;
+	uint8_t channelAPwr = 0;
+	uint8_t channelBPwr = 0;
+	uint8_t channelCPwr = 0;
+	uint8_t channelDPwr = 0;
 
-    for (;;) {
-        for (BLEHubChannelController *controller : _channelControllers) {
-            // Update current channel pwr, if needed.
-            controller->UpdateCurrentPwrPerc();
+	for (;;) {
+		for (BLEHubChannelController *controller : _channelControllers) {
+			// Update current channel pwr, if needed.
+			controller->UpdateCurrentPwrPerc();
 
-            switch (controller->GetHubChannel()) {
-            case BLEHubChannel::A:
-                channelAForward = controller->IsDrivingForward();
-                channelAPwr = getRawChannelPwrForController(controller);
-                break;
-            case BLEHubChannel::B:
-                channelBForward = controller->IsDrivingForward();
-                channelBPwr = getRawChannelPwrForController(controller);
-                break;
-            case BLEHubChannel::C:
-                channelCForward = controller->IsDrivingForward();
-                channelCPwr = getRawChannelPwrForController(controller);
-                break;
-            case BLEHubChannel::D:
-                channelDForward = controller->IsDrivingForward();
-                channelDPwr = getRawChannelPwrForController(controller);
-                break;
-            }
-        }
+			switch (controller->GetHubChannel()) {
+			case BLEHubChannel::A:
+				channelAForward = controller->IsDrivingForward();
+				channelAPwr = getRawChannelPwrForController(controller);
+				break;
+			case BLEHubChannel::B:
+				channelBForward = controller->IsDrivingForward();
+				channelBPwr = getRawChannelPwrForController(controller);
+				break;
+			case BLEHubChannel::C:
+				channelCForward = controller->IsDrivingForward();
+				channelCPwr = getRawChannelPwrForController(controller);
+				break;
+			case BLEHubChannel::D:
+				channelDForward = controller->IsDrivingForward();
+				channelDPwr = getRawChannelPwrForController(controller);
+				break;
+			case OnboardLED: // not on the sbrick
+				break;
+			}
+		}
 
-        // Construct one drive command for all channels.
-        uint8_t byteCmd[13] = {
-            CMD_DRIVE,
-            BLEHubChannel::A,
-            channelAForward,
-            channelAPwr,
-            BLEHubChannel::B,
-            channelBForward,
-            channelBPwr,
-            BLEHubChannel::C,
-            channelCForward,
-            channelCPwr,
-            BLEHubChannel::D,
-            channelDForward,
-            channelDPwr};
+		// Construct one drive command for all channels.
+		uint8_t byteCmd[13] = {
+			CMD_DRIVE,
+			BLEHubChannel::A,
+			channelAForward,
+			channelAPwr,
+			BLEHubChannel::B,
+			channelBForward,
+			channelBPwr,
+			BLEHubChannel::C,
+			channelCForward,
+			channelCPwr,
+			BLEHubChannel::D,
+			channelDForward,
+			channelDPwr};
 
-        // Send drive command.
-        if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
-            log4MC::vlogf(LOG_ERR, "SBK : Drive failed. Unabled to write to SBrick characteristic.");
-        }
+		// Send drive command.
+		if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
+			log4MC::vlogf(LOG_ERR, "SBK : Drive failed. Unabled to write to SBrick characteristic.");
+		}
 
-        // Wait half the watchdog timeout (converted from s/10 to s/1000).
-        // vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
+		// Wait half the watchdog timeout (converted from s/10 to s/1000).
+		// vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
-        // Wait 50 milliseconds.
-        vTaskDelay(250 / portTICK_PERIOD_MS);
-    }
+		// Wait 50 milliseconds.
+		vTaskDelay(DRIVERTASKDELAY / portTICK_PERIOD_MS);
+	}
 }
 
 int16_t SBrickHub::MapPwrPercToRaw(int pwrPerc)
 {
-    // Map absolute speed (no matter the direction) to raw channel speed.
-    return map(abs(pwrPerc), 0, 100, 0, SBRICK_MAX_CHANNEL_SPEED);
+	// Map absolute speed (no matter the direction) to raw channel speed.
+	return map(abs(pwrPerc), 0, 100, 0, SBRICK_MAX_CHANNEL_SPEED);
 }
 
 void SBrickHub::NotifyCallback(NimBLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify)
 {
-    // TODO: Ignored for now...
+	// TODO: Ignored for now...
 }

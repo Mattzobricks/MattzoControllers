@@ -1,0 +1,53 @@
+{
+	"type": "PUController",
+	"name": "PU remote for EME",
+	"address": "fc:a8:9b:57:83:90",
+	"mode": "free",
+	"color": "green",
+	"buttons": [
+		{
+			"button": "A+",
+			"type": "loco",
+			"addr": 10194,
+			"action": "inc"
+		},
+		{
+			"button": "A-",
+			"type": "loco",
+			"addr": 10194,
+			"action": "dec"
+		},
+		{
+			"button": "Ared",
+			"type": "loco",
+			"addr": 10194,
+			"action": "stop"
+		},
+
+		{
+			"button": "B+",
+			"type": "loco",
+			"addr": 10194,
+			"action": "fn1",
+			"fn-action": "on"
+		},
+		{
+			"button": "B-",
+			"type": "loco",
+			"addr": 10194,
+			"action": "fn1",
+			"fn-action": "off"
+		},
+		{
+			"button": "Bred",
+			"type": "system",
+			"action": "ebrake"
+		},
+
+		{
+			"button": "green",
+			"type": "system",
+			"action": "go"
+		}
+	]
+}

@@ -1,0 +1,13 @@
+{
+	"name": "MTC4BT-EME",
+	"espPins": [],
+	"fn": [],
+	"locos": [],
+	"remotes": [],
+	"locoConfigs": [
+		"/loco_EME.json"
+	],
+	"remoteConfigs": [
+		"/remote_EME.json"
+	]
+}

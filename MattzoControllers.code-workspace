@@ -12,17 +12,11 @@
 			"path": "src/MTC4BT"
 		},
 		{
-			"path": "src/lib"
-		},
-		{
-			"path": "src/mlc_include"
-		},
-		{
-			"path": "src/mlc_lib"
+			"path": "src/mc_lib"
 		}
 	],
 	"settings": {
-		"C_Cpp.clang_format_style": "{ BasedOnStyle: LLVM, IndentWidth: 4, ColumnLimit: 0,AllowShortFunctionsOnASingleLine: true,BreakBeforeBraces: Custom, BraceWrapping: {AfterFunction:  true, AfterClass: true }}",
+		"C_Cpp.clang_format_style": "{ BasedOnStyle: LLVM, UseTab: Always ,IndentWidth: 4, TabWidth: 4, ColumnLimit: 0,AllowShortFunctionsOnASingleLine: true,BreakBeforeBraces: Custom, BraceWrapping: {AfterFunction:  true, AfterClass: true }}",
 		"files.associations": {
 			"new": "cpp",
 			"array": "cpp",
@@ -83,7 +77,26 @@
 			"ranges": "cpp",
 			"xlocale": "cpp",
 			"xlocinfo": "cpp",
-			"xstring": "cpp"
+			"xstring": "cpp",
+			"*.ipp": "cpp",
+			"span": "cpp",
+			"format": "cpp",
+			"cfenv": "cpp",
+			"charconv": "cpp",
+			"complex": "cpp",
+			"condition_variable": "cpp",
+			"source_location": "cpp",
+			"iostream": "cpp",
+			"mutex": "cpp",
+			"thread": "cpp",
+			"typeindex": "cpp",
+			"variant": "cpp",
+			"numbers": "cpp",
+			"stop_token": "cpp",
+			"semaphore": "cpp",
+			"stdfloat": "cpp",
+			"text_encoding": "cpp",
+			"strstream": "cpp"
 		},
 	}
 }

@@ -1,3 +1,5 @@
+#include "MTC4PF.h"
+
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
 // License:
@@ -38,12 +40,13 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "ExampleTrain",
         .locoAddress = 1,
         .accelerationInterval = 100,
         .accelerateStep = 5,
-        .brakeStep = 10};
+        .brakeStep = 10
+	};
 
     return locoConf;
 }
@@ -69,12 +72,7 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    // Type of motor shield directly wired to the controller.
-    // (The different motor shield types are defined in MTC4PF.ino)
-    // Set to MotorShieldType::NONE if only virtual motor shields are used!
-    const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::L9110;
-
-    msConf[0] = (MattzoMotorShieldConfiguration){
+    msConf[0] = {
         .locoAddress = 1,
         .motorShieldType = MotorShieldType::L9110,
         .L298N_enA = 0,
@@ -84,10 +82,11 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
         .in3 = D5,
         .in4 = D6,
         .minArduinoPower = MIN_ARDUINO_POWER,
-        .maxArduinoPower = MAX_ARDUINO_POWER,
+        .maxArduinoPower = 256,
         .configMotorA = 1,
         .configMotorB = 0,
-        .irChannel = -1};
+        .irChannel = -1
+	};
 
     return msConf;
 }

@@ -1,3 +1,5 @@
+#include "Syslog.h"
+
 // MattzoController Network Configuration
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte

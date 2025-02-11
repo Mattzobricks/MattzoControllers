@@ -1,0 +1,101 @@
+{
+	"type": "PUController",
+	"name": "My PUC in free mode",
+	"address": "80:6f:b0:a4:d6:e9",
+	"mode": "free",
+	"color": "blue",
+	"buttons": [
+		{
+			"button": "A+",
+			"type": "switch",
+			"id": "sw12",
+			"action": "straight"
+		},
+		{
+			"button": "A-",
+			"type": "switch",
+			"id": "sw12",
+			"action": "turnout"
+		},
+		{
+			"button": "Ared",
+			"type": "switch",
+			"id": "sw12",
+			"action": "flip"
+		},
+
+		{
+			"button": "B+",
+			"type": "signal",
+			"id": "sg_sb1exit",
+			"action": "red"
+		},
+		{
+			"button": "B+",
+			"type": "switch",
+			"id": "sw13",
+			"action": "turnout"
+		},
+		{
+			"button": "B+",
+			"type": "switch",
+			"id": "sw12",
+			"action": "turnout"
+		},
+		{
+			"button": "B+",
+			"type": "signal",
+			"id": "sg_sb2exit",
+			"action": "green"
+		},
+
+		{
+			"button": "B-",
+			"type": "signal",
+			"id": "sg_sb2exit",
+			"action": "red"
+		},
+		{
+			"button": "B-",
+			"type": "switch",
+			"id": "sw13",
+			"action": "straight"
+		},
+		{
+			"button": "B-",
+			"type": "switch",
+			"id": "sw12",
+			"action": "turnout"
+		},
+		{
+			"button": "B-",
+			"type": "signal",
+			"id": "sg_sb1exit",
+			"action": "green"
+		},
+
+		{
+			"button": "Bred",
+			"type": "signal",
+			"id": "sg_sb1exit",
+			"action": "red"
+		},
+		{
+			"button": "Bred",
+			"type": "signal",
+			"id": "sg_sb2exit",
+			"action": "red"
+		},
+		{
+			"button": "Bred",
+			"type": "system",
+			"action": "ebrake"
+		},
+
+		{
+			"button": "green",
+			"type": "system",
+			"action": "go"
+		}
+	]
+}

@@ -1,3 +1,5 @@
+#include "MTC4PF.h"
+
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
 // License:
@@ -38,18 +40,20 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "EME",
         .locoAddress = 10194,
         .accelerationInterval = 100,
         .accelerateStep = 20,
-        .brakeStep = 20};
-    locoConf[1] = (MattzoLocoConfiguration){
+        .brakeStep = 20
+	};
+    locoConf[1] = {
         .locoName = "MAE",
         .locoAddress = 10219,
         .accelerationInterval = 100,
         .accelerateStep = 20,
-        .brakeStep = 20};
+        .brakeStep = 20
+	};
 
     return locoConf;
 }
@@ -73,22 +77,24 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
 
-    msConf[0] = (MattzoMotorShieldConfiguration){
+    msConf[0] = {
         .locoAddress = 10194,
         .motorShieldType = MotorShieldType::LEGO_IR_8884,
         .minArduinoPower = MIN_ARDUINO_POWER,
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = -1,
         .configMotorB = 0,
-        .irChannel = 0};
-    msConf[1] = (MattzoMotorShieldConfiguration){
+        .irChannel = 0
+	};
+    msConf[1] = {
         .locoAddress = 10219,
         .motorShieldType = MotorShieldType::LEGO_IR_8884,
         .minArduinoPower = MIN_ARDUINO_POWER,
         .maxArduinoPower = MAX_ARDUINO_POWER,
         .configMotorA = -1,
         .configMotorB = 0,
-        .irChannel = 1};
+        .irChannel = 1
+	};
 
     return msConf;
 }
@@ -102,16 +108,17 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 
 // List of train lights including their configuration
 TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
-    {
-        {
-            // head lights for Emerald Express
-            .trainLightType = TrainLightType::LEGO_IR_8884,
-            .pin = D0,
-            .powerLevelOff = 0,
-            .powerLevelOn = 100,
-            .irChannel = 0,
-            .irPort = MattzoPowerFunctionsPort::BLUE,
-        }};
+{
+	{
+		// head lights for Emerald Express
+		.trainLightType = TrainLightType::LEGO_IR_8884,
+		.pin = D0,
+		.powerLevelOff = 0,
+		.powerLevelOn = 100,
+		.irChannel = 0,
+		.irPort = MattzoPowerFunctionsPort::BLUE,
+	}
+};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -124,27 +131,36 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
 
 // List of function mappings
 TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
-    {
-        {.locoAddress = 10194,
-         .fnNo = 1,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::ON},
-        {.locoAddress = 10194,
-         .fnNo = 2,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {.locoAddress = 10194,
-         .fnNo = 3,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::FLASH},
-        {.locoAddress = 10194,
-         .fnNo = 4,
-         .fnOnOff = true,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::BLINK}};
+{
+	{
+		.locoAddress = 10194,
+		.fnNo = 1,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		.locoAddress = 10194,
+		.fnNo = 2,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+	{
+		.locoAddress = 10194,
+		.fnNo = 3,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::FLASH
+	},
+	{
+		.locoAddress = 10194,
+		.fnNo = 4,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::BLINK
+	}
+};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -157,29 +173,30 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 
 // List of train light triggers
 TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
-    {
-        {.locoAddress = 10194,
-         .lightEventType = LightEventType::STOP,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF},
-        {.locoAddress = 10194,
-         .lightEventType = LightEventType::FORWARD,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::ON},
-        {.locoAddress = 10194,
-         .lightEventType = LightEventType::REVERSE,
-         .trainLightIndex = 0,
-         .trainLightStatus = TrainLightStatus::OFF},
+{
+	{
+		.locoAddress = 10194,
+		.lightEventType = LightEventType::STOP,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+	{
+		.locoAddress = 10194,
+		.lightEventType = LightEventType::FORWARD,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		.locoAddress = 10194,
+		.lightEventType = LightEventType::REVERSE,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
 };
 
 // ***************************
 // CONTROLLER WIRING SPECIFICS
 // ***************************
-
-// Type of motor shield directly wired to the controller.
-// (The different motor shield types are defined in MTC4PF.ino)
-// Set to MotorShieldType::NONE if only virtual motor shields are used!
-const MotorShieldType MOTORSHIELD_TYPE = MotorShieldType::LEGO_IR_8884;
 
 // Constants for motor shield type L298N
 #define enA D0 // PWM signal pin for motor A. Relevant for L298N only.

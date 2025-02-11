@@ -13,7 +13,6 @@
 #error "NUM_SIGNAL_SERVOS must not be greater than MAX_NUM_SIGNAL_SERVOS"
 #endif
 
-
 // Array out of bounds check for level crossing
 #if LC_NUM_BOOM_BARRIERS > MAX_LC_NUM_BOOM_BARRIERS
 #error "LC_NUM_BOOM_BARRIERS must not be greater than MAX_LC_NUM_BOOM_BARRIERS"
@@ -30,7 +29,6 @@
 #if LC_NUM_TRACKS > MAX_LC_NUM_TRACKS
 #error "LC_NUM_TRACKS must not be greater than MAX_LC_NUM_TRACKS"
 #endif
-
 
 // Array out of bounds check for bascule bridge
 #if LC_NUM_BASCULE_BRIDGE_LEAFS > MAX_NUM_BASCULE_BRIDGE_LEAFS

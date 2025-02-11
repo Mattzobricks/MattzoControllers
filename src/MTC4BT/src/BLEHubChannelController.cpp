@@ -1,9 +1,9 @@
 #include "BLEHubChannelController.h"
 
 BLEHubChannelController::BLEHubChannelController(MCChannelConfig *config)
-    : MCChannelController(config) {}
+	: MCChannelController(config) {}
 
 BLEHubChannel BLEHubChannelController::GetHubChannel()
 {
-    return bleHubChannelMap()[_config->GetChannel()->GetAddress()];
+	return bleHubChannelMap()[_config->GetChannel()->GetAddress()];
 }

@@ -1,0 +1,92 @@
+{
+    "address": 1038,
+    "name": "E03-8W",
+    "pwrIncStep": 10,
+    "pwrDecStep": 10,
+    "bleHubs": [
+        {
+            "type": "BuWizz2",
+            "address": "50:fa:ab:3d:86:90",
+            "powerlevel": "fast",
+            "channels": [
+                {
+                    "channel": "1",
+                    "attachedDevice": "motor"
+                },
+                {
+                    "channel": "2",
+                    "attachedDevice": "motor"
+                },
+                {
+                    "channel": "3",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 50,
+                    "pwrDecStep": 50
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f1",
+                    "value": "on"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "forward"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "50:fa:ab:3d:86:90",
+                    "channel": "3",
+                    "pwrPerc": 50
+                }
+            ]
+        },
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f2",
+                    "value": "on"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "backward"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "50:fa:ab:3d:86:90",
+                    "channel": "3",
+                    "pwrPerc": -50
+                }
+            ]
+        },
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f3",
+                    "value": "on"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "50:fa:ab:3d:86:90",
+                    "channel": "3",
+                    "pwrPerc": 0
+                }
+            ]
+        }
+    ]
+}

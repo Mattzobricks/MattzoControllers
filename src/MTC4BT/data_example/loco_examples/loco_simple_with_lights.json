@@ -1,0 +1,73 @@
+{
+	"address": 1,
+	"name": "SIMPLE_LOCO_with_lights",
+	"pwrIncStep": 10,
+	"pwrDecStep": 10,
+	"bleHubs": [
+		{
+			"type": "PU",
+			"address": "90:84:2b:21:71:46",
+			"channels": [
+				{
+					"channel": "A",
+					"attachedDevice": "motor"
+				},
+				{
+					"channel": "B",
+					"attachedDevice": "light"
+				}
+			]
+		}
+	],
+	"events": [
+		{
+			"triggers": [
+				{
+					"source": "rr",
+					"eventType": "fnchanged",
+					"identifier": "f1",
+					"value": "on"
+				},
+				{
+					"source": "loco",
+					"eventType": "dirchanged",
+					"value": "forward"
+				}
+			],
+			"actions": [
+				{
+					"address": "90:84:2b:21:71:46",
+					"channel": "B",
+					"pwrPerc": 50
+				}
+			]
+		},
+		{
+			"triggers": [
+				{
+					"source": "rr",
+					"eventType": "fnchanged",
+					"identifier": "f1",
+					"value": "off"
+				},
+				{
+					"source": "loco",
+					"eventType": "dirchanged",
+					"value": "backward"
+				},
+				{
+					"source": "loco",
+					"eventType": "dirchanged",
+					"value": "stopped"
+				}
+			],
+			"actions": [
+				{
+					"address": "90:84:2b:21:71:46",
+					"channel": "B",
+					"pwrPerc": 0
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,161 @@
+{
+    "address": 6337,
+    "name": "FUX",
+    "pwrIncStep": 5,
+    "pwrDecStep": 5,
+    "bleHubs": [
+        {
+            "type": "PU",
+            "address": "90:84:2b:cb:c0:db",
+            "channels": [
+                {
+                    "channel": "LED"
+                },
+                {
+                    "channel": "A",
+                    "attachedDevice": "motor",
+                    "direction": "forward"
+                },
+                {
+                    "channel": "B",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 10,
+                    "pwrDecStep": 20
+                }
+            ]
+        },
+        {
+            "type": "PU",
+            "address": "90:84:2b:cb:6f:1e",
+            "channels": [
+                {
+                    "channel": "LED"
+                },
+                {
+                    "channel": "A",
+                    "attachedDevice": "motor",
+                    "direction": "reverse"
+                },
+                {
+                    "channel": "B",
+                    "attachedDevice": "light",
+                    "pwrIncStep": 10,
+                    "pwrDecStep": 20
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f1",
+                    "value": "on"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "forward"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "90:84:2b:cb:c0:db",
+                    "channel": "B",
+                    "pwrPerc": 50
+                },
+                {
+                    "address": "90:84:2b:cb:c0:db",
+                    "channel": "LED",
+                    "color": "white"
+                },
+                {
+                    "address": "90:84:2b:cb:6f:1e",
+                    "channel": "B",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "90:84:2b:cb:6f:1e",
+                    "channel": "LED",
+                    "color": "orange"
+                }
+            ]
+        },
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f2",
+                    "value": "on"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "backward"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "90:84:2b:cb:c0:db",
+                    "channel": "B",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "90:84:2b:cb:c0:db",
+                    "channel": "LED",
+                    "color": "red"
+                },
+                {
+                    "address": "90:84:2b:cb:6f:1e",
+                    "channel": "B",
+                    "pwrPerc": 50
+                },
+                {
+                    "address": "90:84:2b:cb:6f:1e",
+                    "channel": "LED",
+                    "color": "white"
+                }
+            ]
+        },
+        {
+            "triggers": [
+                {
+                    "source": "rr",
+                    "eventType": "fnchanged",
+                    "identifier": "f3",
+                    "value": "off"
+                },
+                {
+                    "source": "loco",
+                    "eventType": "dirchanged",
+                    "value": "stopped"
+                }
+            ],
+            "actions": [
+                {
+                    "address": "90:84:2b:cb:c0:db",
+                    "channel": "B",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "90:84:2b:cb:c0:db",
+                    "channel": "LED",
+                    "color": "blue"
+                },
+                {
+                    "address": "90:84:2b:cb:6f:1e",
+                    "channel": "B",
+                    "pwrPerc": 0
+                },
+                {
+                    "address": "90:84:2b:cb:6f:1e",
+                    "channel": "LED",
+                    "color": "blue"
+                }
+            ]
+        }
+    ]
+}

@@ -1,125 +1,13 @@
 {
-	"name": "YourControllerNameHere",
-    "pwrIncStep": 10,
-    "pwrDecStep": 10,
+	"name": "MTC4BT",
 	"espPins": [
 		{
-			"pin": 5,
-			"attachedDevice": "light"
-		},
-		{
-			"pin": 23,
+			"pin": 2, // built-in LED for Wemos D1 mini ESP-32: GPIO2
 			"attachedDevice": "status"
 		}
 	],
-	"locos": [
-		{
-			"address": 1,
-			"name": "YC7939",
-			"bleHubs": [
-				{
-					"type": "SBrick",
-					"address": "00:07:80:d0:47:43",
-					"channels": [
-						{
-							"channel": "B",
-							"attachedDevice": "light"
-						},
-						{
-							"channel": "D",
-							"attachedDevice": "motor"
-						}
-					]
-				}
-			]
-		},
-		{
-			"address": 2,
-			"name": "BC60052",
-			"bleHubs": [
-				{
-					"type": "SBrick",
-					"address": "88:6b:0f:23:78:10",
-					"channels": [
-						{
-							"channel": "B",
-							"attachedDevice": "motor"
-						},
-						{
-							"channel": "D",
-							"attachedDevice": "light"
-						}
-					]
-				}
-			]
-		},
-		{
-			"address": 3,
-			"name": "PT60197",
-			"bleHubs": [
-				{
-					"type": "PU",
-					"address": "90:84:2b:07:13:7f",
-					"channels": [
-                        {
-                            "channel": "LED"
-                        },
-						{
-							"channel": "A",
-							"attachedDevice": "motor"
-						},
-						{
-							"channel": "B",
-							"attachedDevice": "motor",
-							"direction": "reverse"
-						}
-					]
-				}
-			],
-            "events": [
-                {
-                    "triggers": [
-                        {
-                            "source": "rr",
-                            "eventType": "fnchanged",
-                            "identifier": "f1",
-                            "value": "on"
-                        },
-                        {
-                            "source": "loco",
-                            "eventType": "dirchanged",
-                            "value": "forward"
-                        }
-                    ],
-                    "actions": [
-                        {
-                            "channel": "LED",
-                            "color": "yellow"
-                        }
-                    ]
-                },
-                {
-                    "triggers": [
-                        {
-                            "source": "rr",
-                            "eventType": "fnchanged",
-                            "identifier": "f1",
-                            "value": "off"
-                        },
-                        {
-                            "source": "loco",
-                            "eventType": "dirchanged",
-                            "value": "stopped"
-                        }
-                    ],
-                    "actions": [
-                        {
-                            "channel": "LED",
-                            "color": "off"
-                        }
-                    ]
-                }
-            ]
-		}
+	"locos": [],
+	"locoConfigs": [
+		"/loco_simple.json"
 	]
 }

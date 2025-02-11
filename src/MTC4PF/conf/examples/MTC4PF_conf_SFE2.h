@@ -1,3 +1,5 @@
+#include "MTC4PF.h"
+
 // Author: Dr. Matthias Runte
 // Copyright 2020 by Dr. Matthias Runte
 // License:
@@ -17,7 +19,8 @@
 // 2. Go through the settings below and update the settings as required.
 
 // **********************************************************************************
-// Example file for configuring the MTC4PF to control a loco with lights but no motor
+// Example file for configuring the MTC4PF to control a train with L9110 motor shield
+// and an multi-color LED as head-light (Sante Fe, rear unit)
 // **********************************************************************************
 
 // *****
@@ -38,12 +41,13 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 {
     static MattzoLocoConfiguration locoConf[NUM_LOCOS];
 
-    locoConf[0] = (MattzoLocoConfiguration){
+    locoConf[0] = {
         .locoName = "SFE",
         .locoAddress = 10020,
         .accelerationInterval = 100,
         .accelerateStep = 2,
-        .brakeStep = 10};
+        .brakeStep = 10
+	};
 
     return locoConf;
 }
@@ -52,10 +56,39 @@ MattzoLocoConfiguration *getMattzoLocoConfiguration()
 // MOTOR SHIELDS
 // *************
 // Number of motor shields connected to this controller
-const int NUM_MOTORSHIELDS = 0;
+const int NUM_MOTORSHIELDS = 1;
+
+// List of motor shields that are controlled by this controller
+// The parameters have the following meaning:
+// - locoAddress: loco that this motor shields is attached to
+// - motorShieldType: motor shield type
+// - L298N_enA, L298N_enB: PWM signal pin for motor A / B, if L298N is used.
+// - in1..in4: pin for motor direction control for motor shields L298N and L9110 (in1: forward motor A, in2: reverse motor A, in3: forward motor B, in4: reverse motor B).
+// - minArduinoPower: minimum power setting for Arduino based motor shields. You might need to adapt this to your specific shield and motor. 200 might be a good value for a start. Should be 0 for LEGO IR Receiver 8884.
+// - maxArduinoPower: maximum power setting for Arduino based motor shields (max. 1023). You might need to adapt this to your specific shield and motor. 400 might be a good value for a start.
+// - configMotorA: turning direction of motor A (1 = forward, -1 = backward, 0 = unused). In case of LEGO IR Receiver 8884, this is the motor connected to the red port.
+// - configMotorB: same for motor B; if IR receiver: blue port
+// - irChannel: if a LEGO IR Receiver 8884 is used, the selected channel of the receiver. May be 0, 1, 2 or 3. If the loco uses multiple IR receivers on different channels, additional motor shields for the loco are required.
 MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 {
     static MattzoMotorShieldConfiguration msConf[NUM_MOTORSHIELDS];
+
+    msConf[0] = {
+        .locoAddress = 10020,
+        .motorShieldType = MotorShieldType::L9110,
+        .L298N_enA = 0,
+        .L298N_enB = 0,
+        .in1 = D1,
+        .in2 = D2,
+        .in3 = 0,
+        .in4 = 0,
+        .minArduinoPower = MIN_ARDUINO_POWER,
+        .maxArduinoPower = MAX_ARDUINO_POWER,
+        .configMotorA = -1,
+        .configMotorB = 0,
+        .irChannel = -1
+	};
+
     return msConf;
 }
 
@@ -289,7 +322,7 @@ const int MAX_AI_VOLTAGE = 5100;                 // maximum analog input voltage
 // ****************
 
 // Trigger emergency brake upon disconnect
-const bool TRIGGER_EBREAK_UPON_DISCONNECT = false;
+const bool TRIGGER_EBREAK_UPON_DISCONNECT = true;
 
 // WiFi Hostname
 // Hostnames must start with a-z, A-Z, 0-9. From 2nd character, hyphens ("-") may also be used
