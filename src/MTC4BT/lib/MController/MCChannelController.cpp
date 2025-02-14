@@ -126,7 +126,7 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 	// Adjust pwr with one step.
 	int16_t correctedStp = (pwrStep * DRIVERTASKDELAY) / 250;
 	if (correctedStp == 0) {
-		// make sure we alway step!!!
+		// make sure we always step
 		correctedStp = dirMultiplier;
 	}
 	int16_t newPwrPerc = _currentPwrPerc + correctedStp;
@@ -136,14 +136,14 @@ bool MCChannelController::UpdateCurrentPwrPerc()
 		(_targetPwrPerc >= 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
 		(_targetPwrPerc < 0 && newPwrPerc > _targetPwrPerc && newPwrPerc > _currentPwrPerc) ||
 		(_targetPwrPerc >= 0 && newPwrPerc < _targetPwrPerc && newPwrPerc < _currentPwrPerc)) {
-		// do a normalize incase someone has some strange power steps.
+		// do a normalize in case someone has configured some strange power steps.
 		_currentPwrPerc = normalizePwrPerc(_targetPwrPerc);
 		return true;
 	}
 
 	/*
 		if (abs(newPwrPerc) < _minPwrPerc) {
-			// New pwr is slower than min pwr, force to min pwr or stop immediately (dependent on wether we're accelerating or decelerating).
+			// New pwr is slower than min pwr, force to min pwr or stop immediately (dependent on whether we're accelerating or decelerating).
 			dirMultiplier = newPwrPerc >= 0 ? 1 : -1;
 			_currentPwrPerc = isAccelarating() ? _minPwrPerc * dirMultiplier : 0;
 			return true;
