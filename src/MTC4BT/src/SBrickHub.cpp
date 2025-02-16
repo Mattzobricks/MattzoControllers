@@ -23,8 +23,6 @@ SBrickHub::SBrickHub(BLEHubConfiguration *config)
 
 bool SBrickHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-	_watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
-
 	if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
 		log4MC::error("BLE : Unable to attach to remote control service.");
 		return false;
@@ -111,9 +109,6 @@ void SBrickHub::DriveTaskLoop()
 		if (!_remoteControlCharacteristic->writeValue(byteCmd, sizeof(byteCmd), false)) {
 			log4MC::vlogf(LOG_ERR, "SBK : Drive failed. Unabled to write to SBrick characteristic.");
 		}
-
-		// Wait half the watchdog timeout (converted from s/10 to s/1000).
-		// vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
 		// Wait 50 milliseconds.
 		vTaskDelay(DRIVERTASKDELAY / portTICK_PERIOD_MS);

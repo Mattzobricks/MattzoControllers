@@ -12,7 +12,7 @@ class BLEHubScanner
 	// Public members
 
 	// Starts device discovery (if not already discovering).
-	void StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t scanDurationInSeconds);
+	void StartDiscovery(std::vector<BLEHub *> &hubs, const uint32_t scanDurationInsMS);
 
   private:
 	// Private members
@@ -21,7 +21,7 @@ class BLEHubScanner
 	NimBLEScan *_scanner;
 
 	// Reference to the device callback.
-	NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
+	NimBLEScanCallbacks *_advertisedDeviceCallback;
 
 	// Boolean value indicating whether scanner is active.
 	bool _isDiscovering;

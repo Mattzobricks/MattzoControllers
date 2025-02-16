@@ -20,8 +20,6 @@ BuWizz2Hub::BuWizz2Hub(BLEHubConfiguration *config)
 
 bool BuWizz2Hub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-	_watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
-
 	if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
 		log4MC::error("BLE : BuWizz2 : Unable to attach to remote control service.");
 		return false;
@@ -137,8 +135,6 @@ void BuWizz2Hub::DriveTaskLoop()
 				log4MC::vlogf(LOG_ERR, "BUWIZZ2 : Drive failed. Unable to write to BUWIZZ2 characteristic.");
 			}
 		}
-		// Wait half the watchdog timeout (converted from s/10 to s/1000).
-		// vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
 		// Wait 50 milliseconds.
 		vTaskDelay(DRIVERTASKDELAY / portTICK_PERIOD_MS);

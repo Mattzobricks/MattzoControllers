@@ -8,6 +8,7 @@ BLEClientCallback::BLEClientCallback(BLEHub *hub) : NimBLEClientCallbacks()
 
 void BLEClientCallback::onConnect(NimBLEClient *client)
 {
+	log4MC::vlogf(LOG_INFO, "BLE : Tying to connecto to hub '%s'.", client->getPeerAddress().toString().c_str());
 	if (client->getPeerAddress().equals(*_hub->_config->DeviceAddress)) {
 		log4MC::vlogf(LOG_INFO, "BLE : Connected to hub '%s'.", client->getPeerAddress().toString().c_str());
 

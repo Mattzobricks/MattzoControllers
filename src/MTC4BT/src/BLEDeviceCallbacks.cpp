@@ -4,13 +4,14 @@
 #include "log4MC.h"
 #include <Arduino.h>
 
-BLEDeviceCallbacks::BLEDeviceCallbacks(std::vector<BLEHub *> hubs) : NimBLEAdvertisedDeviceCallbacks()
+BLEDeviceCallbacks::BLEDeviceCallbacks(std::vector<BLEHub *> hubs) : NimBLEScanCallbacks()
 {
 	_hubs = hubs;
+	log4MC::debug("Added callbacks");
 }
 
 // Called for each advertising BLE server.
-void BLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
+void BLEDeviceCallbacks::onResult(const NimBLEAdvertisedDevice *advertisedDevice)
 {
 	// We have found a device, let's see if it has an address we are looking for.
 	for (BLEHub *hub : _hubs) {
@@ -27,6 +28,7 @@ void BLEDeviceCallbacks::onResult(NimBLEAdvertisedDevice *advertisedDevice)
 	log4MC::vlogf(LOG_INFO, "BLE : Discovered unknown device: %s (%s).", advertisedDevice->getName().c_str(), advertisedDevice->getAddress().toString().c_str());
 	if (_hubs.size() != 0) {
 		// ignore found device when not in scan mode!
-		NimBLEDevice::addIgnored(advertisedDevice->getAddress());
+		// TODO: not available any more
+		// NimBLEDevice::addIgnored(advertisedDevice->getAddress());
 	}
 }

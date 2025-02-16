@@ -22,7 +22,7 @@
 #define BLE_StackDepth 2048
 
 // The number of seconds to wait for a Hub to connect.
-#define ConnectDelayInSeconds 5
+#define ConnectDelayInMS 5000
 
 // Abstract Bluetooth Low Energy (BLE) hub base class.
 class BLEHub
@@ -109,8 +109,8 @@ class BLEHub
 	std::vector<BLEHubChannelController *> _channelControllers;
 
 	TaskHandle_t _driveTaskHandle;
-	NimBLEAdvertisedDevice *_advertisedDevice;
-	NimBLEAdvertisedDeviceCallbacks *_advertisedDeviceCallback;
+	const NimBLEAdvertisedDevice *_advertisedDevice;
+	NimBLEScanCallbacks *_advertisedDeviceCallback;
 	NimBLEClient *_hub;
 	NimBLEClientCallbacks *_clientCallback;
 	bool _mbrake;
@@ -119,7 +119,6 @@ class BLEHub
 	ulong _blinkUntil;
 	bool _isDiscovered;
 	bool _isConnected;
-	uint16_t _watchdogTimeOutInTensOfSeconds;
 	NimBLERemoteService *_remoteControlService;
 	NimBLERemoteCharacteristic *_remoteControlCharacteristic;
 	// NimBLERemoteCharacteristic *_genericAccessCharacteristic;
