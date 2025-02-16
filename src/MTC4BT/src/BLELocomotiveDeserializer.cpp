@@ -2,7 +2,7 @@
 #include "BLEHubChannel.h"
 #include "MCLocoAction.h"
 
-BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject locoConfig, std::vector<MCChannelConfig *> espPins, int16_t defaultPwrIncStep, int16_t defaultPwrDecStep)
+BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject locoConfig, std::vector<MCChannelConfig *> espPins, int16_t defaultPwrIncStep, int16_t defaultPwrDecStep, processAddress *processor)
 {
 	// Read loco properties.
 	const uint address = locoConfig["address"];
@@ -18,7 +18,7 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 	for (JsonObject hubConfig : hubConfigs) {
 		// Read hub specific properties.
 		const std::string hubType = hubConfig["type"];
-		const std::string address = hubConfig["address"];
+		const std::string address = processor->process(hubConfig["address"]);
 		int16_t hubPwrIncStep = hubConfig["pwrIncStep"] | locoPwrIncStep;
 		int16_t hubPwrDecStep = hubConfig["pwrDecStep"] | locoPwrDecStep;
 		const std::string powerlevel = hubConfig["powerlevel"] | "normal"; // for Buwizz2 only, default is 2
@@ -85,7 +85,10 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 		for (JsonObject actionConfig : actionConfigs) {
 			// Read action properties.
 			const std::string device = actionConfig["device"] | "bleHub";
-			const std::string address = actionConfig["address"] | actionConfig["pin"];
+			//const std::string address; // = actionConfig["address"] | actionConfig["pin"];
+			const std::string address = processor->process(actionConfig["address"]);
+			const std::string addressPin = actionConfig["pin"];
+			
 			const std::string channel = actionConfig["channel"];
 			int16_t pwrPerc = actionConfig["pwrPerc"] | 0;
 			const std::string color = actionConfig["color"] | "";
@@ -97,20 +100,20 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 				// Check if there's an ESP pin with the specified pin number in the controller config.
 
 				for (MCChannelConfig *channelConfig : espPins) {
-					if (channelConfig->GetChannel()->GetAddress().compare(address) == 0) {
+					if (channelConfig->GetChannel()->GetAddress().compare(addressPin) == 0) {
 						foundChannel = channelConfig;
 						break;
 					}
 				}
 
 				if (foundChannel == nullptr) {
-					log4MC::vlogf(LOG_WARNING, "Config: ESP pin %u not configured in 'espPins' section. Configured action ignored.", address);
+					log4MC::vlogf(LOG_WARNING, "Config: ESP pin %u not configured in 'espPins' section. Configured action ignored.", addressPin);
 					continue;
 				}
 
 				// Check if the ESP pin with the specified address defined in the config has a light attached to it.
 				if (foundChannel->GetAttachedDeviceType() != DeviceType::Light) {
-					log4MC::vlogf(LOG_WARNING, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`. Configured action ignored.", address);
+					log4MC::vlogf(LOG_WARNING, "Config: ESP pin %u in the 'espPins' section is not configured with `light` as the `attachedDevice`. Configured action ignored.", addressPin);
 					continue;
 				}
 
@@ -157,10 +160,10 @@ BLELocomotiveConfiguration *BLELocomotiveDeserializer::Deserialize(JsonObject lo
 				actions.push_back(new MCLocoAction(foundChannel->GetChannel(), pwrPerc, hubLedColorMap()[color]));
 		}
 		// TODO: do sanity check
-		log4MC::vlogf(LOG_DEBUG,"Number of triggers (%d) and actions (%d) loaded for this event.",triggers.size(), actions.size());
+		log4MC::vlogf(LOG_DEBUG, "Number of triggers (%d) and actions (%d) loaded for this event.", triggers.size(), actions.size());
 		events.push_back(new MCLocoEvent(triggers, actions));
 	}
-	log4MC::vlogf(LOG_DEBUG,"Number of events loaded: %d.",events.size());
+	log4MC::vlogf(LOG_DEBUG, "Number of events loaded: %d.", events.size());
 	BLELocomotiveConfiguration *loco = new BLELocomotiveConfiguration(address, name, hubs, events);
 
 	return loco;
