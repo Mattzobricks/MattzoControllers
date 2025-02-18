@@ -1,34 +1,20 @@
 {
-	"address": 146,
-	"name": "BR146",
+	"address": 6423,
+	"name": "REDTRAM",
 	"pwrIncStep": 10,
 	"pwrDecStep": 10,
+	"stopImmediately": true,
 	"bleHubs": [
 		{
 			"type": "PU",
-			"address": "90:84:2b:16:15:f8",
+			"address": "90:84:2b:01:20:f8",
 			"channels": [
 				{
 					"channel": "LED"
 				},
 				{
 					"channel": "A",
-					"attachedDevice": "motor",
-					"direction": "reverse"
-				}
-			]
-		},
-		{
-			"type": "PU",
-			"address": "90:84:2b:00:5d:bb",
-			"channels": [
-				{
-					"channel": "LED"
-				},
-				{
-					"channel": "B",
-					"attachedDevice": "motor",
-					"direction": "forward"
+					"attachedDevice": "motor"
 				}
 			]
 		}
@@ -44,14 +30,9 @@
 			],
 			"actions": [
 				{
-					"address": "90:84:2b:16:15:f8",
+					"address": "90:84:2b:01:20:f8",
 					"channel": "LED",
 					"color": "white"
-				},
-				{
-					"address": "90:84:2b:00:5d:bb",
-					"channel": "LED",
-					"color": "red"
 				}
 			]
 		},
@@ -65,14 +46,9 @@
 			],
 			"actions": [
 				{
-					"address": "90:84:2b:16:15:f8",
+					"address": "90:84:2b:01:20:f8",
 					"channel": "LED",
 					"color": "red"
-				},
-				{
-					"address": "90:84:2b:00:5d:bb",
-					"channel": "LED",
-					"color": "white"
 				}
 			]
 		},
@@ -86,12 +62,7 @@
 			],
 			"actions": [
 				{
-					"address": "90:84:2b:16:15:f8",
-					"channel": "LED",
-					"color": "blue"
-				},
-				{
-					"address": "90:84:2b:00:5d:bb",
+					"address": "90:84:2b:01:20:f8",
 					"channel": "LED",
 					"color": "blue"
 				}
