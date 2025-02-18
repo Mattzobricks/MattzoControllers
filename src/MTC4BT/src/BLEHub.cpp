@@ -184,7 +184,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 		if (_clientCallback == nullptr) {
 			_clientCallback = new BLEClientCallback(this);
 		}
-		_hub->setClientCallbacks( _clientCallback, false);
+		_hub->setClientCallbacks( _clientCallback, true);
 
 		/** Set how long we are willing to wait for the connection to complete (seconds) */
 		_hub->setConnectTimeout(ConnectDelayInMS);
