@@ -311,7 +311,7 @@ void BLEHub::driveTaskImpl(void *_this)
 void BLEHub::connected()
 {
 	this->_isConnected = true;
-	log4MC::vlogf(LOG_DEBUG, "%s connected address %s, has callback %d", __func__, _config->DeviceAddress->toString().c_str(), this->_onConnectionChangedCallback != 0);
+	log4MC::vlogf(LOG_DEBUG, "hub %s with address %s, has callback %d", __func__, _config->DeviceAddress->toString().c_str(), this->_onConnectionChangedCallback != 0);
 	if (this->_onConnectionChangedCallback) {
 		this->_onConnectionChangedCallback(true);
 	}
@@ -320,7 +320,7 @@ void BLEHub::connected()
 void BLEHub::disconnected()
 {
 	this->_isConnected = false;
-	log4MC::vlogf(LOG_DEBUG, "%s dis-connected address %s, has callback %d", __func__, _config->DeviceAddress->toString().c_str(), this->_onConnectionChangedCallback != 0);
+	log4MC::vlogf(LOG_DEBUG, "hub %s with address %s, has callback %d", __func__, _config->DeviceAddress->toString().c_str(), this->_onConnectionChangedCallback != 0);
 	if (this->_onConnectionChangedCallback) {
 		this->_onConnectionChangedCallback(false);
 	}

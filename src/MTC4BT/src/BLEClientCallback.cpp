@@ -35,3 +35,8 @@ void BLEClientCallback::onDisconnect(NimBLEClient *client, int reason)
 		}
 	}
 }
+
+void BLEClientCallback::onMTUChange(NimBLEClient* pClient, uint16_t mtu)
+{
+	log4MC::vlogf(LOG_DEBUG, "BLE : mtuChange from hub '%s' value: %d.", _hub->_config->DeviceAddress->toString().c_str(), mtu);
+}
