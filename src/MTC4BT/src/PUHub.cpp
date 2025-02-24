@@ -17,8 +17,6 @@ PUHub::PUHub(BLEHubConfiguration *config)
 
 bool PUHub::SetWatchdogTimeout(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-	_watchdogTimeOutInTensOfSeconds = watchdogTimeOutInTensOfSeconds;
-
 	if (!attachCharacteristic(remoteControlServiceUUID, remoteControlCharacteristicUUID)) {
 		log4MC::error("BLE : Unable to attach to remote control service.");
 		return false;
@@ -92,9 +90,6 @@ void PUHub::DriveTaskLoop()
 				}
 			}
 		}
-
-		// Wait half the watchdog timeout (converted from s/10 to s/1000).
-		// vTaskDelay(_watchdogTimeOutInTensOfSeconds * 50 / portTICK_PERIOD_MS);
 
 		// Wait 50 milliseconds.
 		vTaskDelay(DRIVERTASKDELAY / portTICK_PERIOD_MS);

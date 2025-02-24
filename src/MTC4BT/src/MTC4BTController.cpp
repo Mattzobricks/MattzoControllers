@@ -24,10 +24,10 @@
 const uint32_t BLINK_AT_CONNECT_DURATION_IN_MS = 3000;
 
 // BLE scan duration in seconds. If the device isn't found within this timeframe the scan is aborted.
-const uint32_t BLE_SCAN_DURATION_IN_SECONDS = 2;
+const uint32_t BLE_SCAN_DURATION_IN_MS = 2000;
 
 // Duration between BLE discovery and connect attempts in seconds.
-const uint32_t BLE_CONNECT_DELAY_IN_SECONDS = 3;
+const uint32_t BLE_CONNECT_DELAY_IN_MS = 3000;
 
 // Sets the watchdog timeout (0D &lt; timeout in 0.1 secs, 1 byte &gt;)
 // The purpose of the watchdog is to stop driving in case of an application failure.
@@ -312,11 +312,11 @@ void MTC4BTController::discoveryLoop(void *parm)
 
 		if (undiscoveredHubs.size() > 0 || (controller->Locomotives.size() == 0 && controller->Remotes.size() == 0)) {
 			// Start discovery for undiscovered hubs.
-			controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_SECONDS);
+			controller->_hubScanner->StartDiscovery(undiscoveredHubs, BLE_SCAN_DURATION_IN_MS);
 		}
 
 		// Delay next discovery/connect attempts for a while, allowing the background tasks of already connected Hubs to send their periodic drive commands.
-		delay(BLE_CONNECT_DELAY_IN_SECONDS * 1000 / portTICK_PERIOD_MS);
+		delay(BLE_CONNECT_DELAY_IN_MS / portTICK_PERIOD_MS);
 	}
 }
 

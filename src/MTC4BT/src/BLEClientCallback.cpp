@@ -8,6 +8,7 @@ BLEClientCallback::BLEClientCallback(BLEHub *hub) : NimBLEClientCallbacks()
 
 void BLEClientCallback::onConnect(NimBLEClient *client)
 {
+	log4MC::vlogf(LOG_INFO, "BLE : Tying to connecto to hub '%s'.", client->getPeerAddress().toString().c_str());
 	if (client->getPeerAddress().equals(*_hub->_config->DeviceAddress)) {
 		log4MC::vlogf(LOG_INFO, "BLE : Connected to hub '%s'.", client->getPeerAddress().toString().c_str());
 
@@ -21,10 +22,10 @@ void BLEClientCallback::onConnect(NimBLEClient *client)
 	}
 }
 
-void BLEClientCallback::onDisconnect(NimBLEClient *client)
+void BLEClientCallback::onDisconnect(NimBLEClient *client, int reason)
 {
 	if (client->getPeerAddress().equals(*_hub->_config->DeviceAddress)) {
-		log4MC::vlogf(LOG_ERR, "BLE : Disconnected from hub '%s'.", _hub->_config->DeviceAddress->toString().c_str());
+		log4MC::vlogf(LOG_ERR, "BLE : Disconnected from hub '%s' reason: %d.", _hub->_config->DeviceAddress->toString().c_str(), reason);
 
 		_hub->_isDiscovered = false;
 		_hub->disconnected();
