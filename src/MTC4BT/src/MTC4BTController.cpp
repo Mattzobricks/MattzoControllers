@@ -18,7 +18,7 @@
 #define Discovery_CoreID CONFIG_BT_NIMBLE_PINNED_TO_CORE
 
 // The size of the task stack specified as the number of bytes.
-#define Discovery_StackDepth 3072
+#define Discovery_StackDepth 4096
 
 // Blink duration in milliseconds. If all hubs if a loco are connected, its lights will blink for this duration.
 const uint32_t BLINK_AT_CONNECT_DURATION_IN_MS = 3000;
