@@ -87,6 +87,8 @@ void WiFiEvent(WiFiEvent_t event)
 		break;
 	case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
 		log4MC::debug("Disconnected from WiFi access point");
+		gotConnection = false;
+		log4MC::wifiIsConnected(false);
 		break;
 	case ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE:
 		log4MC::debug("Authentication mode of access point has changed");
@@ -151,6 +153,7 @@ void WiFiEvent(WiFiEvent_t event)
 	case ARDUINO_EVENT_ETH_DISCONNECTED:
 		log4MC::debug("Ethernet disconnected");
 		gotConnection = false;
+		log4MC::wifiIsConnected(false);
 		break;
 	case ARDUINO_EVENT_ETH_GOT_IP:
 		Serial.print("Obtained ETH IP address: ");
@@ -170,7 +173,7 @@ void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 	Serial.println("IP address: ");
 	Serial.println(IPAddress(info.got_ip.ip_info.ip.addr));
 	Serial.printf(" MAC Address: %s\n", WiFi.macAddress().c_str());
-
+	log4MC::wifiIsConnected(true);
 	gotConnection = true;
 }
 
@@ -182,6 +185,7 @@ void ETHGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 	Serial.printf(" MAC Address: %s\n", ETH.macAddress().c_str());
 
 	gotConnection = true;
+	log4MC::wifiIsConnected(true);
 }
 
 /******************************************************************************************************************************
@@ -383,6 +387,12 @@ void loop()
 {
 	static unsigned long checkedForRocrail = millis() + 12000; // force a loco lookup on startup
 	static long connectionStartTime = millis();
+	/*if (millis() - connectionStartTime > 10000) {
+		log4MC::debug("Debug test");
+		log4MC::info("Info test");
+		log4MC::error("Error test");
+		log4MC::fatal("Fatal test");
+	}*/
 	if (millis() - connectionStartTime > 30000 && !gotConnection) {
 		log4MC::info("No connection... ");
 		connectionStartTime = millis();
