@@ -8,7 +8,7 @@
 #define DEFAULT_PWR_INC_STEP 10
 #define DEFAULT_PWR_DEC_STEP 10
 
-MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath, processAddress * processor)
+MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath, processAddress *processor)
 {
 	// New up a configation object, so we can set its properties.
 	MTC4BTConfiguration *config = new MTC4BTConfiguration();
@@ -82,16 +82,20 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath, pro
 
 		// Read JSON controller config file.
 		JsonDocument locoConfigDoc = MCJsonConfig::ReadJsonFile(locoConfigFile.c_str());
-		JsonObject locoConfig = locoConfigDoc.as<JsonObject>();
+		if (!locoConfigDoc.isNull()) {
+			JsonObject locoConfig = locoConfigDoc.as<JsonObject>();
 
-		// Read if loco is enabled.
-		const bool enabled = locoConfig["enabled"] | true;
-		if (!enabled) {
-			// Skip if loco is not enabled.
-			continue;
+			// Read if loco is enabled.
+			const bool enabled = locoConfig["enabled"] | true;
+			if (!enabled) {
+				// Skip if loco is not enabled.
+				continue;
+			}
+
+			config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep, processor));
+		} else {
+			log4MC::vlogf(LOG_ERR, "Locomotive config file \"%s\" does not exist or is no json!", locoConfigFile.c_str());
 		}
-
-		config->LocoConfigs.push_back(BLELocomotiveDeserializer::Deserialize(locoConfig, config->EspPins, pwrIncStep, pwrDecStep, processor));
 	}
 
 	// Read remote config files.
@@ -101,17 +105,21 @@ MTC4BTConfiguration *loadControllerConfiguration(const char *configFilePath, pro
 
 		// Read JSON controller config file.
 		JsonDocument remoteConfigDoc = MCJsonConfig::ReadJsonFile(remoteConfigFile.c_str());
-		JsonObject remoteConfig = remoteConfigDoc.as<JsonObject>();
+		if (!remoteConfigDoc.isNull()) {
+			JsonObject remoteConfig = remoteConfigDoc.as<JsonObject>();
 
-		// Read if loco is enabled.
-		const bool enabled = remoteConfig["enabled"] | true;
-		if (!enabled) {
-			// Skip if loco is not enabled.
-			continue;
+			// Read if loco is enabled.
+			const bool enabled = remoteConfig["enabled"] | true;
+			if (!enabled) {
+				// Skip if loco is not enabled.
+				continue;
+			}
+			deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep, processor);
+			if (deserializedRemoteConfig)
+				config->RemoteConfigs.push_back(deserializedRemoteConfig);
+		} else {
+			log4MC::vlogf(LOG_ERR, "Remote config file \"%s\" does not exist or is no json!", remoteConfigFile.c_str());
 		}
-		deserializedRemoteConfig = BLERemoteDeserializer::Deserialize(remoteConfig, pwrIncStep, pwrDecStep, processor);
-		if (deserializedRemoteConfig)
-			config->RemoteConfigs.push_back(deserializedRemoteConfig);
 	}
 
 	// Return MTC4BTConfiguration object.
