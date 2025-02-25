@@ -41,6 +41,7 @@ const int8_t WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS = 3;
 
 MTC4BTController::MTC4BTController() : MController()
 {
+	didInit = false;
 }
 
 void MTC4BTController::Setup(MTC4BTConfiguration *config)

@@ -246,11 +246,11 @@ void setup()
 	log4MC::Setup(networkConfig->hostname.c_str(), networkConfig->Logging);
 
 	// Load optional lookuptable
-	processAddress * processor = new processAddress(LOOKUPTABLE_CONFIG_FILE);
+	processAddress *processor = new processAddress(LOOKUPTABLE_CONFIG_FILE);
 
 	// Load the controller configuration.
 	log4MC::info("Setup: Loading controller configuration...");
-	controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE , processor);
+	controllerConfig = loadControllerConfiguration(CONTROLLER_CONFIG_FILE, processor);
 	controller = new MTC4BTController();
 	controller->Setup(controllerConfig);
 	networkConfig->MQTT->SubscriberName = controllerConfig->ControllerName;
@@ -423,7 +423,8 @@ void loop()
 				MTC4BTMQTTHandler::pubGetShortLcList();
 				checkedForRocrail = millis();
 			}
-		} else {
+		}
+		if (controller->didInit) {
 			// we have a loco list, so there is a connection with Rocrail
 			controller->initFirstItems();
 		}
