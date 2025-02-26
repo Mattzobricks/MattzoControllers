@@ -192,6 +192,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 			log4MC::vlogf(LOG_ERR,"BLE: Could not create client callback for %s!",_config->DeviceAddress->toString().c_str());
 			NimBLEDevice::deleteClient(_hub);
 			_hub= NULL;
+			_clientCallback = NULL;
 			_isDiscovered = false;
 			return false;
 		}
@@ -204,6 +205,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 		if (!_hub->connect(_advertisedDevice)) {
 			/** Created a client but failed to connect, don't need to keep it as it has no data */
 			NimBLEDevice::deleteClient(_hub);
+			_clientCallback = NULL;
 			_hub= NULL;
 			log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to hub '%s', deleted client.", _config->DeviceAddress->toString().c_str());
 			_isDiscovered = false;
