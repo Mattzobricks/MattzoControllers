@@ -288,10 +288,17 @@ void setup()
 	WiFi.disconnect(true);
 	WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 	WiFi.setHostname(networkConfig->hostname.c_str());
+
+// if WIRED is not defined, alway wireless
+#ifdef WIRED	
 	if (networkConfig->networkType == "wireless") {
+#endif		
 		log4MC::vlogf(LOG_INFO, "Wifi: Connecting to %s.", networkConfig->WiFi->SSID.c_str());
 		WiFi.begin(networkConfig->WiFi->SSID.c_str(), networkConfig->WiFi->password.c_str());
+#ifdef WIRED		
 	}
+#endif
+
 #ifdef WIRED
 	else if (networkConfig->networkType == "wired") {
 		// the old wired interface, using those pin numbers
