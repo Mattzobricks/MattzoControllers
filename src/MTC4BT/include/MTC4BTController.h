@@ -48,6 +48,8 @@ class MTC4BTController : public MController
 	// find all first items from the remotes, and do an init.
 	void initFirstItems();
 
+	bool didInit;
+
   private:
 	// Discovers new BLE devices.
 	static void discoveryLoop(void *parm);
