@@ -10,8 +10,7 @@ class BLEClientCallback : public NimBLEClientCallbacks
 
   private:
 	void onConnect(NimBLEClient *pclient);
-	void onDisconnect(NimBLEClient *pclient, int reason);
-	void onMTUChange(NimBLEClient* pClient, uint16_t mtu);
+	void onDisconnect(NimBLEClient *pclient);
 
 	BLEHub *_hub;
 };
