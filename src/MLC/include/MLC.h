@@ -14,9 +14,9 @@
 
 // SERVO CONSTANTS AND STRUCTS
 // Minimum puls length in microseconds (maps to a servo angle of 0°)
-#define DEFAULT_MIN_PULSE_WIDTH 500
+#define DEFAULT_MIN_PULSE_WIDTH_MS 500
 // Maximum puls length in microseconds (maps to a servo angle of 180°)
-#define DEFAULT_MAX_PULSE_WIDTH 2500
+#define DEFAULT_MAX_PULSE_WIDTH_MS 2500
 // Delay after which servo is detached after flipping a switch (for directly connected servos only)
 #define SERVO_DETACH_DELAY 1000
 // Maximum time that the detach procedure procedure will wait until the PWM signal is low and therefore ready to be detached (for directly connected servos only)

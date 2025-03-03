@@ -19,7 +19,7 @@
 #define BLE_CoreID CONFIG_BT_NIMBLE_PINNED_TO_CORE
 
 // The size of the task stack specified as the number of bytes.
-#define BLE_StackDepth 2048
+#define BLE_StackDepth 4096
 
 // The number of seconds to wait for a Hub to connect.
 #define ConnectDelayInSeconds 5

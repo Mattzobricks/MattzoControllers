@@ -4,8 +4,8 @@
  */
 
 #include "MTC4BTMQTTHandler.h"
-#include "MTC4BTController.h"
 #include "MCmqtt.h"
+#include "MTC4BTController.h"
 #include "log4MC.h"
 
 // it is globaly defined in main.cpp
@@ -179,13 +179,13 @@ void MTC4BTMQTTHandler::handleLc(const char *message)
 		return;
 	}
 
-/*
-	if (speed != 0 && speed < minSpeed) {
-		// Requested speed is too low, we should ignore this command.
-		log4MC::vlogf(LOG_DEBUG, "MQTT: Received and ignored 'lc' command, because speed (%u) was below V_min (%u).", speed, minSpeed);
-		return;
-	}
-*/
+	/*
+		if (speed != 0 && speed < minSpeed) {
+			// Requested speed is too low, we should ignore this command.
+			log4MC::vlogf(LOG_DEBUG, "MQTT: Received and ignored 'lc' command, because speed (%u) was below V_min (%u).", speed, minSpeed);
+			return;
+		}
+	*/
 
 	// Get max speed.
 	int maxSpeed;
@@ -257,8 +257,9 @@ void MTC4BTMQTTHandler::handleLCList(const char *message)
 	}
 	// sort locs by address
 	sort(locs.begin(), locs.end(), compareAddress);
-	// find the range index offeset
+	// find the range index offset
 
+	controller->didInit = true; // we could have had 0 trains in the plan
 	controller->handleLCList();
 	log4MC::vlogf(LOG_DEBUG, "Got for loco list.");
 }

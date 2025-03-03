@@ -840,7 +840,7 @@ void setServoAngle(int servoIndex, int servoAngle)
 		if (servoConfiguration[servoIndex].pinType == 0) {
 			if (!mattzoServo[servoIndex].isAttached) {
 				mcLog2("Attaching servo index " + String(servoIndex) + " and turning to angle " + String(servoAngle), LOG_DEBUG);
-				mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin, DEFAULT_MIN_PULSE_WIDTH, DEFAULT_MAX_PULSE_WIDTH, servoAngle);
+				mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin, DEFAULT_MIN_PULSE_WIDTH, DEFAULT_MAX_PULSE_WIDTH_MS, servoAngle);
 			} else {
 				mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
 				mattzoServo[servoIndex].servo.write(servoAngle);

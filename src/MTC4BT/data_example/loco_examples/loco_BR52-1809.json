@@ -1,10 +1,10 @@
 {
     "address": 1809,
     "name": "BR52-1809",
-    "speedStep": 5,
-    "brakeStep": 5,
 	"stopImmediately": false,
-    "bleHubs": [
+	"pwrIncStep": 10,
+	"pwrDecStep": 10,
+	"bleHubs": [
         {
             "type": "SBrick",
             "address": "84:2e:14:51:6b:53",
@@ -21,9 +21,9 @@
                 },
                 {
                     "channel": "A",
-                    "attachedDevice": "light",
-                    "pwrIncStep": 10,
-                    "pwrDecStep": 20
+					"attachedDevice": "light",
+                    "pwrIncStep": 25,
+                    "pwrDecStep": 25
                 }
             ]
         }

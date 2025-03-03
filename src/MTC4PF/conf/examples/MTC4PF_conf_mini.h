@@ -96,10 +96,30 @@ MattzoMotorShieldConfiguration *getMattzoMotorShieldConfiguration()
 // *************************
 
 // Number of train lights controlled by this controller
-#define NUM_TRAIN_LIGHTS 0
+#define NUM_TRAIN_LIGHTS 2
 
 // List of train lights including their configuration
-TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] = {};
+TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] =
+{
+	{
+		// 0: light 1
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D0,
+		.motorShieldIndex = -1,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = MAX_ARDUINO_POWER,
+	},
+	{
+		// 1: light 2
+		.trainLightType = TrainLightType::ESP_OUTPUT_PIN,
+		.pin = D2,
+		.motorShieldIndex = -1,
+		.motorPortIndex = -1,
+		.powerLevelOff = 0,
+		.powerLevelOn = MAX_ARDUINO_POWER,
+	},
+};
 
 // ******************************
 // FUNCTION MAPPING CONFIGURATION
@@ -108,10 +128,47 @@ TTrainLightConfiguration trainLightConfiguration[NUM_TRAIN_LIGHTS] = {};
 // Rocrail functions are used to MANUALLY switch train lights on and off
 
 // Number of function mappings
-#define NUM_FUNCTION_MAPPINGS 0
+#define NUM_FUNCTION_MAPPINGS 4
 
 // List of function mappings
-TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] = {};
+TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_MAPPINGS] =
+{
+	// fn1: light 1
+	{
+		// fn1 on => light 1 on
+		.locoAddress = 1,
+		.fnNo = 1,
+		.fnOnOff = true,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		// fn1 off => light 1 off
+		.locoAddress = 1,
+		.fnNo = 1,
+		.fnOnOff = false,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+
+	// fn2: light 2
+	{
+		// fn2 on => light 2 on
+		.locoAddress = 1,
+		.fnNo = 2,
+		.fnOnOff = true,
+		.trainLightIndex = 1,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		// fn2 off => light 2 off
+		.locoAddress = 1,
+		.fnNo = 2,
+		.fnOnOff = false,
+		.trainLightIndex = 1,
+		.trainLightStatus = TrainLightStatus::OFF
+	}
+};
 
 // *********************************
 // TRAIN LIGHT TRIGGER CONFIGURATION
@@ -120,10 +177,60 @@ TLocoFunctionMappingConfiguration locoFunctionMappingConfiguration[NUM_FUNCTION_
 // Triggers are used to AUTOMATICALLY switch train lights on and off
 
 // Number of train light triggers as defined just below
-#define NUM_TRAIN_LIGHT_TRIGGERS 0
+#define NUM_TRAIN_LIGHT_TRIGGERS 6
 
 // List of train light triggers
-TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] = {};
+TTrainLightTriggerConfiguration trainLightTriggerConfiguration[NUM_TRAIN_LIGHT_TRIGGERS] =
+{
+	// forward
+	{
+		// light 1 on
+		.locoAddress = 1,
+		.lightEventType = LightEventType::FORWARD,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+	{
+		// light 2 off
+		.locoAddress = 1,
+		.lightEventType = LightEventType::FORWARD,
+		.trainLightIndex = 1,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+
+	// backward
+	{
+		// light 1 off
+		.locoAddress = 1,
+		.lightEventType = LightEventType::REVERSE,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+	{
+		// light 2 on
+		.locoAddress = 1,
+		.lightEventType = LightEventType::REVERSE,
+		.trainLightIndex = 1,
+		.trainLightStatus = TrainLightStatus::ON
+	},
+
+	// stop
+	{
+		// light 1 off
+		.locoAddress = 1,
+		.lightEventType = LightEventType::STOP,
+		.trainLightIndex = 0,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+	{
+		// light 2 off
+		.locoAddress = 1,
+		.lightEventType = LightEventType::STOP,
+		.trainLightIndex = 1,
+		.trainLightStatus = TrainLightStatus::OFF
+	},
+};
+
 
 // ************************
 // CONTROLLER CONFIGURATION
