@@ -23,12 +23,13 @@
 // General documentation: https://www.mattzobricks.com
 // Parameter documentation: MLC/include/MLC_types.h
 
-// This configuration is an example configuration for controlling form signals.
+// This configuration is an example configuration for controlling form signals
+// Created for MLC mini
 // It serves 6 form signals:
 // - 2 main semaphores with 2 aspects
 // - 2 main semaphores with 3 aspects (yellow LED switchable)
 // - 2 distant semaphores with 3 aspects
-
+// Servo angles have been calibrated for MLC mini, firmware V1.2.2.
 
 
 // *******************************
@@ -117,32 +118,32 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
     {
     {
         .pin = D0,
-         .pinType = 0,
+        .pinType = 0,
+        .detachAfterUsage = true
+    },
+    {
+        .pin = D5,
+    	.pinType = 0,
         .detachAfterUsage = true
     },
     {
         .pin = D1,
-         .pinType = 0,
+        .pinType = 0,
         .detachAfterUsage = true
     },
     {
         .pin = D2,
-         .pinType = 0,
+       	.pinType = 0,
         .detachAfterUsage = true
     },
     {
         .pin = D3,
-        .pinType = 0,
+       	.pinType = 0,
         .detachAfterUsage = true
     },
     {
-        .pin = D6,
-        .pinType = 0,
-        .detachAfterUsage = true
-    },
-    {
-        .pin = D7,
-        .pinType = 0,
+        .pin = D4,
+       	.pinType = 0,
         .detachAfterUsage = true
     },
 };
@@ -160,11 +161,11 @@ TServoConfiguration servoConfiguration[NUM_SERVOS] =
 TLEDConfiguration ledConfiguration[NUM_LEDS] =
     {
     {
-        .pin = D4,
+        .pin = D6,
         .pinType = 0
     },
     {
-        .pin = D5,
+        .pin = D7,
         .pinType = 0
     }
 };
@@ -243,7 +244,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP},
         },
         .servoIndex = {0},
-        .aspectServoAngle = {{180, 90, -1}},
+        .aspectServoAngle = {{140, 75, -1}},
         .overshootSensorIndex = -1
     },
     // signal 1 (N6): a simple form signal with 2 aspects, controlled via Rocrail ports 3 and 4, using servo index 1 (pin D1)
@@ -257,7 +258,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP},
         },
         .servoIndex = {1},
-        .aspectServoAngle = {{170, 115, -1}},
+        .aspectServoAngle = {{140, 75, -1}},
         .overshootSensorIndex = -1
     },
     // signal 2 (N7): form signal with 3 aspects, controlled via Rocrail ports 5, 6 and 7, using servo index 2 (D2)
@@ -272,7 +273,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_ON}
         }, 
         .servoIndex = {2}, 
-        .aspectServoAngle = {{90, 15, 160}},
+        .aspectServoAngle = {{60, 5, 130}},
         .overshootSensorIndex = -1
     },
     // signal 3 (N8): form signal with 3 aspects, controlled via Rocrail ports 8, 9 and 10, using servo index 3 (D3)
@@ -287,7 +288,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_ON}
         }, 
         .servoIndex = {3}, 
-        .aspectServoAngle = {{90, 15, 160}},
+        .aspectServoAngle = {{60, 5, 130}},
         .overshootSensorIndex = -1
     },
     // signal 4 (Vs3): distant form signal with 3 aspects, controlled via Rocrail ports 11, 12 and 13, using servo index 4 (D6)
@@ -301,7 +302,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP}
         }, 
         .servoIndex = {4}, 
-        .aspectServoAngle = {{8, 70, 113}},
+        .aspectServoAngle = {{8, 60, 170}},
         .overshootSensorIndex = -1
     },
     // signal 5 (Vs4): distant form signal with 3 aspects, controlled via Rocrail ports 14, 15 and 16, using servo index 3 (D7)
@@ -315,7 +316,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP}
         }, 
         .servoIndex = {5}, 
-        .aspectServoAngle = {{8, 70, 113}},
+        .aspectServoAngle = {{12, 60, 165}},
         .overshootSensorIndex = -1
     }
 };
