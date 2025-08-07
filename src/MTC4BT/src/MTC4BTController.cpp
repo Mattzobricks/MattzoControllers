@@ -260,14 +260,14 @@ void MTC4BTController::discoveryLoop(void *parm)
 					// Hub discovered, try to connect now.
 					if (hub->Connect(WATCHDOG_TIMEOUT_IN_TENS_OF_SECONDS)) {
 						if (loco->AllHubsConnected()) {
-							log4MC::vlogf(LOG_INFO, "Loop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
+							log4MC::vlogf(LOG_INFO, "discoveryLoop: Connected to all hubs of loco '%s'.", loco->GetLocoName().c_str());
 
 							// Blink lights for a while when connected.
 							loco->BlinkLights(BLINK_AT_CONNECT_DURATION_IN_MS);
 						}
 					} else {
 						// Connect attempt failed. Will retry in next loop.
-						log4MC::warn("Loop: Connect failed. Will retry...");
+						log4MC::warn("discoveryLoop: Connect failed. Will retry...");
 					}
 				} else {
 					// Hub not discovered yet, add to list of hubs to discover.

@@ -143,7 +143,7 @@ void BLEHub::SetEmergencyBrake(const bool enabled)
 
 bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 {
-	log4MC::vlogf(LOG_INFO, "BLE : Connecting to hub '%s'...", _config->DeviceAddress->toString().c_str());
+	log4MC::vlogf(LOG_INFO, "BLE::Connect : Connecting to hub '%s'...", _config->DeviceAddress->toString().c_str());
 
 	/** Check if we have a client we should reuse first **/
 	if (NimBLEDevice::getCreatedClientCount()) {
@@ -160,7 +160,7 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 			}
 
 			_isConnected = true;
-			log4MC::vlogf(LOG_INFO, "BLE : Reconnected to hub '%s'...", _config->DeviceAddress->toString().c_str());
+			log4MC::vlogf(LOG_INFO, "BLE::Connect : Reconnected to hub '%s'...", _config->DeviceAddress->toString().c_str());
 		}
 		/** We don't already have a client that knows this device,
 		 *  we will check for a client that is disconnected that we can use.
@@ -173,15 +173,15 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 	/** No client to reuse? Create a new one. */
 	if (!_hub) {
 		if (NimBLEDevice::getCreatedClientCount() >= NIMBLE_MAX_CONNECTIONS) {
-			log4MC::warn("BLE : Max clients reached - no more connections available.");
+			log4MC::warn("BLE::Connect : Max clients reached - no more connections available.");
 			_isDiscovered = false;
 			return false;
 		}
 
 		_hub = NimBLEDevice::createClient();
-		log4MC::vlogf(LOG_DEBUG,"hub created: %d (%s)",_hub,_config->DeviceAddress->toString().c_str());
+		log4MC::vlogf(LOG_DEBUG, "BLE::Connect : hub created: %d (%s)", _hub, _config->DeviceAddress->toString().c_str());
 		if (!_hub) {
-			log4MC::vlogf(LOG_ERR,"BLE: Could not create hub for %s!",_config->DeviceAddress->toString().c_str());
+			log4MC::vlogf(LOG_ERR, "BLE::Connect : Could not create hub for %s!", _config->DeviceAddress->toString().c_str());
 			_isDiscovered = false;
 			return false;
 		}
@@ -189,14 +189,23 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 			_clientCallback = new BLEClientCallback(this);
 		}
 		if (!_clientCallback) {
-			log4MC::vlogf(LOG_ERR,"BLE: Could not create client callback for %s!",_config->DeviceAddress->toString().c_str());
+			log4MC::vlogf(LOG_ERR, "BLE::Connect : Could not create client callback for %s!", _config->DeviceAddress->toString().c_str());
 			NimBLEDevice::deleteClient(_hub);
-			_hub= NULL;
+			_hub = NULL;
 			_clientCallback = NULL;
 			_isDiscovered = false;
 			return false;
 		}
-		_hub->setClientCallbacks( _clientCallback, true);
+		_hub->setClientCallbacks(_clientCallback, true);
+		/**
+		 *  Set initial connection parameters:
+		 *  These settings are safe for 3 clients to connect reliably, can go faster if you have less
+		 *  connections. Timeout should be a multiple of the interval, minimum is 100ms.
+		 *  Min interval: 12 * 1.25ms = 15, Max interval: 12 * 1.25ms = 15, 0 latency, 150 * 10ms = 1500ms timeout
+		 * 
+		 * Doubled it for 6 clients?
+		 */
+		_hub->setConnectionParams(24, 24, 0, 300);
 
 		/** Set how long we are willing to wait for the connection to complete (seconds) */
 		_hub->setConnectTimeout(ConnectDelayInMS);
@@ -206,8 +215,8 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 			/** Created a client but failed to connect, don't need to keep it as it has no data */
 			NimBLEDevice::deleteClient(_hub);
 			_clientCallback = NULL;
-			_hub= NULL;
-			log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to hub '%s', deleted client.", _config->DeviceAddress->toString().c_str());
+			_hub = NULL;
+			log4MC::vlogf(LOG_WARNING, "BLE::Connect  : Failed to connect to hub '%s', deleted client.", _config->DeviceAddress->toString().c_str());
 			_isDiscovered = false;
 			return false;
 		}
@@ -215,12 +224,12 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 
 	if (!_hub->isConnected()) {
 		if (!_hub->connect(_advertisedDevice)) {
-			log4MC::vlogf(LOG_WARNING, "BLE : Failed to connect to hub '%s'.", _config->DeviceAddress->toString().c_str());
+			log4MC::vlogf(LOG_WARNING, "BLE::Connect  : Failed to connect to hub '%s'.", _config->DeviceAddress->toString().c_str());
 			_isDiscovered = false;
 			return false;
 		}
 	}
-	
+
 	// Try to obtain a reference to the remote control characteristic in the remote control service of the BLE server.
 	// If we can set the watchdog timeout, we consider our connection attempt a success.
 	if (!SetWatchdogTimeout(watchdogTimeOutInTensOfSeconds)) {
