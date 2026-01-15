@@ -205,7 +205,8 @@ bool BLEHub::Connect(const uint8_t watchdogTimeOutInTensOfSeconds)
 		 * 
 		 * Doubled it for 6 clients?
 		 */
-		_hub->setConnectionParams(24, 24, 0, 300);
+		// ignore for now
+		//_hub->setConnectionParams(24, 24, 0, 300);
 
 		/** Set how long we are willing to wait for the connection to complete (seconds) */
 		_hub->setConnectTimeout(ConnectDelayInMS);

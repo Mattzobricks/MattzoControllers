@@ -10,7 +10,12 @@ BLEHubScanner::BLEHubScanner()
 	_isDiscovering = false;
 
 	NimBLEDevice::init("");
-
+	/*
+	 * @param bonding If true we allow bonding, false no bonding will be performed.
+	 * @param mitm If true we are capable of man in the middle protection, false if not.
+	 * @param sc If true we will perform secure connection pairing, false we will use legacy pairing.
+	 */
+	NimBLEDevice::setSecurityAuth(true, false, false);
 	// Configure BLE scanner.
 	_scanner = NimBLEDevice::getScan();
 	// _scanner->setActiveScan(true);   // Set active scanning, this will get more data from the advertiser.
