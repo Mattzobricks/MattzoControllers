@@ -225,7 +225,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
     // signal 0: light main signal "L4"
     {
-        .signalRocrailPort = -1,
+        .signalRocrailPort = 1,
         .aspectRocrailPort = {1, 2, 3, 4},
         .aspectLEDPort = {0, 1, 2, 3},  // red left, red right, green, yellow
         .aspectLEDMapping = {

@@ -784,7 +784,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 {
     // signal 0: H/V light main signal
     {
-        .signalRocrailPort = 0,
+        .signalRocrailPort = 1,
         .aspectRocrailPort = {1, 2, 3, 4},
         .aspectLEDPort = {0, 1, 2, 3},
         .aspectLEDMapping = {
@@ -799,7 +799,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 1: H/V light main signal
     {
-        .signalRocrailPort = 0,
+        .signalRocrailPort = 11,
         .aspectRocrailPort = {11, 12, 13, 14},
         .aspectLEDPort = {4, 5, 6, 7},
         .aspectLEDMapping = {
@@ -814,7 +814,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 2: H/V light distant signal
     {
-        .signalRocrailPort = 0,
+        .signalRocrailPort = 21,
         .aspectRocrailPort = {21, 22, 23, 24},
         .aspectLEDPort = {8, 9, 10, 11},
         .aspectLEDMapping = {
@@ -829,7 +829,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     },
     // signal 3: H/V light distant signal
     {
-        .signalRocrailPort = 0,
+        .signalRocrailPort = 31,
         .aspectRocrailPort = {31, 32, 33, 34},
         .aspectLEDPort = {12, 13, 14, 15},
         .aspectLEDMapping = {
