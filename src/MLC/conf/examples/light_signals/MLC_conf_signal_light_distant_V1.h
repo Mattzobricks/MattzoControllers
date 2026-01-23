@@ -238,6 +238,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  , LED_ON   }, // Vr2 (yellow/green, white aspect)
             {LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  }, // blank (off)
         },
+		.fadeLEDduration = 1000,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

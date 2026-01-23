@@ -253,6 +253,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectLEDMapping = {
             {true, false},
             {false, true}},
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -264,6 +265,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectLEDMapping = {
             {true, false},
             {false, true}},
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

@@ -613,7 +613,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // SIGNAL CONFIGURATION
 
 // Number of signals
-#define NUM_SIGNALS 8
+#define NUM_SIGNALS 4
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
 #define NUM_SIGNAL_ASPECTS 4
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
@@ -634,6 +634,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -648,6 +649,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -662,6 +664,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -676,6 +679,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -690,6 +694,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -704,6 +709,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -718,6 +724,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -732,6 +739,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

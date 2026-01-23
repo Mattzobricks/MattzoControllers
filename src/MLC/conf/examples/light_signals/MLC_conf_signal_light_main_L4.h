@@ -234,6 +234,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF  , LED_OFF  , LED_ON   , LED_ON   }, // Hp2 (green and yellow)
             {LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp0 (1 red)
         },
+		.fadeLEDduration = 1000,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

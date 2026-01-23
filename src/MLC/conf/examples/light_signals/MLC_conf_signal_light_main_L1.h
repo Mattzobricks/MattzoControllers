@@ -237,6 +237,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  , LED_ON   , LED_OFF  }, // Hp0+Sh1
             {LED_ON   , LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  , LED_ON   }, // Hp00+Zs1
         },
+		.fadeLEDduration = 1000,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

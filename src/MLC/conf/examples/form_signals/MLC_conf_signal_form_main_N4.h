@@ -211,6 +211,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
     	.aspectRocrailPort = {1, 2},
 		.aspectLEDPort = {},
 		.aspectLEDMapping = {},
+		.fadeLEDduration = 0,
         .servoIndex = {0},
         .aspectServoAngle = {{152, 108}},
         .overshootSensorIndex = -1
