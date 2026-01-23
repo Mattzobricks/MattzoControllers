@@ -624,8 +624,9 @@ void setSignalAspect(int s, int a)
 
 	if (mattzoSignal[s].currentAspect != a) {
 		mattzoSignal[s].aspectActiveSince_ms = millis();
+		mattzoSignal[s].lastAspect = mattzoSignal[s].currentAspect;
+		mattzoSignal[s].currentAspect = a;
 	}
-	mattzoSignal[s].currentAspect = a;
 
 	// output debug messages for all LEDs of the signal
 	for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
@@ -646,44 +647,74 @@ void setSignalAspect(int s, int a)
 	}
 }
 
-// loops through all signals and sets the LEDs to the required state
-// remark: fading is not supported by port extender MCP23017, so a fading feature has not been implemented.
+// returns the required LED state for signal, its aspect and a specific signal LED
 #define PERIOD_BLINK_MS 1000 // period in ms for light action "blink"
 #define PERIOD_FLASH_MS 500	 // period in ms for light action "flash"
+bool getSignalLEDState(int signal, int aspect, int led)
+{
+	bool blinkActive = (millis() - mattzoSignal[signal].aspectActiveSince_ms) % PERIOD_BLINK_MS < PERIOD_BLINK_MS / 2;
+	bool flashActive = (millis() - mattzoSignal[signal].aspectActiveSince_ms) % PERIOD_FLASH_MS < PERIOD_FLASH_MS / 2;
+	int8_t ledLightAction = signalConfiguration[signal].aspectLEDMapping[aspect][led];
+	switch (ledLightAction) {
+	case LED_OFF:
+		return false;
+	case LED_ON:
+		return true;
+	case LED_BLINK:
+		return blinkActive;
+	case LED_BLINK_ALT:
+		return !blinkActive;
+	case LED_FLASH:
+		return flashActive;
+	case LED_FLASH_ALT:
+		return !flashActive;
+	}
+	return false;
+}
+
+// loops through all signals and sets the LEDs to the required state
+// remark: fading is not supported by port extender MCP23017, so fading will not work on MLC mega or other devices using this port extender.
+#define FADING_PROGRESS_MAX 1000 // max value for fading progressm (for internal calculations, changing it will have no effect on anything)
+#define SIGNAL_LED_BRIGHTNESS_MIN 640 // minimum brightness for fading LEDs (to avoid that LED is completely off during fading)
 void signalLoop()
 {
 	for (int s = 0; s < NUM_SIGNALS; s++) {
-		bool blinkActive = (millis() - mattzoSignal[s].aspectActiveSince_ms) % PERIOD_BLINK_MS < PERIOD_BLINK_MS / 2;
-		bool flashActive = (millis() - mattzoSignal[s].aspectActiveSince_ms) % PERIOD_FLASH_MS < PERIOD_FLASH_MS / 2;
-		int a = mattzoSignal[s].currentAspect;
 		// iterate through all configured LEDs for the signal and set it corresponding to the aspect LED matrix
 		for (int l = 0; l < NUM_SIGNAL_LEDS; l++) {
 			int ledPort = signalConfiguration[s].aspectLEDPort[l];
 			if (ledPort >= 0) {
-				int8_t ledLightAction = signalConfiguration[s].aspectLEDMapping[a][l];
-				bool ledState = false;
-				switch (ledLightAction) {
-				case LED_OFF:
-					ledState = false;
-					break;
-				case LED_ON:
-					ledState = true;
-					break;
-				case LED_BLINK:
-					ledState = blinkActive;
-					break;
-				case LED_BLINK_ALT:
-					ledState = !blinkActive;
-					break;
-				case LED_FLASH:
-					ledState = flashActive;
-					break;
-				case LED_FLASH_ALT:
-					ledState = !flashActive;
-					break;
+				bool currentLEDState = getSignalLEDState(s, mattzoSignal[s].currentAspect, l);
+				bool lastLEDState = getSignalLEDState(s, mattzoSignal[s].lastAspect, l);
+				
+				// mcLog2("> Setting signal " + String(s) + ", led index " + String(l) + " to state " + String(currentLEDState), LOG_DEBUG);
+				if (signalConfiguration[s].fadeLEDduration <= 0) {
+					// no fading configured
+					setLED(ledPort, currentLEDState);
+				} else {
+					// fading configured
+					// calculate time since aspect became active
+					int aspectActiveSince_ms = millis() - mattzoSignal[s].aspectActiveSince_ms;
+					// still fading to new state?
+					if (aspectActiveSince_ms < signalConfiguration[s].fadeLEDduration) {
+						// calculate fading progress
+						int fadingProgress = FADING_PROGRESS_MAX * aspectActiveSince_ms / signalConfiguration[s].fadeLEDduration;
+						int brightness;
+						// calculate brightness depending on fading direction
+						if (currentLEDState && !lastLEDState) {
+							// brightness = 512 + 511 * fadingProgress / 1000;
+							brightness = map(fadingProgress, 0, FADING_PROGRESS_MAX, SIGNAL_LED_BRIGHTNESS_MIN, 1023); // fading in
+						} else if (!currentLEDState && lastLEDState) {
+							// brightness = 1023 - 511 * fadingProgress / 1000; // fading out
+							brightness = map(fadingProgress, 0, FADING_PROGRESS_MAX, 1023, SIGNAL_LED_BRIGHTNESS_MIN); // fading out
+						} else {
+							// no change, leave brightness as is.
+							brightness = currentLEDState ? 1023 : 0;
+						}
+						fadeLED(ledPort, brightness);
+					} else {
+						setLED(ledPort, currentLEDState);
+					}
 				}
-				// mcLog2("> Setting signal " + String(s) + ", led index " + String(l) + " to state " + String(ledState), LOG_DEBUG);
-				setLED(ledPort, ledState);
 			}
 		}
 	}
@@ -830,7 +861,6 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState)
 		}
 	}
 }
-
 
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle)

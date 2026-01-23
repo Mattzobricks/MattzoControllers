@@ -40,6 +40,7 @@ struct MattzoServo {
 
 struct MattzoSignal {
 	int currentAspect;						// present aspect of the signal
+	int lastAspect;							// last aspect of the signal. Required for fading calculations
 	unsigned long aspectActiveSince_ms = 0; // time in ms since the current aspect is active
 };
 

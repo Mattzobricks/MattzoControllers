@@ -108,6 +108,13 @@ typedef struct {
 	// mappings between aspects and LEDs (often a diagonal matrix)
 	// true: LED is mapped for this aspect
 	int8_t aspectLEDMapping[MAX_NUM_SIGNAL_ASPECTS][MAX_NUM_SIGNAL_LEDS];
+	// upon state transitions of a signal, the LEDs can slowly fade or brighten up to their new state
+	// this can be used to simulate old conventional light bulps that have a slower state transition than modern LEDs
+	// set to 0 to switch off fading.
+	// set to a value above zero to enable fading.
+	// value is in milliseconds (e.g. 1000 == 1000 ms == 1 second)
+	// fading is presently not supported for blinking and flashing LEDs
+	int fadeLEDduration;
 	// if a servo is configured for this signal (this is the usual case for form signals), this value represents the index of the servo in the SWITCHPORT_PIN array.
 	// -1: no servo configured for this signal
 	int servoIndex[MAX_NUM_SIGNAL_SERVOS];
