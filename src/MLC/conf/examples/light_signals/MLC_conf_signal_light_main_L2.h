@@ -234,6 +234,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_ON   , LED_OFF  , LED_OFF  , LED_OFF  }, // Hp0
             {LED_NOP  , LED_NOP  , LED_NOP  , LED_NOP  }, // unused
         },
+		.fadeLEDduration = 1000,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -250,6 +251,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF  , LED_ON   , LED_ON   , LED_OFF  }, // Vr2 (white aspect)
             {LED_OFF  , LED_OFF  , LED_OFF  , LED_OFF  }, // blank
         },
+		.fadeLEDduration = 1000,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

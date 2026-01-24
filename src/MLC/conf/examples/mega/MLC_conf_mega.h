@@ -787,6 +787,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -801,6 +802,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -815,6 +817,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -829,6 +832,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -843,6 +847,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -857,6 +862,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -871,6 +877,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -885,6 +892,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_FLASH},
             {LED_FLASH, LED_OFF},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {}, 
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

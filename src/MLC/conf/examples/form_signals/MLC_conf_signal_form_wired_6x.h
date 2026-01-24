@@ -243,6 +243,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP},
             {LED_NOP},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {0},
         .aspectServoAngle = {{140, 75, -1}},
         .overshootSensorIndex = -1
@@ -257,6 +258,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP},
             {LED_NOP},
         },
+		.fadeLEDduration = 0,
         .servoIndex = {1},
         .aspectServoAngle = {{140, 75, -1}},
         .overshootSensorIndex = -1
@@ -272,6 +274,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF}, 
             {LED_ON}
         }, 
+		.fadeLEDduration = 0,
         .servoIndex = {2}, 
         .aspectServoAngle = {{60, 5, 130}},
         .overshootSensorIndex = -1
@@ -287,6 +290,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF}, 
             {LED_ON}
         }, 
+		.fadeLEDduration = 0,
         .servoIndex = {3}, 
         .aspectServoAngle = {{60, 5, 130}},
         .overshootSensorIndex = -1
@@ -301,6 +305,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP}, 
             {LED_NOP}
         }, 
+		.fadeLEDduration = 0,
         .servoIndex = {4}, 
         .aspectServoAngle = {{8, 60, 170}},
         .overshootSensorIndex = -1
@@ -315,6 +320,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_NOP}, 
             {LED_NOP}
         }, 
+		.fadeLEDduration = 0,
         .servoIndex = {5}, 
         .aspectServoAngle = {{12, 60, 165}},
         .overshootSensorIndex = -1

@@ -794,6 +794,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_OFF, LED_ON , LED_ON  },
             {LED_ON , LED_OFF, LED_OFF, LED_OFF },
         },
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -809,6 +810,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_OFF, LED_ON , LED_ON  },
             {LED_ON , LED_OFF, LED_OFF, LED_OFF },
         },
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -824,6 +826,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF, LED_ON , LED_ON , LED_OFF },
             {LED_OFF, LED_OFF, LED_OFF, LED_OFF },
         },
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -839,6 +842,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF  , LED_OFF  , LED_NOP  , LED_NOP  }, // blank
             {LED_OFF  , LED_OFF  , LED_NOP  , LED_NOP  }, // blank
         },
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
@@ -854,6 +858,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
             {LED_OFF  , LED_OFF  , LED_NOP  , LED_NOP  }, // blank
             {LED_OFF  , LED_OFF  , LED_NOP  , LED_NOP  }, // blank
         },
+		.fadeLEDduration = 0,
         .servoIndex = {},
         .aspectServoAngle = {},
         .overshootSensorIndex = -1

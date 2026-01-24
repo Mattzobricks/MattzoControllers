@@ -229,6 +229,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 			{true, false, true},
 			{true, false, true},
 		},
+		.fadeLEDduration = 0,
         .servoIndex = {0},
         .aspectServoAngle = {{8, 60, 110}},
         .overshootSensorIndex = -1
