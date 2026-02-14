@@ -271,8 +271,11 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 // Number of boom barrier servos configured for the level crossing
 #define LC_NUM_BOOM_BARRIERS 4
 
-// Number of signals configured for the level crossing
-#define LC_NUM_LEDS 4
+// Number of lights configured for the level crossing
+#define LC_NUM_LEDS 2
+
+// Number of control signals configured for the level crossing
+#define LC_NUM_CONTROL_SIGNALS 2
 
 // Number of level crossing sensors
 #define LC_NUM_SENSORS 4
@@ -292,11 +295,14 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
     .bbAnglePrimaryDown = 85,
     .bbAngleSecondaryUp = 179,
     .bbAngleSecondaryDown = 89,
-    .ledIndex = {0, 1, 2, 3},
+    .ledIndex = {0, 1},
     .ledFlashingPeriod_ms = 1500,
     .ledsFading = true,
     .sensorIndexBoomsClosed = 0,
     .sensorIndexBoomsOpened = 1,
+	.controlSignalLedIndex = {2, 3},
+    .controlSignalFlashingPeriod_ms = 1000,
+    .controlSignalsFading = true,
 
     .autonomousModeEnabled = false,
     .trackReleaseTimeout_ms = 30000,

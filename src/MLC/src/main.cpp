@@ -1168,8 +1168,9 @@ void boomBarrierLoop()
 
 void levelCrossingLightLoop()
 {
-	// alternate all signal LEDs every levelCrossingConfiguration.ledFlashingPeriod_ms / 2 milliseconds
 	unsigned long now_ms = millis();
+
+	// alternate all signal LEDs every levelCrossingConfiguration.ledFlashingPeriod_ms / 2 milliseconds
 	bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || levelCrossing.boomBarrierActionInProgress;
 	bool alternatePeriod = (now_ms % levelCrossingConfiguration.ledFlashingPeriod_ms) > (levelCrossingConfiguration.ledFlashingPeriod_ms / 2);
 
@@ -1185,6 +1186,24 @@ void levelCrossingLightLoop()
 		} else {
 			// flashing lights
 			setLED(levelCrossingConfiguration.ledIndex[s], lightsActive && (((s % 2) == 0) ^ alternatePeriod));
+		}
+	}
+
+	// activate control signals if level crossing is fully closed
+	bool controlSignalActive = levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && !levelCrossing.boomBarrierActionInProgress;
+	bool alternateControlSignalPeriod = (now_ms % levelCrossingConfiguration.controlSignalFlashingPeriod_ms) > (levelCrossingConfiguration.controlSignalFlashingPeriod_ms / 2);
+	for (int cs = 0; cs < LC_NUM_CONTROL_SIGNALS; cs++) {
+		if (levelCrossingConfiguration.controlSignalsFading) {
+			// fading lights
+			int brightness = 0;
+			if (controlSignalActive) {
+				long intermediateBrightness = abs((long)(levelCrossingConfiguration.controlSignalFlashingPeriod_ms / 2 - ((now_ms + levelCrossingConfiguration.controlSignalFlashingPeriod_ms * cs / 2) % levelCrossingConfiguration.controlSignalFlashingPeriod_ms)));
+				brightness = map(intermediateBrightness, 0, levelCrossingConfiguration.controlSignalFlashingPeriod_ms / 2, 512, 1024);
+			}
+			fadeLED(levelCrossingConfiguration.controlSignalLedIndex[cs], brightness);
+		} else {
+			// flashing lights
+			setLED(levelCrossingConfiguration.controlSignalLedIndex[cs], controlSignalActive && alternateControlSignalPeriod);
 		}
 	}
 }

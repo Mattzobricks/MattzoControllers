@@ -199,6 +199,13 @@ typedef struct {
 	// Must be set to -1 to skip virtual "booms opened" sensor event
 	int sensorIndexBoomsOpened;
 
+	// Control signal LED configuration (indices in the SIGNALPORT_PIN array)
+	uint8_t controlSignalLedIndex[MAX_LC_NUM_LEDS];
+	// Control signal flashing period in milliseconds (full cycle).
+	unsigned int controlSignalFlashingPeriod_ms;
+	// Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism)
+	bool controlSignalsFading;
+
 	// AUTONOMOUS MODE CONFIGURATION
 	// Autonomous Mode enabled?
 	bool autonomousModeEnabled;
