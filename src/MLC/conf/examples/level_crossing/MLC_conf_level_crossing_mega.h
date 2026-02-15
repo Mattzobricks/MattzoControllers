@@ -777,9 +777,64 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
     .bbAnglePrimaryDown = 89,
     .bbAngleSecondaryUp = 146,
     .bbAngleSecondaryDown = 89,
-    .ledIndex = {0, 1, 2, 3, 4, 5, 6, 7},
-    .ledFlashingPeriod_ms = 1500,
-    .ledsFading = true,
+	.lightConfiguration = {
+		{
+			.ledIndex = 0,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 1,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 2,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 3,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 4,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 5,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 6,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 7,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+	},
     .sensorIndexBoomsClosed = 16,
     .sensorIndexBoomsOpened = 17,
 
