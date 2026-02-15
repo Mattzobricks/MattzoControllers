@@ -674,7 +674,7 @@ bool getSignalLEDState(int signal, int aspect, int led)
 
 // loops through all signals and sets the LEDs to the required state
 // remark: fading is not supported by port extender MCP23017, so fading will not work on MLC mega or other devices using this port extender.
-#define FADING_PROGRESS_MAX 1000 // max value for fading progressm (for internal calculations, changing it will have no effect on anything)
+#define FADING_PROGRESS_MAX 1000	  // max value for fading progressm (for internal calculations, changing it will have no effect on anything)
 #define SIGNAL_LED_BRIGHTNESS_MIN 640 // minimum brightness for fading LEDs (to avoid that LED is completely off during fading)
 void signalLoop()
 {
@@ -685,7 +685,7 @@ void signalLoop()
 			if (ledPort >= 0) {
 				bool currentLEDState = getSignalLEDState(s, mattzoSignal[s].currentAspect, l);
 				bool lastLEDState = getSignalLEDState(s, mattzoSignal[s].lastAspect, l);
-				
+
 				// mcLog2("> Setting signal " + String(s) + ", led index " + String(l) + " to state " + String(currentLEDState), LOG_DEBUG);
 				if (signalConfiguration[s].fadeLEDduration <= 0) {
 					// no fading configured
@@ -1170,41 +1170,45 @@ void levelCrossingLightLoop()
 {
 	unsigned long now_ms = millis();
 
-	// alternate all signal LEDs every levelCrossingConfiguration.ledFlashingPeriod_ms / 2 milliseconds
-	bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || levelCrossing.boomBarrierActionInProgress;
-	bool alternatePeriod = (now_ms % levelCrossingConfiguration.ledFlashingPeriod_ms) > (levelCrossingConfiguration.ledFlashingPeriod_ms / 2);
+	for (int l = 0; l < LC_NUM_LEDS; l++) {
+		TLevelCrossingLightConfiguration lightConfiguration = levelCrossingConfiguration.lightConfiguration[l];
 
-	for (int s = 0; s < LC_NUM_LEDS; s++) {
-		if (levelCrossingConfiguration.ledsFading) {
+		// Determine activation state for the level crossing light depending on its purpose, the level crossing status and boom barrier action, and set LED accordingly.
+		bool lightActive = false;
+		if (lightConfiguration.purpose == LC_LED_PURPOSE_STOP_LIGHT) {
+			// Street stop light
+			// Active when level crossing is closed or booms are moving (closing or opening)
+			lightActive = levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED || levelCrossing.boomBarrierActionInProgress;
+		} else if (lightConfiguration.purpose == LC_LED_PURPOSE_CONTROL_SIGNAL) {
+			// Control signal light
+			// Active only when level crossing is closed and booms are not moving (fully closed)
+			lightActive = levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && !levelCrossing.boomBarrierActionInProgress;
+		} else {
+			// This should never happen
+			mcLog2("Unknown purpose for level crossing light configuration index " + String(l) + ": " + String(levelCrossingConfiguration.lightConfiguration[l].purpose), LOG_CRIT);
+		}
+
+		// Determine the time elapsed within the present blinking period, while respecting the phase shift for the light (used for alternate blinking).
+		long timeElapsed_ms = (now_ms - lightConfiguration.phaseShift) % lightConfiguration.flashingPeriod_ms;
+
+		if (lightConfiguration.fading) {
 			// fading lights
 			int brightness = 0;
-			if (lightsActive) {
-				long intermediateBrightness = abs((long)(levelCrossingConfiguration.ledFlashingPeriod_ms / 2 - ((now_ms + levelCrossingConfiguration.ledFlashingPeriod_ms * s / 2) % levelCrossingConfiguration.ledFlashingPeriod_ms)));
-				brightness = map(intermediateBrightness, 0, levelCrossingConfiguration.ledFlashingPeriod_ms / 2, -768, 1280);
+			if (lightActive) {
+				// Calculate the brightness depending on the time elapsed within the blinking period.
+				// The brightness is at minimum at the beginning and end of the blinking period,
+				// and at maximum in the middle of the blinking period. The brightness changes linearly between these points.
+				long dimValueRaw = lightConfiguration.flashingPeriod_ms / 2 - abs((long)(timeElapsed_ms - lightConfiguration.flashingPeriod_ms / 2));
+				brightness = map(dimValueRaw, 0, lightConfiguration.flashingPeriod_ms / 2, -768, 1280);
 			}
-			fadeLED(levelCrossingConfiguration.ledIndex[s], brightness);
+			fadeLED(lightConfiguration.ledIndex, brightness);
 		} else {
-			// flashing lights
-			setLED(levelCrossingConfiguration.ledIndex[s], lightsActive && (((s % 2) == 0) ^ alternatePeriod));
-		}
-	}
-
-	// activate control signals if level crossing is fully closed
-	bool controlSignalActive = levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && !levelCrossing.boomBarrierActionInProgress;
-	bool alternateControlSignalPeriod = (now_ms % levelCrossingConfiguration.controlSignalFlashingPeriod_ms) > (levelCrossingConfiguration.controlSignalFlashingPeriod_ms / 2);
-	for (int cs = 0; cs < LC_NUM_CONTROL_SIGNALS; cs++) {
-		if (levelCrossingConfiguration.controlSignalsFading) {
-			// fading lights
-			int brightness = 0;
-			if (controlSignalActive) {
-				long intermediateBrightness = abs((long)(levelCrossingConfiguration.controlSignalFlashingPeriod_ms / 2 - ((now_ms + levelCrossingConfiguration.controlSignalFlashingPeriod_ms * cs / 2) % levelCrossingConfiguration.controlSignalFlashingPeriod_ms)));
-				brightness = map(intermediateBrightness, 0, levelCrossingConfiguration.controlSignalFlashingPeriod_ms / 2, 512, 1024);
-			}
-			fadeLED(levelCrossingConfiguration.controlSignalLedIndex[cs], brightness);
-		} else {
-			// flashing lights
-			setLED(levelCrossingConfiguration.controlSignalLedIndex[cs], controlSignalActive && alternateControlSignalPeriod);
-		}
+			// simple on-off light
+			// determine if blinking light is in first or second half of blinking period
+			bool firstPeriod = timeElapsed_ms < (lightConfiguration.flashingPeriod_ms / 2);
+			// For simple on-off blinking, light is active only in the first half of the blinking period.
+			setLED(lightConfiguration.ledIndex, lightActive && firstPeriod);
+		};
 	}
 }
 
