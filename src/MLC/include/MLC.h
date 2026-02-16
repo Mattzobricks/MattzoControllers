@@ -60,8 +60,8 @@ struct LevelCrossing {
 
 	bool boomBarrierActionInProgress = true;
 	bool closeBoomsImmediately = false;
-	float primaryBoomsAngle = 45; // half up position by default
-	float secondaryBoomsAngle = 45; // half up position by default
+	float primaryBoomsAngle = 90; // up position by default
+	float secondaryBoomsAngle = 90; // up position by default
 	float boomsAngleIncrementPerSec = 0;
 	float primaryBoomsTargetAngle = primaryBoomsAngle;
 	float secondaryBoomsTargetAngle = secondaryBoomsAngle;

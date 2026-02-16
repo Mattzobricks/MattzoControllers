@@ -174,14 +174,21 @@ void mqttConnected()
 void sendAllSensorStates()
 {
 	bool sensorStatesSent = false;
+	
 	for (int s = 0; s < NUM_SENSORS; s++) {
 		if (isPhysicalSensor(s)) {
 			sendSensorEvent2MQTT(s, sensorState[s]);
 			sensorStatesSent = true;
 		}
+		if (sensorStatesSent) {
+			mcLog2("States of all physical sensors sent to MQTT.", LOG_INFO);
+		}
 	}
-	if (sensorStatesSent) {
-		mcLog2("States of all physical sensors sent to MQTT.", LOG_INFO);
+
+	if (LEVEL_CROSSING_CONNECTED) {
+		sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsClosed, levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED);
+		sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsOpened, levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN);
+		mcLog2("States of both virtual level crossing sensors sent to MQTT.", LOG_INFO);
 	}
 }
 
