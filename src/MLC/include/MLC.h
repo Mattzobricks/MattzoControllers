@@ -147,6 +147,7 @@ void mqttConnected();
 void sendAllSensorStates();
 void handleSignalOvershootSensorEvent();
 void sendSensorEvent2MQTT(int sensorIndex, bool sensorState);
+void flipLevelCrossingStatus();
 void levelCrossingCommand(int levelCrossingCommand);
 void basculeBridgeCommand(int bridgeCommand);
 void writeLevelCrossingStatusInfo();

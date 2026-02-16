@@ -171,14 +171,14 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Special forms are remote and virtual sensors (see below)
 
 // Number of sensors connected or connectable to the controller
-#define NUM_SENSORS 2
+#define NUM_SENSORS 3
 
 // A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
 // Remote sensors can be used for level crossings in Autonomous Mode.
 // Set REMOTE_SENSORS_ENABLED to true to generally enable remote sensors.
 // If you do not control a level crossing in Autonomous Mode with this controller, set to false!
-#define REMOTE_SENSORS_ENABLED true
+#define REMOTE_SENSORS_ENABLED false
 
 TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 {
@@ -192,6 +192,13 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
         .pin = -1,
         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
+    },
+
+	// local sensor for flip switch of the level crossing
+    {
+        .pin = D8,
+        .pinType = LOCAL_SENSOR_PIN_TYPE,
+        .remoteMattzoControllerId = -1
     }
 };
 
@@ -201,7 +208,7 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
 
 // Digital output pin to monitor controller operation (typically a LED)
 // Set to false if no status LED is installed
-const bool STATUS_LED_PIN_INSTALLED = true;
+const bool STATUS_LED_PIN_INSTALLED = false;
 // If installed, the pin controlling the status LED
 const uint8_t STATUS_LED_PIN = D8;
 // If installed, set to true to flip high/low state of the status led pin
@@ -312,7 +319,7 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
 		{
 			.ledIndex = 2,
 			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
-			.flashingPeriod_ms = 1007,
+			.flashingPeriod_ms = 993,
 			.phaseShift = 0,
 			.fading = true
 		},
@@ -326,6 +333,7 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
 	},
     .sensorIndexBoomsClosed = 0,
     .sensorIndexBoomsOpened = 1,
+	.sensorIndexFlipSwitch = 2,
 
     .autonomousModeEnabled = false,
     .trackReleaseTimeout_ms = 30000,

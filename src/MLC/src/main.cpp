@@ -1072,6 +1072,16 @@ void fadeLED(int ledIndex, int brightness)
 #endif
 }
 
+// flip level crossing status (usually triggered by a sensor event)
+void flipLevelCrossingStatus()
+{
+	if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN) {
+		levelCrossingCommand(1); // close
+	} else {
+		levelCrossingCommand(0); // open
+	}
+}
+
 // copy level crossing command to level crossing object
 void levelCrossingCommand(int levelCrossingCommand)
 {
@@ -1243,8 +1253,16 @@ void levelCrossingLightLoop()
 // Handle level crossing sensor events
 void handleLevelCrossingSensorEvent(int triggeredSensor)
 {
-	if (!LEVEL_CROSSING_CONNECTED || !levelCrossingConfiguration.autonomousModeEnabled)
+	if (!LEVEL_CROSSING_CONNECTED) return;
+
+	// Check if the sensor event was the flip switch
+	if (triggeredSensor == levelCrossingConfiguration.sensorIndexFlipSwitch) {
+		mcLog2("Level crossing flip switch triggered.", LOG_INFO);
+		flipLevelCrossingStatus();
 		return;
+	}
+
+	if (!levelCrossingConfiguration.autonomousModeEnabled) return;
 
 	mcLog2("Checking if sensor " + String(triggeredSensor) + " is a level crossing sensor...", LOG_DEBUG);
 

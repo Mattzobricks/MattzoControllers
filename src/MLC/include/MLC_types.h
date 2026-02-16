@@ -220,6 +220,10 @@ typedef struct {
 	// Virtual sensor for "booms opened" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have opened.
 	// Must be set to -1 to skip virtual "booms opened" sensor event
 	int sensorIndexBoomsOpened;
+	// Sensor for "flip switch" event (index in the sensorConfiguration array). Might be a local or remote sensor.
+	// This sensor is used to manually trigger the opening or closing of the level crossing, e.g. for testing purposes.
+	// Should be set to -1 if unused.
+	int sensorIndexFlipSwitch;
 
 	// AUTONOMOUS MODE CONFIGURATION
 	// Autonomous Mode enabled?
