@@ -613,7 +613,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // SIGNAL CONFIGURATION
 
 // Number of signals
-#define NUM_SIGNALS 4
+#define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
 #define NUM_SIGNAL_ASPECTS 4
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
@@ -684,7 +684,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
-*/    {
+    {
         .signalRocrailPort = 0,
         .aspectRocrailPort = {41, 42, 43, 44}, 
         .aspectLEDPort = {8, 9}, 
@@ -714,7 +714,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
-    {
+*/    {
         .signalRocrailPort = 0,
         .aspectRocrailPort = {61, 62, 63, 64}, 
         .aspectLEDPort = {12, 13}, 
@@ -757,7 +757,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 #define LC_NUM_BOOM_BARRIERS 4
 
 // Number of signals configured for the level crossing
-#define LC_NUM_LEDS 8
+#define LC_NUM_LEDS 10
 
 // Number of level crossing sensors
 #define LC_NUM_SENSORS 0
@@ -768,18 +768,108 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 TLevelCrossingConfiguration levelCrossingConfiguration = 
 {
     .rocRailPort = 1,
-    .servoIndex = {0, 1, 2, 3},
+	.boomBarrierConfiguration = {
+		{
+			.servoIndex = 0,
+			.isPrimaryBoom = true,
+			.angleUp = 64,
+			.angleDown = 122,
+		},
+		{
+			.servoIndex = 1,
+			.isPrimaryBoom = true,
+			.angleUp = 63,
+			.angleDown = 123,
+		},
+		{
+			.servoIndex = 2,
+			.isPrimaryBoom = false,
+			.angleUp = 148,
+			.angleDown = 89,
+		},
+		{
+			.servoIndex = 3,
+			.isPrimaryBoom = false,
+			.angleUp = 145,
+			.angleDown = 89,
+		},
+	},
     .bbClosingPeriod_ms = 2500,
     .bbClosingDelayPrimary_ms = 2000,
     .bbClosingDelaySecondary_ms = 4000,
     .bbOpeningPeriod_ms = 3000,
-	.bbAnglePrimaryUp = 31,
-    .bbAnglePrimaryDown = 89,
-    .bbAngleSecondaryUp = 146,
-    .bbAngleSecondaryDown = 89,
-    .ledIndex = {0, 1, 2, 3, 4, 5, 6, 7},
-    .ledFlashingPeriod_ms = 1500,
-    .ledsFading = true,
+	.lightConfiguration = {
+		{
+			.ledIndex = 0,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 1,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 2,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 3,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 4,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 5,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 6,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 7,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 8,
+			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
+			.flashingPeriod_ms = 1000,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 10,
+			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
+			.flashingPeriod_ms = 1000,
+			.phaseShift = 0,
+			.fading = false
+		},
+	},
     .sensorIndexBoomsClosed = 16,
     .sensorIndexBoomsOpened = 17,
 

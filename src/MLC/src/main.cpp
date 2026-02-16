@@ -174,14 +174,21 @@ void mqttConnected()
 void sendAllSensorStates()
 {
 	bool sensorStatesSent = false;
+	
 	for (int s = 0; s < NUM_SENSORS; s++) {
 		if (isPhysicalSensor(s)) {
 			sendSensorEvent2MQTT(s, sensorState[s]);
 			sensorStatesSent = true;
 		}
+		if (sensorStatesSent) {
+			mcLog2("States of all physical sensors sent to MQTT.", LOG_INFO);
+		}
 	}
-	if (sensorStatesSent) {
-		mcLog2("States of all physical sensors sent to MQTT.", LOG_INFO);
+
+	if (LEVEL_CROSSING_CONNECTED) {
+		sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsClosed, levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED);
+		sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsOpened, levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN);
+		mcLog2("States of both virtual level crossing sensors sent to MQTT.", LOG_INFO);
 	}
 }
 
@@ -674,7 +681,7 @@ bool getSignalLEDState(int signal, int aspect, int led)
 
 // loops through all signals and sets the LEDs to the required state
 // remark: fading is not supported by port extender MCP23017, so fading will not work on MLC mega or other devices using this port extender.
-#define FADING_PROGRESS_MAX 1000 // max value for fading progressm (for internal calculations, changing it will have no effect on anything)
+#define FADING_PROGRESS_MAX 1000	  // max value for fading progressm (for internal calculations, changing it will have no effect on anything)
 #define SIGNAL_LED_BRIGHTNESS_MIN 640 // minimum brightness for fading LEDs (to avoid that LED is completely off during fading)
 void signalLoop()
 {
@@ -685,7 +692,7 @@ void signalLoop()
 			if (ledPort >= 0) {
 				bool currentLEDState = getSignalLEDState(s, mattzoSignal[s].currentAspect, l);
 				bool lastLEDState = getSignalLEDState(s, mattzoSignal[s].lastAspect, l);
-				
+
 				// mcLog2("> Setting signal " + String(s) + ", led index " + String(l) + " to state " + String(currentLEDState), LOG_DEBUG);
 				if (signalConfiguration[s].fadeLEDduration <= 0) {
 					// no fading configured
@@ -865,21 +872,24 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState)
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle)
 {
-	mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
 	if (servoIndex >= 0 && servoIndex < NUM_SERVOS) {
 		if (servoConfiguration[servoIndex].pinType == 0) {
 			if (!mattzoServo[servoIndex].isAttached) {
 				mcLog2("Attaching servo index " + String(servoIndex) + " and turning to angle " + String(servoAngle), LOG_DEBUG);
 				mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin, DEFAULT_MIN_PULSE_WIDTH, DEFAULT_MAX_PULSE_WIDTH_MS, servoAngle);
 			} else {
-				mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+				if (DEBUG_SERVO_ANGLES) {
+					mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+				}
 				mattzoServo[servoIndex].servo.write(servoAngle);
 			}
 		}
 #if USE_PCA9685
 		else if (servoConfiguration[servoIndex].pinType >= 0x40) {
 			setPCA9685SleepMode(false);
-			mcLog2("Attaching servo index " + String(servoIndex) + " to PCA9685 PWM signal.", LOG_DEBUG);
+			if (DEBUG_SERVO_ANGLES) {
+				mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+			}
 			pca9685[servoConfiguration[servoIndex].pinType - 0x40].setPWM(servoConfiguration[servoIndex].pin, 0, mapAngle2PulseLength(servoAngle));
 		}
 #endif
@@ -1070,10 +1080,10 @@ void levelCrossingCommand(int levelCrossingCommand)
 			// If level crossing operates in autonomous mode, check if a track is occupied
 			if (!levelCrossingConfiguration.autonomousModeEnabled || !lcIsOccupied()) {
 				levelCrossing.levelCrossingStatus = LevelCrossingStatus::OPEN;
-				levelCrossing.servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-				levelCrossing.servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
-				levelCrossing.servoAngleIncrementPerSec = abs((int)(levelCrossingConfiguration.bbAnglePrimaryUp - levelCrossingConfiguration.bbAnglePrimaryDown)) * 1000 / levelCrossingConfiguration.bbOpeningPeriod_ms;
-				mcLog2("Level crossing command OPEN, servo increment " + String(levelCrossing.servoAngleIncrementPerSec) + " deg/s.", LOG_INFO);
+				levelCrossing.primaryBoomsTargetAngle = 90; // up
+				levelCrossing.secondaryBoomsTargetAngle = 90; // up
+				levelCrossing.boomsAngleIncrementPerSec = 90 * 1000 / levelCrossingConfiguration.bbOpeningPeriod_ms;
+				mcLog2("Level crossing command OPEN, boom barrier increment " + String(levelCrossing.boomsAngleIncrementPerSec) + " deg/s.", LOG_INFO);
 				levelCrossing.lastStatusChangeTime_ms = millis();
 				levelCrossing.boomBarrierActionInProgress = true;
 				sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsClosed, false);
@@ -1082,33 +1092,33 @@ void levelCrossingCommand(int levelCrossingCommand)
 	} else if (levelCrossingCommand == 1) { // closed
 		if (levelCrossing.levelCrossingStatus != LevelCrossingStatus::CLOSED) {
 			levelCrossing.levelCrossingStatus = LevelCrossingStatus::CLOSED;
-			levelCrossing.servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryDown;
-			levelCrossing.servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryDown;
-			levelCrossing.servoAngleIncrementPerSec = abs((int)(levelCrossingConfiguration.bbAnglePrimaryUp - levelCrossingConfiguration.bbAnglePrimaryDown)) * 1000 / levelCrossingConfiguration.bbClosingPeriod_ms;
-			mcLog2("Level crossing command CLOSED, servo increment " + String(levelCrossing.servoAngleIncrementPerSec) + " deg/s.", LOG_INFO);
+			levelCrossing.primaryBoomsTargetAngle = 0; // down
+			levelCrossing.secondaryBoomsTargetAngle = 0; // down
+			levelCrossing.boomsAngleIncrementPerSec = 90 * 1000 / levelCrossingConfiguration.bbClosingPeriod_ms;
+			mcLog2("Level crossing command CLOSED, boom barrier increment " + String(levelCrossing.boomsAngleIncrementPerSec) + " deg/s.", LOG_INFO);
 			levelCrossing.lastStatusChangeTime_ms = millis();
 			levelCrossing.closeBoomsImmediately = levelCrossing.boomBarrierActionInProgress; // close booms immediately if booms were not fully open yet.
 			levelCrossing.boomBarrierActionInProgress = true;
 			sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsOpened, false);
 		}
 	} else {
+		// This should never happen
 		mcLog2("Unkown levelCrossing command.", LOG_CRIT);
 	}
 }
 
 void boomBarrierLoop()
 {
-	const bool DEBUG_SERVO_ANGLES = false;
-	const unsigned long BOOM_BARRIER_TICK_MS = 20;
+	const unsigned long BOOM_BARRIER_TICK_MS = 20; // increase servo angle max. every BOOM_BARRIER_TICK_MS milliseconds.
 	unsigned long now_ms = millis();
 
 	if (now_ms < levelCrossing.lastBoomBarrierTick_ms + BOOM_BARRIER_TICK_MS) {
 		return;
 	}
 
-	float servoAngleIncrement = levelCrossing.servoAngleIncrementPerSec * (now_ms - levelCrossing.lastBoomBarrierTick_ms) / 1000;
-	float newServoAnglePrimaryBooms;
-	float newServoAngleSecondaryBooms;
+	float boomsAngleIncrement = levelCrossing.boomsAngleIncrementPerSec * (now_ms - levelCrossing.lastBoomBarrierTick_ms) / 1000;
+	float newBoomsAnglePrimaryBooms;
+	float newBoomsAngleSecondaryBooms;
 
 	levelCrossing.lastBoomBarrierTick_ms = now_ms;
 
@@ -1118,45 +1128,63 @@ void boomBarrierLoop()
 
 	// Move primary booms?
 	if (
-		(
-			levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms) &&
-		levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
-		if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {
-			newServoAnglePrimaryBooms = min(levelCrossing.servoAnglePrimaryBooms + servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
+			(
+				levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || 
+				levelCrossing.closeBoomsImmediately || 
+				now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms
+			)
+			&&
+				levelCrossing.primaryBoomsAngle != levelCrossing.primaryBoomsTargetAngle
+		) {
+		
+		// Increase booms angle incrementally until target angle is reached.
+		if (levelCrossing.primaryBoomsAngle < levelCrossing.primaryBoomsTargetAngle) {
+			newBoomsAnglePrimaryBooms = min(levelCrossing.primaryBoomsAngle + boomsAngleIncrement, levelCrossing.primaryBoomsTargetAngle);
 		} else {
-			newServoAnglePrimaryBooms = max(levelCrossing.servoAnglePrimaryBooms - servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
+			newBoomsAnglePrimaryBooms = max(levelCrossing.primaryBoomsAngle - boomsAngleIncrement, levelCrossing.primaryBoomsTargetAngle);
 		}
 		if (DEBUG_SERVO_ANGLES) {
-			mcLog2("Primary booms angle: " + String(newServoAnglePrimaryBooms), LOG_DEBUG);
+			mcLog2("Primary booms angle: " + String(newBoomsAnglePrimaryBooms), LOG_DEBUG);
 		}
 
-		levelCrossing.servoAnglePrimaryBooms = newServoAnglePrimaryBooms;
+		levelCrossing.primaryBoomsAngle = newBoomsAnglePrimaryBooms;
 	}
 
 	// Move secondary booms?
 	if (
-		(
-			levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelaySecondary_ms) &&
-		levelCrossing.servoAngleSecondaryBooms != levelCrossing.servoTargetAngleSecondaryBooms) {
-		// Yepp, move secondary booms!
-		if (levelCrossing.servoAngleSecondaryBooms < levelCrossing.servoTargetAngleSecondaryBooms) {
-			newServoAngleSecondaryBooms = min(levelCrossing.servoAngleSecondaryBooms + servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
+			(
+				levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN ||
+				levelCrossing.closeBoomsImmediately ||
+				now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelaySecondary_ms
+			)
+		&&
+			levelCrossing.secondaryBoomsAngle != levelCrossing.secondaryBoomsTargetAngle
+		) {
+
+		// Increase booms angle incrementally until target angle is reached.
+		if (levelCrossing.secondaryBoomsAngle < levelCrossing.secondaryBoomsTargetAngle) {
+			newBoomsAngleSecondaryBooms = min(levelCrossing.secondaryBoomsAngle + boomsAngleIncrement, levelCrossing.secondaryBoomsTargetAngle);
 		} else {
-			newServoAngleSecondaryBooms = max(levelCrossing.servoAngleSecondaryBooms - servoAngleIncrement, levelCrossing.servoTargetAngleSecondaryBooms);
+			newBoomsAngleSecondaryBooms = max(levelCrossing.secondaryBoomsAngle - boomsAngleIncrement, levelCrossing.secondaryBoomsTargetAngle);
 		}
 		if (DEBUG_SERVO_ANGLES) {
-			mcLog2("Secondary booms angle: " + String(newServoAngleSecondaryBooms), LOG_DEBUG);
+			mcLog2("Secondary booms angle: " + String(newBoomsAngleSecondaryBooms), LOG_DEBUG);
 		}
 
-		levelCrossing.servoAngleSecondaryBooms = newServoAngleSecondaryBooms;
+		levelCrossing.secondaryBoomsAngle = newBoomsAngleSecondaryBooms;
 	}
 
 	for (int bb = 0; bb < LC_NUM_BOOM_BARRIERS; bb++) {
-		setServoAngle(levelCrossingConfiguration.servoIndex[bb], (bb < 2) ? levelCrossing.servoAnglePrimaryBooms : levelCrossing.servoAngleSecondaryBooms);
+		float boomsAngle = levelCrossingConfiguration.boomBarrierConfiguration[bb].isPrimaryBoom ? levelCrossing.primaryBoomsAngle : levelCrossing.secondaryBoomsAngle;
+		int servoAngle = map(boomsAngle, 0, 90, levelCrossingConfiguration.boomBarrierConfiguration[bb].angleDown, levelCrossingConfiguration.boomBarrierConfiguration[bb].angleUp);
+		setServoAngle(levelCrossingConfiguration.boomBarrierConfiguration[bb].servoIndex, servoAngle);
 	}
 
 	// Final boom barrier position reached?
-	if ((levelCrossing.servoAnglePrimaryBooms == levelCrossing.servoTargetAnglePrimaryBooms) && (levelCrossing.servoAngleSecondaryBooms == levelCrossing.servoTargetAngleSecondaryBooms)) {
+	if (
+			(levelCrossing.primaryBoomsAngle == levelCrossing.primaryBoomsTargetAngle) &&
+			(levelCrossing.secondaryBoomsAngle == levelCrossing.secondaryBoomsTargetAngle)
+		) {
 		levelCrossing.boomBarrierActionInProgress = false;
 		if (levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN) {
 			sendSensorEvent2MQTT(levelCrossingConfiguration.sensorIndexBoomsOpened, true);
@@ -1168,24 +1196,47 @@ void boomBarrierLoop()
 
 void levelCrossingLightLoop()
 {
-	// alternate all signal LEDs every levelCrossingConfiguration.ledFlashingPeriod_ms / 2 milliseconds
 	unsigned long now_ms = millis();
-	bool lightsActive = (levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED) || levelCrossing.boomBarrierActionInProgress;
-	bool alternatePeriod = (now_ms % levelCrossingConfiguration.ledFlashingPeriod_ms) > (levelCrossingConfiguration.ledFlashingPeriod_ms / 2);
 
-	for (int s = 0; s < LC_NUM_LEDS; s++) {
-		if (levelCrossingConfiguration.ledsFading) {
+	for (int l = 0; l < LC_NUM_LEDS; l++) {
+		TLevelCrossingLightConfiguration lightConfiguration = levelCrossingConfiguration.lightConfiguration[l];
+
+		// Determine activation state for the level crossing light depending on its purpose, the level crossing status and boom barrier action, and set LED accordingly.
+		bool lightActive = false;
+		if (lightConfiguration.purpose == LC_LED_PURPOSE_STOP_LIGHT) {
+			// Street stop light
+			// Active when level crossing is closed or booms are moving (closing or opening)
+			lightActive = levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED || levelCrossing.boomBarrierActionInProgress;
+		} else if (lightConfiguration.purpose == LC_LED_PURPOSE_CONTROL_SIGNAL) {
+			// Control signal light
+			// Active only when level crossing is closed and booms are not moving (fully closed)
+			lightActive = levelCrossing.levelCrossingStatus == LevelCrossingStatus::CLOSED && !levelCrossing.boomBarrierActionInProgress;
+		} else {
+			// This should never happen
+			mcLog2("Unknown purpose for level crossing light configuration index " + String(l) + ": " + String(levelCrossingConfiguration.lightConfiguration[l].purpose), LOG_CRIT);
+		}
+
+		// Determine the time elapsed within the present blinking period, while respecting the phase shift for the light (used for alternate blinking).
+		long timeElapsed_ms = (now_ms - lightConfiguration.phaseShift) % lightConfiguration.flashingPeriod_ms;
+
+		if (lightConfiguration.fading) {
 			// fading lights
 			int brightness = 0;
-			if (lightsActive) {
-				long intermediateBrightness = abs((long)(levelCrossingConfiguration.ledFlashingPeriod_ms / 2 - ((now_ms + levelCrossingConfiguration.ledFlashingPeriod_ms * s / 2) % levelCrossingConfiguration.ledFlashingPeriod_ms)));
-				brightness = map(intermediateBrightness, 0, levelCrossingConfiguration.ledFlashingPeriod_ms / 2, -768, 1280);
+			if (lightActive) {
+				// Calculate the brightness depending on the time elapsed within the blinking period.
+				// The brightness is at minimum at the beginning and end of the blinking period,
+				// and at maximum in the middle of the blinking period. The brightness changes linearly between these points.
+				long dimValueRaw = lightConfiguration.flashingPeriod_ms / 2 - abs((long)(timeElapsed_ms - lightConfiguration.flashingPeriod_ms / 2));
+				brightness = map(dimValueRaw, 0, lightConfiguration.flashingPeriod_ms / 2, 0, 1600);
 			}
-			fadeLED(levelCrossingConfiguration.ledIndex[s], brightness);
+			fadeLED(lightConfiguration.ledIndex, brightness);
 		} else {
-			// flashing lights
-			setLED(levelCrossingConfiguration.ledIndex[s], lightsActive && (((s % 2) == 0) ^ alternatePeriod));
-		}
+			// simple on-off light
+			// determine if blinking light is in first or second half of blinking period
+			bool firstPeriod = timeElapsed_ms < (lightConfiguration.flashingPeriod_ms / 2);
+			// For simple on-off blinking, light is active only in the first half of the blinking period.
+			setLED(lightConfiguration.ledIndex, lightActive && firstPeriod);
+		};
 	}
 }
 

@@ -21,6 +21,8 @@
 #define SERVO_DETACH_DELAY 1000
 // Maximum time that the detach procedure procedure will wait until the PWM signal is low and therefore ready to be detached (for directly connected servos only)
 #define MAX_WAIT_FOR_LOW_MS 100
+// Debug servo angles (if set to true, many messages will be generated for level crossings)
+#define DEBUG_SERVO_ANGLES false
 
 struct MattzoServo {
 	Servo servo; // Servo object to control servos
@@ -60,11 +62,11 @@ struct LevelCrossing {
 
 	bool boomBarrierActionInProgress = true;
 	bool closeBoomsImmediately = false;
-	float servoAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-	float servoAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
-	float servoAngleIncrementPerSec = 0;
-	float servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-	float servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
+	float primaryBoomsAngle = 90; // up position by default
+	float secondaryBoomsAngle = 90; // up position by default
+	float boomsAngleIncrementPerSec = 0;
+	float primaryBoomsTargetAngle = primaryBoomsAngle;
+	float secondaryBoomsTargetAngle = secondaryBoomsAngle;
 	unsigned long lastBoomBarrierTick_ms = 0;
 
 	unsigned int sensorEventCounter[MAX_LC_NUM_TRACKS][2][2];

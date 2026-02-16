@@ -18,6 +18,7 @@ typedef struct {
 	bool detachAfterUsage;
 } TServoConfiguration;
 
+
 typedef struct {
 	// Digital output pin for signal LED (pins like D0, D1 etc. for ESP-8266 I/O pins, numbers like 0, 1 etc. for pins of the PCA9685)
 	uint8_t pin;
@@ -32,6 +33,7 @@ typedef struct {
 	// 0x42: LED port on the 3rd PCA9685 etc.
 	uint8_t pinType;
 } TLEDConfiguration;
+
 
 // Constants for type of digital input pins for sensors
 // 0   : local sensor on the ESP-8266 (D0 .. D8)
@@ -59,6 +61,7 @@ typedef struct {
 	int remoteMattzoControllerId;
 } TSensorConfiguration;
 
+
 typedef struct SwitchConfiguration {
 	int rocRailPort;
 	int servoIndex;
@@ -75,6 +78,7 @@ typedef struct SwitchConfiguration {
 	bool triggerSensors;
 	int sensorIndex[2];
 } TSwitchConfiguration;
+
 
 // Constants for LED light action
 #define LED_NOP -1		// do nothing. Useful is a signal does not use all LEDs in the LED array
@@ -125,17 +129,55 @@ typedef struct {
 	int overshootSensorIndex;
 } TSignalConfiguration;
 
+
+// Led purpose for level crossing configuration
+#define LC_LED_PURPOSE_STOP_LIGHT 0
+#define LC_LED_PURPOSE_CONTROL_SIGNAL 1
 // Max number of boom barrier servos configured for the level crossing
 #define MAX_LC_NUM_BOOM_BARRIERS 4
 
 // Max number of signals configured for the level crossing
-#define MAX_LC_NUM_LEDS 8
+#define MAX_LC_NUM_LEDS 10
 
 // Max number of level crossing sensors
 #define MAX_LC_NUM_SENSORS 8
 
 // Max number of tracks (required for autonomous mode only)
 #define MAX_LC_NUM_TRACKS 4
+
+// Boom barrier configuration for the level crossing
+typedef struct {
+	// Servo index (index in the servoConfiguration array)
+	int servoIndex;
+	// true: primary boom barrier; false: secondary boom barrier.
+	// Secondary boom barriers can be configured to close with a delay after the primary boom barriers have started closing.
+	bool isPrimaryBoom;
+	// Servo angle for "up" and "down" position of the boom barrier
+	// Approximate up (down) angles for TrixBrix boom barrier servos to start with:
+	// - If servo is connected directly to the ESP8266 (e.g. MLC mini):
+	// -- Primary booms: 0 (90)
+	// -- Secondary booms: 180 (90)
+	// - If servo is connected to PCA9685 (e.g. MLC mega):
+	// -- Primary booms: 31 (89)
+	// -- Secondary booms: 145 (89)
+	// - Angles are for right-hand traffic. For left-hand traffic, use the angles of the primary booms for the sceondary booms and vice versa.
+	int angleUp;
+	int angleDown;
+} TLevelCrossingBoomBarrierConfiguration;
+
+// Light configuration (crossing light or control signal) for the level crossing
+typedef struct {
+	// LED index (index in the ledConfiguration array)
+	int ledIndex;
+	// Purpose of LED (crossing light or control signal)
+	int purpose;
+	// Flashing period in milliseconds (full cycle).
+	unsigned int flashingPeriod_ms;
+	// Phase shift for flashing LEDs in milliseconds (most often used to alternate the flashing of different LEDs)
+	unsigned int phaseShift;
+	// Set to true to enable fading (brightens and fades lights gradually for enhanced realism)
+	bool fading;
+} TLevelCrossingLightConfiguration;
 
 // Sensors (required for autonomous mode only)
 typedef struct {
@@ -156,9 +198,7 @@ typedef struct {
 	int rocRailPort;
 
 	// BOOM BARRIER CONFIGURATION
-	// Servo ports (indices in the SWITCHPORT_PIN array)
-	// servo 1 and 2 represents primary barriers, servo 3 and subsequent servos represents secondary barriers
-	uint8_t servoIndex[MAX_LC_NUM_BOOM_BARRIERS];
+	TLevelCrossingBoomBarrierConfiguration boomBarrierConfiguration[MAX_LC_NUM_BOOM_BARRIERS];
 
 	// Timings
 	// Closing timespan for all boom barriers
@@ -169,27 +209,9 @@ typedef struct {
 	unsigned int bbClosingDelaySecondary_ms;
 	// Opening timespan for all boom barriers
 	unsigned int bbOpeningPeriod_ms;
-	// Servo angles for "up" and "down" positions
-	// Approximate up (down) angles for TrixBrix boom barrier servos to start with:
-	// - If servo is connected directly to the ESP8266 (e.g. MLC mini):
-	// -- Primary booms: 0 (90)
-	// -- Secondary booms: 180 (90)
-	// - If servo is connected to PCA9685 (e.g. MLC mega):
-	// -- Primary booms: 31 (89)
-	// -- Secondary booms: 145 (89)
-	// - Angles are for right-hand traffic. For left-hand traffic, use the angles of the primary booms for the sceondary booms and vice versa.
-	unsigned int bbAnglePrimaryUp;
-	unsigned int bbAnglePrimaryDown;
-	unsigned int bbAngleSecondaryUp;
-	unsigned int bbAngleSecondaryDown;
 
-	// FLASHING LIGHT (LED) CONFIGURATION
-	// Signal ports (indices in the SIGNALPORT_PIN array)
-	uint8_t ledIndex[MAX_LC_NUM_LEDS];
-	// Signal flashing period in milliseconds (full cycle).
-	unsigned int ledFlashingPeriod_ms;
-	// Set to true to enable signal fading (brightens and fades lights gradually for enhanced realism)
-	bool ledsFading;
+	// LIGHT CONFIGURATION
+	TLevelCrossingLightConfiguration lightConfiguration[MAX_LC_NUM_LEDS];
 
 	// VIRTUAL SENSOR CONFIGURATION
 	// Virtual sensor for "booms closed" feedback event (index in the sensorConfiguration array). This virtual sensor is triggered after the boom barriers have closed.
@@ -207,6 +229,7 @@ typedef struct {
 	// Sensors
 	TLevelCrossingSensorConfiguration sensorConfiguration[MAX_LC_NUM_SENSORS];
 } TLevelCrossingConfiguration;
+
 
 typedef struct {
 	// Servo pin for bridge motor control
@@ -260,6 +283,7 @@ typedef struct {
 	// Bridge leafs
 	TBridgeLeafConfiguration leafConfiguration[MAX_NUM_BASCULE_BRIDGE_LEAFS];
 } TBridgeConfiguration;
+
 
 enum struct SpeedometerSpeedUnit {
 	STUDS_PER_SECOND,

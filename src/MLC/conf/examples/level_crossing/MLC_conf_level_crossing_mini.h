@@ -171,7 +171,7 @@ TLEDConfiguration ledConfiguration[NUM_LEDS] =
 // Special forms are remote and virtual sensors (see below)
 
 // Number of sensors connected or connectable to the controller
-#define NUM_SENSORS 6
+#define NUM_SENSORS 2
 
 // A special form of a sensor is the "remote sensor"
 // Remote sensors are not electrically connected to this controller, they are triggered via Rocrail commands.
@@ -192,29 +192,7 @@ TSensorConfiguration sensorConfiguration[NUM_SENSORS] =
         .pin = -1,
         .pinType = VIRTUAL_SENSOR_PIN_TYPE,
         .remoteMattzoControllerId = -1
-    },
-
-    // 4 remote sensors that make the level crossing close/open (autonomous mode only)
-    {
-        .pin = 1,
-        .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 12345
-    },
-    {
-        .pin = 2,
-        .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 12345
-    },
-    {
-        .pin = 3,
-        .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 12345
-    },
-    {
-        .pin = 4,
-        .pinType = REMOTE_SENSOR_PIN_TYPE,
-        .remoteMattzoControllerId = 12345
-    },
+    }
 };
 
 
@@ -271,11 +249,14 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 // Number of boom barrier servos configured for the level crossing
 #define LC_NUM_BOOM_BARRIERS 4
 
-// Number of signals configured for the level crossing
+// Number of lights configured for the level crossing
 #define LC_NUM_LEDS 4
 
+// Number of control signals configured for the level crossing
+#define LC_NUM_CONTROL_SIGNALS 2
+
 // Number of level crossing sensors
-#define LC_NUM_SENSORS 4
+#define LC_NUM_SENSORS 0
 
 // Number of tracks leading over the level crossing
 #define LC_NUM_TRACKS 2
@@ -283,50 +264,72 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 TLevelCrossingConfiguration levelCrossingConfiguration =
 {
     .rocRailPort = 1,
-    .servoIndex = {0, 1, 2, 3},
-    .bbClosingPeriod_ms = 2500,
+	.boomBarrierConfiguration = {
+		{
+			.servoIndex = 0,
+			.isPrimaryBoom = true,
+			.angleUp = 6,
+			.angleDown = 123,
+		},
+		{
+			.servoIndex = 1,
+			.isPrimaryBoom = true,
+			.angleUp = 4,
+			.angleDown = 121,
+		},
+		{
+			.servoIndex = 2,
+			.isPrimaryBoom = false,
+			.angleUp = 175,
+			.angleDown = 56,
+		},
+		{
+			.servoIndex = 3,
+			.isPrimaryBoom = false,
+			.angleUp = 169,
+			.angleDown = 56,
+		},
+	},
+	.bbClosingPeriod_ms = 2500,
     .bbClosingDelayPrimary_ms = 2000,
     .bbClosingDelaySecondary_ms = 4000,
     .bbOpeningPeriod_ms = 3000,
-    .bbAnglePrimaryUp = 0,
-    .bbAnglePrimaryDown = 85,
-    .bbAngleSecondaryUp = 179,
-    .bbAngleSecondaryDown = 89,
-    .ledIndex = {0, 1, 2, 3},
-    .ledFlashingPeriod_ms = 1500,
-    .ledsFading = true,
+	.lightConfiguration = {
+		{
+			.ledIndex = 0,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 0,
+			.fading = true
+		},
+		{
+			.ledIndex = 1,
+			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
+			.flashingPeriod_ms = 1500,
+			.phaseShift = 750,
+			.fading = true
+		},
+		{
+			.ledIndex = 2,
+			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
+			.flashingPeriod_ms = 1007,
+			.phaseShift = 0,
+			.fading = true
+		},
+		{
+			.ledIndex = 3,
+			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
+			.flashingPeriod_ms = 1007,
+			.phaseShift = 0,
+			.fading = true
+		}
+	},
     .sensorIndexBoomsClosed = 0,
     .sensorIndexBoomsOpened = 1,
 
     .autonomousModeEnabled = false,
     .trackReleaseTimeout_ms = 30000,
-    .sensorConfiguration = 
-    {
-        {
-            .sensorIndex = 2,
-            .track = 0,
-            .purpose = 2,
-            .orientation = 0
-        },
-        {
-            .sensorIndex = 3,
-            .track = 0,
-            .purpose = 2,
-            .orientation = 1
-        },
-        {
-            .sensorIndex = 4,
-            .track = 1,
-            .purpose = 2,
-            .orientation = 0
-        },
-        {
-            .sensorIndex = 5,
-            .track = 1,
-            .purpose = 2,
-            .orientation = 1
-        }
-    }
+    .sensorConfiguration = {}
 };
 
 
