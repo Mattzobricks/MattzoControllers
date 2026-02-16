@@ -269,10 +269,10 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
     .bbClosingDelayPrimary_ms = 2000,
     .bbClosingDelaySecondary_ms = 4000,
     .bbOpeningPeriod_ms = 3000,
-    .bbAnglePrimaryUp = 0,
-    .bbAnglePrimaryDown = 85,
-    .bbAngleSecondaryUp = 179,
-    .bbAngleSecondaryDown = 89,
+    .bbAnglePrimaryUp = 10,
+    .bbAnglePrimaryDown = 122,
+    .bbAngleSecondaryUp = 170,
+	.bbAngleSecondaryDown = 51,
 	.lightConfiguration = {
 		{
 			.ledIndex = 0,

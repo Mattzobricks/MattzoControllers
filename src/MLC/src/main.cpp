@@ -1118,9 +1118,14 @@ void boomBarrierLoop()
 
 	// Move primary booms?
 	if (
-		(
-			levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || levelCrossing.closeBoomsImmediately || now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms) &&
-		levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms) {
+			(
+				levelCrossing.levelCrossingStatus == LevelCrossingStatus::OPEN || 
+				levelCrossing.closeBoomsImmediately || 
+				now_ms >= levelCrossing.lastStatusChangeTime_ms + levelCrossingConfiguration.bbClosingDelayPrimary_ms
+			)
+			&&
+				levelCrossing.servoAnglePrimaryBooms != levelCrossing.servoTargetAnglePrimaryBooms
+		) {
 		if (levelCrossing.servoAnglePrimaryBooms < levelCrossing.servoTargetAnglePrimaryBooms) {
 			newServoAnglePrimaryBooms = min(levelCrossing.servoAnglePrimaryBooms + servoAngleIncrement, levelCrossing.servoTargetAnglePrimaryBooms);
 		} else {
@@ -1199,7 +1204,7 @@ void levelCrossingLightLoop()
 				// The brightness is at minimum at the beginning and end of the blinking period,
 				// and at maximum in the middle of the blinking period. The brightness changes linearly between these points.
 				long dimValueRaw = lightConfiguration.flashingPeriod_ms / 2 - abs((long)(timeElapsed_ms - lightConfiguration.flashingPeriod_ms / 2));
-				brightness = map(dimValueRaw, 0, lightConfiguration.flashingPeriod_ms / 2, -768, 1280);
+				brightness = map(dimValueRaw, 0, lightConfiguration.flashingPeriod_ms / 2, 0, 1600);
 			}
 			fadeLED(lightConfiguration.ledIndex, brightness);
 		} else {
