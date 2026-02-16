@@ -872,21 +872,24 @@ void handleRemoteSensorEvent(int mcId, int sensorAddress, bool sensorState)
 // sets the servo arm to a desired angle
 void setServoAngle(int servoIndex, int servoAngle)
 {
-	mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
 	if (servoIndex >= 0 && servoIndex < NUM_SERVOS) {
 		if (servoConfiguration[servoIndex].pinType == 0) {
 			if (!mattzoServo[servoIndex].isAttached) {
 				mcLog2("Attaching servo index " + String(servoIndex) + " and turning to angle " + String(servoAngle), LOG_DEBUG);
 				mattzoServo[servoIndex].servo.attach(servoConfiguration[servoIndex].pin, DEFAULT_MIN_PULSE_WIDTH, DEFAULT_MAX_PULSE_WIDTH_MS, servoAngle);
 			} else {
-				mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+				if (DEBUG_SERVO_ANGLES) {
+					mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+				}
 				mattzoServo[servoIndex].servo.write(servoAngle);
 			}
 		}
 #if USE_PCA9685
 		else if (servoConfiguration[servoIndex].pinType >= 0x40) {
 			setPCA9685SleepMode(false);
-			mcLog2("Attaching servo index " + String(servoIndex) + " to PCA9685 PWM signal.", LOG_DEBUG);
+			if (DEBUG_SERVO_ANGLES) {
+				mcLog2("Turning servo index " + String(servoIndex) + " to angle " + String(servoAngle), LOG_DEBUG);
+			}
 			pca9685[servoConfiguration[servoIndex].pinType - 0x40].setPWM(servoConfiguration[servoIndex].pin, 0, mapAngle2PulseLength(servoAngle));
 		}
 #endif
@@ -1106,7 +1109,6 @@ void levelCrossingCommand(int levelCrossingCommand)
 
 void boomBarrierLoop()
 {
-	const bool DEBUG_SERVO_ANGLES = false;
 	const unsigned long BOOM_BARRIER_TICK_MS = 20; // increase servo angle max. every BOOM_BARRIER_TICK_MS milliseconds.
 	unsigned long now_ms = millis();
 

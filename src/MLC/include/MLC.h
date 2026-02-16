@@ -21,6 +21,8 @@
 #define SERVO_DETACH_DELAY 1000
 // Maximum time that the detach procedure procedure will wait until the PWM signal is low and therefore ready to be detached (for directly connected servos only)
 #define MAX_WAIT_FOR_LOW_MS 100
+// Debug servo angles (if set to true, many messages will be generated for level crossings)
+#define DEBUG_SERVO_ANGLES false
 
 struct MattzoServo {
 	Servo servo; // Servo object to control servos
