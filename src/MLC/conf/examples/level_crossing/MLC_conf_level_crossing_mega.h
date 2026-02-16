@@ -613,7 +613,7 @@ TSwitchConfiguration switchConfiguration[NUM_SWITCHES] =
 // SIGNAL CONFIGURATION
 
 // Number of signals
-#define NUM_SIGNALS 4
+#define NUM_SIGNALS 2
 // Maximum number of signal aspects (e.g. 2 for red/green, 3 for red/green/yellow etc.)
 #define NUM_SIGNAL_ASPECTS 4
 // Number of signal LEDs (usually equal to NUM_SIGNAL_ASPECTS)
@@ -684,7 +684,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
-*/    {
+    {
         .signalRocrailPort = 0,
         .aspectRocrailPort = {41, 42, 43, 44}, 
         .aspectLEDPort = {8, 9}, 
@@ -714,7 +714,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
         .aspectServoAngle = {},
         .overshootSensorIndex = -1
     },
-    {
+*/    {
         .signalRocrailPort = 0,
         .aspectRocrailPort = {61, 62, 63, 64}, 
         .aspectLEDPort = {12, 13}, 
@@ -757,7 +757,7 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 #define LC_NUM_BOOM_BARRIERS 4
 
 // Number of signals configured for the level crossing
-#define LC_NUM_LEDS 8
+#define LC_NUM_LEDS 10
 
 // Number of level crossing sensors
 #define LC_NUM_SENSORS 0
@@ -772,25 +772,25 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
 		{
 			.servoIndex = 0,
 			.isPrimaryBoom = true,
-			.angleUp = 31,
-			.angleDown = 89,
+			.angleUp = 64,
+			.angleDown = 122,
 		},
 		{
 			.servoIndex = 1,
 			.isPrimaryBoom = true,
-			.angleUp = 31,
-			.angleDown = 89,
+			.angleUp = 63,
+			.angleDown = 123,
 		},
 		{
 			.servoIndex = 2,
 			.isPrimaryBoom = false,
-			.angleUp = 146,
+			.angleUp = 148,
 			.angleDown = 89,
 		},
 		{
 			.servoIndex = 3,
 			.isPrimaryBoom = false,
-			.angleUp = 146,
+			.angleUp = 145,
 			.angleDown = 89,
 		},
 	},
@@ -853,6 +853,20 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
 			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
 			.flashingPeriod_ms = 1500,
 			.phaseShift = 750,
+			.fading = false
+		},
+		{
+			.ledIndex = 8,
+			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
+			.flashingPeriod_ms = 1000,
+			.phaseShift = 0,
+			.fading = false
+		},
+		{
+			.ledIndex = 10,
+			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
+			.flashingPeriod_ms = 1000,
+			.phaseShift = 0,
 			.fading = false
 		},
 	},
