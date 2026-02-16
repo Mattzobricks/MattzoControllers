@@ -60,11 +60,11 @@ struct LevelCrossing {
 
 	bool boomBarrierActionInProgress = true;
 	bool closeBoomsImmediately = false;
-	float servoAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-	float servoAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
-	float servoAngleIncrementPerSec = 0;
-	float servoTargetAnglePrimaryBooms = levelCrossingConfiguration.bbAnglePrimaryUp;
-	float servoTargetAngleSecondaryBooms = levelCrossingConfiguration.bbAngleSecondaryUp;
+	float primaryBoomsAngle = 45; // half up position by default
+	float secondaryBoomsAngle = 45; // half up position by default
+	float boomsAngleIncrementPerSec = 0;
+	float primaryBoomsTargetAngle = primaryBoomsAngle;
+	float secondaryBoomsTargetAngle = secondaryBoomsAngle;
 	unsigned long lastBoomBarrierTick_ms = 0;
 
 	unsigned int sensorEventCounter[MAX_LC_NUM_TRACKS][2][2];

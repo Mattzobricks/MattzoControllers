@@ -768,15 +768,36 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] =
 TLevelCrossingConfiguration levelCrossingConfiguration = 
 {
     .rocRailPort = 1,
-    .servoIndex = {0, 1, 2, 3},
+	.boomBarrierConfiguration = {
+		{
+			.servoIndex = 0,
+			.isPrimaryBoom = true,
+			.angleUp = 31,
+			.angleDown = 89,
+		},
+		{
+			.servoIndex = 1,
+			.isPrimaryBoom = true,
+			.angleUp = 31,
+			.angleDown = 89,
+		},
+		{
+			.servoIndex = 2,
+			.isPrimaryBoom = false,
+			.angleUp = 146,
+			.angleDown = 89,
+		},
+		{
+			.servoIndex = 3,
+			.isPrimaryBoom = false,
+			.angleUp = 146,
+			.angleDown = 89,
+		},
+	},
     .bbClosingPeriod_ms = 2500,
     .bbClosingDelayPrimary_ms = 2000,
     .bbClosingDelaySecondary_ms = 4000,
     .bbOpeningPeriod_ms = 3000,
-	.bbAnglePrimaryUp = 31,
-    .bbAnglePrimaryDown = 89,
-    .bbAngleSecondaryUp = 146,
-    .bbAngleSecondaryDown = 89,
 	.lightConfiguration = {
 		{
 			.ledIndex = 0,

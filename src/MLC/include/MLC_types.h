@@ -145,6 +145,26 @@ typedef struct {
 // Max number of tracks (required for autonomous mode only)
 #define MAX_LC_NUM_TRACKS 4
 
+// Boom barrier configuration for the level crossing
+typedef struct {
+	// Servo index (index in the servoConfiguration array)
+	int servoIndex;
+	// true: primary boom barrier; false: secondary boom barrier.
+	// Secondary boom barriers can be configured to close with a delay after the primary boom barriers have started closing.
+	bool isPrimaryBoom;
+	// Servo angle for "up" and "down" position of the boom barrier
+	// Approximate up (down) angles for TrixBrix boom barrier servos to start with:
+	// - If servo is connected directly to the ESP8266 (e.g. MLC mini):
+	// -- Primary booms: 0 (90)
+	// -- Secondary booms: 180 (90)
+	// - If servo is connected to PCA9685 (e.g. MLC mega):
+	// -- Primary booms: 31 (89)
+	// -- Secondary booms: 145 (89)
+	// - Angles are for right-hand traffic. For left-hand traffic, use the angles of the primary booms for the sceondary booms and vice versa.
+	int angleUp;
+	int angleDown;
+} TLevelCrossingBoomBarrierConfiguration;
+
 // Light configuration (crossing light or control signal) for the level crossing
 typedef struct {
 	// LED index (index in the ledConfiguration array)
@@ -178,9 +198,7 @@ typedef struct {
 	int rocRailPort;
 
 	// BOOM BARRIER CONFIGURATION
-	// Servo ports (indices in the SWITCHPORT_PIN array)
-	// servo 1 and 2 represents primary barriers, servo 3 and subsequent servos represents secondary barriers
-	uint8_t servoIndex[MAX_LC_NUM_BOOM_BARRIERS];
+	TLevelCrossingBoomBarrierConfiguration boomBarrierConfiguration[MAX_LC_NUM_BOOM_BARRIERS];
 
 	// Timings
 	// Closing timespan for all boom barriers
@@ -191,19 +209,6 @@ typedef struct {
 	unsigned int bbClosingDelaySecondary_ms;
 	// Opening timespan for all boom barriers
 	unsigned int bbOpeningPeriod_ms;
-	// Servo angles for "up" and "down" positions
-	// Approximate up (down) angles for TrixBrix boom barrier servos to start with:
-	// - If servo is connected directly to the ESP8266 (e.g. MLC mini):
-	// -- Primary booms: 0 (90)
-	// -- Secondary booms: 180 (90)
-	// - If servo is connected to PCA9685 (e.g. MLC mega):
-	// -- Primary booms: 31 (89)
-	// -- Secondary booms: 145 (89)
-	// - Angles are for right-hand traffic. For left-hand traffic, use the angles of the primary booms for the sceondary booms and vice versa.
-	unsigned int bbAnglePrimaryUp;
-	unsigned int bbAnglePrimaryDown;
-	unsigned int bbAngleSecondaryUp;
-	unsigned int bbAngleSecondaryDown;
 
 	// LIGHT CONFIGURATION
 	TLevelCrossingLightConfiguration lightConfiguration[MAX_LC_NUM_LEDS];

@@ -264,15 +264,36 @@ TSignalConfiguration signalConfiguration[NUM_SIGNALS] = {};
 TLevelCrossingConfiguration levelCrossingConfiguration =
 {
     .rocRailPort = 1,
-    .servoIndex = {0, 1, 2, 3},
-    .bbClosingPeriod_ms = 2500,
+	.boomBarrierConfiguration = {
+		{
+			.servoIndex = 0,
+			.isPrimaryBoom = true,
+			.angleUp = 10,
+			.angleDown = 122,
+		},
+		{
+			.servoIndex = 1,
+			.isPrimaryBoom = true,
+			.angleUp = 10,
+			.angleDown = 122,
+		},
+		{
+			.servoIndex = 2,
+			.isPrimaryBoom = false,
+			.angleUp = 170,
+			.angleDown = 50,
+		},
+		{
+			.servoIndex = 3,
+			.isPrimaryBoom = false,
+			.angleUp = 170,
+			.angleDown = 50,
+		},
+	},
+	.bbClosingPeriod_ms = 2500,
     .bbClosingDelayPrimary_ms = 2000,
     .bbClosingDelaySecondary_ms = 4000,
     .bbOpeningPeriod_ms = 3000,
-    .bbAnglePrimaryUp = 10,
-    .bbAnglePrimaryDown = 122,
-    .bbAngleSecondaryUp = 170,
-	.bbAngleSecondaryDown = 51,
 	.lightConfiguration = {
 		{
 			.ledIndex = 0,
@@ -291,14 +312,14 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
 		{
 			.ledIndex = 2,
 			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
-			.flashingPeriod_ms = 1000,
+			.flashingPeriod_ms = 1007,
 			.phaseShift = 0,
 			.fading = true
 		},
 		{
 			.ledIndex = 3,
 			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
-			.flashingPeriod_ms = 1000,
+			.flashingPeriod_ms = 1007,
 			.phaseShift = 0,
 			.fading = true
 		}
