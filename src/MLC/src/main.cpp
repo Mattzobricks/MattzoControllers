@@ -1227,7 +1227,7 @@ void levelCrossingLightLoop()
 		}
 
 		// Determine the time elapsed within the present blinking period, while respecting the phase shift for the light (used for alternate blinking).
-		long timeElapsed_ms = (now_ms - lightConfiguration.phaseShift) % lightConfiguration.flashingPeriod_ms;
+		long timeElapsed_ms = (now_ms - lightConfiguration.phaseShift_ms) % lightConfiguration.flashingPeriod_ms;
 
 		if (lightConfiguration.fading) {
 			// fading lights

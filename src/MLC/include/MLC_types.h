@@ -174,7 +174,7 @@ typedef struct {
 	// Flashing period in milliseconds (full cycle).
 	unsigned int flashingPeriod_ms;
 	// Phase shift for flashing LEDs in milliseconds (most often used to alternate the flashing of different LEDs)
-	unsigned int phaseShift;
+	unsigned int phaseShift_ms;
 	// Set to true to enable fading (brightens and fades lights gradually for enhanced realism)
 	bool fading;
 } TLevelCrossingLightConfiguration;

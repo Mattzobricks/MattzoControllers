@@ -306,28 +306,28 @@ TLevelCrossingConfiguration levelCrossingConfiguration =
 			.ledIndex = 0,
 			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
 			.flashingPeriod_ms = 1500,
-			.phaseShift = 0,
+			.phaseShift_ms = 0,
 			.fading = true
 		},
 		{
 			.ledIndex = 1,
 			.purpose = LC_LED_PURPOSE_STOP_LIGHT,
 			.flashingPeriod_ms = 1500,
-			.phaseShift = 750,
+			.phaseShift_ms = 750,
 			.fading = true
 		},
 		{
 			.ledIndex = 2,
 			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
 			.flashingPeriod_ms = 993,
-			.phaseShift = 0,
+			.phaseShift_ms = 0,
 			.fading = true
 		},
 		{
 			.ledIndex = 3,
 			.purpose = LC_LED_PURPOSE_CONTROL_SIGNAL,
 			.flashingPeriod_ms = 1007,
-			.phaseShift = 0,
+			.phaseShift_ms = 0,
 			.fading = true
 		}
 	},
