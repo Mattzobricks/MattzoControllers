@@ -302,16 +302,16 @@ void setup()
 #ifdef WIRED
 	else if (networkConfig->networkType == "wired") {
 		// the old wired interface, using those pin numbers
-		/* 	WIRED_RESET_P 26
+		/* 	WIRED_RESET_P 26 -> 4
 			WIRED_CS_P 5
-			WIRED_INT 25
-			WIRED_MOSI 23
-			WIRED_MISO 19
+			WIRED_INT 25	-> 33
+			WIRED_MOSI 23	-> 19
+			WIRED_MISO 19	-> 23
 			WIRED_SCK 18
 		*/
-		if (!ETH.begin(ETH_PHY_W5500, 1, 5, 25, 26,
+		if (!ETH.begin(ETH_PHY_W5500, 1, 5, 33, 4,
 					   SPI3_HOST,
-					   18, 19, 23)) {
+					   18, 23, 19)) {
 			// wired connection failed
 			log4MC::error(" \"wired\" hardware fault, or cable problem... cannot continue.");
 		}
